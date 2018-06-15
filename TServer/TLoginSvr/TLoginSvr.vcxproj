@@ -93,8 +93,10 @@
       <ProxyFileName>TLoginSvr_p.c</ProxyFileName>
     </Midl>
     <PostBuildEvent>
-      <Message>등록하고 있습니다.</Message>
-      <Command>"$(TargetPath)" /RegServer</Command>
+      <Message>
+      </Message>
+      <Command>
+      </Command>
     </PostBuildEvent>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
