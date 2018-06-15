@@ -1,0 +1,5 @@
+SCC = This is a Source Code Control file
+
+[TInstallSvr.vcproj]
+SCC_Aux_Path = "E:\TProject"
+SCC_Project_Name = "$/TServer/TInstallSvr", NTDBAAAA
