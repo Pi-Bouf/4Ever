@@ -9,3 +9,5 @@ tglobal.bak
 
 # TServer
 TServer/.vs/*
+TServer/TNetLib/Debug/*
+TServer/lib/*
