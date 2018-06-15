@@ -678,7 +678,7 @@ DWORD CTLoginSvrModule::OnCS_CHANNELLIST_REQ( CSqlDatabase *pDB, LPMAPTGROUP pGR
 			<< GetCheckFilePoint(pUser)
 			<< BYTE( pUser->m_vCHAR.size() );
 
-		for(i=0; i< pUser->m_vCHAR.size(); i++)
+		for(int i=0; i< pUser->m_vCHAR.size(); i++)
 		{
 			(*pMSG)
 				<< pUser->m_vCHAR[i]->m_dwCharID

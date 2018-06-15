@@ -6,8 +6,12 @@ TProtocol/*
 tgame.bak
 tglobal.bak
 
-
 # TServer
 TServer/.vs/*
+TServer/Services/
+TServer/lib/TNetLib.lib
+TServer/lib/TNetLibd.lib
 TServer/TNetLib/Debug/*
-TServer/lib/*
+TServer/TNetLib/Release/*
+TServer/TLoginSvr/Debug/*
+TServer/TLoginSvr/Release/*
