@@ -1,29 +1,48 @@
-// TLoginSvr.cpp : WinMain의 구현입니다.
-
 #include "stdafx.h"
 #include "TLoginSvr.h"
 #include "TLoginSvrModule.h"
 #include <fstream>
 #include <iostream>
-
-CTLoginSvrModule _AtlModule;
+#include "SimpleIni.h"
 
 INT64 dwKey2  = 463737125;
 
 
-
-extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, 
-                                LPTSTR /*lpCmdLine*/, int nShowCmd)
+void main()
 {
-    return _AtlModule.WinMain(nShowCmd);
-}
+	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	SetConsoleTextAttribute(hConsole, 14);
+	cout << endl;
+	cout << " #################################################################### " << endl;
+	cout << " #         .o    .oooooo..o     .                                   # " << endl;
+	cout << " #       .d88   d8P'    `Y8   .o8                                   # " << endl;
+	cout << " #     .d'888   Y88bo.      .o888oo  .ooooo.  oooo d8b oooo    ooo  # " << endl;
+	cout << " #   .d'  888    `\"Y8888o.    888   d88' `88b `888\"\"8P  `88.  .8'   # " << endl;
+	cout << " #   88ooo888oo      `\"Y88b   888   888   888  888       `88..8'    # " << endl;
+	cout << " #        888   oo     .d8P   888 . 888   888  888        `888'     # " << endl;
+	cout << " #       o888o  8\"\"88888P'    \"888\" `Y8bod8P' d888b        .8'      # " << endl;
+	SetConsoleTextAttribute(hConsole, 13);
+	cout << " #       TLOGIN SERVER";
+	SetConsoleTextAttribute(hConsole, 14);
+	cout << "                                 .o..P'       # " << endl;
+	SetConsoleTextAttribute(hConsole, 11);
+	cout << " #       Version: 1.0.1";
+	SetConsoleTextAttribute(hConsole, 14);
+	cout << "                                `Y8P'        # " << endl;
+	cout << " #################################################################### " << endl << endl;
 
+	CTLoginSvrModule ct = CTLoginSvrModule();
+	ct.StartServer();
+
+	int i = 0;
+	cin >> i;
+}
 
 CTLoginSvrModule::CTLoginSvrModule()
 {
-	memset( m_szDBPasswd, 0, ONE_KBYTE);
-	memset( m_szDBUserID, 0, ONE_KBYTE);
-	memset( m_szDSN,	  0, ONE_KBYTE);
+	timeNow = time(0);
+	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	LogInfo("Welcome on TLogin Server !");
 
 	m_wPort		= DEF_LOGINPORT;
 	m_bNumWorker= 0;
@@ -31,7 +50,6 @@ CTLoginSvrModule::CTLoginSvrModule()
 	m_dlCheckFile = 0;
 	m_hExecFile = INVALID_HANDLE_VALUE;
 
-	memset( m_szLogServerIP, 0, ONE_KBYTE);
 	m_wLogServerPORT = 0;
 
 	m_pDebugSocket = new CDebugSocket();
@@ -74,6 +92,20 @@ CTLoginSvrModule::~CTLoginSvrModule()
 
 }
 
+void CTLoginSvrModule::LogInfo(string text)
+{
+	tm *ltm = localtime(&timeNow);
+	SetConsoleTextAttribute(hConsole, 10);
+	cout << "[" << ltm->tm_hour << ":" << ltm->tm_min << ":" << ltm->tm_sec << "] ==> " << text << endl;
+}
+
+void CTLoginSvrModule::LogError(string text)
+{
+	tm *ltm = localtime(&timeNow);
+	SetConsoleTextAttribute(hConsole, 4);
+	cout << "[" << ltm->tm_hour << ":" << ltm->tm_min << ":" << ltm->tm_sec << "] ==> " << text << endl;
+}
+
 void CTLoginSvrModule::OnERROR( DWORD dwErrorCode)
 {
 }
@@ -101,30 +133,28 @@ LPTGROUP CTLoginSvrModule::FindGroup( LPMAPTGROUP pGROUP, BYTE bGroupID)
 	return NULL;
 }
 
-HRESULT CTLoginSvrModule::PreMessageLoop( int nShowCmd)
+void CTLoginSvrModule::StartServer()
 {
-	DWORD dwResult = OnEnter();
+	DWORD dwResult = StartUp();
 
 	if(dwResult)
 	{
 		OnERROR(dwResult);
-		return E_FAIL;
 	}
-	m_dwThreadID = GetCurrentThreadId();
-
-	return CAtlServiceModuleT<CTLoginSvrModule,IDS_SERVICENAME>::PreMessageLoop(nShowCmd);
 }
 
 HRESULT CTLoginSvrModule::PostMessageLoop()
 {
 	OnExit();
-	return CAtlServiceModuleT<CTLoginSvrModule,IDS_SERVICENAME>::PostMessageLoop();
+
+	return 0;
 }
 
-DWORD CTLoginSvrModule::OnEnter()
+DWORD CTLoginSvrModule::StartUp()
 {
 //	ULONG addr = inet_addr("79.110.88.47");
 
+	LogInfo("Staring Up...");
 	DWORD dwResult = LoadConfig();
 	if(dwResult)
 		return dwResult;
@@ -188,148 +218,72 @@ void CTLoginSvrModule::OnExit()
  */
 DWORD CTLoginSvrModule::LoadConfig()
 {
-	//Load config from registry
-	DWORD dwLength;
-	DWORD dwValue;
-	HKEY hKey;
+	LogInfo("Load config from TLogin.ini file");
 
-	CString strRegKey;
-	strRegKey.Empty();
+	CSimpleIniA ini;
+	ini.SetUnicode();
+	ini.LoadFile(".\\TLogin.ini");
 
-#ifdef _DEBUG
-	HKEY hOpenKey = HKEY_CURRENT_USER;
-	strRegKey.Format(_T("software\\%s"), m_szServiceName);
-#else
-	HKEY hOpenKey = HKEY_LOCAL_MACHINE;
-	strRegKey.Format(_T("SYSTEM\\CurrentControlSet\\Services\\%s\\Config"), m_szServiceName);
-#endif
+	m_szDBPasswd = ini.GetValue("TLoginConfig", "DBPasswd", "1234");
+	m_szDBUserID = ini.GetValue("TLoginConfig", "DBUser", "sa");
+	m_szDSN = ini.GetValue("TLoginConfig", "DSN", "TGLOBAL_GSP");
+	m_bServerID = ini.GetValue("TLoginConfig", "ServerID", "1");
+	m_wPort = ini.GetLongValue("TLoginConfig", "LoginPort", 5336);
+	m_szLogServerIP = ini.GetValue("TLoginConfig", "LogIP", "127.0.0.1");
+	m_wLogServerPORT = stoi(ini.GetValue("TLoginConfig", "LogPort", "7000"));
 
-	int nERROR = RegCreateKey( hOpenKey, strRegKey, &hKey);
-	if( nERROR != ERROR_SUCCESS )
-		return EC_INITSERVICE_OPENREG;
-
-	// Load game database password
-	dwLength = ONE_KBYTE;
-	nERROR = RegQueryValueEx( 
-		hKey, 
-		_T("DBPasswd"), 
-		NULL, 
-		NULL, 
-		(LPBYTE) &m_szDBPasswd, 
-		&dwLength);
-
-	if( nERROR != ERROR_SUCCESS )
-		return EC_INITSERVICE_PASSWDNOTASSIGNED;
-
-	// Load DB user ID
-	dwLength = ONE_KBYTE;
-	nERROR = RegQueryValueEx( 
-		hKey, 
-		_T("DBUser"), 
-		NULL, 
-		NULL, (LPBYTE) &m_szDBUserID, 
-		&dwLength);
-
-	if( nERROR != ERROR_SUCCESS )
-		return EC_INITSERVICE_PASSWDNOTASSIGNED;
-
-	// Load account database DSN
-	dwLength = ONE_KBYTE;
-	nERROR = RegQueryValueEx( 
-		hKey, 
-		_T("DSN"), 
-		NULL, 
-		NULL, 
-		(LPBYTE) &m_szDSN, 
-		&dwLength);
-
-	if( nERROR != ERROR_SUCCESS )
-		return EC_INITSERVICE_DSNNOTASSIGNED;
-
-	// Load server ID
-	dwLength = sizeof(DWORD);
-	nERROR = RegQueryValueEx(
-		hKey,
-		_T("ServerID"),
-		NULL,
-		NULL,
-		(LPBYTE) &dwValue,
-		&dwLength);
-
-	if( nERROR != ERROR_SUCCESS )
-		return EC_INITSERVICE_SVRIDNOTASSIGNED;
-	else
-		m_bServerID = (BYTE) dwValue;
-
-	// Load listen port
-	dwLength = sizeof(DWORD);
-	nERROR = RegQueryValueEx(
-		hKey,
-		_T("Port"),
-		NULL,
-		NULL,
-		(LPBYTE) &dwValue,
-		&dwLength);
-
-	if( nERROR != ERROR_SUCCESS )
-		return EC_INITSERVICE_PORTNOTASSIGNED;
-	else
-		m_wPort = (WORD) dwValue;
-
-
-#ifdef	DEF_UDPLOG
-	
-    //	Load LogServer UDP IP
-	dwLength = ONE_KBYTE;
-	nERROR = RegQueryValueEx( 
-		hKey, 
-		_T("LogIP"), 
-		NULL, 
-		NULL, 
-		(LPBYTE) &m_szLogServerIP, 
-		&dwLength);
-
-	if( nERROR != ERROR_SUCCESS )
-	{
-		LogEvent(_T("Can't Find LogServer IP"));
-
-		return EC_INITSERVICE_DSNNOTASSIGNED;
-	}
-
-
-	//	Load LogServer UDP PORT
-	dwLength = sizeof(DWORD);
-	nERROR = RegQueryValueEx(
-		hKey,
-		_T("LogPort"),
-		NULL,
-		NULL,
-		(LPBYTE) &dwValue,
-		&dwLength);
-
-	if( nERROR != ERROR_SUCCESS )
-	{
-		LogEvent(_T("Can't Find LogServer PORT"));
-
-		return EC_INITSERVICE_PORTNOTASSIGNED;
-	}
-	else
-	{
-		m_wLogServerPORT = (WORD) dwValue;
-	}   
-
-#endif	DEF_UDPLOG
+	LogInfo("Data from TLogin.ini:");
+	SetConsoleTextAttribute(hConsole, 11);
+	cout << "  ###################################" << endl;
+	cout << "  # + DSN:       ";
+	SetConsoleTextAttribute(hConsole, 7);
+	cout << m_szDSN << endl;
+	SetConsoleTextAttribute(hConsole, 11);
+	cout << "  # + DBUser:    ";
+	SetConsoleTextAttribute(hConsole, 7);
+	cout << m_szDBUserID << endl;
+	SetConsoleTextAttribute(hConsole, 11);
+	cout << "  # + DBPasswd:  ";
+	SetConsoleTextAttribute(hConsole, 7);
+	cout << m_szDBPasswd << endl;
+	SetConsoleTextAttribute(hConsole, 11);
+	cout << "  # + LoginPort: ";
+	SetConsoleTextAttribute(hConsole, 7);
+	cout << m_wPort << endl;
+	SetConsoleTextAttribute(hConsole, 11);
+	cout << "  # + ServerID:  ";
+	SetConsoleTextAttribute(hConsole, 7);
+	cout << m_bServerID << endl;
+	SetConsoleTextAttribute(hConsole, 11);
+	cout << "  # + LogIP:     ";
+	SetConsoleTextAttribute(hConsole, 7);
+	cout << m_szLogServerIP << endl;
+	SetConsoleTextAttribute(hConsole, 11);
+	cout << "  # + LogPort:   ";
+	SetConsoleTextAttribute(hConsole, 7);
+	cout << m_wLogServerPORT << endl;
+	SetConsoleTextAttribute(hConsole, 11);
+	cout << "  ###################################" << endl;
 
 	return EC_NOERROR;
 }
 
 DWORD CTLoginSvrModule::InitDB( CSqlDatabase *pDB)
 {
-	if(!pDB->Open( m_szDSN, m_szDBUserID, m_szDBPasswd))
+	LogInfo("Database connection...");
+	if (!pDB->Open(m_szDSN, m_szDBUserID, m_szDBPasswd)) {
+		LogError("Connection error ! Check your DSN, DBUser and DBPasswd !");
+		cout << endl;
+		LogError("1: Start the 'SQL Server' service");
+		LogError("2: check your ODBC configuration (64 bits AND 32 bits)");
+		LogError("3: check if you have... a database in your server ? :)");
 		return EC_INITSERVICE_DBOPENFAILED;
+	}
 
-	if(!InitQueryTLoginSvr(pDB))
+	if (!InitQueryTLoginSvr(pDB)) {
+		LogError("Connection error ! Can't init query on database connection !");
 		return EC_INITSERVICE_PREPAREQUERY;
+	}
 
 	return EC_NOERROR;
 }
@@ -543,9 +497,10 @@ DWORD CTLoginSvrModule::InitNetwork()
 
 	InitializeCriticalSectionAndSpinCount(&m_csLI, 4000);
 
-	if( !m_pDebugSocket->Initialize( m_szLogServerIP, m_wLogServerPORT) )
+	char * m_szLogServerIPTemp = const_cast<char*>(m_szLogServerIP);
+	if( !m_pDebugSocket->Initialize(m_szLogServerIPTemp, m_wLogServerPORT) )
 	{
-		LogEvent("DebugSocket could not be initializised!");
+		LogInfo("DebugSocket could not be initializised!");
 
 		return EC_INITSERVICE_UDPSOCKETFAILED;
 	}
@@ -553,9 +508,9 @@ DWORD CTLoginSvrModule::InitNetwork()
 	//	Initialize UDP
 #ifdef DEF_UDPLOG
 
-	if( !m_pUdpSocket->Initialize( m_szLogServerIP, m_wLogServerPORT) )
+	if( !m_pUdpSocket->Initialize(m_szLogServerIPTemp, m_wLogServerPORT) )
 	{
-		LogEvent("Fail then Initialize UDP ");
+		LogInfo("Fail then Initialize UDP ");
 
 		return EC_INITSERVICE_UDPSOCKETFAILED;
 	}
@@ -606,7 +561,7 @@ DWORD CTLoginSvrModule::ControlThread()
 			{
 			case COMP_ACCEPT	:
 				if(!WaitForConnect())
-					LogEvent(_T("WaitForConnect : Error"));
+					LogInfo(_T("WaitForConnect : Error"));
 
 				break;
 			}
@@ -617,10 +572,10 @@ DWORD CTLoginSvrModule::ControlThread()
 			{
 			case COMP_ACCEPT	:
 				if(!Accept())
-					LogEvent(_T("Accept : Error"));
+					LogInfo(_T("Accept : Error"));
 
 				if(!WaitForConnect())
-					LogEvent(_T("WaitForConnect : Error"));
+					LogInfo(_T("WaitForConnect : Error"));
 
 				break;
 
@@ -760,11 +715,8 @@ DWORD CTLoginSvrModule::WorkThread()
 	if(dwResult)
 	{
 		OnERROR(dwResult);
-		PostThreadMessage(
-			m_dwThreadID,
-			WM_QUIT, 0, 0);
 
-		LogEvent(_T("Game ODBC Connect Error"));
+		LogInfo(_T("Game ODBC Connect Error"));
 		return 0;
 	}
 
@@ -772,10 +724,6 @@ DWORD CTLoginSvrModule::WorkThread()
 	if(dwResult)
 	{
 		OnERROR(dwResult);
-		PostThreadMessage(
-			m_dwThreadID,
-			WM_QUIT, 0, 0);
-
 		return 0;
 	}
 
@@ -1065,7 +1013,8 @@ DWORD CTLoginSvrModule::OnReceive( CSqlDatabase *pDB, LPMAPTGROUP pGROUP, CTUser
 {
 	if(packet.GetSize() == MAX_PACKET_SIZE)
 	{
-		LogEvent("Overflow Message %d",packet.GetID());
+
+		LogInfo("Overflow Message " + packet.GetID());
 		return EC_SESSION_INVALIDMSG;
 	}
 

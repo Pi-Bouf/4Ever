@@ -6,7 +6,7 @@
 
 
  /* File created by MIDL compiler version 8.00.0603 */
-/* at Fri Jun 15 21:53:24 2018
+/* at Sat Jun 16 00:30:07 2018
  */
 /* Compiler settings for TLoginSvr.idl:
     Oicf, W1, Zp8, env=Win32 (32b run), target_arch=X86 8.00.0603 
