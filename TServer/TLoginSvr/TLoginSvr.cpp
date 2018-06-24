@@ -7,7 +7,6 @@
 
 INT64 dwKey2  = 463737125;
 
-
 void main()
 {
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -34,7 +33,7 @@ void main()
 	CTLoginSvrModule ct = CTLoginSvrModule();
 	ct.StartServer();
 
-	int i = 0;
+	int i;
 	cin >> i;
 }
 
@@ -238,7 +237,7 @@ void CTLoginSvrModule::OnExit()
 /*
  *	LoadConfig()
  *
- *	- Get Server Config from registry
+ *	- Get Server Config from .ini
  */
 DWORD CTLoginSvrModule::LoadConfig()
 {
@@ -251,7 +250,7 @@ DWORD CTLoginSvrModule::LoadConfig()
 	m_szDBPasswd = ini.GetValue("TLoginConfig", "DBPasswd", "popo1234");
 	m_szDBUserID = ini.GetValue("TLoginConfig", "DBUser", "4Admin");
 	m_szDSN = ini.GetValue("TLoginConfig", "DSN", "TGLOBAL_GSP");
-	m_bServerID = ini.GetValue("TLoginConfig", "ServerID", "1");
+	m_bServerID = ini.GetLongValue("TLoginConfig", "ServerID", 1);
 	m_wPort = ini.GetLongValue("TLoginConfig", "LoginPort", 5336);
 	m_szLogServerIP = ini.GetValue("TLoginConfig", "LogIP", "127.0.0.1");
 	m_wLogServerPORT = stoi(ini.GetValue("TLoginConfig", "LogPort", "7000"));
@@ -294,7 +293,7 @@ DWORD CTLoginSvrModule::LoadConfig()
 
 DWORD CTLoginSvrModule::InitDB( CSqlDatabase *pDB)
 {
-	if (!pDB->Open(m_szDSN, m_szDBUserID, m_szDBPasswd))
+	if (!pDB->Open(m_szDSN.c_str(), m_szDBUserID.c_str(), m_szDBPasswd.c_str()))
 		return EC_INITSERVICE_DBOPENFAILED;
 
 	if (!InitQueryTLoginSvr(pDB))
@@ -515,7 +514,7 @@ DWORD CTLoginSvrModule::InitNetwork()
 
 	InitializeCriticalSectionAndSpinCount(&m_csLI, 4000);
 
-	char * m_szLogServerIPTemp = const_cast<char*>(m_szLogServerIP);
+	char * m_szLogServerIPTemp = const_cast<char*>(m_szLogServerIP.c_str());
 	if( !m_pDebugSocket->Initialize(m_szLogServerIPTemp, m_wLogServerPORT) )
 	{
 		LogInfo("DebugSocket could not be initializised!");

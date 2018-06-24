@@ -18,11 +18,11 @@ protected:
 
 protected:
 	time_t timeNow;
-	const char * m_szDBUserID;
-	const char * m_szDBPasswd;
-	const char * m_szDSN;
+	string m_szDBUserID;
+	string m_szDBPasswd;
+	string m_szDSN;
 
-	const char * m_bServerID;
+	int m_bServerID;
 	WORD m_wPort;
 	BYTE  m_bNation;
 
@@ -46,7 +46,7 @@ protected:
 	
 	MAPEVENTINFO m_mapEVENT;
 
-	const char * m_szLogServerIP;
+	string m_szLogServerIP;
 	int m_wLogServerPORT;
 
 	CDebugSocket *m_pDebugSocket;
