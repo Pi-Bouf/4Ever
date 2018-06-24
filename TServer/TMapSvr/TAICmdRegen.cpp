@@ -1,6 +1,7 @@
 #include "StdAfx.h"
 #include "TMapSvr.h"
 #include "TMapSvrModule.h"
+#include <iostream>
 
 
 CTAICmdRegen::CTAICmdRegen()
@@ -68,7 +69,7 @@ BYTE CTAICmdRegen::ExecAI( CTMonster *pMON, DWORD dwEventHost, DWORD dwRHId, BYT
 						pMON->m_pMON = _AtlModule.FindTMonster(pMON->m_pSPAWN->m_pSPAWN->m_vMAPMON[i]->m_wMonID);
 
 						if(!pMON->m_pMON)
-							_AtlModule.LogEvent("%d Monster have no data in TMONSTERCHART", pMON->m_pSPAWN->m_pSPAWN->m_vMAPMON[i]->m_wMonID);
+							cout << pMON->m_pSPAWN->m_pSPAWN->m_vMAPMON[i]->m_wMonID << " Monster have no data in TMONSTERCHART" << endl;
 
 						pMON->m_pTLEVEL = _AtlModule.FindTLevel(pMON->m_pMON->m_bLevel);
 						pMON->m_pTCLASS = _AtlModule.FindTClass(pMON->m_pMON->m_bClass);
@@ -77,7 +78,7 @@ BYTE CTAICmdRegen::ExecAI( CTMonster *pMON, DWORD dwEventHost, DWORD dwRHId, BYT
 
 						if(!pMON->m_pATTR)
 						{
-							_AtlModule.LogEvent("%d Monster have no ATTR data in TMONATTRCHART", pMON->m_pSPAWN->m_pSPAWN->m_vMAPMON[i]->m_wMonID);
+							cout << pMON->m_pSPAWN->m_pSPAWN->m_vMAPMON[i]->m_wMonID << "Monster have no ATTR data in TMONATTRCHART" << endl;
 							ATLTRACE(_T("REGEN ATTR NULL ID:%d ATTR ID:%d\n"), pMON->m_pMON->m_wID, MAKELONG(pMON->m_pMON->m_wMonAttr, pMON->m_pMON->m_bLevel));
 							return FALSE;
 						}

@@ -78,7 +78,7 @@
       <DelayLoadDLLs />
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <GenerateMapFile>false</GenerateMapFile>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <ImportLibrary>$(OutDir)TMapSvr.lib</ImportLibrary>
       <TargetMachine>MachineX86</TargetMachine>
     </Link>

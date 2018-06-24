@@ -8,10 +8,12 @@
 
 DWORD CTMapSvrModule::OnSM_QUITSERVICE_REQ( LPPACKETBUF pBUF)
 {
+	/*
 	LogEvent(_T("SM_QUITSERVICE_REQ detected !!"));
 	if(m_bService)
 		SetServiceStatus(SERVICE_STOP_PENDING);
 	PostThreadMessage( m_dwThreadID, WM_QUIT, 0, 0);
+	*/
 
 	return EC_NOERROR;
 }
@@ -604,7 +606,7 @@ DWORD CTMapSvrModule::OnSM_VALIDMAPSESSION_REQ(LPPACKETBUF pBUF)
 	pBUF->m_packet
 		>> dwUserID;
 
-	LogEvent("Works!");
+	cout << "Unknown Message: Works!" << endl;
 
 	return EC_NOERROR;
 }
@@ -1171,7 +1173,7 @@ DWORD CTMapSvrModule::OnMW_CONRESULT_REQ( LPPACKETBUF pBUF)
 
 	if(bResult == CN_SUCCESS && !pPlayer->InitCharInfo())
 	{
-		LogEvent("Tutorial Error %d, %d, %d, %d, %d, %d", pPlayer->m_dwID, pPlayer->m_wMapID, pPlayer->m_bStartAct, pPlayer->m_dwGold, pPlayer->m_dwEXP, pPlayer->m_bLevel);
+		cout << "Tutorial Error " << pPlayer->m_dwID << ", " << pPlayer->m_wMapID << ", " << pPlayer->m_bStartAct << ", " << pPlayer->m_dwGold << ", " << pPlayer->m_dwEXP << ", " << pPlayer->m_bLevel << endl;
 		CloseSession(pPlayer);
 		return EC_NOERROR;
 	}
@@ -13602,7 +13604,7 @@ DWORD CTMapSvrModule::OnMW_EVENTUPDATE_REQ(LPPACKETBUF pBUF)
 		{
 			if(!m_mapExtraSpawnID.size())
 			{
-				LogEvent("ExtraSpawnID is Empty");
+				cout << "ExtraSpawnID is Empty" << endl;
 				return EC_NOERROR;
 			}
 			

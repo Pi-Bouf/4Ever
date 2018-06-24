@@ -2,22 +2,49 @@
 #include "stdafx.h"
 #include "TMapSvr.h"
 #include "TMapSvrModule.h"
+#include <iostream>
+#include "SimpleIni.h"
 
 CTMapSvrModule _AtlModule;
+using namespace std;
 
-
-extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, 
-                                LPTSTR /*lpCmdLine*/, int nShowCmd)
+void main()
 {
-    return _AtlModule.WinMain(nShowCmd);
+	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	SetConsoleTextAttribute(hConsole, 14);
+	cout << endl;
+	cout << " #################################################################### " << endl;
+	cout << " #         .o    .oooooo..o     .                                   # " << endl;
+	cout << " #       .d88   d8P'    `Y8   .o8                                   # " << endl;
+	cout << " #     .d'888   Y88bo.      .o888oo  .ooooo.  oooo d8b oooo    ooo  # " << endl;
+	cout << " #   .d'  888    `\"Y8888o.    888   d88' `88b `888\"\"8P  `88.  .8'   # " << endl;
+	cout << " #   88ooo888oo      `\"Y88b   888   888   888  888       `88..8'    # " << endl;
+	cout << " #        888   oo     .d8P   888 . 888   888  888        `888'     # " << endl;
+	cout << " #       o888o  8\"\"88888P'    \"888\" `Y8bod8P' d888b        .8'      # " << endl;
+	SetConsoleTextAttribute(hConsole, 13);
+	cout << " #       TMAP SERVER";
+	SetConsoleTextAttribute(hConsole, 14);
+	cout << "                                   .o..P'       # " << endl;
+	SetConsoleTextAttribute(hConsole, 11);
+	cout << " #       Version: 1.0.1";
+	SetConsoleTextAttribute(hConsole, 14);
+	cout << "                                `Y8P'        # " << endl;
+	cout << " #################################################################### " << endl << endl;
+
+
+	CTMapSvrModule ct = CTMapSvrModule();
+	ct.StartServer();
+
+	int i;
+	cin >> i;
 }
 
 CTMapSvrModule::CTMapSvrModule()
 {
-	memset( m_szGamePasswd, 0, ONE_KBYTE);
-	memset( m_szDBUserID, 0, ONE_KBYTE);
-	memset( m_szWorldIP, 0, ONE_KBYTE);
-	memset( m_szGameDSN, 0, ONE_KBYTE);
+	timeNow = time(0);
+	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	LogInfo("Welcome on TLogin Server !");
+
 	memset( m_dwWarCountryBalance, 0, sizeof(m_dwWarCountryBalance));
 
 	m_wWorldPort = DEF_WORLDPORT;
@@ -127,8 +154,6 @@ CTMapSvrModule::CTMapSvrModule()
 	m_hHackShield = NULL;
 #endif
 
-
-	memset( m_szLogServerIP, 0, ONE_KBYTE);
 	m_wLogServerPORT = 0;
 
 #ifdef DEF_UDPLOG
@@ -144,9 +169,23 @@ CTMapSvrModule::~CTMapSvrModule()
 #endif
 }
 
+void CTMapSvrModule::LogInfo(string text)
+{
+	tm *ltm = localtime(&timeNow);
+	SetConsoleTextAttribute(hConsole, 10);
+	cout << "[" << ltm->tm_hour << ":" << ltm->tm_min << ":" << ltm->tm_sec << "] ==> " << text << endl;
+}
+
+void CTMapSvrModule::LogError(string text)
+{
+	tm *ltm = localtime(&timeNow);
+	SetConsoleTextAttribute(hConsole, 4);
+	cout << "[" << ltm->tm_hour << ":" << ltm->tm_min << ":" << ltm->tm_sec << "] ==> " << text << endl;
+}
+
 void CTMapSvrModule::OnERROR( DWORD dwErrorCode)
 {
-	static CString strErrorMsg[30] = {
+	static string strErrorMsg[30] = {
 		"Can't open Registry",
 		"Port is not assigned",
 		"Password is not assigned",
@@ -185,7 +224,7 @@ void CTMapSvrModule::OnERROR( DWORD dwErrorCode)
 		dwError = dwErrorCode - EC_SESSIONBASE + 24;
 
 	if(dwErrorCode && dwError < 30)
-		LogEvent("%s", strErrorMsg[dwError]);
+		LogInfo("Error: " + strErrorMsg[dwError]);
 }
 
 DWORD CTMapSvrModule::_ControlThread( LPVOID lpParam)
@@ -224,7 +263,7 @@ DWORD CTMapSvrModule::_LogThread( LPVOID lpParam)
 	return pModule->LogThread();
 }
 
-DWORD CTMapSvrModule::OnEnter()
+DWORD CTMapSvrModule::StartUp()
 {
 	srand( (unsigned)CTime::GetCurrentTime().GetTime() );
 
@@ -308,19 +347,39 @@ DWORD CTMapSvrModule::OnEnter()
 		return dwResult;
 
 	dwResult = InitDB();
-	if(dwResult)
+	if (dwResult) {
+		if (dwResult == EC_INITSERVICE_DBOPENFAILED) {
+			LogError("Connection error ! Check your DSN, DBUser and DBPasswd !");
+			cout << endl;
+			LogError("1: Start the 'SQL Server' service");
+			LogError("2: check your ODBC configuration (64 bits AND 32 bits)");
+			LogError("3: check if you have... a database in your server ? :)");
+		}
+
+		if (dwResult == EC_INITSERVICE_PREPAREQUERY) {
+			LogError("Connection error ! Can't init query on database connection !");
+		}
 		return dwResult;
+	}
+	else {
+		LogInfo("Database OK !");
+	}
 
 	dwResult = LoadData();
 	if(dwResult)
 		return dwResult;
 
+	cout << endl;
 	dwResult = CreateThreads();
 	if(dwResult)
 		return dwResult;
+	LogInfo("All threads created !");
 
+	cout << endl;
+	LogInfo("Init network...");
 	dwResult = InitNetwork();
 	if(dwResult)
+		LogError("Can't open the server ! Please, check firewall and if port " + to_string(m_wGamePort) + " is open !");
 		return dwResult;
 
 #ifdef __HACK_SHIELD
@@ -518,170 +577,69 @@ void CTMapSvrModule::SaveAllCharData()
 
 DWORD CTMapSvrModule::LoadConfig()
 {
-	//Load config from registry
-	DWORD dwLength;
-	DWORD dwValue;
-	HKEY hKey;
+	LogInfo("Load config from TLogin.ini file");
 
-	CString strRegKey;
-	strRegKey.Empty();
+	CSimpleIniA ini;
+	ini.SetUnicode();
+	ini.LoadFile(".\\TMap.ini");
 
-#ifdef _DEBUG
-	HKEY hOpenKey = HKEY_CURRENT_USER;
-	strRegKey.Format(_T("software\\%s"), m_szServiceName);
-#else
-	HKEY hOpenKey = HKEY_LOCAL_MACHINE;
-	strRegKey.Format(_T("SYSTEM\\CurrentControlSet\\Services\\%s\\Config"), m_szServiceName);
-#endif
+	m_szGameDSN = ini.GetValue("TMapConfig", "DSN", "TGAME_GSP");
+	m_szDBUserID = ini.GetValue("TLoginConfig", "DBUser", "4Admin");
+	m_szGamePasswd = ini.GetValue("TLoginConfig", "DBPasswd", "popo1234");
+	m_wGamePort = ini.GetLongValue("TLoginConfig", "GamePort", 1125);
 
-	int nERROR = RegCreateKey( hOpenKey, strRegKey, &hKey);
-	if( nERROR != ERROR_SUCCESS )
-		return EC_INITSERVICE_OPENREG;
+	m_szWorldIP = ini.GetValue("TLoginConfig", "WorldIP", "127.0.0.1");
+	m_wWorldPort = ini.GetLongValue("TLoginConfig", "WorldPort", 4422);
+	m_bGroupID = ini.GetLongValue("TLoginConfig", "GroupID", 1);
+	m_bServerID = ini.GetLongValue("TLoginConfig", "ServerID", 1);
 
-	// Load game database password
-	dwLength = ONE_KBYTE;
-	nERROR = RegQueryValueEx(
-		hKey,
-		_T("GamePasswd"),
-		NULL,
-		NULL,
-		(LPBYTE) &m_szGamePasswd,
-		&dwLength);
-	if( nERROR != ERROR_SUCCESS )
-		return EC_INITSERVICE_PASSWDNOTASSIGNED;
+	m_szLogServerIP = ini.GetValue("TLoginConfig", "LogIP", "127.0.0.1");
+	m_wLogServerPORT = stoi(ini.GetValue("TLoginConfig", "LogPort", "7000"));
 
-	// Load DB user ID
-	dwLength = ONE_KBYTE;
-	nERROR = RegQueryValueEx(
-		hKey,
-		_T("DBUser"),
-		NULL,
-		NULL,
-		(LPBYTE) &m_szDBUserID,
-		&dwLength);
-	if( nERROR != ERROR_SUCCESS )
-		return EC_INITSERVICE_PASSWDNOTASSIGNED;
-
-	// Load game database DSN
-	dwLength = ONE_KBYTE;
-	nERROR = RegQueryValueEx(
-		hKey,
-		_T("GameDSN"),
-		NULL,
-		NULL,
-		(LPBYTE) &m_szGameDSN,
-		&dwLength);
-	if( nERROR != ERROR_SUCCESS )
-		return EC_INITSERVICE_DSNNOTASSIGNED;
-
-	// Load world server IP
-	dwLength = ONE_KBYTE;
-	nERROR = RegQueryValueEx(
-		hKey,
-		_T("WorldIP"),
-		NULL,
-		NULL,
-		(LPBYTE) &m_szWorldIP,
-		&dwLength);
-	if( nERROR != ERROR_SUCCESS )
-		return EC_INITSERVICE_WORLDIPNOTASSIGNED;
-
-	// Load group ID
-	dwLength = sizeof(DWORD);
-	nERROR = RegQueryValueEx(
-		hKey,
-		_T("GroupID"),
-		NULL,
-		NULL,
-		(LPBYTE) &dwValue,
-		&dwLength);
-	if( nERROR != ERROR_SUCCESS )
-		return EC_INITSERVICE_SVRIDNOTASSIGNED;
-	else
-		m_bGroupID = (BYTE) dwValue;
-
-	// Load server ID
-	dwLength = sizeof(DWORD);
-	nERROR = RegQueryValueEx(
-		hKey,
-		_T("ServerID"),
-		NULL,
-		NULL,
-		(LPBYTE) &dwValue,
-		&dwLength);
-	if( nERROR != ERROR_SUCCESS )
-		return EC_INITSERVICE_SVRIDNOTASSIGNED;
-	else
-		m_bServerID = (BYTE) dwValue;
-
-	// Load listen port
-	dwLength = sizeof(DWORD);
-	nERROR = RegQueryValueEx(
-		hKey,
-		_T("GamePort"),
-		NULL,
-		NULL,
-		(LPBYTE) &dwValue,
-		&dwLength);
-	if( nERROR != ERROR_SUCCESS )
-		return EC_INITSERVICE_PORTNOTASSIGNED;
-	else
-		m_wGamePort = (WORD) dwValue;
-
-	// Load world server port
-	dwLength = sizeof(DWORD);
-	nERROR = RegQueryValueEx(
-		hKey,
-		_T("WorldPort"),
-		NULL,
-		NULL,
-		(LPBYTE) &dwValue,
-		&dwLength);
-	if( nERROR != ERROR_SUCCESS )
-		return EC_INITSERVICE_WORLDPORTNOTASSIGNED;
-	else
-		m_wWorldPort = (WORD) dwValue;
-
-	
-    //	Load LogServer UDP IP
-	dwLength = ONE_KBYTE;
-	nERROR = RegQueryValueEx( 
-		hKey, 
-		_T("LogIP"), 
-		NULL, 
-		NULL, 
-		(LPBYTE) &m_szLogServerIP, 
-		&dwLength);
-
-	if( nERROR != ERROR_SUCCESS )
-	{
-		LogEvent(_T("Can't Find LogServer IP"));
-
-		return EC_INITSERVICE_DSNNOTASSIGNED;
-	}
-
-
-	//	Load LogServer UDP PORT
-	dwLength = sizeof(DWORD);
-	nERROR = RegQueryValueEx(
-		hKey,
-		_T("LogPort"),
-		NULL,
-		NULL,
-		(LPBYTE) &dwValue,
-		&dwLength);
-
-	if( nERROR != ERROR_SUCCESS )
-	{
-		LogEvent(_T("Can't Find LogServer PORT"));
-
-		return EC_INITSERVICE_PORTNOTASSIGNED;
-	}
-	else
-	{
-		m_wLogServerPORT = (WORD) dwValue;
-	}   
-
+	LogInfo("Data from TMap.ini:");
+	SetConsoleTextAttribute(hConsole, 11);
+	cout << "  ###################################" << endl;
+	cout << "  # + DSN:        ";
+	SetConsoleTextAttribute(hConsole, 7);
+	cout << m_szGameDSN << endl;
+	SetConsoleTextAttribute(hConsole, 11);
+	cout << "  # + DBUser:     ";
+	SetConsoleTextAttribute(hConsole, 7);
+	cout << m_szDBUserID << endl;
+	SetConsoleTextAttribute(hConsole, 11);
+	cout << "  # + DBPasswd:   ";
+	SetConsoleTextAttribute(hConsole, 7);
+	cout << m_szGamePasswd << endl;
+	SetConsoleTextAttribute(hConsole, 11);
+	cout << "  # + LoginPort:  ";
+	SetConsoleTextAttribute(hConsole, 7);
+	cout << m_wGamePort << endl;
+	SetConsoleTextAttribute(hConsole, 11);
+	cout << "  # + World IP:   ";
+	SetConsoleTextAttribute(hConsole, 7);
+	cout << m_szWorldIP << endl;
+	SetConsoleTextAttribute(hConsole, 11);
+	cout << "  # + World Port: ";
+	SetConsoleTextAttribute(hConsole, 7);
+	cout << m_wWorldPort << endl;
+	SetConsoleTextAttribute(hConsole, 11);
+	cout << "  # + ServerID:   ";
+	SetConsoleTextAttribute(hConsole, 7);
+	cout << m_bServerID << endl;
+	SetConsoleTextAttribute(hConsole, 11);
+	cout << "  # + GroupID:    ";
+	SetConsoleTextAttribute(hConsole, 7);
+	cout << m_bGroupID << endl;
+	SetConsoleTextAttribute(hConsole, 11);
+	cout << "  # + LogIP:      ";
+	SetConsoleTextAttribute(hConsole, 7);
+	cout << m_szLogServerIP << endl;
+	SetConsoleTextAttribute(hConsole, 11);
+	cout << "  # + LogPort:    ";
+	SetConsoleTextAttribute(hConsole, 7);
+	cout << m_wLogServerPORT << endl;
+	SetConsoleTextAttribute(hConsole, 11);
+	cout << "  ###################################" << endl;
 
 	return EC_NOERROR;
 }
@@ -749,6 +707,8 @@ DWORD CTMapSvrModule::CreateThreads()
 	GetSystemInfo(&vINFO);
 	m_bNumWorker = (BYTE) (2 * vINFO.dwNumberOfProcessors);
 
+	LogInfo("Starting " + to_string(m_bNumWorker) + " threads...");
+
 	for( BYTE i=0; i<m_bNumWorker; i++)
 	{
 		m_hWorker[i] = CreateThread(
@@ -760,6 +720,8 @@ DWORD CTMapSvrModule::CreateThreads()
 
 		if(!m_hWorker[i])
 			return EC_INITSERVICE_CREATETHREAD;
+
+		LogInfo("  Thread #" + to_string(i) + " started !");
 	}
 
 	return EC_NOERROR;
@@ -835,7 +797,7 @@ DWORD CTMapSvrModule::InitNetwork()
 	m_world.m_Recv.ExpandIoBuffer(RECV_SVR_SIZE);
 	m_world.m_bUseCrypt = FALSE;
 
-	if(!m_world.Connect( m_szWorldIP, m_wWorldPort))
+	if(!m_world.Connect( m_szWorldIP.c_str(), m_wWorldPort))
 		return EC_INITSERVICE_CONNECTWORLD;
 
 	m_hIocpWork = CreateIoCompletionPort(
@@ -850,9 +812,10 @@ DWORD CTMapSvrModule::InitNetwork()
 		return EC_INITSERVICE_WAITFORMSG;
 	SendMW_CONNECT_ACK();
 
-	if( !m_pDebugSocket->Initialize( m_szLogServerIP, m_wLogServerPORT) )
+	char * m_szLogServerIPTemp = const_cast<char*>(m_szLogServerIP.c_str());
+	if( !m_pDebugSocket->Initialize(m_szLogServerIPTemp, m_wLogServerPORT) )
 	{
-		LogEvent("DebugSocket could not be initializised!");
+		LogError("DebugSocket could not be initializised!");
 
 		return EC_INITSERVICE_UDPSOCKETFAILED;
 	}
@@ -1308,7 +1271,7 @@ void CTMapSvrModule::OnCloseSession( CTMapSession *pSession)
 		if( finder == m_mapSESSION.end() )
 		{
 			LeaveCriticalSection(&m_csBATCH);
-			LogEvent("Session Not Found \n");
+			LogError("Session Not Found \n");
 			return;
 		}
 
@@ -1475,7 +1438,7 @@ void CTMapSvrModule::CloseSession( CTMapSession *pSession)
 
 DWORD CTMapSvrModule::InitDB()
 {
-	if(!m_db.Open( m_szGameDSN, m_szDBUserID, m_szGamePasswd))
+	if(!m_db.Open( m_szGameDSN.c_str(), m_szDBUserID.c_str(), m_szGamePasswd.c_str()))
 		return EC_INITSERVICE_DBOPENFAILED;
 
 	if(!InitQueryTMapSvr(&m_db))
@@ -3576,7 +3539,7 @@ DWORD CTMapSvrModule::LoadData()
 					if(!pTITEM)
 					{
 						delete pAuction;
-						LogEvent("Auction Item Error: %d",pAuction->m_dwAuctionID);
+						LogError("Auction Item Error: " + pAuction->m_dwAuctionID);
 						continue;
 					}
 
@@ -3588,7 +3551,7 @@ DWORD CTMapSvrModule::LoadData()
 						SendSM_AUCTIONCMD_REQ(pAuction->m_wNpcID,pAuction->m_dwAuctionID,pAuction->m_dEnd);
 				}
 				else			
-					LogEvent(_T("Invalid Auction NPC"));			
+					LogError(_T("Invalid Auction NPC"));			
 			}
 			query->Close();
 		}
@@ -3872,7 +3835,7 @@ DWORD CTMapSvrModule::ControlThread()
 			{
 			case COMP_ACCEPT	:
 				if(!WaitForConnect())
-					LogEvent(_T("WaitForConnect : Error"));
+					LogError(_T("WaitForConnect : Error"));
 
 				break;
 			}
@@ -3883,10 +3846,10 @@ DWORD CTMapSvrModule::ControlThread()
 			{
 			case COMP_ACCEPT	:
 				if(!Accept())
-					LogEvent(_T("Accept : Error"));
+					LogError(_T("Accept : Error"));
 
 				if(!WaitForConnect())
-					LogEvent(_T("WaitForConnect : Error"));
+					LogError(_T("WaitForConnect : Error"));
 
 				break;
 
@@ -3931,7 +3894,7 @@ DWORD CTMapSvrModule::WorkThread()
 					case TOV_SSN_RECV	:
 						if(pSession->m_bSessionType == SESSION_SERVER)
 						{
-							LogEvent("WorkThread CompletionStatus %d\n", GetLastError());
+							LogError("WorkThread CompletionStatus " + GetLastError());
 						}
 						OnInvalidSession(pSession);
 						break;
@@ -4187,8 +4150,8 @@ void CTMapSvrModule::OnSendComplete( CTMapSession *pSession, DWORD dwIoBytes)
 {
 	if(pSession->SendComplete(dwIoBytes))
 	{
-		if(pSession->m_bSessionType == SESSION_SERVER)
-			LogEvent("OnSendComplete Valid %d, %d\n", pSession->m_bValid, dwIoBytes);
+		if (pSession->m_bSessionType == SESSION_SERVER)
+			cout << "OnSendComplete INVALID: " << pSession->m_bValid << ", " << dwIoBytes << endl;
 
 		ClosingSession(pSession);
 	}
@@ -4200,18 +4163,8 @@ void CTMapSvrModule::ProcessSession( CTMapSession *pSession, DWORD dwIoBytes)
 
 	if(!pSession->Read(dwIoBytes))
 	{
-		// ***** IOCP 사용법 중 알아내기 힘든 두번째 구문 (클라이언트측 세션 종료) *****
-		//
-		// 클라이언트가 먼저 closesocket()을 호출하여 세션을 종료한 경우이며
-		// WSARecv()가 호출된 상태에서만 이 코드로 들어오며
-		// 모든 오버랩 오퍼래이션이 종료 되었다고 볼 수 없다.
-		// 따라서 이후에 이 스레드에서 이 세션과 관련된 작업명령이 실행 될 수 있으므로
-		// 여기서 세션 포인터를 삭제하면 서버가 다운될 수 있다.
-		// Receive와 관련된 오버랩 오퍼레이션은 확실히 종료 되었으므로
-		// Send와 관련된 오버랩 오퍼레이션이 종료되었는지를
-		// 확인한 후 다른 스레드의 세션 삭제 수락과정을 거치고 세션을 삭제 해야 한다.
 		if(pSession->m_bSessionType == SESSION_SERVER)
-			LogEvent("Process Read %d, %d\n", dwIoBytes, pSession->m_Recv.m_dwReadBytes);
+			cout << "Process Read: " << dwIoBytes << ", " << pSession->m_Recv.m_dwReadBytes << endl;
 		OnInvalidSession(pSession);
 
 		return;
@@ -4258,41 +4211,13 @@ void CTMapSvrModule::ProcessSession( CTMapSession *pSession, DWORD dwIoBytes)
 			OnInvalidSession(pSession);
 
 			return;
-			// ***** IOCP 사용법 중 알아내기 힘든 세번째 구문 (비 정상적인 세션 종료) *****
-			//
-			// 클라이언트가 패킷을 변조해서 보낸다거나 네트웤 오류로 인해 세션이 비 정상적인 상태가 된 경우이며
-			// WSARecv()가 호출된 상태에서만 이 코드로 들어오며
-			// 모든 오버랩 오퍼래이션이 종료 되었다고 볼 수 없다.
-			// 따라서 이후에 이 스레드에서 이 세션과 관련된 작업명령이 실행 될 수 있으므로
-			// 여기서 세션 포인터를 삭제하면 서버가 다운될 수 있다.
-			// Receive와 관련된 오버랩 오퍼레이션은 확실히 종료 되었으므로
-			// Send와 관련된 오버랩 오퍼레이션이 종료되었는지를
-			// 확인한 후 다른 스레드의 세션 삭제 수락과정을 거치고 세션을 삭제 해야 한다.
-			//
-			// *** 권장하지 않는 편법 ***
-			// 혹시나 여기서 closesocket()을 호출 하여
-			// 서버측 세션종료 프로세스로 들어가려는 시도는 하지 않는 것이 좋다.
-			// closesocket()을 호출해도 WSARecv()가 호출되지 않은 상태이기 때문에
-			// 서버측 세션종료 프로세스로 들어가지 못한다. 만약 WSARecv()를 먼저
-			// 호출하고 바로 closesocket()을 호출하면 프로세스로의 진입은 가능 할 수도 있으나
-			// 비 정상적인 세션을 대상으로 그런 액션을 하는 것은 위험하다.
 		}
 	}
 
 	if(!pSession->WaitForMessage())
 	{
-		// ***** IOCP 사용법 중 알아내기 힘든 네번째 구문 (비 정상적인 세션 종료) *****
-		//
-		// 네트웤 오류로 인해 세션이 비 정상적인 상태에서 WSARecv()함수 호출이 실패한 경우이며
-		// WSARecv()가 호출된 상태에서만 이 코드로 들어오며
-		// 모든 오버랩 오퍼래이션이 종료 되었다고 볼 수 없다.
-		// 따라서 이후에 이 스레드에서 이 세션과 관련된 작업명령이 실행 될 수 있으므로
-		// 여기서 세션 포인터를 삭제하면 서버가 다운될 수 있다.
-		// Receive와 관련된 오버랩 오퍼레이션은 확실히 종료 되었으므로
-		// Send와 관련된 오버랩 오퍼레이션이 종료되었는지를
-		// 확인한 후 다른 스레드의 세션 삭제 수락과정을 거치고 세션을 삭제 해야 한다.
-		if(pSession->m_bSessionType == SESSION_SERVER)
-			LogEvent("WaitForMessage %d, %d, %d, %d\n", pSession->m_sock, pSession->m_bValid, pSession->m_bCanRecv, WSAGetLastError());
+		if (pSession->m_bSessionType == SESSION_SERVER)
+			cout << "WaitForMessage " << pSession->m_sock << pSession->m_bValid << pSession->m_bCanRecv << WSAGetLastError() << endl;
 		OnInvalidSession(pSession);
 	}
 }
@@ -4301,7 +4226,7 @@ DWORD CTMapSvrModule::OnReceive( LPPACKETBUF pBUF)
 {
 	if(pBUF->m_packet.GetSize() == MAX_PACKET_SIZE)
 	{
-		LogEvent("Overflow Message %d",pBUF->m_packet.GetID());
+		cout << "Overflow Message: " << pBUF->m_packet.GetID() << endl;
 		return EC_SESSION_INVALIDMSG;
 	}
 
@@ -4925,7 +4850,7 @@ DWORD CTMapSvrModule::OnReceive( LPPACKETBUF pBUF)
 	}
 
 	if(wMsgID != CS_KICKOUT_REQ && wMsgID != CS_CONNECT_REQ)
-		LogEvent("Invalid Message %d",pBUF->m_packet.GetID());
+		cout << "Invalid Message: " << pBUF->m_packet.GetID() << endl;
 
 	return EC_SESSION_INVALIDMSG;
 }
@@ -5176,24 +5101,14 @@ void CTMapSvrModule::SayToLOG( LPPACKETBUF pBUF)
 	SetEvent(m_hLogEvent);
 }
 
-HRESULT CTMapSvrModule::PreMessageLoop( int nShowCmd)
+void CTMapSvrModule::StartServer()
 {
-	DWORD dwResult = OnEnter();
+	DWORD dwResult = StartUp();
 
-	if(dwResult)
+	if (dwResult)
 	{
 		OnERROR(dwResult);
-		return E_FAIL;
 	}
-	m_dwThreadID = GetCurrentThreadId();
-
-	return CAtlServiceModuleT<CTMapSvrModule,IDS_SERVICENAME>::PreMessageLoop(nShowCmd);
-}
-
-HRESULT CTMapSvrModule::PostMessageLoop()
-{
-	OnExit();
-	return CAtlServiceModuleT<CTMapSvrModule,IDS_SERVICENAME>::PostMessageLoop();
 }
 
 CTObjBase * CTMapSvrModule::FindTarget(CTPlayer * pHost,
