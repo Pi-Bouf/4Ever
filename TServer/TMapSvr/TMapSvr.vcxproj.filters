@@ -1,424 +1,421 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="소스 파일">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="헤더 파일">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
-    <Filter Include="리소스 파일">
+    <Filter Include="Ressources">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx</Extensions>
     </Filter>
-    <Filter Include="생성 파일">
+    <Filter Include="Generated">
       <UniqueIdentifier>{d18d00c3-5393-4577-8118-de9a47631071}</UniqueIdentifier>
       <SourceControlFiles>False</SourceControlFiles>
+    </Filter>
+    <Filter Include="Sources">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Headers">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CSHandler.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="CSSender.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="DBAccess.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="DebugSocket.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="Quest.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="QuestChapterMsg.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="QuestComplete.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="QuestCraft.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="QuestDefaultTalk.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="QuestDefendSkill.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="QuestDeleteItem.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="QuestDieMon.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="QuestDrop.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="QuestDropItem.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="QuestGiveItem.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="QuestGiveSkill.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="QuestMission.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="QuestRegen.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="QuestRouting.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="QuestSendPost.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="QuestSpawnMon.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="QuestSwitch.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="QuestTalk.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="QuestTeleport.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="SSHandler.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="SSSender.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="TAICmdAttack.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="TAICmdBeginAtk.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="TAICmdChgHost.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="TAICmdChgMode.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="TAICmdChkHost.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="TAICmdFollow.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="TAICmdGetaway.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="TAICmdGohome.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="TAICmdLeave.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="TAICmdLottery.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="TAICmdRefill.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="TAICmdRegen.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="TAICmdRemove.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="TAICmdRoam.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="TAICmdSetHost.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="TAICommand.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="TCell.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="TChannel.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="TInven.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="TItem.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="TMap.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="TMapSession.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="TMapSvr.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="TMiniDump.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="TMonSpawn.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="TMonster.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="TMonsterAI.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="TNpc.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="TObjBase.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="TPlayer.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="TRecallMon.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="TSelfObj.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="TSkill.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="TSkillTemp.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="TTextLinkData.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="TTextLinker.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="UdpSocket.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="TMapSvr_i.c">
-      <Filter>생성 파일</Filter>
+      <Filter>Generated</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Midl Include="TMapSvr.idl">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </Midl>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DBAccess.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="DebugSocket.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="Quest.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="QuestChapterMsg.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="QuestComplete.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="QuestCraft.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="QuestDefaultTalk.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="QuestDefendSkill.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="QuestDeleteItem.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="QuestDieMon.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="QuestDrop.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="QuestDropItem.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="QuestGiveItem.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="QuestGiveSkill.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="QuestMission.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="QuestRegen.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="QuestRouting.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="QuestSendPost.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="QuestSpawnMon.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="QuestSwitch.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="QuestTalk.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="QuestTeleport.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="Resource.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="stdafx.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="TAICmdAttack.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="TAICmdBeginAtk.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="TAICmdChgHost.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="TAICmdChgMode.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="TAICmdChkHost.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="TAICmdFollow.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="TAICmdGetaway.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="TAICmdGohome.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="TAICmdLeave.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="TAICmdLottery.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="TAICmdRefill.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="TAICmdRegen.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="TAICmdRemove.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="TAICmdRoam.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="TAICmdSetHost.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="TAICommand.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="TCell.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="TChannel.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="TInven.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="TItem.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="TMap.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="TMapSession.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="TMapSvrModule.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="TMapType.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="TMiniDump.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="TMonSpawn.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="TMonster.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="TMonsterAI.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="TNpc.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="TObjBase.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="TPlayer.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="TRecallMon.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="TSelfObj.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="TSkill.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="TSkillTemp.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="TTextLinkData.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="TTextLinker.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="UdpSocket.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="TMapSvr.rc">
-      <Filter>리소스 파일</Filter>
+      <Filter>Ressources</Filter>
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="TMapSvr.rgs">
-      <Filter>리소스 파일</Filter>
+      <Filter>Ressources</Filter>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="ReadMe.txt" />
   </ItemGroup>
 </Project>

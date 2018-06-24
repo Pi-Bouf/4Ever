@@ -95,8 +95,7 @@
     <PostBuildEvent>
       <Message>
       </Message>
-      <Command>
-      </Command>
+      <Command>IF NOT EXIST "$(OutputPath)\TLogin.ini" COPY .\TLogin.ini $(OutputPath)\TLogin.ini</Command>
     </PostBuildEvent>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
