@@ -159,26 +159,50 @@ DWORD CTLoginSvrModule::StartUp()
 	if(dwResult)
 		return dwResult;
 
+	LogInfo("Database connection...");
 	dwResult = InitDB(&m_db);
-	if(dwResult)
+	if (dwResult) {
+		if (dwResult == EC_INITSERVICE_DBOPENFAILED) {
+			LogError("Connection error ! Check your DSN, DBUser and DBPasswd !");
+			cout << endl;
+			LogError("1: Start the 'SQL Server' service");
+			LogError("2: check your ODBC configuration (64 bits AND 32 bits)");
+			LogError("3: check if you have... a database in your server ? :)");
+		}
+
+		if (dwResult == EC_INITSERVICE_PREPAREQUERY) {
+			LogError("Connection error ! Can't init query on database connection !");
+		}
 		return dwResult;
+	}
+	else {
+		LogInfo("Database OK !");
+	}
 
 	dwResult = LoadDataLogin();
 	if(dwResult)
 		return dwResult;
 
+	cout << endl;
 	dwResult = CreateThreads();
 	if(dwResult)
 		return dwResult;
+	LogInfo("All threads created !");
 
+	cout << endl;
+	LogInfo("Init network...");
 	dwResult = InitNetwork();
-	if(dwResult)
+	if (dwResult)
+		LogError("Can't open the server ! Please, check firewall and if port " + to_string(m_wPort) + " is open !");
 		return dwResult;
 
 	if(!ResumeThreads())
 		return EC_INITSERVICE_RESUMETHREAD;
 
 	ClearLoginUser();
+
+	cout << endl << endl;
+	LogInfo("Ready !");
 
 	return 0;
 }
@@ -224,8 +248,8 @@ DWORD CTLoginSvrModule::LoadConfig()
 	ini.SetUnicode();
 	ini.LoadFile(".\\TLogin.ini");
 
-	m_szDBPasswd = ini.GetValue("TLoginConfig", "DBPasswd", "1234");
-	m_szDBUserID = ini.GetValue("TLoginConfig", "DBUser", "sa");
+	m_szDBPasswd = ini.GetValue("TLoginConfig", "DBPasswd", "popo1234");
+	m_szDBUserID = ini.GetValue("TLoginConfig", "DBUser", "4Admin");
 	m_szDSN = ini.GetValue("TLoginConfig", "DSN", "TGLOBAL_GSP");
 	m_bServerID = ini.GetValue("TLoginConfig", "ServerID", "1");
 	m_wPort = ini.GetLongValue("TLoginConfig", "LoginPort", 5336);
@@ -270,20 +294,11 @@ DWORD CTLoginSvrModule::LoadConfig()
 
 DWORD CTLoginSvrModule::InitDB( CSqlDatabase *pDB)
 {
-	LogInfo("Database connection...");
-	if (!pDB->Open(m_szDSN, m_szDBUserID, m_szDBPasswd)) {
-		LogError("Connection error ! Check your DSN, DBUser and DBPasswd !");
-		cout << endl;
-		LogError("1: Start the 'SQL Server' service");
-		LogError("2: check your ODBC configuration (64 bits AND 32 bits)");
-		LogError("3: check if you have... a database in your server ? :)");
+	if (!pDB->Open(m_szDSN, m_szDBUserID, m_szDBPasswd))
 		return EC_INITSERVICE_DBOPENFAILED;
-	}
 
-	if (!InitQueryTLoginSvr(pDB)) {
-		LogError("Connection error ! Can't init query on database connection !");
+	if (!InitQueryTLoginSvr(pDB))
 		return EC_INITSERVICE_PREPAREQUERY;
-	}
 
 	return EC_NOERROR;
 }
@@ -422,6 +437,8 @@ DWORD CTLoginSvrModule::CreateThreads()
 	GetSystemInfo(&vINFO);
 	m_bNumWorker = (BYTE) (2 * vINFO.dwNumberOfProcessors);
 
+	LogInfo("Starting " + to_string(m_bNumWorker) + " threads...");
+
 	for( BYTE i=0; i<m_bNumWorker; i++)
 	{
 		m_hWorker[i] = CreateThread(
@@ -433,6 +450,7 @@ DWORD CTLoginSvrModule::CreateThreads()
 
 		if(!m_hWorker[i])
 			return EC_INITSERVICE_CREATETHREAD;
+		LogInfo("  Thread #" + to_string(i) + " started !");
 	}
 
 	return EC_NOERROR;
@@ -517,6 +535,7 @@ DWORD CTLoginSvrModule::InitNetwork()
 
 #endif
 
+	LogInfo("Server started on port " + to_string(m_wPort) + " !");
 	return EC_NOERROR;
 }
 
@@ -752,16 +771,6 @@ DWORD CTLoginSvrModule::WorkThread()
 					switch(bTYPE)
 					{
 					case TOV_SSN_RECV	: OnInvalidSession(pUser); break;
-						// ***** IOCP 사용법 중 알아내기 힘든 첫번째 구문 (서버측 세션 종료) *****
-						//
-						// 서버가 먼저 closesocket()을 호출하여 세션을 종료한 경우이며
-						// WSARecv()가 호출된 상태에서만 이 코드로 들어오며
-						// 모든 오버랩 오퍼래이션이 종료된 상태이기 때문에
-						// 이 소켓 핸들과 관련된 데이타는 IOCP큐에 남아있지 않다.
-						// 따라서 이 스레드에서는 해당 세션에 관련된 작업 명령을 더이상 수행하지 않기 때문에
-						// 다른 스레드가 허락한다면 이 구문에서 세션 포인터를 삭제해도 무방하다.
-						// 세션을 삭제 하는데 가장 좋은 지점이므로 전체 시스템 설계시
-						// 정상적인 세션 종료는 서버측에서 먼저 세션을 종료시키도록 설계하는 것이 안전하다.
 					case TOV_SSN_SEND:
 						OnSendComplete(pUser, 0);
 						break;
@@ -831,9 +840,6 @@ DWORD CTLoginSvrModule::WorkThread()
 
 void CTLoginSvrModule::ClosingSession( CTUser *pUser)
 {
-	// pUser에 대한 패킷처리가 완료되는 시점을 알림
-	// pUser에 대한 오버랩 오퍼래이션이 완료된 것을 확인후 호출 하여야 함.
-
 	PostQueuedCompletionStatus(
 		m_hIocpControl, 0,
 		COMP_CLOSE,
