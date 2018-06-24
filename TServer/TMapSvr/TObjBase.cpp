@@ -1311,7 +1311,7 @@ int CTObjBase::CalcAbilityValue( DWORD &dwValue, BYTE bExec, CTSkill * pInstance
 		nIncreaseValue += ApplyEffectionBuff(dwCalcValue); //마법효과 증폭
 
 	int nInc = 0;
-	for(i=0; i < m_vRemainSkill.size(); i++)
+	for(int i = 0; i < m_vRemainSkill.size(); i++)
 	{
 		nInc += m_vRemainSkill[i]->CalcAbilityValue(SA_CONTINUE, dwValue, bExec);
 		nInc += m_vRemainSkill[i]->CalcAbilityValue(SA_PASSIVE, dwValue, bExec);

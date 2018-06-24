@@ -1960,7 +1960,7 @@ struct tagEVENTINFO
 			>> m_strLotMsg
 			>> wCount;
 
-		for(i = 0; i < wCount; i++)
+		for(int i = 0; i < wCount; i++)
 		{
 			TCASHITEMSALE stSALEITEM;
 
@@ -1976,7 +1976,7 @@ struct tagEVENTINFO
 			>> m_stMONEVENT.m_bEndAction
 			>> wCount;
 
-		for(i = 0; i < wCount ; i++)
+		for(int i = 0; i < wCount ; i++)
 		{
 			(*pMsg)
 				>> wTemp;
@@ -2040,7 +2040,7 @@ struct tagEVENTINFO
 			<< (WORD)m_vCashItem.size();
 
 		WORD i;
-		for(i = 0; i < (WORD)m_vCashItem.size(); i++)
+		for(int i = 0; i < (WORD)m_vCashItem.size(); i++)
 		{
 			(*pMsg)
 				<< m_vCashItem[i].m_wID
@@ -2052,7 +2052,7 @@ struct tagEVENTINFO
 			<< m_stMONEVENT.m_bEndAction
 			<< (WORD)m_stMONEVENT.m_vSpawnID.size();
 
-		for(i = 0; i < (WORD)m_stMONEVENT.m_vSpawnID.size(); i++)
+		for(int i = 0; i < (WORD)m_stMONEVENT.m_vSpawnID.size(); i++)
 		{
 			(*pMsg)
 				<< m_stMONEVENT.m_vSpawnID[i];
@@ -2060,7 +2060,7 @@ struct tagEVENTINFO
 
 		(*pMsg)
 			<< (WORD)m_vMONREGEN.size();
-		for(i = 0; i < (WORD)m_vMONREGEN.size(); i++)
+		for(int i = 0; i < (WORD)m_vMONREGEN.size(); i++)
 		{
 			(*pMsg)
 				<< m_vMONREGEN[i].m_wMonID
@@ -2073,7 +2073,7 @@ struct tagEVENTINFO
 
 		(*pMsg)
 			<< (WORD)m_vLOTTERY.size();
-		for(i = 0; i < (WORD)m_vLOTTERY.size(); i++)
+		for(int i = 0; i < (WORD)m_vLOTTERY.size(); i++)
 		{
 			(*pMsg)
 				<< m_vLOTTERY[i].m_wItemID

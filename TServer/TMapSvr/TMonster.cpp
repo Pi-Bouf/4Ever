@@ -583,7 +583,7 @@ void CTMonster::OnDie( DWORD dwAttackID , BYTE bObjectType, WORD wTempMonID )
 				DWORD dwTotalExp = DWORD(GetExp(dwDamage) * (1.0f + 0.01f * ((wTotalMember * wTotalMember) / 2.0f + wTotalMember - 1.5f)));
 				BYTE bCheckQuest = FALSE;
 
-				for( i=0; i<DWORD(wTotalMember); i++)
+				for(int i = 0; i<DWORD(wTotalMember); i++)
 				{
 					DWORD dwSharedExp = dwTotalExp * vParty[i]->m_bLevel / wTotalLevel;
 					DWORD dwEXP = DWORD(FLOAT(dwSharedExp) * vParty[i]->GetLevelRate(m_bLevel) + 0.99);

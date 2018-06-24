@@ -2054,7 +2054,7 @@ BYTE CTPlayer::OnQuestComplete( LPMAPTSKILLTEMP pSKILLTEMP,
 		PushTItem(&vITEM);
 		vITEM.clear();
 
-		for(i=0; i<vItemID.size(); i++)
+		for(int i=0; i<vItemID.size(); i++)
 			_AtlModule.CheckQuest(
 				this,
 				0,
@@ -2070,7 +2070,7 @@ BYTE CTPlayer::OnQuestComplete( LPMAPTSKILLTEMP pSKILLTEMP,
 		vCount.clear();
 	}
 
-	for( i=0; i<INT(pQUEST->m_vReward.size()); i++)
+	for(int i=0; i<INT(pQUEST->m_vReward.size()); i++)
 		if( pQUEST->m_vReward[i]->m_bRewardType != RT_ITEM &&
 			pQUEST->m_vReward[i]->m_bRewardType != RT_MAGICITEM )
 		{
@@ -2142,7 +2142,7 @@ BYTE CTPlayer::OnQuestComplete( LPMAPTSKILLTEMP pSKILLTEMP,
 				}
 		}
 
-	for( i=0; i<INT(pQUEST->m_vTerm.size()); i++)
+	for(int i=0; i<INT(pQUEST->m_vTerm.size()); i++)
 		if( pQUEST->m_vTerm[i]->m_bTermType == QTT_GETITEM )
 		{
 			BYTE bRemain = pQUEST->m_vTerm[i]->m_bCount;
@@ -5129,7 +5129,7 @@ void CTPlayer::GetTitle(BYTE bType, DWORD dwValue, BYTE bStart)
 				}
 			}
 
-			for(i = 0; i <= 7; i++)
+			for(int i = 0; i <= 7; i++)
 			{
 				if(_AtlModule.m_arFameRank[FRT_GODDESS][dwValue][i].m_dwCharID == m_dwID)
 				{
@@ -5387,7 +5387,7 @@ void CTPlayer::GetTitle(BYTE bType, DWORD dwValue, BYTE bStart)
 		}
 	}
 
-	for(i = 0; i < vTitleID.size(); i++)
+	for(int i = 0; i < vTitleID.size(); i++)
 	{
 		LPTTITLE pTITLE = new TTITLE();
 

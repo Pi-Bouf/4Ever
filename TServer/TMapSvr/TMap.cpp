@@ -304,7 +304,7 @@ void CTMap::InitCell( CSqlDatabase *pDB,
 	}
 
 	DEFINE_QUERY( pDB, CSPGetServerID)
-	for( i=0; i<UD_COUNT; i++)
+	for(int i = 0; i<UD_COUNT; i++)
 	{
 		query->m_wUnitID = INT(bUnitX) + nCELL[i][0] < 0 || INT(bUnitY) + nCELL[i][1] < 0 ? wUnitID : MAKEWORD( BYTE(INT(bUnitX) + nCELL[i][0]), BYTE(INT(bUnitY) + nCELL[i][1]));
 		query->m_wMapID = m_wMapID;
@@ -321,7 +321,7 @@ void CTMap::InitCell( CSqlDatabase *pDB,
 	query->m_wUnitID = wUnitID;
 	query->m_wMapID = m_wMapID;
 
-	for( i=0; i<INT(m_vTCHANNEL.size()); i++)
+	for(int i = 0; i<INT(m_vTCHANNEL.size()); i++)
 	{
 		query->m_bChannel = m_vTCHANNEL[i];
 
@@ -331,7 +331,7 @@ void CTMap::InitCell( CSqlDatabase *pDB,
 	UNDEFINE_QUERY()
 
 	WORD wCount = UNIT_SIZE / CELL_SIZE;
-	for( i=0; i<wCount; i++)
+	for(int i = 0; i<wCount; i++)
 	{
 		WORD wCellY = WORD(bUnitY) * wCount + i;
 
@@ -354,7 +354,7 @@ void CTMap::InitCell( CSqlDatabase *pDB,
 			for( int k=0; k<MAX_CHANNEL; k++)
 				pCell->m_vEnable[k] = vEnable[k];
 
-			for( k=0; k<UD_COUNT; k++)
+			for( int k=0; k<UD_COUNT; k++)
 				for( int l=0; l<MAX_CHANNEL; l++)
 					pCell->m_vServerID[k][l] = vCheck[k] && vServerID[k][l] != bServerID ? vServerID[k][l] : 0;
 
@@ -608,7 +608,7 @@ void CTMap::InitMonster( CTMonSpawn *pMonSpawn,
 		}
 	}
 
-	for( i=0; i<INT(pSPAWN->m_vMAPMON.size()); i++)
+	for(int i = 0; i<INT(pSPAWN->m_vMAPMON.size()); i++)
 		if(pSPAWN->m_vMAPMON[i]->m_bEssential)
 		{
 			LPTMONSTER pTEMP = _AtlModule.FindTMonster(pSPAWN->m_vMAPMON[i]->m_wMonID);
@@ -1323,7 +1323,7 @@ void CTMap::OnMove( CTMonster *pMON,
 					break;
 				}
 
-			for( i=0; i<BYTE(m_vTCHANNEL.size()); i++)
+			for(int i = 0; i<BYTE(m_vTCHANNEL.size()); i++)
 				if(pCell->IsMainCell(m_vTCHANNEL[i]))
 				{
 					itCH = mapCH.find(m_vTCHANNEL[i]);
@@ -1699,7 +1699,7 @@ void CTMap::StartWar(WORD wCastle,
 	for(BYTE i=0; i<bInitBall; i++)
 		InitGodBall(CAMP_DEFEND, dwDefGuild, wCastle);
 
-	for(i=0; i<bInitBall; i++)
+	for(int i = 0; i<bInitBall; i++)
 		InitGodBall(CAMP_ATTACK, dwAtkGuild, wCastle);
 }
 

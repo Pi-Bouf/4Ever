@@ -58,7 +58,7 @@ BYTE CTAICmdRegen::ExecAI( CTMonster *pMON, DWORD dwEventHost, DWORD dwRHId, BYT
 			dwRand = dwTotal ? dwRand % dwTotal : 0;
 			dwTotal = 0;
 
-			for( i=0; i<INT(pMON->m_pSPAWN->m_pSPAWN->m_vMAPMON.size()); i++)
+			for(int i = 0; i<INT(pMON->m_pSPAWN->m_pSPAWN->m_vMAPMON.size()); i++)
 				if(!pMON->m_pSPAWN->m_pSPAWN->m_vMAPMON[i]->m_bEssential)
 				{
 					dwTotal += pMON->m_pSPAWN->m_pSPAWN->m_vMAPMON[i]->m_bProb;

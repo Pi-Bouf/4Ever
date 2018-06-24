@@ -103,7 +103,7 @@ void CQuestGiveItem::ExecQuest( CTPlayer *pPlayer,
 
 				pPlayer->PushTItem(&vTITEM);
 
-				for(k=0; k<vItemID.size(); k++)
+				for(int k = 0; k<vItemID.size(); k++)
 				{
 					_AtlModule.CheckQuest(
 						pPlayer,

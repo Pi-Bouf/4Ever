@@ -5,21 +5,18 @@
 /* link this file in with the server and any clients */
 
 
- /* File created by MIDL compiler version 6.00.0361 */
-/* at Wed Dec 30 20:21:07 2015
+ /* File created by MIDL compiler version 8.00.0603 */
+/* at Sun Jun 24 12:53:08 2018
  */
-/* Compiler settings for .\TMapSvr.idl:
-    Oicf, W1, Zp8, env=Win32 (32b run)
+/* Compiler settings for TMapSvr.idl:
+    Oicf, W1, Zp8, env=Win32 (32b run), target_arch=X86 8.00.0603 
     protocol : dce , ms_ext, c_ext, robust
     error checks: allocation ref bounds_check enum stub_data 
     VC __declspec() decoration level: 
          __declspec(uuid()), __declspec(selectany), __declspec(novtable)
          DECLSPEC_UUID(), MIDL_INTERFACE()
 */
-//@@MIDL_FILE_HEADING(  )
-
-#if !defined(_M_IA64) && !defined(_M_AMD64)
-
+/* @@MIDL_FILE_HEADING(  ) */
 
 #pragma warning( disable: 4049 )  /* more than 64k source lines */
 
@@ -79,6 +76,4 @@ MIDL_DEFINE_GUID(IID, LIBID_TMapSvrLib,0x134290F0,0xF7CB,0x4413,0x8E,0xE6,0x96,0
 #endif
 
 
-
-#endif /* !defined(_M_IA64) && !defined(_M_AMD64)*/
 

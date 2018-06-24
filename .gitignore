@@ -19,3 +19,9 @@ TServer/TLoginSvr/Debug/*
 TServer/TLoginSvr/Release/*
 TServer/TLoginSvr/TLoginSvr.h
 TServer/TLoginSvr/TLoginSvr_i.c
+
+# TMap
+TServer/TMapSvr/Debug/*
+TServer/TMapSvr/Release/*
+TServer/TMapSvr/TMapSvr.h
+TServer/TMapSvr/TMapSvr_i.c
