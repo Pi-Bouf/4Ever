@@ -13,5 +13,9 @@ TServer/lib/TNetLib.lib
 TServer/lib/TNetLibd.lib
 TServer/TNetLib/Debug/*
 TServer/TNetLib/Release/*
+
+# TLogin
 TServer/TLoginSvr/Debug/*
 TServer/TLoginSvr/Release/*
+TServer/TLoginSvr/TLoginSvr.h
+TServer/TLoginSvr/TLoginSvr_i.c
