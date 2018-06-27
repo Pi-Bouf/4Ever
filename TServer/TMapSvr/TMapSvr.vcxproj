@@ -96,8 +96,7 @@
     <PostBuildEvent>
       <Message>
       </Message>
-      <Command>
-      </Command>
+      <Command>IF NOT EXIST "$(OutputPath)\TMap.ini" COPY .\TMap.ini $(OutputPath)\TMap.ini</Command>
     </PostBuildEvent>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -145,6 +144,9 @@
       <Culture>0x0412</Culture>
       <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
+    <PostBuildEvent>
+      <Command>IF NOT EXIST "$(OutputPath)\TMap.ini" COPY .\TMap.ini $(OutputPath)\TMap.ini</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CSHandler.cpp" />

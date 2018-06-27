@@ -32,10 +32,9 @@ void main()
 	cout << " #################################################################### " << endl << endl;
 
 
-	CTMapSvrModule ct = CTMapSvrModule();
-	ct.StartServer();
+	_AtlModule.StartServer();
 
-	int i;
+	int i = 0;
 	cin >> i;
 }
 
@@ -365,9 +364,11 @@ DWORD CTMapSvrModule::StartUp()
 		LogInfo("Database OK !");
 	}
 
+	LogInfo("Loading data from DB...");
 	dwResult = LoadData();
 	if(dwResult)
 		return dwResult;
+	LogInfo("Data from DB loaded !");
 
 	cout << endl;
 	dwResult = CreateThreads();
@@ -378,10 +379,12 @@ DWORD CTMapSvrModule::StartUp()
 	cout << endl;
 	LogInfo("Init network...");
 	dwResult = InitNetwork();
-	if(dwResult)
+	if (dwResult) {
 		LogError("Can't open the server ! Please, check firewall and if port " + to_string(m_wGamePort) + " is open !");
 		return dwResult;
+	}
 
+	LogInfo("Server started on port " + to_string(m_wGamePort) + " !");
 #ifdef __HACK_SHIELD
 	if(m_bNation == NATION_GERMAN)
 	{
@@ -431,6 +434,9 @@ DWORD CTMapSvrModule::StartUp()
 	// Dump
 	CTMiniDump::SetOption(MiniDumpWithFullMemory);
 
+	cout << endl << endl;
+	LogInfo("Ready !");
+
 	return 0;
 }
 
@@ -471,9 +477,9 @@ void CTMapSvrModule::InitEnvironment()
 		{
 			pMap->SetSkyGarden(pSkygarden);
 			pSkygarden->m_bValid = TRUE;
-		}
-		else
+		} else {
 			pSkygarden->m_bValid = FALSE;
+		}
 	}
 #endif
 
@@ -586,7 +592,7 @@ DWORD CTMapSvrModule::LoadConfig()
 	m_szGameDSN = ini.GetValue("TMapConfig", "DSN", "TGAME_GSP");
 	m_szDBUserID = ini.GetValue("TLoginConfig", "DBUser", "4Admin");
 	m_szGamePasswd = ini.GetValue("TLoginConfig", "DBPasswd", "popo1234");
-	m_wGamePort = ini.GetLongValue("TLoginConfig", "GamePort", 1125);
+	m_wGamePort = ini.GetLongValue("TLoginConfig", "GamePort", 5816);
 
 	m_szWorldIP = ini.GetValue("TLoginConfig", "WorldIP", "127.0.0.1");
 	m_wWorldPort = ini.GetLongValue("TLoginConfig", "WorldPort", 4422);
@@ -611,7 +617,7 @@ DWORD CTMapSvrModule::LoadConfig()
 	SetConsoleTextAttribute(hConsole, 7);
 	cout << m_szGamePasswd << endl;
 	SetConsoleTextAttribute(hConsole, 11);
-	cout << "  # + LoginPort:  ";
+	cout << "  # + MapPort:  ";
 	SetConsoleTextAttribute(hConsole, 7);
 	cout << m_wGamePort << endl;
 	SetConsoleTextAttribute(hConsole, 11);

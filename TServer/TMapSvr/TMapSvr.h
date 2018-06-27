@@ -4,7 +4,7 @@
 
 
  /* File created by MIDL compiler version 8.00.0603 */
-/* at Sun Jun 24 20:13:35 2018
+/* at Wed Jun 27 21:12:53 2018
  */
 /* Compiler settings for TMapSvr.idl:
     Oicf, W1, Zp8, env=Win32 (32b run), target_arch=X86 8.00.0603 

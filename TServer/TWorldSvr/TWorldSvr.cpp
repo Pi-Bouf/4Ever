@@ -3,21 +3,49 @@
 #include "stdafx.h"
 #include "TWorldSvr.h"
 #include "TWorldSvrModule.h"
+#include "SimpleIni.h"
+#include <iostream>
+
+using namespace std;
 
 CTWorldSvrModule _AtlModule;
 
-extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, 
-                                LPTSTR /*lpCmdLine*/, int nShowCmd)
+void main()
 {
-    return _AtlModule.WinMain(nShowCmd);
+	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	SetConsoleTextAttribute(hConsole, 14);
+	cout << endl;
+	cout << " #################################################################### " << endl;
+	cout << " #         .o    .oooooo..o     .                                   # " << endl;
+	cout << " #       .d88   d8P'    `Y8   .o8                                   # " << endl;
+	cout << " #     .d'888   Y88bo.      .o888oo  .ooooo.  oooo d8b oooo    ooo  # " << endl;
+	cout << " #   .d'  888    `\"Y8888o.    888   d88' `88b `888\"\"8P  `88.  .8'   # " << endl;
+	cout << " #   88ooo888oo      `\"Y88b   888   888   888  888       `88..8'    # " << endl;
+	cout << " #        888   oo     .d8P   888 . 888   888  888        `888'     # " << endl;
+	cout << " #       o888o  8\"\"88888P'    \"888\" `Y8bod8P' d888b        .8'      # " << endl;
+	SetConsoleTextAttribute(hConsole, 13);
+	cout << " #       TWORLD SERVER";
+	SetConsoleTextAttribute(hConsole, 14);
+	cout << "                                 .o..P'       # " << endl;
+	SetConsoleTextAttribute(hConsole, 11);
+	cout << " #       Version: 1.0.1";
+	SetConsoleTextAttribute(hConsole, 14);
+	cout << "                                `Y8P'        # " << endl;
+	cout << " #################################################################### " << endl << endl;
+
+	_AtlModule.StartServer();
+	//ct.StartServer();
+
+	int i;
+	cin >> i;
 }
 
 
 CTWorldSvrModule::CTWorldSvrModule()
 {
-	memset( m_szDBPasswd, 0, ONE_KBYTE);
-	memset( m_szDBUserID, 0, ONE_KBYTE);
-	memset( m_szDSN, 0, ONE_KBYTE);
+	timeNow = time(0);
+	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	LogInfo("Welcome on TWorld Server !");
 
 	m_wPort = DEF_WORLDPORT;
 	m_bNumWorker = 0;
@@ -120,9 +148,23 @@ CTWorldSvrModule::~CTWorldSvrModule()
 #endif
 }
 
+void CTWorldSvrModule::LogInfo(string text)
+{
+	tm *ltm = localtime(&timeNow);
+	SetConsoleTextAttribute(hConsole, 10);
+	cout << "[" << ltm->tm_hour << ":" << ltm->tm_min << ":" << ltm->tm_sec << "] ==> " << text << endl;
+}
+
+void CTWorldSvrModule::LogError(string text)
+{
+	tm *ltm = localtime(&timeNow);
+	SetConsoleTextAttribute(hConsole, 4);
+	cout << "[" << ltm->tm_hour << ":" << ltm->tm_min << ":" << ltm->tm_sec << "] ==> " << text << endl;
+}
+
 void CTWorldSvrModule::OnERROR( DWORD dwErrorCode)
 {
-	LogEvent("ErrorCode %d",dwErrorCode);
+	LogError("ErrorCode " + to_string(dwErrorCode));
 }
 
 DWORD CTWorldSvrModule::_ControlThread( LPVOID lpParam)
@@ -155,7 +197,7 @@ DWORD CTWorldSvrModule::_TimerThread( LPVOID lpParam)
 	return pModule->TimerThread();
 }
 
-DWORD CTWorldSvrModule::OnEnter()
+DWORD CTWorldSvrModule::StartUp()
 {
 	while(!m_qBATCHJOB.empty())
 	{
@@ -205,21 +247,45 @@ DWORD CTWorldSvrModule::OnEnter()
 	if(dwResult)
 		return dwResult;
 
+	LogInfo("Database connection...");
 	dwResult = InitDB();
-	if(dwResult)
-		return dwResult;
+	if (dwResult) {
+		if (dwResult == EC_INITSERVICE_DBOPENFAILED) {
+			LogError("Connection error ! Check your DSN, DBUser and DBPasswd !");
+			cout << endl;
+			LogError("1: Start the 'SQL Server' service");
+			LogError("2: check your ODBC configuration (64 bits AND 32 bits)");
+			LogError("3: check if you have... a database in your server ? :)");
+		}
 
+		if (dwResult == EC_INITSERVICE_PREPAREQUERY) {
+			LogError("Connection error ! Can't init query on database connection !");
+		}
+		return dwResult;
+	}
+	else {
+		LogInfo("Database OK !");
+	}
+
+	LogInfo("Loading data from DB...");
 	dwResult = LoadData();
 	if(dwResult)
 		return dwResult;
+	LogInfo("Data from DB loaded !");
 
+	cout << endl;
 	dwResult = CreateThreads();
 	if(dwResult)
 		return dwResult;
+	LogInfo("All threads created !");
 
+	cout << endl;
+	LogInfo("Init network...");
 	dwResult = InitNetwork();
-	if(dwResult)
+	if (dwResult) {
+		LogError("Can't open the server ! Please, check firewall and if port " + to_string(m_wPort) + " is open !");
 		return dwResult;
+	}
 
 	if(!ResumeThreads())
 		return EC_INITSERVICE_RESUMETHREAD;
@@ -237,6 +303,9 @@ DWORD CTWorldSvrModule::OnEnter()
 
 	// Dump
 	CTMiniDump::SetOption(MiniDumpWithFullMemory);
+
+	cout << endl << endl;
+	LogInfo("Ready !");
 
 	return 0;
 }
@@ -292,103 +361,48 @@ void CTWorldSvrModule::OnExit()
 
 DWORD CTWorldSvrModule::LoadConfig()
 {
-	//Load config from registry
-	DWORD dwLength;
-	DWORD dwValue;
-	HKEY hKey;
+	LogInfo("Load config from TWorld.ini file");
 
-	CString strRegKey;
-	strRegKey.Empty();
+	CSimpleIniA ini;
+	ini.SetUnicode();
+	ini.LoadFile(".\\TWorld.ini");
 
-#ifdef _DEBUG
-	HKEY hOpenKey = HKEY_CURRENT_USER;
-	strRegKey.Format(_T("software\\%s"), m_szServiceName);
-#else
-	HKEY hOpenKey = HKEY_LOCAL_MACHINE;
-	strRegKey.Format(_T("SYSTEM\\CurrentControlSet\\Services\\%s\\Config"), m_szServiceName);
-#endif
+	m_szDBPasswd = ini.GetValue("TWorldConfig", "DBPasswd", "popo1234");
+	m_szDBUserID = ini.GetValue("TWorldConfig", "DBUser", "4Admin");
+	m_szDSN = ini.GetValue("TWorldConfig", "DSN", "TGAME_GSP");
+	m_wPort = ini.GetLongValue("TWorldConfig", "WorldPort", 5336);
+	m_bServerID = ini.GetLongValue("TWorldConfig", "ServerID", 1);
+	m_bGroupID = ini.GetLongValue("TWorldConfig", "GroupID", 1);
 
-	int nERROR = RegCreateKey( hOpenKey, strRegKey, &hKey);
-	if( nERROR != ERROR_SUCCESS )
-		return EC_INITSERVICE_OPENREG;
-
-	// Load game database password
-	dwLength = ONE_KBYTE;
-	nERROR = RegQueryValueEx(
-		hKey,
-		_T("DBPasswd"),
-		NULL,
-		NULL,
-		(LPBYTE) &m_szDBPasswd,
-		&dwLength);
-	if( nERROR != ERROR_SUCCESS )
-		return EC_INITSERVICE_PASSWDNOTASSIGNED;
-
-	// Load DB user ID
-	dwLength = ONE_KBYTE;
-	nERROR = RegQueryValueEx(
-		hKey,
-		_T("DBUser"),
-		NULL,
-		NULL,
-		(LPBYTE) &m_szDBUserID,
-		&dwLength);
-	if( nERROR != ERROR_SUCCESS )
-		return EC_INITSERVICE_PASSWDNOTASSIGNED;
-
-	// Load account database DSN
-	dwLength = ONE_KBYTE;
-	nERROR = RegQueryValueEx(
-		hKey,
-		_T("DSN"),
-		NULL,
-		NULL,
-		(LPBYTE) &m_szDSN,
-		&dwLength);
-	if( nERROR != ERROR_SUCCESS )
-		return EC_INITSERVICE_DSNNOTASSIGNED;
-
-	// Load group ID
-	dwLength = sizeof(DWORD);
-	nERROR = RegQueryValueEx(
-		hKey,
-		_T("GroupID"),
-		NULL,
-		NULL,
-		(LPBYTE) &dwValue,
-		&dwLength);
-	if( nERROR != ERROR_SUCCESS )
-		return EC_INITSERVICE_SVRIDNOTASSIGNED;
-	else
-		m_bGroupID = (BYTE) dwValue;
-
-	// Load server ID
-	dwLength = sizeof(DWORD);
-	nERROR = RegQueryValueEx(
-		hKey,
-		_T("ServerID"),
-		NULL,
-		NULL,
-		(LPBYTE) &dwValue,
-		&dwLength);
-	if( nERROR != ERROR_SUCCESS )
-		return EC_INITSERVICE_SVRIDNOTASSIGNED;
-	else
-		m_bServerID = (BYTE) dwValue;
-
-	// Load listen port
-	dwLength = sizeof(DWORD);
-	nERROR = RegQueryValueEx(
-		hKey,
-		_T("Port"),
-		NULL,
-		NULL,
-		(LPBYTE) &dwValue,
-		&dwLength);
-	if( nERROR != ERROR_SUCCESS )
-		return EC_INITSERVICE_PORTNOTASSIGNED;
-	else
-		m_wPort = (WORD) dwValue;
+	
+	LogInfo("Data from TWorld.ini:");
+	SetConsoleTextAttribute(hConsole, 11);
+	cout << "  ###################################" << endl;
+	cout << "  # + DSN:       ";
+	SetConsoleTextAttribute(hConsole, 7);
+	cout << m_szDSN << endl;
+	SetConsoleTextAttribute(hConsole, 11);
+	cout << "  # + DBUser:    ";
+	SetConsoleTextAttribute(hConsole, 7);
+	cout << m_szDBUserID << endl;
+	SetConsoleTextAttribute(hConsole, 11);
+	cout << "  # + DBPasswd:  ";
+	SetConsoleTextAttribute(hConsole, 7);
+	cout << m_szDBPasswd << endl;
+	SetConsoleTextAttribute(hConsole, 11);
+	cout << "  # + LoginPort: ";
+	SetConsoleTextAttribute(hConsole, 7);
+	cout << m_wPort << endl;
+	SetConsoleTextAttribute(hConsole, 11);
+	cout << "  # + ServerID:  ";
+	SetConsoleTextAttribute(hConsole, 7);
+	cout << m_bServerID << endl;
+	SetConsoleTextAttribute(hConsole, 11);
+	cout << "  # + GroupID:   ";
+	SetConsoleTextAttribute(hConsole, 7);
+	cout << m_bGroupID << endl;
+	SetConsoleTextAttribute(hConsole, 11);
+	cout << "  ###################################" << endl;
 
 	return EC_NOERROR;
 }
@@ -444,6 +458,8 @@ DWORD CTWorldSvrModule::CreateThreads()
 	GetSystemInfo(&vINFO);
 	m_bNumWorker = (BYTE) (2 * vINFO.dwNumberOfProcessors);
 
+	LogInfo("Starting " + to_string(m_bNumWorker) + " threads...");
+
 	for( BYTE i=0; i<m_bNumWorker; i++)
 	{
 		m_hWorker[i] = CreateThread(
@@ -455,6 +471,8 @@ DWORD CTWorldSvrModule::CreateThreads()
 
 		if(!m_hWorker[i])
 			return EC_INITSERVICE_CREATETHREAD;
+
+		LogInfo("  Thread #" + to_string(i) + " started !");
 	}
 
 	return EC_NOERROR;
@@ -791,7 +809,7 @@ void CTWorldSvrModule::CloseSession( CTWorldSession *pSession)
 
 DWORD CTWorldSvrModule::InitDB()
 {
-	if(!m_db.Open( m_szDSN, m_szDBUserID, m_szDBPasswd))
+	if(!m_db.Open( m_szDSN.c_str(), m_szDBUserID.c_str(), m_szDBPasswd.c_str()))
 		return EC_INITSERVICE_DBOPENFAILED;
 
 	if(!InitQueryTWorldSvr(&m_db))
@@ -1854,7 +1872,7 @@ DWORD CTWorldSvrModule::ControlThread()
 			{
 			case COMP_ACCEPT	:
 				if(!WaitForConnect())
-					LogEvent(_T("WaitForConnect : Error"));
+					LogError(_T("WaitForConnect : Error"));
 
 				break;
 			}
@@ -1865,10 +1883,10 @@ DWORD CTWorldSvrModule::ControlThread()
 			{
 			case COMP_ACCEPT	:
 				if(!Accept())
-					LogEvent(_T("Accept : Error"));
+					LogError(_T("Accept : Error"));
 
 				if(!WaitForConnect())
-					LogEvent(_T("WaitForConnect : Error"));
+					LogError(_T("WaitForConnect : Error"));
 
 				break;
 
@@ -2144,7 +2162,7 @@ void CTWorldSvrModule::ProcessSession( CTWorldSession *pSession, DWORD dwIoBytes
 			{
 				if(pSession->m_Recv.GetSize() == MAX_PACKET_SIZE)
 				{
-					LogEvent("Check Message Overflow");
+					LogInfo("Check Message Overflow");
 					pSession->Flush();
 				}
 				else
@@ -2154,24 +2172,6 @@ void CTWorldSvrModule::ProcessSession( CTWorldSession *pSession, DWORD dwIoBytes
 				}
 			}
 			break;
-			// ***** IOCP 사용법 중 알아내기 힘든 세번째 구문 (비 정상적인 세션 종료) *****
-			//
-			// 클라이언트가 패킷을 변조해서 보낸다거나 네트웤 오류로 인해 세션이 비 정상적인 상태가 된 경우이며
-			// WSARecv()가 호출된 상태에서만 이 코드로 들어오며
-			// 모든 오버랩 오퍼래이션이 종료 되었다고 볼 수 없다.
-			// 따라서 이후에 이 스레드에서 이 세션과 관련된 작업명령이 실행 될 수 있으므로
-			// 여기서 세션 포인터를 삭제하면 서버가 다운될 수 있다.
-			// Receive와 관련된 오버랩 오퍼레이션은 확실히 종료 되었으므로
-			// Send와 관련된 오버랩 오퍼레이션이 종료되었는지를
-			// 확인한 후 다른 스레드의 세션 삭제 수락과정을 거치고 세션을 삭제 해야 한다.
-			//
-			// *** 권장하지 않는 편법 ***
-			// 혹시나 여기서 closesocket()을 호출 하여
-			// 서버측 세션종료 프로세스로 들어가려는 시도는 하지 않는 것이 좋다.
-			// closesocket()을 호출해도 WSARecv()가 호출되지 않은 상태이기 때문에
-			// 서버측 세션종료 프로세스로 들어가지 못한다. 만약 WSARecv()를 먼저
-			// 호출하고 바로 closesocket()을 호출하면 프로세스로의 진입은 가능 할 수도 있으나
-			// 비 정상적인 세션을 대상으로 그런 액션을 하는 것은 위험하다.
 		}
 	}
 
@@ -2195,7 +2195,7 @@ DWORD CTWorldSvrModule::OnReceive( LPPACKETBUF pBUF)
 {
 	if(pBUF->m_packet.GetSize() == MAX_PACKET_SIZE)
 	{
-		LogEvent("Overflow Message %d",pBUF->m_packet.GetID());
+		LogError("Overflow Message "  + pBUF->m_packet.GetID());
 		return EC_SESSION_INVALIDMSG;
 	}
 
@@ -2501,7 +2501,7 @@ DWORD CTWorldSvrModule::OnReceive( LPPACKETBUF pBUF)
 	ON_RECEIVE(RW_RELAYCONNECT_REQ)
 	}
 
-	LogEvent("Invalid Message %d",pBUF->m_packet.GetID());
+	LogError("Invalid Message " + pBUF->m_packet.GetID());
 	return EC_SESSION_INVALIDMSG;
 }
 
@@ -3751,24 +3751,20 @@ void CTWorldSvrModule::OnCheckConnect( LPTCHARACTER pTCHAR, LPPACKETBUF pBUF)
 	mapCON.clear();
 }
 
-HRESULT CTWorldSvrModule::PreMessageLoop( int nShowCmd)
+void CTWorldSvrModule::StartServer()
 {
-	DWORD dwResult = OnEnter();
+	DWORD dwResult = StartUp();
 
-	if(dwResult)
+	if (dwResult)
 	{
 		OnERROR(dwResult);
-		return E_FAIL;
 	}
-	m_dwThreadID = GetCurrentThreadId();
-
-	return CAtlServiceModuleT<CTWorldSvrModule,IDS_SERVICENAME>::PreMessageLoop(nShowCmd);
 }
 
 HRESULT CTWorldSvrModule::PostMessageLoop()
 {
 	OnExit();
-	return CAtlServiceModuleT<CTWorldSvrModule,IDS_SERVICENAME>::PostMessageLoop();
+	return NO_ERROR;
 }
 
 LPTGUILDLEVEL CTWorldSvrModule::FindGuildLevel(BYTE bLevel)

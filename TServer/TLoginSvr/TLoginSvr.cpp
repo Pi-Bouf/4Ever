@@ -7,6 +7,8 @@
 
 INT64 dwKey2  = 463737125;
 
+CTLoginSvrModule _AtlModule;
+
 void main()
 {
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -30,8 +32,7 @@ void main()
 	cout << "                                `Y8P'        # " << endl;
 	cout << " #################################################################### " << endl << endl;
 
-	CTLoginSvrModule ct = CTLoginSvrModule();
-	ct.StartServer();
+	_AtlModule.StartServer();
 
 	int i;
 	cin >> i;
@@ -191,9 +192,10 @@ DWORD CTLoginSvrModule::StartUp()
 	cout << endl;
 	LogInfo("Init network...");
 	dwResult = InitNetwork();
-	if (dwResult)
+	if (dwResult) {
 		LogError("Can't open the server ! Please, check firewall and if port " + to_string(m_wPort) + " is open !");
 		return dwResult;
+	}
 
 	if(!ResumeThreads())
 		return EC_INITSERVICE_RESUMETHREAD;
@@ -561,46 +563,46 @@ BYTE CTLoginSvrModule::WaitForConnect()
 
 DWORD CTLoginSvrModule::ControlThread()
 {
-	while(TRUE)
+	while (TRUE)
 	{
 		DWORD dwCompKey = COMP_NULL;
 		DWORD dwIoBytes = 0;
 
 		LPOVERLAPPED pOV = NULL;
 
-		if(!GetQueuedCompletionStatus(
+		if (!GetQueuedCompletionStatus(
 			m_hIocpControl,
 			&dwIoBytes,
 			&dwCompKey,
 			&pOV, INFINITE) &&
-			GetLastError() != WAIT_TIMEOUT )
+			GetLastError() != WAIT_TIMEOUT)
 		{
-			switch(dwCompKey)
+			switch (dwCompKey)
 			{
-			case COMP_ACCEPT	:
-				if(!WaitForConnect())
-					LogInfo(_T("WaitForConnect : Error"));
+			case COMP_ACCEPT:
+				if (!WaitForConnect())
+					//LogEvent(_T("WaitForConnect : Error"));
 
 				break;
 			}
 		}
-		else if(pOV)
+		else if (pOV)
 		{
-			switch(dwCompKey)
+			switch (dwCompKey)
 			{
-			case COMP_ACCEPT	:
-				if(!Accept())
-					LogInfo(_T("Accept : Error"));
+			case COMP_ACCEPT:
+				if (!Accept())
+					//LogEvent(_T("Accept : Error"));
 
-				if(!WaitForConnect())
-					LogInfo(_T("WaitForConnect : Error"));
+				if (!WaitForConnect())
+					//LogEvent(_T("WaitForConnect : Error"));
 
 				break;
 
-			case COMP_CLOSE		: OnCloseSession((CTUser *) pOV); break;
+			case COMP_CLOSE: OnCloseSession((CTUser *)pOV); break;
 			}
 		}
-		else if( dwCompKey == COMP_EXIT )
+		else if (dwCompKey == COMP_EXIT)
 			return 0;
 	}
 
@@ -919,39 +921,11 @@ void CTLoginSvrModule::ProcessSession( CSqlDatabase *pDB, LPMAPTGROUP pGROUP, CT
 
 			OnInvalidSession(pUser);
 			return;
-			// ***** IOCP 사용법 중 알아내기 힘든 세번째 구문 (비 정상적인 세션 종료) *****
-			//
-			// 클라이언트가 패킷을 변조해서 보낸다거나 네트웤 오류로 인해 세션이 비 정상적인 상태가 된 경우이며
-			// WSARecv()가 호출된 상태에서만 이 코드로 들어오며
-			// 모든 오버랩 오퍼래이션이 종료 되었다고 볼 수 없다.
-			// 따라서 이후에 이 스레드에서 이 세션과 관련된 작업명령이 실행 될 수 있으므로
-			// 여기서 세션 포인터를 삭제하면 서버가 다운될 수 있다.
-			// Receive와 관련된 오버랩 오퍼레이션은 확실히 종료 되었으므로
-			// Send와 관련된 오버랩 오퍼레이션이 종료되었는지를
-			// 확인한 후 다른 스레드의 세션 삭제 수락과정을 거치고 세션을 삭제 해야 한다.
-			//
-			// *** 권장하지 않는 편법 ***
-			// 혹시나 여기서 closesocket()을 호출 하여
-			// 서버측 세션종료 프로세스로 들어가려는 시도는 하지 않는 것이 좋다.
-			// closesocket()을 호출해도 WSARecv()가 호출되지 않은 상태이기 때문에
-			// 서버측 세션종료 프로세스로 들어가지 못한다. 만약 WSARecv()를 먼저
-			// 호출하고 바로 closesocket()을 호출하면 프로세스로의 진입은 가능 할 수도 있으나
-			// 비 정상적인 세션을 대상으로 그런 액션을 하는 것은 위험하다.
 		}
 	}
 
 	if(!pUser->WaitForMessage())
 	{
-		// ***** IOCP 사용법 중 알아내기 힘든 네번째 구문 (비 정상적인 세션 종료) *****
-		//
-		// 네트웤 오류로 인해 세션이 비 정상적인 상태에서 WSARecv()함수 호출이 실패한 경우이며
-		// WSARecv()가 호출된 상태에서만 이 코드로 들어오며
-		// 모든 오버랩 오퍼래이션이 종료 되었다고 볼 수 없다.
-		// 따라서 이후에 이 스레드에서 이 세션과 관련된 작업명령이 실행 될 수 있으므로
-		// 여기서 세션 포인터를 삭제하면 서버가 다운될 수 있다.
-		// Receive와 관련된 오버랩 오퍼레이션은 확실히 종료 되었으므로
-		// Send와 관련된 오버랩 오퍼레이션이 종료되었는지를
-		// 확인한 후 다른 스레드의 세션 삭제 수락과정을 거치고 세션을 삭제 해야 한다.
 		OnInvalidSession(pUser);
 	}
 }
