@@ -1,0 +1,2381 @@
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include
+END
+iTrackSet.h
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/iTrackSet.h
+END
+iMorphByBone.h
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/iMorphByBone.h
+END
+ireagent.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/ireagent.h
+END
+iassemblymgr.h
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/iassemblymgr.h
+END
+ProductSDKVer.h
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/ProductSDKVer.h
+END
+iaggregation.h
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/iaggregation.h
+END
+impexp.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/impexp.h
+END
+props.h
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/props.h
+END
+3dsmaxport.h
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/3dsmaxport.h
+END
+irollupsettings.h
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/irollupsettings.h
+END
+ILoadSaveAnimation.h
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/ILoadSaveAnimation.h
+END
+icommandpanel.h
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/icommandpanel.h
+END
+box2.h
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/box2.h
+END
+iparamb.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/iparamb.h
+END
+iiksys.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/iiksys.h
+END
+toolmap.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/toolmap.h
+END
+mouseproc.h
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/mouseproc.h
+END
+bitarray.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/bitarray.h
+END
+control.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/control.h
+END
+istddualvs.h
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/istddualvs.h
+END
+IProjectionRenderHandler.h
+K 25
+svn:wc:ra_dav:version-url
+V 97
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/IProjectionRenderHandler.h
+END
+irefhierarchy.h
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/irefhierarchy.h
+END
+maxtess.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/maxtess.h
+END
+IBatchRenderManager.h
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/IBatchRenderManager.h
+END
+IIndirectRefMaker.h
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/IIndirectRefMaker.h
+END
+lslights.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/lslights.h
+END
+imblur.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/imblur.h
+END
+patchobj.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/patchobj.h
+END
+MNChamferData10.h
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/MNChamferData10.h
+END
+maxversion.h
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/maxversion.h
+END
+inode.h
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/inode.h
+END
+patch.h
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/patch.h
+END
+maxnet_platform.h
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/maxnet_platform.h
+END
+IRefTargMonitorClass.h
+K 25
+svn:wc:ra_dav:version-url
+V 93
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/IRefTargMonitorClass.h
+END
+paramtype.h
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/paramtype.h
+END
+meshacc.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/meshacc.h
+END
+ISimpleFaceDataManager.h
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/ISimpleFaceDataManager.h
+END
+idx9pixelshader.h
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/idx9pixelshader.h
+END
+keyreduc.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/keyreduc.h
+END
+ICoordSys.h
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/ICoordSys.h
+END
+color.h
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/color.h
+END
+ilayermanager.h
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/ilayermanager.h
+END
+pod.h
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/pod.h
+END
+soundobj.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/soundobj.h
+END
+IViewportButton.h
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/IViewportButton.h
+END
+ipoint3.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/ipoint3.h
+END
+meshdlib.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/meshdlib.h
+END
+ISkinWrapPatch.h
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/ISkinWrapPatch.h
+END
+IIndirectRefTargContainer.h
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/IIndirectRefTargContainer.h
+END
+triobj.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/triobj.h
+END
+IDX10HardwareRenderer.h
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/IDX10HardwareRenderer.h
+END
+RendType.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/RendType.h
+END
+winutil.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/winutil.h
+END
+IRTShaderNode.h
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/IRTShaderNode.h
+END
+dummy.h
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/dummy.h
+END
+id3dgraphicswindow.h
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/id3dgraphicswindow.h
+END
+ihardwareshader.h
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/ihardwareshader.h
+END
+ihardwarerenderer.h
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/ihardwarerenderer.h
+END
+iparamb2.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/iparamb2.h
+END
+hsv.h
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/hsv.h
+END
+bmmlib.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/bmmlib.h
+END
+particle.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/particle.h
+END
+icollision.h
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/icollision.h
+END
+lockid.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/lockid.h
+END
+INodeMonitor.h
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/INodeMonitor.h
+END
+object.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/object.h
+END
+decomp.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/decomp.h
+END
+appio.h
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/appio.h
+END
+dbgprint.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/dbgprint.h
+END
+gfxlib.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/gfxlib.h
+END
+meshadj.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/meshadj.h
+END
+box3.h
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/box3.h
+END
+ipipelineclient.h
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/ipipelineclient.h
+END
+ihardwaremnmesh.h
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/ihardwaremnmesh.h
+END
+fltapi.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/fltapi.h
+END
+ifnpub.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/ifnpub.h
+END
+MtlBaseList.h
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/MtlBaseList.h
+END
+maxcom.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/maxcom.h
+END
+radiosityMesh.h
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/radiosityMesh.h
+END
+IGlobalDXDisplayManager.h
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/IGlobalDXDisplayManager.h
+END
+helpsys.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/helpsys.h
+END
+randgenerator.h
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/randgenerator.h
+END
+macrorec.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/macrorec.h
+END
+IMtlRender_Compatibility.h
+K 25
+svn:wc:ra_dav:version-url
+V 97
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/IMtlRender_Compatibility.h
+END
+IActionItemOverrideManager.h
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/IActionItemOverrideManager.h
+END
+springsys.h
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/springsys.h
+END
+ILightingUnits.h
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/ILightingUnits.h
+END
+exprlib.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/exprlib.h
+END
+SingleWeakRefMaker.h
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/SingleWeakRefMaker.h
+END
+tab.h
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/tab.h
+END
+HWIndex.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/HWIndex.h
+END
+spacearraycallback.h
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/spacearraycallback.h
+END
+iparamm2.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/iparamm2.h
+END
+surf_api.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/surf_api.h
+END
+ProductDefaults.h
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/ProductDefaults.h
+END
+Noncopyable.h
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/Noncopyable.h
+END
+chkmtlapi.h
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/chkmtlapi.h
+END
+iimageviewer.h
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/iimageviewer.h
+END
+scenetraversal.h
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/scenetraversal.h
+END
+iADTObjMgr.h
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/iADTObjMgr.h
+END
+simpshp.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/simpshp.h
+END
+IParticleObjectExt.h
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/IParticleObjectExt.h
+END
+interpik.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/interpik.h
+END
+max.h
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/max.h
+END
+maxnet_job.h
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/maxnet_job.h
+END
+simpspl.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/simpspl.h
+END
+mnmesh.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/mnmesh.h
+END
+tvutil.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/tvutil.h
+END
+WindowsDefines.h
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/WindowsDefines.h
+END
+shaders.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/shaders.h
+END
+gencam.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/gencam.h
+END
+HWMesh.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/HWMesh.h
+END
+iskincodes.h
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/iskincodes.h
+END
+icurvctl.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/icurvctl.h
+END
+EditSoftSelectionMode.h
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/EditSoftSelectionMode.h
+END
+ISceneStateManager.h
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/ISceneStateManager.h
+END
+iADTStyle.h
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/iADTStyle.h
+END
+IRadiosityPreferences.h
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/IRadiosityPreferences.h
+END
+toneop.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/toneop.h
+END
+WindowsMessageFilter.h
+K 25
+svn:wc:ra_dav:version-url
+V 93
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/WindowsMessageFilter.h
+END
+idx8pixelshader.h
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/idx8pixelshader.h
+END
+strbasic.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/strbasic.h
+END
+quat.h
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/quat.h
+END
+IRefTargMonitor.h
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/IRefTargMonitor.h
+END
+point2.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/point2.h
+END
+maxheapdirect.h
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/maxheapdirect.h
+END
+splshape.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/splshape.h
+END
+ICoordSys_i.c
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/ICoordSys_i.c
+END
+export.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/export.h
+END
+guplib.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/guplib.h
+END
+ILockedTracks.h
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/ILockedTracks.h
+END
+IContainerManager.h
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/IContainerManager.h
+END
+IShadeContextExtension8.h
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/IShadeContextExtension8.h
+END
+nsclip.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/nsclip.h
+END
+ikctrl.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/ikctrl.h
+END
+tessint.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/tessint.h
+END
+mtl.h
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/mtl.h
+END
+IViewportShadingMgr.h
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/IViewportShadingMgr.h
+END
+MNNormalSpec.h
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/MNNormalSpec.h
+END
+plugapi.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/plugapi.h
+END
+simpobj.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/simpobj.h
+END
+ISimpleFaceDataChannel.h
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/ISimpleFaceDataChannel.h
+END
+imtl.h
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/imtl.h
+END
+trig.h
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/trig.h
+END
+bezfont.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/bezfont.h
+END
+filters.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/filters.h
+END
+expmtlControl.h
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/expmtlControl.h
+END
+palutil.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/palutil.h
+END
+marketDefaults.h
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/marketDefaults.h
+END
+idatachannel.h
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/idatachannel.h
+END
+bitmap.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/bitmap.h
+END
+maxapi.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/maxapi.h
+END
+MaxHeap.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/MaxHeap.h
+END
+IDaylightSystem.h
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/IDaylightSystem.h
+END
+gbuf.h
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/gbuf.h
+END
+interval.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/interval.h
+END
+sceneapi.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/sceneapi.h
+END
+hotcheck.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/hotcheck.h
+END
+ITabDialog.h
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/ITabDialog.h
+END
+iepoly.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/iepoly.h
+END
+ptrvec.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/ptrvec.h
+END
+MAXVERSION.R
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/MAXVERSION.R
+END
+utilapi.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/utilapi.h
+END
+evuser.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/evuser.h
+END
+imtledit.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/imtledit.h
+END
+imszip.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/imszip.h
+END
+point3.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/point3.h
+END
+shadbuf.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/shadbuf.h
+END
+maxnet_low.h
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/maxnet_low.h
+END
+hitdata.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/hitdata.h
+END
+client.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/client.h
+END
+assert1.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/assert1.h
+END
+impexpintf.h
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/impexpintf.h
+END
+dynamic.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/dynamic.h
+END
+mnmath.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/mnmath.h
+END
+contextids.h
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/contextids.h
+END
+ISkinWrapMesh.h
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/ISkinWrapMesh.h
+END
+IProjectionMod.h
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/IProjectionMod.h
+END
+iparamm.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/iparamm.h
+END
+linklist.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/linklist.h
+END
+channels.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/channels.h
+END
+rtclick.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/rtclick.h
+END
+INodeGIProperties.h
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/INodeGIProperties.h
+END
+stdmat.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/stdmat.h
+END
+IPainterInterface.h
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/IPainterInterface.h
+END
+icustattribcontainer.h
+K 25
+svn:wc:ra_dav:version-url
+V 93
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/icustattribcontainer.h
+END
+genlight.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/genlight.h
+END
+cmdmode.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/cmdmode.h
+END
+renderelements.h
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/renderelements.h
+END
+mcapdev.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/mcapdev.h
+END
+random.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/random.h
+END
+osnap.h
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/osnap.h
+END
+genhier.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/genhier.h
+END
+shpsels.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/shpsels.h
+END
+log.h
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/log.h
+END
+iInstanceMgr.h
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/iInstanceMgr.h
+END
+itreevw.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/itreevw.h
+END
+iunwrap.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/iunwrap.h
+END
+id3d9graphicswindow.h
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/id3d9graphicswindow.h
+END
+osnaphit.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/osnaphit.h
+END
+gizmo.h
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/gizmo.h
+END
+IColorCorrectionMgr.h
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/IColorCorrectionMgr.h
+END
+samplers.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/samplers.h
+END
+iEditNormals.h
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/iEditNormals.h
+END
+RTMax.h
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/RTMax.h
+END
+gport.h
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/gport.h
+END
+gup.h
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/gup.h
+END
+istdplug.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/istdplug.h
+END
+maxnet_archive.h
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/maxnet_archive.h
+END
+strclass.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/strclass.h
+END
+mnbigmat.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/mnbigmat.h
+END
+ispringctrl.h
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/ispringctrl.h
+END
+idx9vertexshader.h
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/idx9vertexshader.h
+END
+referencemgr.h
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/referencemgr.h
+END
+IFileResolutionManager.h
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/IFileResolutionManager.h
+END
+radiosity.h
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/radiosity.h
+END
+ObjectWrapper.h
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/ObjectWrapper.h
+END
+buildnumber.h
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/buildnumber.h
+END
+simpmod.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/simpmod.h
+END
+objectClassId.h
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/objectClassId.h
+END
+viewfile.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/viewfile.h
+END
+point4.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/point4.h
+END
+midiman.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/midiman.h
+END
+icolorman.h
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/icolorman.h
+END
+xtcobject.h
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/xtcobject.h
+END
+animtbl.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/animtbl.h
+END
+excllist.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/excllist.h
+END
+notetrck.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/notetrck.h
+END
+alerts.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/alerts.h
+END
+IFrameTagManager.h
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/IFrameTagManager.h
+END
+ibrowser.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/ibrowser.h
+END
+naturalLight.h
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/naturalLight.h
+END
+idraganddrop.h
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/idraganddrop.h
+END
+autoptr.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/autoptr.h
+END
+partclib.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/partclib.h
+END
+shphier.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/shphier.h
+END
+ikhierarchy.h
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/ikhierarchy.h
+END
+imenuman.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/imenuman.h
+END
+iBlockMgr.h
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/iBlockMgr.h
+END
+IWorkingPivot.h
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/IWorkingPivot.h
+END
+IHeightManager.h
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/IHeightManager.h
+END
+ILimitCtrl.h
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/ILimitCtrl.h
+END
+gport2.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/gport2.h
+END
+impapi.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/impapi.h
+END
+dpoint3.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/dpoint3.h
+END
+patchcap.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/patchcap.h
+END
+gutil.h
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/gutil.h
+END
+ilayer.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/ilayer.h
+END
+actiontable.h
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/actiontable.h
+END
+ihardwarematerial.h
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/ihardwarematerial.h
+END
+matrix2.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/matrix2.h
+END
+patchlib.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/patchlib.h
+END
+stack3.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/stack3.h
+END
+maxnet_file.h
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/maxnet_file.h
+END
+arcdlg.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/arcdlg.h
+END
+IUtilityPanel.h
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/IUtilityPanel.h
+END
+zlibdll.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/zlibdll.h
+END
+ILinkTMCtrl.h
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/ILinkTMCtrl.h
+END
+texutil.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/texutil.h
+END
+csapi.h
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/csapi.h
+END
+imenus.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/imenus.h
+END
+IDaylightControlledLightSystem.h
+K 25
+svn:wc:ra_dav:version-url
+V 103
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/IDaylightControlledLightSystem.h
+END
+snap.h
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/snap.h
+END
+idx8vertexshader.h
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/idx8vertexshader.h
+END
+ioapi.h
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/ioapi.h
+END
+IBrushPresets.h
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/IBrushPresets.h
+END
+imaterial.h
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/imaterial.h
+END
+BuildWarnings.h
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/BuildWarnings.h
+END
+shadgen.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/shadgen.h
+END
+osnapapi.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/osnapapi.h
+END
+pixelbuf.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/pixelbuf.h
+END
+frontend.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/frontend.h
+END
+IDialogMonitor.h
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/IDialogMonitor.h
+END
+IContainerObject.h
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/IContainerObject.h
+END
+IViewportManager.h
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/IViewportManager.h
+END
+namesel.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/namesel.h
+END
+gfx.h
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/gfx.h
+END
+ipointcache.h
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/ipointcache.h
+END
+captypes.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/captypes.h
+END
+plugin.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/plugin.h
+END
+maxicon.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/maxicon.h
+END
+sfx.h
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/sfx.h
+END
+shape.h
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/shape.h
+END
+svcore.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/svcore.h
+END
+custcont.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/custcont.h
+END
+INodeTransformMonitor.h
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/INodeTransformMonitor.h
+END
+linshape.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/linshape.h
+END
+DefaultActions.H
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/DefaultActions.H
+END
+icustrendpresets.h
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/icustrendpresets.h
+END
+VariableGuard.h
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/VariableGuard.h
+END
+RealWorldMapUtils.h
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/RealWorldMapUtils.h
+END
+fltlib.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/fltlib.h
+END
+iskin.h
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/iskin.h
+END
+acolor.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/acolor.h
+END
+render.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/render.h
+END
+systemutilities.h
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/systemutilities.h
+END
+MeshNormalSpec.h
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/MeshNormalSpec.h
+END
+spline3d.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/spline3d.h
+END
+mouseman.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/mouseman.h
+END
+gupapi.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/gupapi.h
+END
+matrix3.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/matrix3.h
+END
+INodeExposure.h
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/INodeExposure.h
+END
+IMetaData.h
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/IMetaData.h
+END
+sse.h
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/sse.h
+END
+INodeBakeProperties.h
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/INodeBakeProperties.h
+END
+iemissioncolor.h
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/iemissioncolor.h
+END
+pbbitmap.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/pbbitmap.h
+END
+imacroscript.h
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/imacroscript.h
+END
+iparamwire.h
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/iparamwire.h
+END
+iEPolyMod.h
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/iEPolyMod.h
+END
+GeoTableItem.h
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/GeoTableItem.h
+END
+ILayerProperties.h
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/ILayerProperties.h
+END
+IDxMaterial.h
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/IDxMaterial.h
+END
+IBlobMesh.h
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/IBlobMesh.h
+END
+stack.h
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/stack.h
+END
+IMaterialViewportShading.h
+K 25
+svn:wc:ra_dav:version-url
+V 97
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/IMaterialViewportShading.h
+END
+coreexp.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/coreexp.h
+END
+HWVertex.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/HWVertex.h
+END
+interactiverender.h
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/interactiverender.h
+END
+IMtlBrowserFilter.h
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/IMtlBrowserFilter.h
+END
+IRTShaderParameterBinding.h
+K 25
+svn:wc:ra_dav:version-url
+V 98
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/IRTShaderParameterBinding.h
+END
+custattrib.h
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/custattrib.h
+END
+printmanager.h
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/printmanager.h
+END
+INodeMentalRayProperties.h
+K 25
+svn:wc:ra_dav:version-url
+V 97
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/INodeMentalRayProperties.h
+END
+IGeometryChecker.h
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/IGeometryChecker.h
+END
+utilexp.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/utilexp.h
+END
+manipulator.h
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/manipulator.h
+END
+baseinterface.h
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/baseinterface.h
+END
+iksolver.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/iksolver.h
+END
+polyshp.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/polyshp.h
+END
+iRenderPresets.h
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/iRenderPresets.h
+END
+iTargetedIO.h
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/iTargetedIO.h
+END
+ICompositeShader.h
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/ICompositeShader.h
+END
+ISceneEventManager.h
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/ISceneEventManager.h
+END
+ifacedatamgr.h
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/ifacedatamgr.h
+END
+osnapmk.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/osnapmk.h
+END
+maxtypes.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/maxtypes.h
+END
+sbmtlapi.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/sbmtlapi.h
+END
+ICustAttribCollapseManager.h
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/ICustAttribCollapseManager.h
+END
+ilag.h
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/ilag.h
+END
+buildver.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/buildver.h
+END
+euler.h
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/euler.h
+END
+expr.h
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/expr.h
+END
+wrangler.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/wrangler.h
+END
+meshlib.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/meshlib.h
+END
+geom.h
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/geom.h
+END
+iassembly.h
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/iassembly.h
+END
+genshape.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/genshape.h
+END
+mesh.h
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/mesh.h
+END
+iguest.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/iguest.h
+END
+IPathConfigMgr.h
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/IPathConfigMgr.h
+END
+units.h
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/units.h
+END
+iSkinPose.h
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/iSkinPose.h
+END
+templt.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/templt.h
+END
+nodedisp.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/nodedisp.h
+END
+meshdelta.h
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/meshdelta.h
+END
+IRefTargContainer.h
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/IRefTargContainer.h
+END
+nametab.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/nametab.h
+END
+INodeLayerProperties.h
+K 25
+svn:wc:ra_dav:version-url
+V 93
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/INodeLayerProperties.h
+END
+INodeShadingProperties.h
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/INodeShadingProperties.h
+END
+gfloat.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/gfloat.h
+END
+ProductFileSupport.h
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/ProductFileSupport.h
+END
+polyobj.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/polyobj.h
+END
+geomlib.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/geomlib.h
+END
+objmode.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/objmode.h
+END
+PerformanceTools.h
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/PerformanceTools.h
+END
+gamma.h
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/gamma.h
+END
+IProjection_WorkingModelInfo.h
+K 25
+svn:wc:ra_dav:version-url
+V 101
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/IProjection_WorkingModelInfo.h
+END
+ihardwaremesh.h
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/ihardwaremesh.h
+END
+mstshape.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/mstshape.h
+END
+omanapi.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/omanapi.h
+END
+ILayerControl.h
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/ILayerControl.h
+END
+maxnet_manager.h
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/maxnet_manager.h
+END
+MaxMixer.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/MaxMixer.h
+END
+tcbgraph.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/tcbgraph.h
+END
+vedge.h
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/vedge.h
+END
+gizmoimp.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/gizmoimp.h
+END
+Path.h
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/Path.h
+END
+maxnet.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/maxnet.h
+END
+utilintf.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/utilintf.h
+END
+iLuminaire.h
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/iLuminaire.h
+END
+tvnode.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/tvnode.h
+END
+iBlockRef.h
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/iBlockRef.h
+END
+INodeDisplayProperties.h
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/INodeDisplayProperties.h
+END
+INodeValidity.h
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/INodeValidity.h
+END
+utillib.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/utillib.h
+END
+modstack.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/modstack.h
+END
+XMLAnimTreeEntry.h
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/XMLAnimTreeEntry.h
+END
+notify.h
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/notify.h
+END
+setkeymode.h
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/setkeymode.h
+END
+evrouter.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/evrouter.h
+END
+ref.h
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/ref.h
+END
+iADTCategory.h
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/iADTCategory.h
+END
+mncommon.h
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/mncommon.h
+END
+ipoint2.h
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/ipoint2.h
+END
+hold.h
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/!svn/ver/15/trunk/Poor3D/Tools/MaxExportPlugin/Max2010Sdk/include/hold.h
+END
