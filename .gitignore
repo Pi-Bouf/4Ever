@@ -12,6 +12,7 @@ TClient/TEngine/.vs/*
 TClient/TLoader/*
 TClient/TClient/Debug/*
 TClient/TClient/Release/*
+TClient/TClient/TClientCmd.tif
 TClient/TClient/ReleaseNEW_IF/*
 TClient/TEngine/Plugins/.vs/*
 TClient/TEngine/Plugins/ExportTAF/Debug/*
