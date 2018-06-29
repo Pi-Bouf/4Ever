@@ -7,6 +7,7 @@ tglobal.bak
 
 # TClient
 TClient/.vs/*
+TClient/TClient/.vs/*
 TClient/TEngine/.vs/*
 TClient/TLoader/*
 TClient/TClient/Debug/*
