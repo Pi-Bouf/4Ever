@@ -1,10 +1,40 @@
 Happy/*
 Launcher/*
-TClient/*
-TProtocol/*
 4gb_patch.exe
 tgame.bak
 tglobal.bak
+**/*.lnk
+
+# TClient
+TClient/.vs/*
+TClient/TClient/.vs/*
+TClient/TEngine/.vs/*
+TClient/TLoader/*
+TClient/TClient/Debug/*
+TClient/TClient/Release/*
+TClient/TClient/TClientCmd.tif
+TClient/TClient/ReleaseNEW_IF/*
+TClient/TEngine/Plugins/.vs/*
+TClient/TEngine/Plugins/ExportTAF/Debug/*
+TClient/TEngine/Plugins/ExportTAF/Release/*
+TClient/TEngine/Plugins/ExportTMF/Debug/*
+TClient/TEngine/Plugins/ExportTMF/Release/*
+TClient/TEngine/Engine Lib/Debug/*
+TClient/TEngine/Engine Lib/Release/*
+TClient/TEngine/TachyonControl/Debug/*
+TClient/TEngine/TachyonControl/Release/*
+TClient/TEngine/Plugins/TachyonShader/Debug/*
+TClient/TEngine/Plugins/TachyonShader/Release/*
+TClient/TChart/Debug/*
+TClient/TChart/Release/*
+TClient/TEngine/Game Studio/Debug/*
+TClient/TEngine/Game Studio/Release/*
+TClient/TEngine/TCML/Debug/*
+TClient/TEngine/TCML/Release/*
+TClient/TEngine/TComp/Debug/*
+TClient/TEngine/TComp/Release/*
+TClient/TChatClient/Debug/*
+TClient/TChatClient/Release/*
 
 # TServer
 TServer/.vs/*
@@ -25,3 +55,18 @@ TServer/TMapSvr/Debug/*
 TServer/TMapSvr/Release/*
 TServer/TMapSvr/TMapSvr.h
 TServer/TMapSvr/TMapSvr_i.c
+
+# TWorld
+TServer/TWorldSvr/Debug/*
+TServer/TWorldSvr/Release/*
+TServer/TWorldSvr/TWorldSvr.h
+TServer/TWorldSvr/TWorldSvr_i.c
+
+# TRelay
+TServer/TRelaySvr/Debug/*
+TServer/TRelaySvr/Release/*
+TServer/TRelaySvr/TRelaySvr.h
+TServer/TRelaySvr/TRelaySvr_i.c
+
+# Tools
+TClient/Tools
