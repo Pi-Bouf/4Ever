@@ -139,6 +139,7 @@ protected:
 protected:
 
 	time_t timeNow;
+	tm *ltm;
 	HANDLE hConsole;
 
 	string m_szGamePasswd;
@@ -212,6 +213,8 @@ protected:
 
 	void LogInfo(string text);
 	void LogError(string text);
+	void LogReceivedPacket(string text);
+	void LogSentPacket(string text);
 
 	void ProcessSession( CTMapSession *pSession, DWORD dwIoBytes);
 	void OnSendComplete( CTMapSession *pSession, DWORD dwIoBytes);

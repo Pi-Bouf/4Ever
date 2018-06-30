@@ -41,6 +41,7 @@ void main()
 CTMapSvrModule::CTMapSvrModule()
 {
 	timeNow = time(0);
+	ltm = localtime(&timeNow);
 	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 	LogInfo("Welcome on TLogin Server !");
 
@@ -170,16 +171,26 @@ CTMapSvrModule::~CTMapSvrModule()
 
 void CTMapSvrModule::LogInfo(string text)
 {
-	tm *ltm = localtime(&timeNow);
 	SetConsoleTextAttribute(hConsole, 10);
 	cout << "[" << ltm->tm_hour << ":" << ltm->tm_min << ":" << ltm->tm_sec << "] ==> " << text << endl;
 }
 
 void CTMapSvrModule::LogError(string text)
 {
-	tm *ltm = localtime(&timeNow);
 	SetConsoleTextAttribute(hConsole, 4);
 	cout << "[" << ltm->tm_hour << ":" << ltm->tm_min << ":" << ltm->tm_sec << "] ==> " << text << endl;
+}
+
+void CTMapSvrModule::LogReceivedPacket(string text)
+{
+	SetConsoleTextAttribute(hConsole, 13);
+	cout << "[" << ltm->tm_hour << ":" << ltm->tm_min << ":" << ltm->tm_sec << "] [ SERVER <<< CLIENT ]  " << text << endl;
+}
+
+void CTMapSvrModule::LogSentPacket(string text)
+{
+	SetConsoleTextAttribute(hConsole, 11);
+	cout << "[" << ltm->tm_hour << ":" << ltm->tm_min << ":" << ltm->tm_sec << "] [ SERVER >>> CLIENT ]  " << text << endl;
 }
 
 void CTMapSvrModule::OnERROR( DWORD dwErrorCode)

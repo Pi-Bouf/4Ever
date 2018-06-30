@@ -6,86 +6,92 @@
 #include <iostream>
 #include <fstream>
 
-DWORD CTMapSvrModule::OnSM_QUITSERVICE_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnSM_QUITSERVICE_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnSM_QUITSERVICE_REQ");
 	/*
 	LogEvent(_T("SM_QUITSERVICE_REQ detected !!"));
 	if(m_bService)
-		SetServiceStatus(SERVICE_STOP_PENDING);
+	SetServiceStatus(SERVICE_STOP_PENDING);
 	PostThreadMessage( m_dwThreadID, WM_QUIT, 0, 0);
 	*/
 
 	return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnSM_DELSESSION_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnSM_DELSESSION_REQ(LPPACKETBUF pBUF)
 {
-	MAPPLAYER::iterator finder = m_mapSESSION.find((DWORD_PTR) pBUF->m_pSESSION);
+	LogReceivedPacket("OnSM_DELSESSION_REQ");
+	MAPPLAYER::iterator finder = m_mapSESSION.find((DWORD_PTR)pBUF->m_pSESSION);
 
-	if( pBUF->m_pSESSION != &m_world &&
-		finder == m_mapSESSION.end() )
+	if (pBUF->m_pSESSION != &m_world &&
+		finder == m_mapSESSION.end())
 		return EC_NOERROR;
-	((CTMapSession *) pBUF->m_pSESSION)->m_bCanDelete = TRUE;
+	((CTMapSession *)pBUF->m_pSESSION)->m_bCanDelete = TRUE;
 
-	if( pBUF->m_pSESSION != &m_world &&
-		((CTPlayer *) pBUF->m_pSESSION)->m_bCloseAll &&
-		((CTPlayer *) pBUF->m_pSESSION)->m_dwID)
+	if (pBUF->m_pSESSION != &m_world &&
+		((CTPlayer *)pBUF->m_pSESSION)->m_bCloseAll &&
+		((CTPlayer *)pBUF->m_pSESSION)->m_dwID)
 	{
 		SendMW_CLOSECHAR_ACK(
-			((CTPlayer *) pBUF->m_pSESSION)->m_dwID,
-			((CTPlayer *) pBUF->m_pSESSION)->m_dwKEY);
+			((CTPlayer *)pBUF->m_pSESSION)->m_dwID,
+			((CTPlayer *)pBUF->m_pSESSION)->m_dwKEY);
 	}
 	else
-		SetEventCloseSession((CTMapSession *)pBUF->m_pSESSION, ((CTPlayer *) pBUF->m_pSESSION)->m_bMain);
+		SetEventCloseSession((CTMapSession *)pBUF->m_pSESSION, ((CTPlayer *)pBUF->m_pSESSION)->m_bMain);
 
 	return EC_NOERROR;
 }
 
 DWORD CTMapSvrModule::OnSM_TIMER_REQ(LPPACKETBUF pBUF)
 {
+	/*
+	@WARN to many logs from it ! It's useless...
+	LogReceivedPacket("OnSM_TIMER_REQ");
+	*/
 	BYTE bTnmtNotice = 0;
 	DWORD dwSecond = 0;
 	DWORD dwCurTick = m_dwTick;
 
 	MAPARENA::iterator itArn;
-	DWORD dwArenaPeriod = 4*60;
-	for(itArn=m_mapArena.begin(); itArn!=m_mapArena.end(); itArn++)
+	DWORD dwArenaPeriod = 4 * 60;
+	for (itArn = m_mapArena.begin(); itArn != m_mapArena.end(); itArn++)
 	{
 		BYTE bNotice = FALSE;
 		LPTARENA pArena = itArn->second;
-		if(pArena->m_bStatus == BS_READY)
+		if (pArena->m_bStatus == BS_READY)
 		{
 			dwSecond = (dwCurTick - pArena->m_dwTick) / 1000;
-			if(dwSecond >= 60)
+			if (dwSecond >= 60)
 			{
 				pArena->m_bStatus = BS_BATTLE;
 				dwSecond = dwArenaPeriod;
 				bNotice = TRUE;
 			}
-			else if(dwSecond >= 50)
+			else if (dwSecond >= 50)
 			{
 				dwSecond = 60 - dwSecond;
 				bNotice = TRUE;
 			}
 		}
-		else if(pArena->m_bStatus == BS_BATTLE)
+		else if (pArena->m_bStatus == BS_BATTLE)
 		{
 			dwSecond = (dwCurTick - pArena->m_dwTick) / 1000;
-			if(dwSecond >= dwArenaPeriod)
+			if (dwSecond >= dwArenaPeriod)
 				ArenaEnd(pArena, NULL);
-			else if(dwSecond >= dwArenaPeriod - 10)
+			else if (dwSecond >= dwArenaPeriod - 10)
 			{
 				dwSecond = dwArenaPeriod - dwSecond;
 				bNotice = TRUE;
 			}
 		}
 
-		if(bNotice)
+		if (bNotice)
 		{
-			for(BYTE i=0; i<2; i++)
+			for (BYTE i = 0; i<2; i++)
 			{
 				MAPPLAYER::iterator itAP;
-				for(itAP=pArena->m_mapFighter[i].begin(); itAP != pArena->m_mapFighter[i].end(); itAP++)
+				for (itAP = pArena->m_mapFighter[i].begin(); itAP != pArena->m_mapFighter[i].end(); itAP++)
 					itAP->second->SendCS_SYSTEMMSG_ACK(SM_ARENA_COUNTDOWN, pArena->m_wID, dwSecond, NAME_NULL, NAME_NULL, pArena->m_bStatus, pArena->m_bWinCount);
 			}
 		}
@@ -93,39 +99,39 @@ DWORD CTMapSvrModule::OnSM_TIMER_REQ(LPPACKETBUF pBUF)
 
 	dwSecond = 0;
 
-	if((m_tournament.m_bStep == TNMTSTEP_ENTER ||
+	if ((m_tournament.m_bStep == TNMTSTEP_ENTER ||
 		m_tournament.m_bStep == TNMTSTEP_SFENTER ||
 		m_tournament.m_bStep == TNMTSTEP_FENTER) &&
 		m_tournament.m_dlEndTime > m_timeCurrent)
 	{
 		dwSecond = DWORD(m_tournament.m_dlEndTime - m_timeCurrent);
-		if(dwSecond >= 60)
+		if (dwSecond >= 60)
 		{
-			 if(dwSecond % 60 == 0)	bTnmtNotice = 1;
+			if (dwSecond % 60 == 0)	bTnmtNotice = 1;
 		}
-		else if(dwSecond >= 10)
+		else if (dwSecond >= 10)
 		{
-			if(dwSecond % 10 == 0) bTnmtNotice = 1;
+			if (dwSecond % 10 == 0) bTnmtNotice = 1;
 		}
-		else if(dwSecond < 10)
+		else if (dwSecond < 10)
 			bTnmtNotice = 1;
 	}
 
-	if((m_tournament.m_bStep == TNMTSTEP_QFINAL ||
+	if ((m_tournament.m_bStep == TNMTSTEP_QFINAL ||
 		m_tournament.m_bStep == TNMTSTEP_SFINAL ||
 		m_tournament.m_bStep == TNMTSTEP_FINAL) &&
 		m_tournament.m_dlEndTime > m_timeCurrent)
 	{
 		dwSecond = DWORD(m_tournament.m_dlEndTime - m_timeCurrent);
-		if(dwSecond % 10 == 0)
+		if (dwSecond % 10 == 0)
 			bTnmtNotice = 2;
 	}
 
-	if(!m_vTNMTRESULTMAP.empty() &&
+	if (!m_vTNMTRESULTMAP.empty() &&
 		m_tournament.m_bResult >= TNMTSTEP_QFINAL &&
 		dwCurTick - m_dwTNMTResultTick > 10000)
 	{
-		for(BYTE i=0; i<m_vTNMTRESULTMAP.size(); i++)
+		for (BYTE i = 0; i<m_vTNMTRESULTMAP.size(); i++)
 		{
 			CTMap * pMap = m_vTNMTRESULTMAP[i];
 
@@ -149,24 +155,24 @@ DWORD CTMapSvrModule::OnSM_TIMER_REQ(LPPACKETBUF pBUF)
 	BYTE bHelpID = 0;
 	CString strHelpMessage;
 	MAPHELPMESSAGE::iterator itHp = m_mapHelpMessage.find(HELPMESSAGE_EVENT);
-	if(itHp != m_mapHelpMessage.end())
+	if (itHp != m_mapHelpMessage.end())
 	{
-		if((*itHp).second.m_dlEndTime &&
-            !(*itHp).second.m_bNotice &&
-            (*itHp).second.m_dlStartTime <= m_timeCurrent)
+		if ((*itHp).second.m_dlEndTime &&
+			!(*itHp).second.m_bNotice &&
+			(*itHp).second.m_dlStartTime <= m_timeCurrent)
 		{
 			(*itHp).second.m_bNotice = TRUE;
 			bHelpID = (*itHp).second.m_bID;
 			strHelpMessage = (*itHp).second.m_strMessage;
 		}
-		else if((*itHp).second.m_dlEndTime < m_timeCurrent)
+		else if ((*itHp).second.m_dlEndTime < m_timeCurrent)
 		{
 			bHelpID = (*itHp).second.m_bID;
 			strHelpMessage.Empty();
 			m_mapHelpMessage.erase(itHp);
 
 			itHp = m_mapHelpMessage.find(HELPMESSAGE_NORMAL);
-			if(itHp != m_mapHelpMessage.end())
+			if (itHp != m_mapHelpMessage.end())
 			{
 				bHelpID = (*itHp).second.m_bID;
 				strHelpMessage = (*itHp).second.m_strMessage;
@@ -175,76 +181,77 @@ DWORD CTMapSvrModule::OnSM_TIMER_REQ(LPPACKETBUF pBUF)
 	}
 
 	MAPPLAYER::iterator it;
-	for(it=m_mapPLAYER.begin(); it!=m_mapPLAYER.end(); it++)
+	for (it = m_mapPLAYER.begin(); it != m_mapPLAYER.end(); it++)
 	{
 		CTPlayer * pPlayer = (*it).second;
-		if(!pPlayer->m_pMAP)
+		if (!pPlayer->m_pMAP)
 			continue;
 
 		pPlayer->CheckTimeRecallMon(dwCurTick);
 
-		if(pPlayer->m_bMain)
+		if (pPlayer->m_bMain)
 		{
 			pPlayer->OnTimer(dwCurTick);
 
 #ifdef __HACK_SHIELD
-			if(m_bNation == NATION_GERMAN)
+			if (m_bNation == NATION_GERMAN)
 				CheckHackShield(pPlayer);
 #endif
 #ifdef __N_PROTECT
-		if(m_bEnableNP)
-			CheckCSNProtect(pPlayer);
+			if (m_bEnableNP)
+				CheckCSNProtect(pPlayer);
 #endif
 
-			if(bTnmtNotice)
+			if (bTnmtNotice)
 			{
-				if( bTnmtNotice == 1 &&
+				if (bTnmtNotice == 1 &&
 					(IsTournamentMap(pPlayer->m_wMapID) || GetLoungeMapID() == pPlayer->m_wMapID))
 					pPlayer->SendCS_SYSTEMMSG_ACK(SM_TOURNAMENT_COUNTDOWN, m_tournament.m_bStep, dwSecond);
 
-				if(bTnmtNotice == 2 && IsTournamentMap(pPlayer->m_wMapID))
+				if (bTnmtNotice == 2 && IsTournamentMap(pPlayer->m_wMapID))
 					pPlayer->SendCS_SYSTEMMSG_ACK(SM_TOURNAMENT_COUNTDOWN, m_tournament.m_bStep, dwSecond);
 			}
 
-			if(bHelpID && !pPlayer->IsTutorial())
+			if (bHelpID && !pPlayer->IsTutorial())
 				pPlayer->SendCS_HELPMESSAGE_ACK(bHelpID, strHelpMessage);
 		}
 	}
 #ifdef __N_PROTECT
-	if(m_bEnableNP)
+	if (m_bEnableNP)
 		UpdateCSModule();
 #endif
 
 	MAPTONTIMEMON::iterator itMon;
-	for(itMon=m_mapTOnTimeMon.begin(); itMon!=m_mapTOnTimeMon.end();)
+	for (itMon = m_mapTOnTimeMon.begin(); itMon != m_mapTOnTimeMon.end();)
 	{
 		CTMap * pMap = FindTMap((*itMon).second.m_bChannel, (*itMon).second.m_wPartyID, (*itMon).second.m_wMapID);
-		if(pMap)
+		if (pMap)
 		{
 			CTMonster * pMon = pMap->FindMonster((*itMon).second.m_dwID);
-			if(pMon && pMon->m_pMAP)
+			if (pMon && pMon->m_pMAP)
 			{
 				pMon->Recover(dwCurTick);
 				pMon->CheckMaintainSkill(dwCurTick);
 
-				if(pMon->m_bStatus == OS_DISAPPEAR || pMon->m_bStatus == OS_DEAD ||
+				if (pMon->m_bStatus == OS_DISAPPEAR || pMon->m_bStatus == OS_DEAD ||
 					(pMon->m_dwHP == pMon->GetMaxHP() && pMon->m_vMaintainSkill.empty()))
 					itMon = m_mapTOnTimeMon.erase(itMon);
 				else
-					 itMon++;
+					itMon++;
 			}
 			else
-				 itMon++;
+				itMon++;
 		}
 		else
-			 itMon++;
+			itMon++;
 	}
 
 	return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnSM_RESETHOST_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnSM_RESETHOST_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnSM_RESETHOST_REQ");
 	BYTE bChannel;
 	WORD wMapID;
 	WORD wPartyID;
@@ -270,6 +277,7 @@ DWORD CTMapSvrModule::OnSM_RESETHOST_REQ( LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnSM_RESETHOST_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnSM_RESETHOST_ACK");
 	BYTE bChannel;
 	WORD wMapID;
 	WORD wPartyID;
@@ -283,11 +291,11 @@ DWORD CTMapSvrModule::OnSM_RESETHOST_ACK(LPPACKETBUF pBUF)
 
 	CTMap *pMAP = FindTMap(bChannel, wPartyID, wMapID);
 
-	if(!pMAP)
+	if (!pMAP)
 		return EC_NOERROR;
 
 	CTMonster * pMon = pMAP->FindMonster(dwMonID);
-	if(pMon &&
+	if (pMon &&
 		pMon->m_pMAP &&
 		!pMon->m_dwHostID)
 	{
@@ -295,8 +303,8 @@ DWORD CTMapSvrModule::OnSM_RESETHOST_ACK(LPPACKETBUF pBUF)
 		pMon->m_fStartY = pMon->m_fNextY = pMon->m_fPosY = pMon->m_pSPAWN->m_pSPAWN->m_fPosY;
 		pMon->m_fStartZ = pMon->m_fNextZ = pMon->m_pSPAWN->m_pSPAWN->m_fPosZ;
 		pMon->m_wDIR = pMon->m_pSPAWN->m_pSPAWN->m_wDir;
-		pMon->m_bCurPathID=0;
-		pMon->m_bCurPathDir=1;
+		pMon->m_bCurPathID = 0;
+		pMon->m_bCurPathDir = 1;
 
 		pMon->m_pMAP->OnMove(
 			pMon,
@@ -311,7 +319,7 @@ DWORD CTMapSvrModule::OnSM_RESETHOST_ACK(LPPACKETBUF pBUF)
 			pMon->m_fPosX,
 			pMon->m_fPosZ);
 
-		while(!vPLAYERS.empty())
+		while (!vPLAYERS.empty())
 		{
 			CTPlayer *pChar = vPLAYERS.back();
 
@@ -337,6 +345,7 @@ DWORD CTMapSvrModule::OnSM_RESETHOST_ACK(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnSM_SWITCHCHANGE_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnSM_SWITCHCHANGE_REQ");
 	DWORD dwSwitch;
 
 	BYTE bChannel;
@@ -350,14 +359,14 @@ DWORD CTMapSvrModule::OnSM_SWITCHCHANGE_REQ(LPPACKETBUF pBUF)
 		>> dwSwitch;
 
 	MAPTCHANNEL::iterator itCH = m_mapTCHANNEL.find(bChannel);
-	if( itCH == m_mapTCHANNEL.end() )
+	if (itCH == m_mapTCHANNEL.end())
 		return EC_NOERROR;
 
 	CTMap *pMAP = (*itCH).second->FindTMap(
 		wPartyID,
 		wMapID);
 
-	if(!pMAP)
+	if (!pMAP)
 		return EC_NOERROR;
 
 	ChangeSwitch(
@@ -368,8 +377,9 @@ DWORD CTMapSvrModule::OnSM_SWITCHCHANGE_REQ(LPPACKETBUF pBUF)
 	return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnSM_AICMD_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnSM_AICMD_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnSM_AICMD_REQ");
 	LPTAIBUF pAI = new TAIBUF();
 
 	pBUF->m_packet
@@ -390,8 +400,9 @@ DWORD CTMapSvrModule::OnSM_AICMD_REQ( LPPACKETBUF pBUF)
 	return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnSM_GODBALLCMD_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnSM_GODBALLCMD_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnSM_GODBALLCMD_REQ");
 	LPTGBBUF pGB = new TGBBUF();
 
 	pBUF->m_packet
@@ -412,6 +423,7 @@ DWORD CTMapSvrModule::OnSM_GODBALLCMD_REQ( LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnSM_GODBALLCMD_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnSM_GODBALLCMD_ACK");
 	WORD wGodBall;
 	BYTE bCmd;
 	DWORD dwKey;
@@ -430,42 +442,42 @@ DWORD CTMapSvrModule::OnSM_GODBALLCMD_ACK(LPPACKETBUF pBUF)
 		>> strCharName;
 
 	CTMap * pMap = FindTMap(bChannel, 0, wMapID);
-	if(!pMap || !pMap->m_dwEndTick)
+	if (!pMap || !pMap->m_dwEndTick)
 		return EC_NOERROR;
 
 	LPTGODBALL pBall = pMap->FindGodBall(wGodBall);
-	if(wGodBall && !pBall)
+	if (wGodBall && !pBall)
 		return EC_NOERROR;
 
-	switch(bCmd)
+	switch (bCmd)
 	{
 	case GB_ENDWAR:
 
 		break;
 	case GB_STARTWAR:
-		if(pMap->CheckPower())
+		if (pMap->CheckPower())
 			SendSM_GODBALLCMD_REQ(wGodBall, bCmd, bChannel, wMapID, wCastle, m_dwGBDelay[bCmd], dwKey);
 		else
 		{
 			LPTLOCAL pCastle = FindCastleZone(wCastle);
-			if(pCastle)
+			if (pCastle)
 				EndWar(pCastle, pMap, WIN_POWER);
 		}
 		break;
 	case GB_MOUNTBALL:
-		if(pBall->m_dwKEY == dwKey)
+		if (pBall->m_dwKEY == dwKey)
 			pMap->InitGodBall(pBall->m_bCamp, pBall->m_dwGuildID, wCastle);
 		break;
 	case GB_DEMOUNTBALL:
 	case GB_DROPBALL:
-		if(pBall->m_dwKEY == dwKey)
+		if (pBall->m_dwKEY == dwKey)
 			pMap->MoveGodBall(pBall);
 		break;
 	case GB_TAKEBALL:
-		if(pBall->m_dwKEY == dwKey)
+		if (pBall->m_dwKEY == dwKey)
 		{
 			CTPlayer * pPlayer = FindPlayer(strCharName);
-			if(pPlayer)
+			if (pPlayer)
 			{
 				pPlayer->RemoveGodBall(pBall);
 				pMap->MoveGodBall(pBall);
@@ -481,6 +493,7 @@ DWORD CTMapSvrModule::OnSM_GODBALLCMD_ACK(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnSM_SWITCHSTART_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnSM_SWITCHSTART_REQ");
 	TSWITCHOBJ sw;
 
 	sw.m_dwTick = 0;
@@ -498,6 +511,7 @@ DWORD CTMapSvrModule::OnSM_SWITCHSTART_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnSM_POSTBILL_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnSM_POSTBILL_REQ");
 	DWORD dwCharID;
 	DWORD dwPostID;
 	__int64 timeDel;
@@ -508,11 +522,11 @@ DWORD CTMapSvrModule::OnSM_POSTBILL_REQ(LPPACKETBUF pBUF)
 		>> timeDel;
 
 	MAPDWORD64::iterator itPB = m_mapTPostBills.find(dwPostID);
-	if(itPB == m_mapTPostBills.end())
+	if (itPB == m_mapTPostBills.end())
 		m_mapTPostBills.insert(MAPDWORD64::value_type(dwPostID, timeDel));
 
 	MAPDVDWORD::iterator it = m_mapCharPostBills.find(dwCharID);
-	if(it==m_mapCharPostBills.end())
+	if (it == m_mapCharPostBills.end())
 	{
 		VDWORD vBill;
 		vBill.push_back(dwPostID);
@@ -526,6 +540,7 @@ DWORD CTMapSvrModule::OnSM_POSTBILL_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnSM_POSTBILLERASE_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnSM_POSTBILLERASE_REQ");
 	DWORD dwCharID;
 	DWORD dwPostID;
 
@@ -533,14 +548,14 @@ DWORD CTMapSvrModule::OnSM_POSTBILLERASE_REQ(LPPACKETBUF pBUF)
 		>> dwCharID
 		>> dwPostID;
 
-	if(dwPostID)
+	if (dwPostID)
 		m_mapTPostBills.erase(dwPostID);
 	else
 	{
 		MAPDVDWORD::iterator it = m_mapCharPostBills.find(dwCharID);
-		if(it!=m_mapCharPostBills.end())
+		if (it != m_mapCharPostBills.end())
 		{
-			while(!(*it).second.empty())
+			while (!(*it).second.empty())
 			{
 				DWORD dwPostID = (*it).second.back();
 				m_mapTPostBills.erase(dwPostID);
@@ -559,6 +574,7 @@ DWORD CTMapSvrModule::OnSM_POSTBILLERASE_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnSM_AUCTIONCMD_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnSM_AUCTIONCMD_REQ");
 	LPTAUCTIONBUF pAuctionBUF = new TAUCTIONBUF();
 
 	pBUF->m_packet
@@ -567,17 +583,18 @@ DWORD CTMapSvrModule::OnSM_AUCTIONCMD_REQ(LPPACKETBUF pBUF)
 		>> pAuctionBUF->m_dEndTime;
 
 	VTAUCTIONBUF::iterator itAU;
-	for(itAU = m_vTAUCTIONBUF.begin(); itAU != m_vTAUCTIONBUF.end(); itAU++)
-		if( pAuctionBUF->m_dEndTime < (*itAU)->m_dEndTime )
+	for (itAU = m_vTAUCTIONBUF.begin(); itAU != m_vTAUCTIONBUF.end(); itAU++)
+		if (pAuctionBUF->m_dEndTime < (*itAU)->m_dEndTime)
 			break;
 
-	m_vTAUCTIONBUF.insert(itAU,pAuctionBUF);	
-	
+	m_vTAUCTIONBUF.insert(itAU, pAuctionBUF);
+
 	return EC_NOERROR;
 }
 
 DWORD CTMapSvrModule::OnSM_AUCTIONCMDDEL_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnSM_AUCTIONCMDDEL_REQ");
 	WORD wNpcID;
 	DWORD dwAuctionID;
 
@@ -586,9 +603,9 @@ DWORD CTMapSvrModule::OnSM_AUCTIONCMDDEL_REQ(LPPACKETBUF pBUF)
 		>> dwAuctionID;
 
 	VTAUCTIONBUF::iterator itAU;
-	for(itAU = m_vTAUCTIONBUF.begin(); itAU != m_vTAUCTIONBUF.end(); itAU++)
+	for (itAU = m_vTAUCTIONBUF.begin(); itAU != m_vTAUCTIONBUF.end(); itAU++)
 	{
-		if( (*itAU)->m_dwAuctionID == dwAuctionID )
+		if ((*itAU)->m_dwAuctionID == dwAuctionID)
 		{
 			delete (*itAU);
 			m_vTAUCTIONBUF.erase(itAU);
@@ -601,6 +618,7 @@ DWORD CTMapSvrModule::OnSM_AUCTIONCMDDEL_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnSM_VALIDMAPSESSION_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnSM_VALIDMAPSESSION_REQ");
 	DWORD dwUserID;
 
 	pBUF->m_packet
@@ -613,6 +631,7 @@ DWORD CTMapSvrModule::OnSM_VALIDMAPSESSION_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnSM_POSTBILL_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnSM_POSTBILL_ACK");
 	DWORD dwPostID;
 
 	pBUF->m_packet
@@ -626,6 +645,7 @@ DWORD CTMapSvrModule::OnSM_POSTBILL_ACK(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_POSTBILLUPDATE_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_POSTBILLUPDATE_REQ");
 	DWORD dwCharID;
 	CString strChar;
 	DWORD dwPostID;
@@ -654,10 +674,10 @@ DWORD CTMapSvrModule::OnDM_POSTBILLUPDATE_REQ(LPPACKETBUF pBUF)
 		<< dwCooper;
 
 	DEFINE_QUERY(&m_db, CSPPostBillsUpdate)
-	lstrcpy(query->m_szCharName, strChar);
+		lstrcpy(query->m_szCharName, strChar);
 	query->m_dwPostID = dwPostID;
 	query->m_bType = bType;
-	if(query->Call())
+	if (query->Call())
 	{
 		pMSG->m_packet
 			<< query->m_nRet
@@ -673,13 +693,14 @@ DWORD CTMapSvrModule::OnDM_POSTBILLUPDATE_REQ(LPPACKETBUF pBUF)
 	}
 	UNDEFINE_QUERY()
 
-	SayToBATCH(pMSG);
+		SayToBATCH(pMSG);
 
 	return EC_NOERROR;
 }
 
 DWORD CTMapSvrModule::OnDM_POSTBILLUPDATE_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_POSTBILLUPDATE_ACK");
 	DWORD dwCharID;
 	CString strChar;
 	DWORD dwPostID;
@@ -703,20 +724,20 @@ DWORD CTMapSvrModule::OnDM_POSTBILLUPDATE_ACK(LPPACKETBUF pBUF)
 		>> dwCooper
 		>> nRet;
 
-	if(nRet)
+	if (nRet)
 	{
 		CTPlayer * pPlayer = FindPlayer(strChar);
-		if(pPlayer)
+		if (pPlayer)
 			pPlayer->SendCS_POSTRETURN_ACK(nRet);
 
-		if(bType == POST_PAYMENT)
+		if (bType == POST_PAYMENT)
 		{
 			SendDM_POSTRECV_REQ(
 				0, dwCharID, GetSvrMsg(NAME_OPERATOR), strChar,
 				BuildNetString(NAME_NULL, GetSvrMsg(MSG_ITEMERROR_TITLE)),
 				BuildNetString(NAME_NULL, GetSvrMsg(MSG_ITEMERROR_MESSAGE)),
 				POST_PACKATE,
-				dwGold,dwSilver,dwCooper, NULL);
+				dwGold, dwSilver, dwCooper, NULL);
 		}
 
 		return EC_NOERROR;
@@ -743,6 +764,7 @@ DWORD CTMapSvrModule::OnDM_POSTBILLUPDATE_ACK(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnSM_DUELSTART_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnSM_DUELSTART_REQ");
 	DWORD dwDuelID;
 	DWORD dwInviter;
 	CString strInviter;
@@ -771,6 +793,7 @@ DWORD CTMapSvrModule::OnSM_DUELSTART_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnSM_DUELSTART_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnSM_DUELSTART_ACK");
 	DWORD dwDuelID;
 	DWORD dwInviter;
 	DWORD dwTarget;
@@ -784,17 +807,17 @@ DWORD CTMapSvrModule::OnSM_DUELSTART_ACK(LPPACKETBUF pBUF)
 	CTPlayer * pTarget = NULL;
 
 	MAPPLAYER::iterator it = m_mapPLAYER.find(dwInviter);
-	if(it == m_mapPLAYER.end())
+	if (it == m_mapPLAYER.end())
 	{
-		SendSM_DUELEND_REQ(dwDuelID,0);
+		SendSM_DUELEND_REQ(dwDuelID, 0);
 		return EC_NOERROR;
 	}
 	pInviter = (*it).second;
 
 	it = m_mapPLAYER.find(dwTarget);
-	if(it == m_mapPLAYER.end())
+	if (it == m_mapPLAYER.end())
 	{
-		SendSM_DUELEND_REQ(dwDuelID,0);
+		SendSM_DUELEND_REQ(dwDuelID, 0);
 		return EC_NOERROR;
 	}
 	pTarget = (*it).second;
@@ -806,6 +829,7 @@ DWORD CTMapSvrModule::OnSM_DUELSTART_ACK(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnSM_DUELEND_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnSM_DUELEND_REQ");
 	DWORD dwDuelID;
 	DWORD dwLoser;
 
@@ -814,15 +838,15 @@ DWORD CTMapSvrModule::OnSM_DUELEND_REQ(LPPACKETBUF pBUF)
 		>> dwLoser;
 
 	MAPTDUEL::iterator find = m_mapTDuel.find(dwDuelID);
-	if(find!=m_mapTDuel.end() && (*find).second->m_bType != DUEL_END)
+	if (find != m_mapTDuel.end() && (*find).second->m_bType != DUEL_END)
 	{
 		CString strLoser = NAME_NULL;
-		if((*find).second->m_dwInviter == dwLoser)
+		if ((*find).second->m_dwInviter == dwLoser)
 			strLoser = (*find).second->m_strInviter;
-		if((*find).second->m_dwTarget == dwLoser)
+		if ((*find).second->m_dwTarget == dwLoser)
 			strLoser = (*find).second->m_strTarget;
 
-		if(strLoser)
+		if (strLoser)
 		{
 			(*find).second->m_bType = DUEL_END;
 			(*find).second->m_dwDuelTick = (DWORD)m_timeCurrent + DUEL_STANDBY_TIME;
@@ -848,6 +872,7 @@ DWORD CTMapSvrModule::OnSM_DUELEND_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnSM_DUELEND_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnSM_DUELEND_ACK");
 	DWORD dwInviter;
 	DWORD dwTarget;
 	DWORD dwLoser;
@@ -865,30 +890,30 @@ DWORD CTMapSvrModule::OnSM_DUELEND_ACK(LPPACKETBUF pBUF)
 	CTPlayer * pLoser = NULL;
 
 	MAPPLAYER::iterator find = m_mapPLAYER.find(dwInviter);
-	if(find != m_mapPLAYER.end())
+	if (find != m_mapPLAYER.end())
 		pInviter = (*find).second;
 
 	find = m_mapPLAYER.find(dwTarget);
-	if(find != m_mapPLAYER.end())
+	if (find != m_mapPLAYER.end())
 		pTarget = (*find).second;
 
-	if(pInviter)
+	if (pInviter)
 	{
-		if(dwLoser && pInviter->m_dwDuelTarget == dwLoser)
+		if (dwLoser && pInviter->m_dwDuelTarget == dwLoser)
 		{
 			pWinner = pInviter;
 			pLoser = pTarget;
 		}
-		
+
 		pInviter->m_bDuelType = DUEL_END;
 		pInviter->EraseDieSkillBuff();
 		pInviter->DeleteNegativeMaintainSkill();
 		pInviter->SendCS_DUELEND_ACK(dwLoser);
 	}
 
-	if(pTarget)
+	if (pTarget)
 	{
-		if(dwLoser && pTarget->m_dwDuelTarget == dwLoser)
+		if (dwLoser && pTarget->m_dwDuelTarget == dwLoser)
 		{
 			pWinner = pTarget;
 			pLoser = pInviter;
@@ -900,19 +925,19 @@ DWORD CTMapSvrModule::OnSM_DUELEND_ACK(LPPACKETBUF pBUF)
 		pTarget->SendCS_DUELEND_ACK(dwLoser);
 	}
 
-	if(pWinner && pLoser)
-	{		
-		pWinner->RecordDuel(pLoser,TRUE,0);
-		pLoser->RecordDuel(pWinner,FALSE,0);
+	if (pWinner && pLoser)
+	{
+		pWinner->RecordDuel(pLoser, TRUE, 0);
+		pLoser->RecordDuel(pWinner, FALSE, 0);
 	}
 
-	if(pWinner && pWinner->m_pMAP)
+	if (pWinner && pWinner->m_pMAP)
 	{
 		VPLAYER vPlayer;
 		vPlayer.clear();
 		pWinner->m_pMAP->GetNeighbor(&vPlayer, pWinner->m_fPosX, pWinner->m_fPosZ);
 
-		while(!vPlayer.empty())
+		while (!vPlayer.empty())
 		{
 			CTPlayer * pChar = vPlayer.back();
 			vPlayer.pop_back();
@@ -927,16 +952,17 @@ DWORD CTMapSvrModule::OnSM_DUELEND_ACK(LPPACKETBUF pBUF)
 
 	/*if(!dwLoser)
 	{
-		if(pInviter)
-			pInviter->ClearDuel();
-		if(pTarget)
-			pTarget->ClearDuel();
+	if(pInviter)
+	pInviter->ClearDuel();
+	if(pTarget)
+	pTarget->ClearDuel();
 	}*/
 
 	return EC_NOERROR;
 }
 DWORD CTMapSvrModule::OnSM_DUELCOMPLETE_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnSM_DUELCOMPLETE_ACK");
 	DWORD dwInviter;
 	DWORD dwTarget;
 
@@ -948,23 +974,24 @@ DWORD CTMapSvrModule::OnSM_DUELCOMPLETE_ACK(LPPACKETBUF pBUF)
 	CTPlayer * pTarget = NULL;
 
 	MAPPLAYER::iterator find = m_mapPLAYER.find(dwInviter);
-	if(find != m_mapPLAYER.end())
+	if (find != m_mapPLAYER.end())
 		pInviter = (*find).second;
 
 	find = m_mapPLAYER.find(dwTarget);
-	if(find != m_mapPLAYER.end())
+	if (find != m_mapPLAYER.end())
 		pTarget = (*find).second;
 
-	if(pInviter)
+	if (pInviter)
 		pInviter->ClearDuel();
-	if(pTarget)
+	if (pTarget)
 		pTarget->ClearDuel();
 
 	return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnSM_AICMD_ACK( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnSM_AICMD_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnSM_AICMD_ACK");
 	DWORD_PTR dwHandle;
 	DWORD dwEventHost;
 	DWORD dwRHId;
@@ -988,36 +1015,37 @@ DWORD CTMapSvrModule::OnSM_AICMD_ACK( LPPACKETBUF pBUF)
 		>> wPartyID;
 
 	MAPTCHANNEL::iterator itCH = m_mapTCHANNEL.find(bChannel);
-	if( itCH == m_mapTCHANNEL.end() )
+	if (itCH == m_mapTCHANNEL.end())
 		return EC_NOERROR;
 
 	CTMap *pMAP = (*itCH).second->FindTMap(
 		wPartyID,
 		wMapID);
 
-	if(!pMAP)
+	if (!pMAP)
 		return EC_NOERROR;
 
-	CTAICommand *pCMD = (CTAICommand *) dwHandle;
+	CTAICommand *pCMD = (CTAICommand *)dwHandle;
 	CTMonster *pMON = NULL;
 
 	MAPTMONSTER::iterator finder = pMAP->m_mapTMONSTER.find(dwMonID);
-	if( finder != pMAP->m_mapTMONSTER.end() )
+	if (finder != pMAP->m_mapTMONSTER.end())
 		pMON = (*finder).second;
 
-	if( !pMON || !pCMD )
+	if (!pMON || !pCMD)
 		return EC_NOERROR;
 
-	if( pMON->m_dwHostKEY == dwHostKEY &&
-		pCMD->CanRun( pMON, dwEventHost, dwRHId, bRHType) &&
-        pCMD->ExecAI( pMON, dwEventHost, dwRHId, bRHType))
-		DoAICMD( pCMD, pMON, dwEventHost, dwRHId, bRHType, 0);
+	if (pMON->m_dwHostKEY == dwHostKEY &&
+		pCMD->CanRun(pMON, dwEventHost, dwRHId, bRHType) &&
+		pCMD->ExecAI(pMON, dwEventHost, dwRHId, bRHType))
+		DoAICMD(pCMD, pMON, dwEventHost, dwRHId, bRHType, 0);
 
 	return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnMW_DELCHAR_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnMW_DELCHAR_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_DELCHAR_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 
@@ -1034,7 +1062,7 @@ DWORD CTMapSvrModule::OnMW_DELCHAR_REQ( LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	ExitMAP(pPlayer);
@@ -1042,7 +1070,7 @@ DWORD CTMapSvrModule::OnMW_DELCHAR_REQ( LPPACKETBUF pBUF)
 	pPlayer->m_bLogout = bLogout;
 	pPlayer->m_bExit = TRUE;
 
-	if(!pPlayer->m_bCanDelete)
+	if (!pPlayer->m_bCanDelete)
 	{
 		pPlayer->m_bCloseAll = FALSE;
 		CloseSession(pPlayer);
@@ -1053,8 +1081,9 @@ DWORD CTMapSvrModule::OnMW_DELCHAR_REQ( LPPACKETBUF pBUF)
 	return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnMW_INVALIDCHAR_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnMW_INVALIDCHAR_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_INVALIDCHAR_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	BYTE bReleaseMain;
@@ -1068,10 +1097,10 @@ DWORD CTMapSvrModule::OnMW_INVALIDCHAR_REQ( LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
-	if(bReleaseMain)
+	if (bReleaseMain)
 		SendDM_SAVECHAR_REQ(pPlayer, 0);
 
 	pPlayer->SendCS_INVALIDCHAR_ACK();
@@ -1080,8 +1109,9 @@ DWORD CTMapSvrModule::OnMW_INVALIDCHAR_REQ( LPPACKETBUF pBUF)
 	return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnMW_ENTERSOLOMAP_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnMW_ENTERSOLOMAP_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_ENTERSOLOMAP_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 
@@ -1093,7 +1123,7 @@ DWORD CTMapSvrModule::OnMW_ENTERSOLOMAP_REQ( LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	pBUF->m_packet
@@ -1101,14 +1131,15 @@ DWORD CTMapSvrModule::OnMW_ENTERSOLOMAP_REQ( LPPACKETBUF pBUF)
 		>> pPlayer->m_bPartyType
 		>> pPlayer->m_dwPartyChiefID;
 
-	if(!pPlayer->m_pMAP)
+	if (!pPlayer->m_pMAP)
 		InitMap(pPlayer);
 
 	return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnMW_CHECKMAIN_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnMW_CHECKMAIN_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_CHECKMAIN_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	BYTE bChannel;
@@ -1130,17 +1161,18 @@ DWORD CTMapSvrModule::OnMW_CHECKMAIN_REQ( LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
-	if(IsMainCell(bChannel, wMapID, fPosX, fPosZ))
-		SendMW_CHECKMAIN_ACK( pPlayer->m_dwID, pPlayer->m_dwKEY);
+	if (IsMainCell(bChannel, wMapID, fPosX, fPosZ))
+		SendMW_CHECKMAIN_ACK(pPlayer->m_dwID, pPlayer->m_dwKEY);
 
 	return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnMW_CONRESULT_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnMW_CONRESULT_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_CONRESULT_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 
@@ -1158,12 +1190,12 @@ DWORD CTMapSvrModule::OnMW_CONRESULT_REQ( LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	VBYTE vServerID;
 	vServerID.clear();
-	for(BYTE i=0; i<bCount; i++)
+	for (BYTE i = 0; i<bCount; i++)
 	{
 		pBUF->m_packet
 			>> bServerID;
@@ -1171,7 +1203,7 @@ DWORD CTMapSvrModule::OnMW_CONRESULT_REQ( LPPACKETBUF pBUF)
 		vServerID.push_back(bServerID);
 	}
 
-	if(bResult == CN_SUCCESS && !pPlayer->InitCharInfo())
+	if (bResult == CN_SUCCESS && !pPlayer->InitCharInfo())
 	{
 		cout << "Tutorial Error " << pPlayer->m_dwID << ", " << pPlayer->m_wMapID << ", " << pPlayer->m_bStartAct << ", " << pPlayer->m_dwGold << ", " << pPlayer->m_dwEXP << ", " << pPlayer->m_bLevel << endl;
 		CloseSession(pPlayer);
@@ -1180,7 +1212,7 @@ DWORD CTMapSvrModule::OnMW_CONRESULT_REQ( LPPACKETBUF pBUF)
 
 	pPlayer->SendCS_CONNECT_ACK(bResult, &vServerID);
 
-	if( bResult == CN_SUCCESS )
+	if (bResult == CN_SUCCESS)
 		pPlayer->m_bMain = TRUE;
 	else
 		CloseSession(pPlayer);
@@ -1190,8 +1222,9 @@ DWORD CTMapSvrModule::OnMW_CONRESULT_REQ( LPPACKETBUF pBUF)
 	return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnMW_TELEPORT_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnMW_TELEPORT_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_TELEPORT_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 
@@ -1217,7 +1250,7 @@ DWORD CTMapSvrModule::OnMW_TELEPORT_REQ( LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	pPlayer->SendCS_TELEPORT_ACK(
@@ -1233,8 +1266,9 @@ DWORD CTMapSvrModule::OnMW_TELEPORT_REQ( LPPACKETBUF pBUF)
 	return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnMW_CHARDATA_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnMW_CHARDATA_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_CHARDATA_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 
@@ -1246,7 +1280,7 @@ DWORD CTMapSvrModule::OnMW_CHARDATA_REQ( LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	SendMW_CHARDATA_ACK(pPlayer);
@@ -1254,8 +1288,9 @@ DWORD CTMapSvrModule::OnMW_CHARDATA_REQ( LPPACKETBUF pBUF)
 	return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnMW_ENTERCHAR_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnMW_ENTERCHAR_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_ENTERCHAR_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	BYTE bCount;
@@ -1268,7 +1303,7 @@ DWORD CTMapSvrModule::OnMW_ENTERCHAR_REQ( LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	pBUF->m_packet
@@ -1298,14 +1333,14 @@ DWORD CTMapSvrModule::OnMW_ENTERCHAR_REQ( LPPACKETBUF pBUF)
 		>> pPlayer->m_bAidCountry
 		>> pPlayer->m_bMode
 		>> pPlayer->m_dwRiding
-		>> pPlayer->m_nChatBanTime  
+		>> pPlayer->m_nChatBanTime
 		>> pPlayer->m_dwSoulmate
 		>> pPlayer->m_dwSoulSilence
 		>> pPlayer->m_strSoulmate
 		>> pPlayer->m_bClass
 		>> bCount;
 
-	for( BYTE i=0; i<bCount; i++)
+	for (BYTE i = 0; i<bCount; i++)
 	{
 		CString strName;
 
@@ -1363,7 +1398,7 @@ DWORD CTMapSvrModule::OnMW_ENTERCHAR_REQ( LPPACKETBUF pBUF)
 
 		VWORD vSkill;
 		vSkill.clear();
-		for(BYTE i=0; i<bSkillCount; i++)
+		for (BYTE i = 0; i<bSkillCount; i++)
 		{
 			pBUF->m_packet
 				>> wSkillID;
@@ -1372,11 +1407,11 @@ DWORD CTMapSvrModule::OnMW_ENTERCHAR_REQ( LPPACKETBUF pBUF)
 		}
 
 		LPTMONSTER pTemp = FindTMonster(wMon);
-		if(pTemp)
+		if (pTemp)
 		{
 			CTRecallMon *pMON = pPlayer->FindRecallMon(dwMonID);
 
-			if(!pMON)
+			if (!pMON)
 			{
 				pMON = CreateRecallMon(
 					pPlayer,
@@ -1396,7 +1431,7 @@ DWORD CTMapSvrModule::OnMW_ENTERCHAR_REQ( LPPACKETBUF pBUF)
 					dwHP,
 					dwMP,
 					bHit,
-					0,0,0,0,0,
+					0, 0, 0, 0, 0,
 					bSkillLevel,
 					fPosX,
 					fPosY,
@@ -1431,6 +1466,7 @@ DWORD CTMapSvrModule::OnMW_ENTERCHAR_REQ( LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_CREATERECALLMON_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_CREATERECALLMON_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	DWORD dwMonID;
@@ -1493,7 +1529,7 @@ DWORD CTMapSvrModule::OnMW_CREATERECALLMON_REQ(LPPACKETBUF pBUF)
 
 	VWORD vSkill;
 	vSkill.clear();
-	for(BYTE ms=0; ms<bSkillCount; ms++)
+	for (BYTE ms = 0; ms<bSkillCount; ms++)
 	{
 		pBUF->m_packet
 			>> wSkillID;
@@ -1505,12 +1541,12 @@ DWORD CTMapSvrModule::OnMW_CREATERECALLMON_REQ(LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
-	if(pPlayer->m_bMain && pPlayer->m_bStatus == OS_DEAD)
+	if (pPlayer->m_bMain && pPlayer->m_bStatus == OS_DEAD)
 	{
-		if(wPetID)
+		if (wPetID)
 			pPlayer->SendCS_PETRECALL_ACK(PET_FAIL);
 
 		SendMW_RECALLMONDEL_ACK(dwCharID, dwKEY, dwMonID);
@@ -1518,21 +1554,21 @@ DWORD CTMapSvrModule::OnMW_CREATERECALLMON_REQ(LPPACKETBUF pBUF)
 	}
 
 	LPTMONSTER pTemp = FindTMonster(wMon);
-	if(!pTemp)
+	if (!pTemp)
 		return EC_NOERROR;
 
-	if(pTemp->m_bIsSelf && pPlayer->m_pMAP)
+	if (pTemp->m_bIsSelf && pPlayer->m_pMAP)
 	{
 		WORD wPosX = WORD(fPosX) / CELL_SIZE;
 		WORD wPosZ = WORD(fPosZ) / CELL_SIZE;
-		MAPTCELL::iterator itCELL = pPlayer->m_pMAP->m_mapTCELL.find( MAKELONG( wPosX, wPosZ));
+		MAPTCELL::iterator itCELL = pPlayer->m_pMAP->m_mapTCELL.find(MAKELONG(wPosX, wPosZ));
 
-		if( itCELL == pPlayer->m_pMAP->m_mapTCELL.end() ||
-			!(*itCELL).second->IsMainCell(pPlayer->m_bChannel) )
+		if (itCELL == pPlayer->m_pMAP->m_mapTCELL.end() ||
+			!(*itCELL).second->IsMainCell(pPlayer->m_bChannel))
 			return EC_NOERROR;
 	}
 
-	if(!bRecallAuto)
+	if (!bRecallAuto)
 		pPlayer->CheckRecallMon(pTemp, FALSE);
 
 	CTRecallMon *pMON = CreateRecallMon(
@@ -1553,7 +1589,7 @@ DWORD CTMapSvrModule::OnMW_CREATERECALLMON_REQ(LPPACKETBUF pBUF)
 		dwHP,
 		dwMP,
 		bHit,
-		0,0,0,0,0,
+		0, 0, 0, 0, 0,
 		bSkillLevel,
 		fPosX,
 		fPosY,
@@ -1565,7 +1601,7 @@ DWORD CTMapSvrModule::OnMW_CREATERECALLMON_REQ(LPPACKETBUF pBUF)
 		dwTargetID,
 		bTargetType);
 
-	if(pMON && pPlayer->m_pMAP)
+	if (pMON && pPlayer->m_pMAP)
 		pPlayer->m_pMAP->EnterMAP(pMON);
 
 	vSkill.clear();
@@ -1575,6 +1611,7 @@ DWORD CTMapSvrModule::OnMW_CREATERECALLMON_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_RECALLMONDEL_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_RECALLMONDEL_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	DWORD dwMonID;
@@ -1585,27 +1622,28 @@ DWORD CTMapSvrModule::OnMW_RECALLMONDEL_REQ(LPPACKETBUF pBUF)
 		>> dwMonID;
 
 	MAPPLAYER::iterator it = m_mapPLAYER.find(dwCharID);
-	if(it == m_mapPLAYER.end())
+	if (it == m_mapPLAYER.end())
 		return EC_NOERROR;
 
 	CTPlayer * pPlayer = it->second;
 
 	BYTE bMain = FALSE;
 	CTRecallMon * pMON = pPlayer->FindRecallMon(dwMonID);
-	if(pMON)
+	if (pMON)
 	{
 		bMain = pMON->m_bMain;
 		pPlayer->DeleteRecallMon(dwMonID);
 	}
 
-	if(pPlayer->m_bMain && !bMain)
+	if (pPlayer->m_bMain && !bMain)
 		pPlayer->SendCS_DELRECALLMON_ACK(pPlayer->m_dwID, dwMonID, TRUE);
 
 	return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnMW_CHARINFO_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnMW_CHARINFO_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_CHARINFO_REQ");
 	DWORD dwGuildID;
 	DWORD dwTacticsID;
 	DWORD dwFame;
@@ -1648,7 +1686,7 @@ DWORD CTMapSvrModule::OnMW_CHARINFO_REQ( LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	pPlayer->m_dwGuildID = dwGuildID;
@@ -1668,7 +1706,7 @@ DWORD CTMapSvrModule::OnMW_CHARINFO_REQ( LPPACKETBUF pBUF)
 
 	BYTE bRankMonth = m_bRankMonth - 1;
 
-	if(bRankMonth == 0)
+	if (bRankMonth == 0)
 		bRankMonth = 12;
 
 	pPlayer->GetTitle(GOLD_TITLE, pPlayer->m_dwGold, FALSE);
@@ -1680,9 +1718,9 @@ DWORD CTMapSvrModule::OnMW_CHARINFO_REQ( LPPACKETBUF pBUF)
 	pPlayer->GetTitle(TOURNAMENT_TITLE, bRankMonth, FALSE);
 
 	MAPQUEST::iterator itQUEST;
-	for(itQUEST = pPlayer->m_mapQUEST.begin(); itQUEST != pPlayer->m_mapQUEST.end(); itQUEST++)
+	for (itQUEST = pPlayer->m_mapQUEST.begin(); itQUEST != pPlayer->m_mapQUEST.end(); itQUEST++)
 	{
-		if((*itQUEST).second->m_bCompleteCount == TRUE)
+		if ((*itQUEST).second->m_bCompleteCount == TRUE)
 			pPlayer->GetTitle(QUEST_TITLE, (*itQUEST).second->m_pQUEST->m_dwQuestID, FALSE);
 	}
 
@@ -1698,24 +1736,25 @@ DWORD CTMapSvrModule::OnMW_CHARINFO_REQ( LPPACKETBUF pBUF)
 	pPlayer->SendCS_PETLIST_ACK();
 	pPlayer->SendCS_POSTINFO_ACK();
 	pPlayer->SendCS_PROTECTEDLIST_ACK();
-	if(m_bRelayOn)
+	if (m_bRelayOn)
 		pPlayer->SendCS_RELAYCONNECT_ACK(m_addrRelay.sin_addr.s_addr, m_addrRelay.sin_port);
 
-	if(bRankMonth == 0)
+	if (bRankMonth == 0)
 		bRankMonth = 12;
 
 	pPlayer->SendCS_UPDATEFAMERANKLIST_ACK(m_arFameRank, bRankMonth);
 
 	CString strHelpMessage;
 	BYTE bHelpID = GetHelpMessage(pPlayer, strHelpMessage);
-	if(bHelpID)
+	if (bHelpID)
 		pPlayer->SendCS_HELPMESSAGE_ACK(bHelpID, strHelpMessage);
 
 	return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnMW_CLOSECHAR_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnMW_CLOSECHAR_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_CLOSECHAR_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 
@@ -1727,10 +1766,10 @@ DWORD CTMapSvrModule::OnMW_CLOSECHAR_REQ( LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
-	if(pPlayer->m_pMAP)
+	if (pPlayer->m_pMAP)
 		ExitMAP(pPlayer);
 
 	pPlayer->m_bCloseAll = FALSE;
@@ -1740,8 +1779,9 @@ DWORD CTMapSvrModule::OnMW_CLOSECHAR_REQ( LPPACKETBUF pBUF)
 	return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnMW_CHATBAN_REQ( LPPACKETBUF pBUF)  
+DWORD CTMapSvrModule::OnMW_CHATBAN_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_CHATBAN_REQ");
 	CString strName;
 	__int64 nChatBanTime;
 	BYTE bResult;
@@ -1758,17 +1798,17 @@ DWORD CTMapSvrModule::OnMW_CHATBAN_REQ( LPPACKETBUF pBUF)
 	strName.MakeUpper();
 
 	MAPPLAYERNAME::iterator finder = m_mapPLAYERNAME.find(strName);
-	if( finder != m_mapPLAYERNAME.end())
+	if (finder != m_mapPLAYERNAME.end())
 	{
-		if( !(*finder).second->m_pMAP || !(*finder).second->m_bMain )
+		if (!(*finder).second->m_pMAP || !(*finder).second->m_bMain)
 			return EC_NOERROR;
 
-		(*finder).second->m_nChatBanTime = nChatBanTime;			
+		(*finder).second->m_nChatBanTime = nChatBanTime;
 	}
 
-	if(dwCharID)
+	if (dwCharID)
 	{
-		CTPlayer* pPlayer  = FindChar(dwCharID);
+		CTPlayer* pPlayer = FindChar(dwCharID);
 		pPlayer->SendCS_CHATBAN_ACK(bResult);
 	}
 
@@ -1777,6 +1817,7 @@ DWORD CTMapSvrModule::OnMW_CHATBAN_REQ( LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_EVENTQUARTER_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_EVENTQUARTER_REQ");
 	CString strName;
 	BYTE bDay;
 	BYTE bHour;
@@ -1789,18 +1830,19 @@ DWORD CTMapSvrModule::OnDM_EVENTQUARTER_REQ(LPPACKETBUF pBUF)
 		>> bMinute;
 
 	DEFINE_QUERY(&m_db, CSPEventQuarter)
-	lstrcpy(query->m_szName, strName);
+		lstrcpy(query->m_szName, strName);
 	query->m_bDay = bDay;
 	query->m_bHour = bHour;
 	query->m_bMinute = bMinute;
 	query->Call();
 	UNDEFINE_QUERY()
 
-	return EC_NOERROR;
+		return EC_NOERROR;
 }
 
 DWORD CTMapSvrModule::OnDM_SMSSEND_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_SMSSEND_REQ");
 	BYTE bRet = SMS_SUCCESS;
 
 	DWORD dwCharID;
@@ -1825,13 +1867,13 @@ DWORD CTMapSvrModule::OnDM_SMSSEND_REQ(LPPACKETBUF pBUF)
 		>> strMsg;
 
 	DEFINE_QUERY(&m_db, CSPSaveSMS)
-	query->m_bWorld = m_bGroupID;
+		query->m_bWorld = m_bGroupID;
 	query->m_bType = bType;
 	query->m_dwSenderID = dwCharID;
 	query->m_dwGuildID = dwGuildID;
 	lstrcpy(query->m_szTarget, strTarget);
 	lstrcpy(query->m_szMsg, strMsg);
-	if(!query->Call())
+	if (!query->Call())
 		bRet = SMS_INTERNAL;
 	else
 		bRet = BYTE(query->m_nRET);
@@ -1842,8 +1884,8 @@ DWORD CTMapSvrModule::OnDM_SMSSEND_REQ(LPPACKETBUF pBUF)
 		<< bRet
 		<< dwCharID
 		<< dwKey
-        << bInven
-        << bItem
+		<< bInven
+		<< bItem
 		<< wItemID
 		<< bType
 		<< strTarget
@@ -1856,6 +1898,7 @@ DWORD CTMapSvrModule::OnDM_SMSSEND_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_SMSSEND_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_SMSSEND_ACK");
 	BYTE bRet;
 	DWORD dwCharID;
 	DWORD dwKey;
@@ -1878,14 +1921,14 @@ DWORD CTMapSvrModule::OnDM_SMSSEND_ACK(LPPACKETBUF pBUF)
 		>> strMsg;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
-	if(bRet)
+	if (bRet)
 	{
 		LPTITEM pTITEM = FindTItem(wItemID);
-		if(pTITEM)
-		{	
+		if (pTITEM)
+		{
 			VTITEM vItem;
 			vItem.clear();
 			CTItem * pNew = new CTItem();
@@ -1896,7 +1939,7 @@ DWORD CTMapSvrModule::OnDM_SMSSEND_ACK(LPPACKETBUF pBUF)
 			pNew->SetDuration(FALSE);
 			SetItemAttr(pNew, 0);
 			vItem.push_back(pNew);
-			if(pPlayer->CanPush(&vItem, 0))
+			if (pPlayer->CanPush(&vItem, 0))
 			{
 				pPlayer->PushTItem(&vItem);
 				pPlayer->SendCS_MOVEITEM_ACK(MI_SUCCESS);
@@ -1914,6 +1957,7 @@ DWORD CTMapSvrModule::OnDM_SMSSEND_ACK(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_RECALLMONDEL_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_RECALLMONDEL_REQ");
 	DWORD dwCharID;
 	DWORD dwMonID;
 
@@ -1922,7 +1966,7 @@ DWORD CTMapSvrModule::OnDM_RECALLMONDEL_REQ(LPPACKETBUF pBUF)
 		>> dwMonID;
 
 	DEFINE_QUERY(&m_db, CSPRecallmonDel)
-	query->m_dwCharID = dwCharID;
+		query->m_dwCharID = dwCharID;
 	query->m_dwMonID = dwMonID;
 	query->Call();
 	UNDEFINE_QUERY();
@@ -1932,6 +1976,7 @@ DWORD CTMapSvrModule::OnDM_RECALLMONDEL_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_CREATERECALLMON_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_CREATERECALLMON_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	WORD wMonID;
@@ -1986,7 +2031,7 @@ DWORD CTMapSvrModule::OnDM_CREATERECALLMON_REQ(LPPACKETBUF pBUF)
 
 	VWORD vSkill;
 	vSkill.clear();
-	for(BYTE i=0; i<bSkillCount; i++)
+	for (BYTE i = 0; i<bSkillCount; i++)
 	{
 		pBUF->m_packet
 			>> wSkillID;
@@ -1995,9 +2040,9 @@ DWORD CTMapSvrModule::OnDM_CREATERECALLMON_REQ(LPPACKETBUF pBUF)
 	}
 
 	DWORD dwMonID = 0;
-	int nRet=0;
+	int nRet = 0;
 	DEFINE_QUERY(&m_db, CSPCreateRecallMon)
-	query->m_dwCharID = dwCharID;
+		query->m_dwCharID = dwCharID;
 	query->m_wTempID = wMonID;
 	query->m_wPetID = wPetID;
 	query->m_dwATTR = dwATTR;
@@ -2009,7 +2054,7 @@ DWORD CTMapSvrModule::OnDM_CREATERECALLMON_REQ(LPPACKETBUF pBUF)
 	query->m_wPosY = WORD(fPosY);
 	query->m_wPosZ = WORD(fPosZ);
 	query->m_dwTime = dwTime;
-	if(query->Call())
+	if (query->Call())
 	{
 		dwMonID = query->m_dwMonID;
 		nRet = query->m_nRET;
@@ -2018,7 +2063,7 @@ DWORD CTMapSvrModule::OnDM_CREATERECALLMON_REQ(LPPACKETBUF pBUF)
 		nRet = 0xFF;
 	UNDEFINE_QUERY()
 
-	LPPACKETBUF pMSG = new PACKETBUF();
+		LPPACKETBUF pMSG = new PACKETBUF();
 	pMSG->m_packet.SetID(DM_CREATERECALLMON_ACK)
 		<< nRet
 		<< dwCharID
@@ -2047,7 +2092,7 @@ DWORD CTMapSvrModule::OnDM_CREATERECALLMON_REQ(LPPACKETBUF pBUF)
 		<< dwTime
 		<< bSkillCount;
 
-	for(BYTE k=0; k<bSkillCount; k++)
+	for (BYTE k = 0; k<bSkillCount; k++)
 	{
 		pMSG->m_packet
 			<< vSkill[k];
@@ -2062,6 +2107,7 @@ DWORD CTMapSvrModule::OnDM_CREATERECALLMON_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_CREATERECALLMON_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_CREATERECALLMON_ACK");
 	int nRet;
 	DWORD dwCharID;
 	DWORD dwKey;
@@ -2121,7 +2167,7 @@ DWORD CTMapSvrModule::OnDM_CREATERECALLMON_ACK(LPPACKETBUF pBUF)
 		>> dwTime
 		>> bSkillCount;
 
-	for(BYTE i=0; i<bSkillCount; i++)
+	for (BYTE i = 0; i<bSkillCount; i++)
 	{
 		pBUF->m_packet
 			>> wSkillID;
@@ -2129,17 +2175,17 @@ DWORD CTMapSvrModule::OnDM_CREATERECALLMON_ACK(LPPACKETBUF pBUF)
 		vSkill.push_back(wSkillID);
 	}
 
-	if(nRet)
+	if (nRet)
 	{
 		vSkill.clear();
 		return EC_NOERROR;
 	}
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(pPlayer)
+	if (pPlayer)
 	{
 		LPTMONSTER pTemp = FindTMonster(wMon);
-		if(!pTemp)
+		if (!pTemp)
 		{
 			vSkill.clear();
 			return EC_NOERROR;
@@ -2180,28 +2226,30 @@ DWORD CTMapSvrModule::OnDM_CREATERECALLMON_ACK(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_CLEARCURRENTUSER_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_CLEARCURRENTUSER_REQ");
 	DWORD dwCharID;
 
 	pBUF->m_packet
 		>> dwCharID;
 
 	DEFINE_QUERY(&m_db, CSPClearCurrentUser)
-	query->m_dwCharID = dwCharID;
+		query->m_dwCharID = dwCharID;
 	query->Call();
 	UNDEFINE_QUERY()
 
-	return EC_NOERROR;
+		return EC_NOERROR;
 }
 
 DWORD CTMapSvrModule::OnDM_CLEARCURRENTUSER_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_CLEARCURRENTUSER_ACK");
 	DWORD ptrSession;
 
 	pBUF->m_packet
 		>> ptrSession;
 
 	MAPPLAYER::iterator it = m_mapSESSION.find(ptrSession);
-	if(it!=m_mapSESSION.end())
+	if (it != m_mapSESSION.end())
 	{
 		CloseSession((*it).second);
 	}
@@ -2209,8 +2257,9 @@ DWORD CTMapSvrModule::OnDM_CLEARCURRENTUSER_ACK(LPPACKETBUF pBUF)
 	return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnDM_CASTLEOCCUPY_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnDM_CASTLEOCCUPY_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_CASTLEOCCUPY_REQ");
 	WORD wCastleID;
 	BYTE bType;
 	int nRet;
@@ -2219,8 +2268,8 @@ DWORD CTMapSvrModule::OnDM_CASTLEOCCUPY_REQ( LPPACKETBUF pBUF)
 	DWORD dwLoseGuild;
 	BYTE bCountry;
 
-	DEFINE_QUERY( &m_db, CSPSaveCastleOccupy)
-	pBUF->m_packet
+	DEFINE_QUERY(&m_db, CSPSaveCastleOccupy)
+		pBUF->m_packet
 		>> wCastleID
 		>> bType
 		>> dwWinGuildID
@@ -2230,7 +2279,7 @@ DWORD CTMapSvrModule::OnDM_CASTLEOCCUPY_REQ( LPPACKETBUF pBUF)
 	query->m_bType = bType;
 	query->m_dwGuildID = dwWinGuildID;
 
-	if(!query->Call())
+	if (!query->Call())
 		nRet = CASTLE_INTERNAL;
 	else
 		nRet = query->m_nRET;
@@ -2239,7 +2288,7 @@ DWORD CTMapSvrModule::OnDM_CASTLEOCCUPY_REQ( LPPACKETBUF pBUF)
 
 	UNDEFINE_QUERY()
 
-	LPPACKETBUF pMSG = new PACKETBUF();
+		LPPACKETBUF pMSG = new PACKETBUF();
 	pMSG->m_packet.SetID(DM_CASTLEOCCUPY_ACK)
 		<< nRet
 		<< wCastleID
@@ -2254,6 +2303,7 @@ DWORD CTMapSvrModule::OnDM_CASTLEOCCUPY_REQ( LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnDM_CASTLEOCCUPY_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_CASTLEOCCUPY_ACK");
 	int nRet;
 	WORD wCastleID;
 	BYTE bType;
@@ -2270,22 +2320,23 @@ DWORD CTMapSvrModule::OnDM_CASTLEOCCUPY_ACK(LPPACKETBUF pBUF)
 		>> bCountry
 		>> dwLoseGuild;
 
-	if(!nRet)
+	if (!nRet)
 		SendMW_CASTLEOCCUPY_ACK(bType, wCastleID, dwWinGuildID, bCountry, dwLoseGuild);
 
 	return EC_NOERROR;
 }
 
 #ifdef SKYGARDEN
-DWORD CTMapSvrModule::OnDM_SKYGARDENOCCUPY_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnDM_SKYGARDENOCCUPY_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_SKYGARDENOCCUPY_REQ");
 	WORD wID;
 	BYTE bType;
 	int nRet = 0;
 	BYTE bCountry;
 
-	DEFINE_QUERY( &m_db, CSPSaveSkyGardenOccupy)
-	pBUF->m_packet
+	DEFINE_QUERY(&m_db, CSPSaveSkyGardenOccupy)
+		pBUF->m_packet
 		>> wID
 		>> bType
 		>> bCountry;
@@ -2298,7 +2349,7 @@ DWORD CTMapSvrModule::OnDM_SKYGARDENOCCUPY_REQ( LPPACKETBUF pBUF)
 
 	UNDEFINE_QUERY()
 
-	LPPACKETBUF pMSG = new PACKETBUF();
+		LPPACKETBUF pMSG = new PACKETBUF();
 	pMSG->m_packet.SetID(DM_SKYGARDENOCCUPY_ACK)
 		<< nRet
 		<< wID
@@ -2311,6 +2362,7 @@ DWORD CTMapSvrModule::OnDM_SKYGARDENOCCUPY_REQ( LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnDM_SKYGARDENOCCUPY_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_SKYGARDENOCCUPY_ACK");
 	int nRet;
 	WORD wID;
 	BYTE bType;
@@ -2328,8 +2380,9 @@ DWORD CTMapSvrModule::OnDM_SKYGARDENOCCUPY_ACK(LPPACKETBUF pBUF)
 }
 #endif
 
-DWORD CTMapSvrModule::OnDM_LOCALOCCUPY_REQ( LPPACKETBUF pBUF) 
+DWORD CTMapSvrModule::OnDM_LOCALOCCUPY_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_LOCALOCCUPY_REQ");
 	WORD wLocalID;
 	BYTE bType;
 	DWORD dwOccupiedGuild;
@@ -2338,8 +2391,8 @@ DWORD CTMapSvrModule::OnDM_LOCALOCCUPY_REQ( LPPACKETBUF pBUF)
 	DWORD dwGuild;
 	int nRet;
 
-	DEFINE_QUERY( &m_db, CSPSaveLocalOccupy)
-	pBUF->m_packet
+	DEFINE_QUERY(&m_db, CSPSaveLocalOccupy)
+		pBUF->m_packet
 		>> wLocalID
 		>> bType
 		>> dwOccupiedGuild
@@ -2348,9 +2401,9 @@ DWORD CTMapSvrModule::OnDM_LOCALOCCUPY_REQ( LPPACKETBUF pBUF)
 	query->m_wLocalID = wLocalID;
 	query->m_bType = bType;
 	query->m_dwOccupiedGuild = dwOccupiedGuild;
-	query->m_dwOccupiedChar =dwOccupiedChar;
+	query->m_dwOccupiedChar = dwOccupiedChar;
 
-	if(!query->Call())
+	if (!query->Call())
 		nRet = LOCCUPY_INTERNAL;
 	else
 		nRet = query->m_nRET;
@@ -2360,7 +2413,7 @@ DWORD CTMapSvrModule::OnDM_LOCALOCCUPY_REQ( LPPACKETBUF pBUF)
 
 	UNDEFINE_QUERY()
 
-	LPPACKETBUF pMSG = new PACKETBUF();
+		LPPACKETBUF pMSG = new PACKETBUF();
 	pMSG->m_packet.SetID(DM_LOCALOCCUPY_ACK)
 		<< nRet
 		<< wLocalID
@@ -2374,6 +2427,7 @@ DWORD CTMapSvrModule::OnDM_LOCALOCCUPY_REQ( LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnDM_LOCALOCCUPY_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_LOCALOCCUPY_ACK");
 	int nRet;
 	WORD wLocalID;
 	BYTE bType;
@@ -2387,25 +2441,25 @@ DWORD CTMapSvrModule::OnDM_LOCALOCCUPY_ACK(LPPACKETBUF pBUF)
 		>> bCountry
 		>> dwGuildID;
 
-	if(!nRet)
+	if (!nRet)
 	{
 		LPTLOCAL pLocal = FindOccupationZone(wLocalID);
-		if(!pLocal)
+		if (!pLocal)
 			return EC_NOERROR;
 
 		CTMap *pTMAP = FindTMap(DEFAULT_CHANNEL, 0, pLocal->m_pZone->m_wMapID);
 
-		if(pTMAP)
+		if (pTMAP)
 		{
-			for( DWORD i=0; i<pLocal->m_pZone->m_vSpawnID.size(); i++)
+			for (DWORD i = 0; i<pLocal->m_pZone->m_vSpawnID.size(); i++)
 			{
 				MAPTMONSPAWN::iterator it = pTMAP->m_mapTMONSPAWN.find(pLocal->m_pZone->m_vSpawnID[i]);
 
-				if( it != pTMAP->m_mapTMONSPAWN.end() )
+				if (it != pTMAP->m_mapTMONSPAWN.end())
 				{
 					CTMonSpawn *pSpawn = (*it).second;
 
-					for( DWORD j=0; j<pSpawn->m_vTMON.size(); j++)
+					for (DWORD j = 0; j<pSpawn->m_vTMON.size(); j++)
 					{
 						pSpawn->m_vTMON[j]->LeaveAggro(
 							pSpawn->m_vTMON[j]->m_dwHostID,
@@ -2422,14 +2476,14 @@ DWORD CTMapSvrModule::OnDM_LOCALOCCUPY_ACK(LPPACKETBUF pBUF)
 							pSpawn->m_vTMON[j]->m_fPosX,
 							pSpawn->m_vTMON[j]->m_fPosZ);
 
-						while(!vPLAYERS.empty())
+						while (!vPLAYERS.empty())
 						{
 							CTPlayer *pChar = vPLAYERS.back();
 
 							pChar->SendCS_CHANGECOLOR_ACK(
 								pSpawn->m_vTMON[j]->m_dwID,
 								OT_MON,
-								pSpawn->m_vTMON[j]->GetColor( pChar->m_dwID, pChar->GetPartyID(), pChar->GetWarCountry()),
+								pSpawn->m_vTMON[j]->GetColor(pChar->m_dwID, pChar->GetPartyID(), pChar->GetWarCountry()),
 								bCountry);
 
 							vPLAYERS.pop_back();
@@ -2447,16 +2501,17 @@ DWORD CTMapSvrModule::OnDM_LOCALOCCUPY_ACK(LPPACKETBUF pBUF)
 	return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnDM_MISSIONOCCUPY_REQ( LPPACKETBUF pBUF) 
+DWORD CTMapSvrModule::OnDM_MISSIONOCCUPY_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_MISSIONOCCUPY_REQ");
 	WORD wLocalID;
 	BYTE bType;
 	BYTE bCountry;
 	DWORD dwOccupiedChar;
 	int nRet;
 
-	DEFINE_QUERY( &m_db, CSPSaveMissionOccupy)
-	pBUF->m_packet
+	DEFINE_QUERY(&m_db, CSPSaveMissionOccupy)
+		pBUF->m_packet
 		>> wLocalID
 		>> bType
 		>> bCountry
@@ -2465,16 +2520,16 @@ DWORD CTMapSvrModule::OnDM_MISSIONOCCUPY_REQ( LPPACKETBUF pBUF)
 	query->m_wLocalID = wLocalID;
 	query->m_bType = bType;
 	query->m_bCountry = bCountry;
-	query->m_dwOccupiedChar =dwOccupiedChar;
+	query->m_dwOccupiedChar = dwOccupiedChar;
 
-	if(!query->Call())
+	if (!query->Call())
 		nRet = LOCCUPY_INTERNAL;
 	else
 		nRet = query->m_nRET;
 
 	UNDEFINE_QUERY()
 
-	LPPACKETBUF pMSG = new PACKETBUF();
+		LPPACKETBUF pMSG = new PACKETBUF();
 	pMSG->m_packet.SetID(DM_MISSIONOCCUPY_ACK)
 		<< nRet
 		<< wLocalID
@@ -2488,6 +2543,7 @@ DWORD CTMapSvrModule::OnDM_MISSIONOCCUPY_REQ( LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_MISSIONOCCUPY_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_MISSIONOCCUPY_ACK");
 	int nRet;
 	WORD wLocalID;
 	BYTE bType;
@@ -2499,26 +2555,26 @@ DWORD CTMapSvrModule::OnDM_MISSIONOCCUPY_ACK(LPPACKETBUF pBUF)
 		>> bType
 		>> bCountry;
 
-	if(!nRet)
+	if (!nRet)
 	{
 		LPTLOCAL pLocal = FindMissionZone(wLocalID);
-		if(!pLocal)
+		if (!pLocal)
 			return EC_NOERROR;
 
 		CTMap * pMap = FindTMap(DEFAULT_CHANNEL, 0, pLocal->m_pZone->m_wMapID);
 
-		if(pMap)
+		if (pMap)
 		{
-			for(DWORD i=0; i<pLocal->m_pZone->m_vSpawnID.size(); i++)
+			for (DWORD i = 0; i<pLocal->m_pZone->m_vSpawnID.size(); i++)
 			{
 				MAPTMONSPAWN::iterator it = pMap->m_mapTMONSPAWN.find(pLocal->m_pZone->m_vSpawnID[i]);
 
-				if(it!=pMap->m_mapTMONSPAWN.end())
+				if (it != pMap->m_mapTMONSPAWN.end())
 				{
 					(*it).second->m_bStatus = MONSPAWN_READY;
-					for(DWORD j=0; j<(*it).second->m_vTMON.size(); j++)
+					for (DWORD j = 0; j<(*it).second->m_vTMON.size(); j++)
 					{
-						(*it).second->m_vTMON[j]->OnEvent( AT_DEAD, 0, 0, 0, 0);
+						(*it).second->m_vTMON[j]->OnEvent(AT_DEAD, 0, 0, 0, 0);
 					}
 				}
 			}
@@ -2536,19 +2592,21 @@ DWORD CTMapSvrModule::OnDM_MISSIONOCCUPY_ACK(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_ACTEND_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_ACTEND_REQ");
 	DWORD dwCharID;
 	pBUF->m_packet
 		>> dwCharID;
 
 	DEFINE_QUERY(&m_db, CSPSaveActEnd)
-	query->m_dwCharID = dwCharID;
+		query->m_dwCharID = dwCharID;
 	query->Call();
 	UNDEFINE_QUERY()
-	return EC_NOERROR;
+		return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnMW_ENTERSVR_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnMW_ENTERSVR_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_ENTERSVR_REQ");
 	BYTE bDBLoad;
 	DWORD dwCharID;
 	DWORD dwKEY;
@@ -2562,10 +2620,10 @@ DWORD CTMapSvrModule::OnMW_ENTERSVR_REQ( LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
-	if(!bDBLoad)
+	if (!bDBLoad)
 	{
 		pPlayer->m_mainchar.Copy(&pBUF->m_packet);
 		pPlayer->m_mainchar.Rewind(FALSE);
@@ -2583,12 +2641,13 @@ DWORD CTMapSvrModule::OnMW_ENTERSVR_REQ( LPPACKETBUF pBUF)
 	return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnDM_ENTERMAPSVR_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnDM_ENTERMAPSVR_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_ENTERMAPSVR_REQ");
 	BYTE bDBLoad;
 
-	DEFINE_QUERY( &m_db, CSPEnterServer)
-	in_addr vIPAddr;
+	DEFINE_QUERY(&m_db, CSPEnterServer)
+		in_addr vIPAddr;
 
 	pBUF->m_packet
 		>> bDBLoad
@@ -2599,10 +2658,10 @@ DWORD CTMapSvrModule::OnDM_ENTERMAPSVR_REQ( LPPACKETBUF pBUF)
 		>> query->m_wPort
 		>> query->m_bChannel;
 
-	strcpy( query->m_szIPAddr, inet_ntoa(vIPAddr));
+	strcpy(query->m_szIPAddr, inet_ntoa(vIPAddr));
 	query->m_bGroupID = m_bGroupID;
 
-	if(!query->Call())
+	if (!query->Call())
 	{
 		SendDM_ENTERMAPSVR_ACK(
 			query->m_dwCharID,
@@ -2610,7 +2669,7 @@ DWORD CTMapSvrModule::OnDM_ENTERMAPSVR_REQ( LPPACKETBUF pBUF)
 			CN_INTERNAL,
 			bDBLoad);
 	}
-	else if(query->m_nRET)
+	else if (query->m_nRET)
 	{
 		SendDM_ENTERMAPSVR_ACK(
 			query->m_dwCharID,
@@ -2628,11 +2687,12 @@ DWORD CTMapSvrModule::OnDM_ENTERMAPSVR_REQ( LPPACKETBUF pBUF)
 	}
 	UNDEFINE_QUERY()
 
-	return EC_NOERROR;
+		return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnDM_ENTERMAPSVR_ACK( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnDM_ENTERMAPSVR_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_ENTERMAPSVR_ACK");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	BYTE bResult;
@@ -2648,17 +2708,17 @@ DWORD CTMapSvrModule::OnDM_ENTERMAPSVR_ACK( LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
-	if(bResult)
+	if (bResult)
 	{
 		SendMW_ENTERSVR_ACK(
 			pPlayer->m_dwID,
 			pPlayer->m_dwKEY,
 			pPlayer->m_strNAME,
 			pPlayer->m_bLevel,
-			0,0,0,0,0,0,0,0,0,0,
+			0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 			pPlayer->m_bChannel,
 			pPlayer->m_wMapID,
 			pPlayer->m_fPosX,
@@ -2672,7 +2732,7 @@ DWORD CTMapSvrModule::OnDM_ENTERMAPSVR_ACK( LPPACKETBUF pBUF)
 		return EC_NOERROR;
 	}
 
-	if(bDBLoad)
+	if (bDBLoad)
 	{
 		SendDM_LOADCHAR_REQ(
 			pPlayer->m_dwID,
@@ -2696,9 +2756,9 @@ DWORD CTMapSvrModule::OnDM_ENTERMAPSVR_ACK( LPPACKETBUF pBUF)
 			>> strNAME
 			>> bStartAct;
 
-		if(!bLoad && dwID == dwCharID && dwK == dwKEY)
+		if (!bLoad && dwID == dwCharID && dwK == dwKEY)
 		{
-			if(bStartAct != 2)
+			if (bStartAct != 2)
 			{
 				LPPACKETBUF pMSG = new PACKETBUF();
 				pMSG->m_packet.CopyData(&pPlayer->m_mainchar, sizeof(bLoad));
@@ -2721,7 +2781,7 @@ DWORD CTMapSvrModule::OnDM_ENTERMAPSVR_ACK( LPPACKETBUF pBUF)
 				pPlayer->m_dwKEY,
 				pPlayer->m_strNAME,
 				pPlayer->m_bLevel,
-				0,0,0,0,0,0,0,0,0,0,
+				0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 				pPlayer->m_bChannel,
 				pPlayer->m_wMapID,
 				pPlayer->m_fPosX,
@@ -2745,8 +2805,9 @@ DWORD CTMapSvrModule::OnDM_ENTERMAPSVR_ACK( LPPACKETBUF pBUF)
 	return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnDM_LOADCHAR_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnDM_LOADCHAR_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_LOADCHAR_REQ");
 	LPPACKETBUF pMSG = new PACKETBUF();
 	pMSG->m_packet.ExpandIoBuffer(MAX_PACKET_SIZE);
 
@@ -2759,8 +2820,8 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_REQ( LPPACKETBUF pBUF)
 		>> dwKEY
 		>> dwUserID;
 
-	DEFINE_QUERY( &m_db, CTBLChar)
-	ZeroMemory( query->m_szNAME, MAX_NAME + 1);
+	DEFINE_QUERY(&m_db, CTBLChar)
+		ZeroMemory(query->m_szNAME, MAX_NAME + 1);
 	query->m_dwCharID = dwCharID;
 	query->m_bStartAct = 0;
 	query->m_bRealSex = 0;
@@ -2802,23 +2863,23 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_REQ( LPPACKETBUF pBUF)
 	query->m_fPosZ = 0;
 	query->m_wDIR = 0;
 
-	if(!query->Open())
+	if (!query->Open())
 	{
 		pMSG->m_packet.SetID(DM_LOADCHAR_ACK)
 			<< dwCharID
 			<< dwKEY
-			<< (BYTE) CN_INTERNAL;
+			<< (BYTE)CN_INTERNAL;
 		SayToBATCH(pMSG);
 
 		return EC_NOERROR;
 	}
 
-	if(!query->Fetch())
+	if (!query->Fetch())
 	{
 		pMSG->m_packet.SetID(DM_LOADCHAR_ACK)
 			<< dwCharID
 			<< dwKEY
-			<< (BYTE) CN_NOCHAR;
+			<< (BYTE)CN_NOCHAR;
 		SayToBATCH(pMSG);
 		query->Close();
 
@@ -2828,7 +2889,7 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_REQ( LPPACKETBUF pBUF)
 	pMSG->m_packet.SetID(DM_LOADCHAR_ACK)
 		<< dwCharID
 		<< dwKEY
-		<< (BYTE) CN_SUCCESS
+		<< (BYTE)CN_SUCCESS
 		<< CString(query->m_szNAME)
 		<< query->m_bStartAct
 		<< query->m_bRealSex
@@ -2871,11 +2932,11 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_REQ( LPPACKETBUF pBUF)
 	query->Close();
 	UNDEFINE_QUERY()
 
-	DEFINE_QUERY( &m_db, CTBLAidTable)
-	query->m_dwCharID = dwCharID;
-	if(query->Open())
+		DEFINE_QUERY(&m_db, CTBLAidTable)
+		query->m_dwCharID = dwCharID;
+	if (query->Open())
 	{
-		if(query->Fetch())
+		if (query->Fetch())
 		{
 			pMSG->m_packet
 				<< query->m_bCountry
@@ -2898,8 +2959,8 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_REQ( LPPACKETBUF pBUF)
 	}
 	UNDEFINE_QUERY()
 
-	DEFINE_QUERY( &m_db, CSPGetPcBangData)
-	query->m_dwUserID = dwUserID;
+		DEFINE_QUERY(&m_db, CSPGetPcBangData)
+		query->m_dwUserID = dwUserID;
 	CTime timeCurrent(m_timeCurrent);
 	query->m_dwEnterTime = timeCurrent.GetYear() * 10000 + timeCurrent.GetMonth() * 100 + timeCurrent.GetDay();
 	query->m_bInPcBang = 0;
@@ -2915,8 +2976,8 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_REQ( LPPACKETBUF pBUF)
 		<< query->m_bLuckyNumber;
 	UNDEFINE_QUERY()
 
-	DEFINE_QUERY( &m_db, CSPGetPostInfo)
-	query->m_dwCharID = dwCharID;
+		DEFINE_QUERY(&m_db, CSPGetPostInfo)
+		query->m_dwCharID = dwCharID;
 	query->m_wPage = 0;
 	query->m_wTotalCount = 0;
 	query->m_wNotReadCount = 0;
@@ -2926,23 +2987,23 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_REQ( LPPACKETBUF pBUF)
 		<< query->m_wNotReadCount;
 	UNDEFINE_QUERY()
 
-	WORD wCount;
+		WORD wCount;
 	WORD wSize;
 
 	VTINVENDESC vTINVEN;
 	vTINVEN.clear();
 
-	DEFINE_QUERY( &m_db, CTBLInven)
-	query->m_dwCharID = dwCharID;
+	DEFINE_QUERY(&m_db, CTBLInven)
+		query->m_dwCharID = dwCharID;
 
 	wSize = pMSG->m_packet.GetSize();
 	wCount = 0;
 	pMSG->m_packet
 		<< wCount;
 
-	if(query->Open())
+	if (query->Open())
 	{
-		while(query->Fetch())
+		while (query->Fetch())
 		{
 			pMSG->m_packet
 				<< query->m_bInvenID
@@ -2953,12 +3014,12 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_REQ( LPPACKETBUF pBUF)
 			wCount++;
 		}
 
-		memcpy( pMSG->m_packet.GetBuffer() + wSize, &wCount, sizeof(wCount));
+		memcpy(pMSG->m_packet.GetBuffer() + wSize, &wCount, sizeof(wCount));
 		query->Close();
 	}
 	UNDEFINE_QUERY()
 
-	DEFINE_QUERY(&m_db, CTBLCabinetTable);
+		DEFINE_QUERY(&m_db, CTBLCabinetTable);
 	query->m_dwCharID = dwCharID;
 
 	wSize = pMSG->m_packet.GetSize();
@@ -2967,12 +3028,12 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_REQ( LPPACKETBUF pBUF)
 	pMSG->m_packet
 		<< wCount;
 
-	if(query->Open())
+	if (query->Open())
 	{
 		BYTE bCabinetID;
 		BYTE bUse;
 
-		while(query->Fetch())
+		while (query->Fetch())
 		{
 			bCabinetID = query->m_bCabinetID;
 			bUse = query->m_bUse;
@@ -2984,7 +3045,7 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_REQ( LPPACKETBUF pBUF)
 			wCount++;
 		}
 
-		memcpy( pMSG->m_packet.GetBuffer() + wSize, &wCount, sizeof(wCount));
+		memcpy(pMSG->m_packet.GetBuffer() + wSize, &wCount, sizeof(wCount));
 		query->Close();
 	}
 	UNDEFINE_QUERY();
@@ -2995,15 +3056,15 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_REQ( LPPACKETBUF pBUF)
 	pMSG->m_packet
 		<< wCount;
 
-	DEFINE_QUERY( &m_db, CTBLItem)
-	query->m_bOwnerType = TOWNER_CHAR;
+	DEFINE_QUERY(&m_db, CTBLItem)
+		query->m_bOwnerType = TOWNER_CHAR;
 	query->m_dwOwnerID = dwCharID;
 
-	if(query->Open())
+	if (query->Open())
 	{
-		while(query->Fetch())
+		while (query->Fetch())
 		{
-			if(query->m_item.m_bCount)
+			if (query->m_item.m_bCount)
 			{
 				pMSG->m_packet
 					<< query->m_bStorageType
@@ -3014,17 +3075,17 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_REQ( LPPACKETBUF pBUF)
 				WrapItem(
 					&(pMSG->m_packet),
 					query->m_item);
-		
+
 				wCount++;
 			}
 		}
 
-		memcpy( pMSG->m_packet.GetBuffer() + wSize, &wCount, sizeof(wCount));
+		memcpy(pMSG->m_packet.GetBuffer() + wSize, &wCount, sizeof(wCount));
 		query->Close();
 	}
 	UNDEFINE_QUERY()
 
-	DEFINE_QUERY( &m_db, CTBLSkill);
+		DEFINE_QUERY(&m_db, CTBLSkill);
 	query->m_dwCharID = dwCharID;
 
 	wSize = pMSG->m_packet.GetSize();
@@ -3033,9 +3094,9 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_REQ( LPPACKETBUF pBUF)
 	pMSG->m_packet
 		<< wCount;
 
-	if(query->Open())
+	if (query->Open())
 	{
-		while(query->Fetch())
+		while (query->Fetch())
 		{
 			pMSG->m_packet
 				<< query->m_bLevel
@@ -3045,12 +3106,12 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_REQ( LPPACKETBUF pBUF)
 			wCount++;
 		}
 
-		memcpy( pMSG->m_packet.GetBuffer() + wSize, &wCount, sizeof(wCount));
+		memcpy(pMSG->m_packet.GetBuffer() + wSize, &wCount, sizeof(wCount));
 		query->Close();
 	}
 	UNDEFINE_QUERY()
 
-	DEFINE_QUERY( &m_db, CTBLSkillMaintain);
+		DEFINE_QUERY(&m_db, CTBLSkillMaintain);
 	query->m_dwCharID = dwCharID;
 
 	wSize = pMSG->m_packet.GetSize();
@@ -3059,11 +3120,11 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_REQ( LPPACKETBUF pBUF)
 	pMSG->m_packet
 		<< wCount;
 
-	if(query->Open())
+	if (query->Open())
 	{
-		while(query->Fetch())
+		while (query->Fetch())
 		{
-			if(query->m_wSkillID != TSTORE_SKILL)
+			if (query->m_wSkillID != TSTORE_SKILL)
 			{
 				pMSG->m_packet
 					<< query->m_bLevel
@@ -3079,13 +3140,13 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_REQ( LPPACKETBUF pBUF)
 			}
 		}
 
-		memcpy( pMSG->m_packet.GetBuffer() + wSize, &wCount, sizeof(wCount));
+		memcpy(pMSG->m_packet.GetBuffer() + wSize, &wCount, sizeof(wCount));
 		query->Close();
 	}
 	UNDEFINE_QUERY()
 
-	DEFINE_QUERY( &m_db, CTBLQuestTable)
-	query->m_dwCharID = dwCharID;
+		DEFINE_QUERY(&m_db, CTBLQuestTable)
+		query->m_dwCharID = dwCharID;
 
 	wSize = pMSG->m_packet.GetSize();
 	wCount = 0;
@@ -3093,9 +3154,9 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_REQ( LPPACKETBUF pBUF)
 	pMSG->m_packet
 		<< wCount;
 
-	if(query->Open())
+	if (query->Open())
 	{
-		while(query->Fetch())
+		while (query->Fetch())
 		{
 			pMSG->m_packet
 				<< query->m_dwQuestID
@@ -3107,13 +3168,13 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_REQ( LPPACKETBUF pBUF)
 			wCount++;
 		}
 
-		memcpy( pMSG->m_packet.GetBuffer() + wSize, &wCount, sizeof(wCount));
+		memcpy(pMSG->m_packet.GetBuffer() + wSize, &wCount, sizeof(wCount));
 		query->Close();
 	}
 	UNDEFINE_QUERY()
 
-	DEFINE_QUERY( &m_db, CTBLQuestTermTable)
-	query->m_dwCharID = dwCharID;
+		DEFINE_QUERY(&m_db, CTBLQuestTermTable)
+		query->m_dwCharID = dwCharID;
 
 	wSize = pMSG->m_packet.GetSize();
 	wCount = 0;
@@ -3121,9 +3182,9 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_REQ( LPPACKETBUF pBUF)
 	pMSG->m_packet
 		<< wCount;
 
-	if(query->Open())
+	if (query->Open())
 	{
-		while(query->Fetch())
+		while (query->Fetch())
 		{
 			pMSG->m_packet
 				<< query->m_dwQuestID
@@ -3134,13 +3195,13 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_REQ( LPPACKETBUF pBUF)
 			wCount++;
 		}
 
-		memcpy( pMSG->m_packet.GetBuffer() + wSize, &wCount, sizeof(wCount));
+		memcpy(pMSG->m_packet.GetBuffer() + wSize, &wCount, sizeof(wCount));
 		query->Close();
 	}
 	UNDEFINE_QUERY()
 
-	DEFINE_QUERY( &m_db, CTBLHotKey)
-	query->m_dwCharID = dwCharID;
+		DEFINE_QUERY(&m_db, CTBLHotKey)
+		query->m_dwCharID = dwCharID;
 
 	wSize = pMSG->m_packet.GetSize();
 	wCount = 0;
@@ -3148,15 +3209,15 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_REQ( LPPACKETBUF pBUF)
 	pMSG->m_packet
 		<< wCount;
 
-	if(query->Open())
+	if (query->Open())
 	{
-		while(query->Fetch())
+		while (query->Fetch())
 		{
 			pMSG->m_packet
 				<< query->m_bInven
 				<< (BYTE)ITEM_SAVE_LOAD;
 
-			for(BYTE bHotkey=0; bHotkey<MAX_HOTKEY_POS; bHotkey++)
+			for (BYTE bHotkey = 0; bHotkey<MAX_HOTKEY_POS; bHotkey++)
 			{
 				pMSG->m_packet
 					<< query->m_bType[bHotkey]
@@ -3166,13 +3227,13 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_REQ( LPPACKETBUF pBUF)
 			wCount++;
 		}
 
-		memcpy( pMSG->m_packet.GetBuffer() + wSize, &wCount, sizeof(wCount));
+		memcpy(pMSG->m_packet.GetBuffer() + wSize, &wCount, sizeof(wCount));
 		query->Close();
 	}
 	UNDEFINE_QUERY()
 
-	DEFINE_QUERY( &m_db, CTBLItemUsed)
-	query->m_dwCharID = dwCharID;
+		DEFINE_QUERY(&m_db, CTBLItemUsed)
+		query->m_dwCharID = dwCharID;
 
 	wSize = pMSG->m_packet.GetSize();
 	wCount = 0;
@@ -3180,9 +3241,9 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_REQ( LPPACKETBUF pBUF)
 	pMSG->m_packet
 		<< wCount;
 
-	if(query->Open())
+	if (query->Open())
 	{
-		while(query->Fetch())
+		while (query->Fetch())
 		{
 			pMSG->m_packet
 				<< query->m_wDelayGroupID
@@ -3191,13 +3252,13 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_REQ( LPPACKETBUF pBUF)
 			wCount++;
 		}
 
-		memcpy( pMSG->m_packet.GetBuffer() + wSize, &wCount, sizeof(wCount));
+		memcpy(pMSG->m_packet.GetBuffer() + wSize, &wCount, sizeof(wCount));
 		query->Close();
 	}
 	UNDEFINE_QUERY()
 
-	DEFINE_QUERY(&m_db, CTBLPetTable)
-	query->m_dwUserID = dwUserID;
+		DEFINE_QUERY(&m_db, CTBLPetTable)
+		query->m_dwUserID = dwUserID;
 
 	wSize = pMSG->m_packet.GetSize();
 	wCount = 0;
@@ -3205,9 +3266,9 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_REQ( LPPACKETBUF pBUF)
 	pMSG->m_packet
 		<< wCount;
 
-	if(query->Open())
+	if (query->Open())
 	{
-		while(query->Fetch())
+		while (query->Fetch())
 		{
 			pMSG->m_packet
 				<< query->m_wPetID
@@ -3219,7 +3280,7 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_REQ( LPPACKETBUF pBUF)
 			wCount++;
 		}
 
-		memcpy( pMSG->m_packet.GetBuffer() + wSize, &wCount, sizeof(wCount));
+		memcpy(pMSG->m_packet.GetBuffer() + wSize, &wCount, sizeof(wCount));
 		query->Close();
 	}
 	UNDEFINE_QUERY();
@@ -3231,31 +3292,10 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_REQ( LPPACKETBUF pBUF)
 		<< wCount;
 
 	DEFINE_QUERY(&m_db, CTBLDuringItem)
-	query->m_dwUserID = dwUserID;
-	if(query->Open())
+		query->m_dwUserID = dwUserID;
+	if (query->Open())
 	{
-		while(query->Fetch())
-		{
-			pMSG->m_packet
-				<< query->m_wItemID
-				<< query->m_bType
-				<< query->m_dwRemainTime;
-
-			pMSG->m_packet
-				<< __DBTOTIME(query->m_tEndTime);
-
-			wCount++;
-		}
-		
-		query->Close();
-	}
-	UNDEFINE_QUERY()
-
-	DEFINE_QUERY(&m_db, CTBLExpItem)
-	query->m_dwCharID = dwCharID;
-	if(query->Open())
-	{
-		while(query->Fetch())
+		while (query->Fetch())
 		{
 			pMSG->m_packet
 				<< query->m_wItemID
@@ -3271,10 +3311,31 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_REQ( LPPACKETBUF pBUF)
 		query->Close();
 	}
 	UNDEFINE_QUERY()
-	memcpy(pMSG->m_packet.GetBuffer()+wSize, &wCount, sizeof(wCount));
 
-	DEFINE_QUERY( &m_db, CTBLRecallMon)
-	query->m_dwCharID = dwCharID;
+		DEFINE_QUERY(&m_db, CTBLExpItem)
+		query->m_dwCharID = dwCharID;
+	if (query->Open())
+	{
+		while (query->Fetch())
+		{
+			pMSG->m_packet
+				<< query->m_wItemID
+				<< query->m_bType
+				<< query->m_dwRemainTime;
+
+			pMSG->m_packet
+				<< __DBTOTIME(query->m_tEndTime);
+
+			wCount++;
+		}
+
+		query->Close();
+	}
+	UNDEFINE_QUERY()
+		memcpy(pMSG->m_packet.GetBuffer() + wSize, &wCount, sizeof(wCount));
+
+	DEFINE_QUERY(&m_db, CTBLRecallMon)
+		query->m_dwCharID = dwCharID;
 
 	wSize = pMSG->m_packet.GetSize();
 	wCount = 0;
@@ -3282,9 +3343,9 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_REQ( LPPACKETBUF pBUF)
 	pMSG->m_packet
 		<< wCount;
 
-	if(query->Open())
+	if (query->Open())
 	{
-		while(query->Fetch())
+		while (query->Fetch())
 		{
 			pMSG->m_packet
 				<< query->m_dwID
@@ -3303,12 +3364,12 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_REQ( LPPACKETBUF pBUF)
 			wCount++;
 		}
 
-		memcpy( pMSG->m_packet.GetBuffer() + wSize, &wCount, sizeof(wCount));
+		memcpy(pMSG->m_packet.GetBuffer() + wSize, &wCount, sizeof(wCount));
 		query->Close();
 	}
 	UNDEFINE_QUERY()
 
-	DEFINE_QUERY( &m_db, CTBLRecallMaintain);
+		DEFINE_QUERY(&m_db, CTBLRecallMaintain);
 	query->m_dwCharID = dwCharID;
 
 	wSize = pMSG->m_packet.GetSize();
@@ -3317,9 +3378,9 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_REQ( LPPACKETBUF pBUF)
 	pMSG->m_packet
 		<< wCount;
 
-	if(query->Open())
+	if (query->Open())
 	{
-		while(query->Fetch())
+		while (query->Fetch())
 		{
 			pMSG->m_packet
 				<< query->m_dwRecallID
@@ -3335,13 +3396,13 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_REQ( LPPACKETBUF pBUF)
 			wCount++;
 		}
 
-		memcpy( pMSG->m_packet.GetBuffer() + wSize, &wCount, sizeof(wCount));
+		memcpy(pMSG->m_packet.GetBuffer() + wSize, &wCount, sizeof(wCount));
 		query->Close();
 	}
 	UNDEFINE_QUERY()
 
-	DEFINE_QUERY( &m_db, CTBLProtectedTable)
-	wSize = pMSG->m_packet.GetSize();
+		DEFINE_QUERY(&m_db, CTBLProtectedTable)
+		wSize = pMSG->m_packet.GetSize();
 	wCount = 0;
 
 	pMSG->m_packet
@@ -3350,11 +3411,11 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_REQ( LPPACKETBUF pBUF)
 	query->m_dwCharID = dwCharID;
 	query->m_dwProtected = 0;
 	query->m_bOption = 0;
-	ZeroMemory( query->m_szName, MAX_NAME + 1);
+	ZeroMemory(query->m_szName, MAX_NAME + 1);
 
-	if(query->Open())
+	if (query->Open())
 	{
-		while(query->Fetch())
+		while (query->Fetch())
 		{
 			pMSG->m_packet
 				<< query->m_dwProtected
@@ -3365,13 +3426,13 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_REQ( LPPACKETBUF pBUF)
 			wCount++;
 		}
 
-		memcpy( pMSG->m_packet.GetBuffer() + wSize, &wCount, sizeof(wCount));
+		memcpy(pMSG->m_packet.GetBuffer() + wSize, &wCount, sizeof(wCount));
 		query->Close();
 	}
 	UNDEFINE_QUERY()
 
-	DEFINE_QUERY(&m_db, CSPGetPvPRecord)
-	query->m_dwCharID = dwCharID;
+		DEFINE_QUERY(&m_db, CSPGetPvPRecord)
+		query->m_dwCharID = dwCharID;
 	query->m_dwUseablePoint = 0;
 	query->m_dwTotalPoint = 0;
 	query->m_dwRankOrder = 0;
@@ -3384,7 +3445,7 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_REQ( LPPACKETBUF pBUF)
 		<< query->m_dwRankOrder
 		<< query->m_bRankPercent;
 
-	for(BYTE cr=0; cr<TCLASS_COUNT; cr++)
+	for (BYTE cr = 0; cr<TCLASS_COUNT; cr++)
 	{
 		pMSG->m_packet
 			<< query->m_aRecord[cr][0]
@@ -3392,17 +3453,17 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_REQ( LPPACKETBUF pBUF)
 	}
 	UNDEFINE_QUERY()
 
-	DEFINE_QUERY(&m_db, CTBLPvPRecent)
-	wSize = pMSG->m_packet.GetSize();
+		DEFINE_QUERY(&m_db, CTBLPvPRecent)
+		wSize = pMSG->m_packet.GetSize();
 	wCount = 0;
 
 	pMSG->m_packet
 		<< wCount;
 
 	query->m_dwCharID = dwCharID;
-	if(query->Open())
+	if (query->Open())
 	{
-		while(query->Fetch())
+		while (query->Fetch())
 		{
 			pMSG->m_packet
 				<< query->m_szName
@@ -3416,22 +3477,22 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_REQ( LPPACKETBUF pBUF)
 
 			wCount++;
 		}
-		memcpy( pMSG->m_packet.GetBuffer() + wSize, &wCount, sizeof(wCount));
+		memcpy(pMSG->m_packet.GetBuffer() + wSize, &wCount, sizeof(wCount));
 		query->Close();
 	}
 	UNDEFINE_QUERY()
 
-	DEFINE_QUERY( &m_db, CTBLDuelCharList)
-	wSize = pMSG->m_packet.GetSize();
+		DEFINE_QUERY(&m_db, CTBLDuelCharList)
+		wSize = pMSG->m_packet.GetSize();
 	wCount = 0;
 
 	pMSG->m_packet
 		<< wCount;
 
 	query->m_dwCharID = dwCharID;
-	if(query->Open())
+	if (query->Open())
 	{
-		while(query->Fetch())
+		while (query->Fetch())
 		{
 			pMSG->m_packet
 				<< query->m_szName
@@ -3443,106 +3504,106 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_REQ( LPPACKETBUF pBUF)
 
 			wCount++;
 		}
-		memcpy( pMSG->m_packet.GetBuffer() + wSize, &wCount, sizeof(wCount));
+		memcpy(pMSG->m_packet.GetBuffer() + wSize, &wCount, sizeof(wCount));
 		query->Close();
 	}
 	UNDEFINE_QUERY()
 
-	DEFINE_QUERY( &m_db, CTBLDuelCharScore)
-	wSize = pMSG->m_packet.GetSize();
+		DEFINE_QUERY(&m_db, CTBLDuelCharScore)
+		wSize = pMSG->m_packet.GetSize();
 	wCount = 0;
 
 	pMSG->m_packet
 		<< wCount;
 
 	query->m_dwCharID = dwCharID;
-	if(query->Open())
+	if (query->Open())
 	{
-		if(query->Fetch())
+		if (query->Fetch())
 		{
-			for(BYTE di = 0; di < TCLASS_COUNT; di++)
+			for (BYTE di = 0; di < TCLASS_COUNT; di++)
 			{
 				pMSG->m_packet
 					<< query->m_aDuelScore[di][0]
-					<< query->m_aDuelScore[di][1];					
+					<< query->m_aDuelScore[di][1];
 			}
 			wCount++;
 		}
-		memcpy( pMSG->m_packet.GetBuffer() + wSize, &wCount, sizeof(wCount));
+		memcpy(pMSG->m_packet.GetBuffer() + wSize, &wCount, sizeof(wCount));
 		query->Close();
 	}
-	
+
 	UNDEFINE_QUERY()
 
-	
-	DEFINE_QUERY(&m_db, CTBLAuctionBidList)
-	wSize = pMSG->m_packet.GetSize();
+
+		DEFINE_QUERY(&m_db, CTBLAuctionBidList)
+		wSize = pMSG->m_packet.GetSize();
 	wCount = 0;
 
 	pMSG->m_packet
 		<< wCount;
 
 	query->m_dwCharID = dwCharID;
-	if(query->Open())
+	if (query->Open())
 	{
-		while(query->Fetch())
+		while (query->Fetch())
 		{
 			pMSG->m_packet
 				<< query->m_dwAuctionID;
 
 			wCount++;
 		}
-		memcpy( pMSG->m_packet.GetBuffer() + wSize, &wCount, sizeof(wCount));
+		memcpy(pMSG->m_packet.GetBuffer() + wSize, &wCount, sizeof(wCount));
 		query->Close();
 	}
 	UNDEFINE_QUERY()
 
-	DEFINE_QUERY(&m_db,CTBLAuctionInterest)
-	wSize = pMSG->m_packet.GetSize();
+		DEFINE_QUERY(&m_db, CTBLAuctionInterest)
+		wSize = pMSG->m_packet.GetSize();
 	wCount = 0;
-	
+
 	pMSG->m_packet
 		<< wCount;
-	
-	query->m_dwCharID = dwCharID;
-	if(query->Open())
-	{
-		while(query->Fetch())
-		{
-			pMSG->m_packet
-				<< query->m_dwAuctionID;			
 
-			wCount++;			
-		}
-		memcpy( pMSG->m_packet.GetBuffer() + wSize, &wCount, sizeof(wCount));
-		query->Close();
-	}
-	UNDEFINE_QUERY()
-
-	DEFINE_QUERY(&m_db,CTBLAuctionRegList)
-	wSize = pMSG->m_packet.GetSize();
-	wCount = 0;
-	
-	pMSG->m_packet
-		<< wCount;
-	
 	query->m_dwCharID = dwCharID;
-	if(query->Open())
+	if (query->Open())
 	{
-		while(query->Fetch())
+		while (query->Fetch())
 		{
 			pMSG->m_packet
 				<< query->m_dwAuctionID;
 
 			wCount++;
 		}
-		memcpy( pMSG->m_packet.GetBuffer() + wSize, &wCount, sizeof(wCount));
+		memcpy(pMSG->m_packet.GetBuffer() + wSize, &wCount, sizeof(wCount));
 		query->Close();
 	}
 	UNDEFINE_QUERY()
-	 
-	DEFINE_QUERY(&m_db, CSPGetMonthPvPoint)
+
+		DEFINE_QUERY(&m_db, CTBLAuctionRegList)
+		wSize = pMSG->m_packet.GetSize();
+	wCount = 0;
+
+	pMSG->m_packet
+		<< wCount;
+
 	query->m_dwCharID = dwCharID;
+	if (query->Open())
+	{
+		while (query->Fetch())
+		{
+			pMSG->m_packet
+				<< query->m_dwAuctionID;
+
+			wCount++;
+		}
+		memcpy(pMSG->m_packet.GetBuffer() + wSize, &wCount, sizeof(wCount));
+		query->Close();
+	}
+	UNDEFINE_QUERY()
+
+		DEFINE_QUERY(&m_db, CSPGetMonthPvPoint)
+		query->m_dwCharID = dwCharID;
 	query->m_dwMonthPvPoint = 0;
 	query->m_wMonthWin = 0;
 	query->m_wMonthLose = 0;
@@ -3559,8 +3620,8 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_REQ( LPPACKETBUF pBUF)
 
 	UNDEFINE_QUERY()
 
-	DEFINE_QUERY( &m_db, CTBLTitle)
-	wSize = pMSG->m_packet.GetSize();
+		DEFINE_QUERY(&m_db, CTBLTitle)
+		wSize = pMSG->m_packet.GetSize();
 	wCount = 0;
 
 	pMSG->m_packet
@@ -3568,29 +3629,30 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_REQ( LPPACKETBUF pBUF)
 
 	query->m_dwCharID = dwCharID;
 
-	if(query->Open())
+	if (query->Open())
 	{
-		while(query->Fetch())
+		while (query->Fetch())
 		{
 			pMSG->m_packet
 				<< query->m_wTitleID
 				<< query->m_bSelected;
-	
+
 			wCount++;
 		}
 
-		memcpy( pMSG->m_packet.GetBuffer() + wSize, &wCount, sizeof(wCount));
+		memcpy(pMSG->m_packet.GetBuffer() + wSize, &wCount, sizeof(wCount));
 		query->Close();
 	}
 	UNDEFINE_QUERY()
 
-	SayToBATCH(pMSG);
+		SayToBATCH(pMSG);
 
 	return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnDM_LOADCHAR_ACK( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnDM_LOADCHAR_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_LOADCHAR_ACK");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	WORD wDIR;
@@ -3614,10 +3676,10 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_ACK( LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
-	if(bResult)
+	if (bResult)
 	{
 		SendMW_ENTERSVR_ACK(
 			pPlayer->m_dwID,
@@ -3688,21 +3750,21 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_ACK( LPPACKETBUF pBUF)
 
 	pPlayer->m_timeEnter = m_timeCurrent;
 
-	if(pPlayer->m_bStartAct != 2)
+	if (pPlayer->m_bStartAct != 2)
 		pPlayer->m_bStartAct = bStartAct;
 
-	if(pPlayer->m_bStartAct == 1 && pPlayer->m_wMapID != TUTORIAL_MAPID)
+	if (pPlayer->m_bStartAct == 1 && pPlayer->m_wMapID != TUTORIAL_MAPID)
 		pPlayer->m_bStartAct = 0;
 
 	pPlayer->ClearMain();
 
-	if(!SetTutorialCharBase(pPlayer))
+	if (!SetTutorialCharBase(pPlayer))
 	{
 		MAPTSPAWNPOS::iterator finder = m_mapTSPAWNPOS.find(pPlayer->m_wSpawnID);
-		if( finder != m_mapTSPAWNPOS.end() &&
+		if (finder != m_mapTSPAWNPOS.end() &&
 			(*finder).second->m_wMapID != TUTORIAL_MAPID)
 		{
-			if(pPlayer->m_pMAP)
+			if (pPlayer->m_pMAP)
 				ExitMAP(pPlayer);
 
 			LPTSPAWNPOS pPOS = (*finder).second;
@@ -3735,7 +3797,7 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_ACK( LPPACKETBUF pBUF)
 	pPlayer->m_pTPREVLEVEL = FindTLevel(pPlayer->m_bLevel - 1);
 	pPlayer->m_pTLEVEL = FindTLevel(pPlayer->m_bLevel);
 
-	if( !pPlayer->m_pTPREVLEVEL || !pPlayer->m_pTLEVEL )
+	if (!pPlayer->m_pTPREVLEVEL || !pPlayer->m_pTLEVEL)
 	{
 		SendMW_ENTERSVR_ACK(
 			pPlayer->m_dwID,
@@ -3758,7 +3820,7 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_ACK( LPPACKETBUF pBUF)
 
 	pPlayer->m_pTCLASS = FindTClass(pPlayer->m_bClass);
 	pPlayer->m_pTRACE = FindTRace(pPlayer->m_bRace);
-	if(!pPlayer->m_pTCLASS || !pPlayer->m_pTRACE)
+	if (!pPlayer->m_pTCLASS || !pPlayer->m_pTRACE)
 	{
 		SendMW_ENTERSVR_ACK(
 			pPlayer->m_dwID,
@@ -3779,13 +3841,13 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_ACK( LPPACKETBUF pBUF)
 		return EC_NOERROR;
 	}
 
-	if(!pPlayer->m_dwHP)
+	if (!pPlayer->m_dwHP)
 	{
 		pPlayer->m_bAction = TA_DEAD;
 		pPlayer->m_bStatus = OS_DEAD;
 	}
 
-	if(!pPlayer->m_pMAP)
+	if (!pPlayer->m_pMAP)
 	{
 		pPlayer->m_fPosX = fPosX;
 		pPlayer->m_fPosY = fPosY;
@@ -3799,11 +3861,11 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_ACK( LPPACKETBUF pBUF)
 			fPosZ);
 
 	WORD wSpawnID = GetIndunInPos(pPlayer->m_wMapID);
-	if(wSpawnID)
+	if (wSpawnID)
 	{
 		MAPTSPAWNPOS::iterator it = m_mapTSPAWNPOS.find(wSpawnID);
 
-		if( it != m_mapTSPAWNPOS.end() )
+		if (it != m_mapTSPAWNPOS.end())
 		{
 			pPlayer->m_fPosX = (*it).second->m_fPosX;
 			pPlayer->m_fPosY = (*it).second->m_fPosY;
@@ -3816,7 +3878,7 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_ACK( LPPACKETBUF pBUF)
 	pBUF->m_packet
 		>> wCount;
 
-	for( WORD i=0; i<wCount; i++)
+	for (WORD i = 0; i<wCount; i++)
 	{
 		CTInven *pTINVEN = new CTInven();
 
@@ -3827,13 +3889,13 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_ACK( LPPACKETBUF pBUF)
 			>> pTINVEN->m_bELD;
 
 		pTINVEN->m_pTITEM = FindTItem(pTINVEN->m_wItemID);
-		pPlayer->m_mapTINVEN.insert( MAPTINVEN::value_type( pTINVEN->m_bInvenID, pTINVEN));
+		pPlayer->m_mapTINVEN.insert(MAPTINVEN::value_type(pTINVEN->m_bInvenID, pTINVEN));
 	}
 
 	pBUF->m_packet
 		>> wCount;
 
-	for(int i = 0; i<wCount; i++)
+	for (int i = 0; i<wCount; i++)
 	{
 		BYTE bCabinetID;
 		BYTE bUse;
@@ -3848,7 +3910,7 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_ACK( LPPACKETBUF pBUF)
 	pBUF->m_packet
 		>> wCount;
 
-	for(int i = 0; i<wCount; i++)
+	for (int i = 0; i<wCount; i++)
 	{
 		BYTE bStorageType;
 		DWORD dwStorageID;
@@ -3862,44 +3924,44 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_ACK( LPPACKETBUF pBUF)
 			>> dwOwnerID;
 
 		CTItem *pTITEM = CreateItem(&(pBUF->m_packet));
-		if(!pTITEM)
+		if (!pTITEM)
 			continue;
 
-		if(!pTITEM->m_bCount || pTITEM->m_bCount > pTITEM->m_pTITEM->m_bStack)
+		if (!pTITEM->m_bCount || pTITEM->m_bCount > pTITEM->m_pTITEM->m_bStack)
 		{
 			delete pTITEM;
 			continue;
 		}
 
-		if(pPlayer->IsTutorial())
+		if (pPlayer->IsTutorial())
 		{
 			delete pTITEM;
 			continue;
 		}
 
-		switch(bStorageType)
+		switch (bStorageType)
 		{
 		case STORAGE_INVEN:
-			{
-				CTInven *pTINVEN = pPlayer->FindTInven(BYTE(dwStorageID));
-				if(!pTINVEN)
-					delete pTITEM;
-				else
-					pTINVEN->m_mapTITEM.insert( MAPTITEM::value_type( pTITEM->m_bItemID, pTITEM));
-			}
-			break;
+		{
+			CTInven *pTINVEN = pPlayer->FindTInven(BYTE(dwStorageID));
+			if (!pTINVEN)
+				delete pTITEM;
+			else
+				pTINVEN->m_mapTITEM.insert(MAPTITEM::value_type(pTITEM->m_bItemID, pTITEM));
+		}
+		break;
 		case STORAGE_CABINET:
+		{
+			LPTCABINET pTCABINET = pPlayer->GetCabinet(pTITEM->m_bItemID);
+			if (!pTCABINET)
+				delete pTITEM;
+			else
 			{
-				LPTCABINET pTCABINET = pPlayer->GetCabinet(pTITEM->m_bItemID);
-				if(!pTCABINET)
-					delete pTITEM;
-				else
-				{
-					pTITEM->m_dwStItemID = dwStorageID;
-					pTCABINET->m_mapCabinetItem.insert(MAPTSTORAGEITEM::value_type(pTITEM->m_dwStItemID, pTITEM));
-				}
+				pTITEM->m_dwStItemID = dwStorageID;
+				pTCABINET->m_mapCabinetItem.insert(MAPTSTORAGEITEM::value_type(pTITEM->m_dwStItemID, pTITEM));
 			}
-			break;
+		}
+		break;
 		case STORAGE_POST:
 		default:
 			delete pTITEM;
@@ -3915,7 +3977,7 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_ACK( LPPACKETBUF pBUF)
 		>> wCount;
 	pPlayer->m_vRemainSkill.clear();
 
-	for(int i = 0; i<wCount; i++)
+	for (int i = 0; i<wCount; i++)
 	{
 		WORD wSkillID;
 		BYTE bSLevel;
@@ -3925,18 +3987,18 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_ACK( LPPACKETBUF pBUF)
 			>> wSkillID
 			>> dwRemainTick;
 
-		if(pPlayer->IsTutorial())
+		if (pPlayer->IsTutorial())
 			continue;
 
 		CTSkillTemp *pTemp = FindTSkill(wSkillID);
-		if(pTemp)
+		if (pTemp)
 		{
 			CTSkill *pSkill = new CTSkill();
 
 			pSkill->m_bLevel = bSLevel;
 			pSkill->m_pTSKILL = pTemp;
 
-			if(dwRemainTick)
+			if (dwRemainTick)
 			{
 				pSkill->m_dwUseTick = m_dwTick;
 				pSkill->m_dwDelayTick = dwRemainTick;
@@ -3948,16 +4010,16 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_ACK( LPPACKETBUF pBUF)
 			}
 
 			//스킬 버릴때 m_vRemainSkill에서 해당 스킬 꼭 뺄것
-			if(pSkill->m_pTSKILL->IsRemainType())
+			if (pSkill->m_pTSKILL->IsRemainType())
 				pPlayer->m_vRemainSkill.push_back(pSkill);
-			pPlayer->m_mapTSKILL.insert( MAPTSKILL::value_type( wSkillID, pSkill));
+			pPlayer->m_mapTSKILL.insert(MAPTSKILL::value_type(wSkillID, pSkill));
 		}
 	}
 
 	pBUF->m_packet
 		>> wCount;
 
-	for(int i = 0; i<wCount; i++)
+	for (int i = 0; i<wCount; i++)
 	{
 		WORD wESkillID;
 		BYTE bESLevel;
@@ -3977,11 +4039,11 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_ACK( LPPACKETBUF pBUF)
 			>> dwHostID
 			>> bAttackCountry;
 
-		if(pPlayer->IsTutorial())
+		if (pPlayer->IsTutorial())
 			continue;
 
 		CTSkillTemp *pTemp = FindTSkill(wESkillID);
-		if(pTemp)
+		if (pTemp)
 		{
 			CTSkill *pSkill = new CTSkill();
 
@@ -3996,16 +4058,16 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_ACK( LPPACKETBUF pBUF)
 			pSkill->m_bAttackCountry = bAttackCountry;
 			pSkill->m_dwChargeTick = m_dwTick;
 
-			for( DWORD j=0; j<DWORD(pSkill->m_pTSKILL->m_vData.size()); j++)
+			for (DWORD j = 0; j<DWORD(pSkill->m_pTSKILL->m_vData.size()); j++)
 			{
 				LPTSKILLDATA pData = pSkill->m_pTSKILL->m_vData[j];
 
-				if( pData->m_bType == SDT_TRANS )
+				if (pData->m_bType == SDT_TRANS)
 					pPlayer->SetTransAttack(pData->m_wValue);
 
-				if( pData->m_bType == SDT_STATUS &&
+				if (pData->m_bType == SDT_STATUS &&
 					(pData->m_bExec == SDT_STATUS_PCBANG ||
-					 pData->m_bExec == SDT_STATUS_PREMIUM))
+						pData->m_bExec == SDT_STATUS_PREMIUM))
 				{
 					delete pSkill;
 					pSkill = NULL;
@@ -4020,7 +4082,7 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_ACK( LPPACKETBUF pBUF)
 	pBUF->m_packet
 		>> wCount;
 
-	for(int i = 0; i<wCount; i++)
+	for (int i = 0; i<wCount; i++)
 	{
 		CQuest *pQUEST = NULL;
 
@@ -4038,11 +4100,11 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_ACK( LPPACKETBUF pBUF)
 			>> bTriCnt
 			>> bSave;
 
-		if(pPlayer->IsTutorial())
+		if (pPlayer->IsTutorial())
 			continue;
 
 		LPQUESTTEMP pQuestTemp = FindQuestTemplate(dwQuestID);
-		if(pQuestTemp && pQuestTemp->m_bType)
+		if (pQuestTemp && pQuestTemp->m_bType)
 		{
 			pQUEST = CQuest::CreateQuest(pQuestTemp);
 			pQUEST->m_dwTick = dwTick;
@@ -4050,24 +4112,24 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_ACK( LPPACKETBUF pBUF)
 			pQUEST->m_bTriggerCount = bTriCnt;
 			pQUEST->m_bSave = bSave;
 
-			if(pQUEST->m_dwTick)
+			if (pQUEST->m_dwTick)
 			{
 				pQUEST->m_dwBeginTick = m_dwTick;
 				pQUEST->m_bSave = TRUE;
 			}
 
-			pPlayer->m_mapQUEST.insert( MAPQUEST::value_type( dwQuestID, pQUEST));
+			pPlayer->m_mapQUEST.insert(MAPQUEST::value_type(dwQuestID, pQUEST));
 			DWORD dwLevel = pPlayer->GetQuestLevel(pQuestTemp);
 
-			if(dwLevel)
-				pPlayer->m_mapLevelQuest.insert( MAPDWORD::value_type( dwLevel, pQuestTemp->m_dwQuestID));
+			if (dwLevel)
+				pPlayer->m_mapLevelQuest.insert(MAPDWORD::value_type(dwLevel, pQuestTemp->m_dwQuestID));
 		}
 	}
 
 	pBUF->m_packet
 		>> wCount;
 
-	for(int i = 0; i<wCount; i++)
+	for (int i = 0; i<wCount; i++)
 	{
 		DWORD dwQuestID;
 		DWORD dwTermID;
@@ -4081,11 +4143,11 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_ACK( LPPACKETBUF pBUF)
 			>> bTermType
 			>> bCount;
 
-		if(pPlayer->IsTutorial())
+		if (pPlayer->IsTutorial())
 			continue;
 
 		MAPQUEST::iterator finder = pPlayer->m_mapQUEST.find(dwQuestID);
-		if( finder != pPlayer->m_mapQUEST.end()  && finder->second->m_pQUEST->m_bType)
+		if (finder != pPlayer->m_mapQUEST.end() && finder->second->m_pQUEST->m_bType)
 		{
 			LPQUESTTERM pTERM = new QUESTTERM();
 
@@ -4100,7 +4162,7 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_ACK( LPPACKETBUF pBUF)
 	pBUF->m_packet
 		>> wCount;
 
-	for(int i = 0; i<wCount; i++)
+	for (int i = 0; i<wCount; i++)
 	{
 		BYTE bInvenID;
 		BYTE bInvenSave;
@@ -4112,7 +4174,7 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_ACK( LPPACKETBUF pBUF)
 		LPTHOTKEYINVEN pInven = new THOTKEYINVEN();
 		pInven->m_bSave = bInvenSave;
 
-		for( BYTE j=0; j<MAX_HOTKEY_POS; j++)
+		for (BYTE j = 0; j<MAX_HOTKEY_POS; j++)
 		{
 			pInven->m_hotkey[j].m_bPos = j;
 
@@ -4121,13 +4183,13 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_ACK( LPPACKETBUF pBUF)
 				>> pInven->m_hotkey[j].m_wID;
 		}
 
-		pPlayer->m_mapHotkeyInven.insert( MAPTHOTKEYINVEN::value_type( bInvenID, pInven));
+		pPlayer->m_mapHotkeyInven.insert(MAPTHOTKEYINVEN::value_type(bInvenID, pInven));
 	}
 
 	pBUF->m_packet
 		>> wCount;
 
-	for(int i = 0; i<wCount; i++)
+	for (int i = 0; i<wCount; i++)
 	{
 		DWORD dwTick;
 		WORD wDelayGroup;
@@ -4136,17 +4198,17 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_ACK( LPPACKETBUF pBUF)
 			>> wDelayGroup
 			>> dwTick;
 
-		if(pPlayer->IsTutorial())
+		if (pPlayer->IsTutorial())
 			continue;
 
-		if(dwTick < HOUR_ONE * 1000)
-			pPlayer->m_mapItemCoolTime.insert( MAPDWORD::value_type( wDelayGroup, m_dwTick + dwTick));
+		if (dwTick < HOUR_ONE * 1000)
+			pPlayer->m_mapItemCoolTime.insert(MAPDWORD::value_type(wDelayGroup, m_dwTick + dwTick));
 	}
 
 	pBUF->m_packet
 		>> wCount;
 
-	for(int i = 0; i<wCount; i++)
+	for (int i = 0; i<wCount; i++)
 	{
 		CString strName;
 		WORD wPetID;
@@ -4157,12 +4219,12 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_ACK( LPPACKETBUF pBUF)
 			>> strName
 			>> ldwTime;
 
-		if(pPlayer->IsTutorial())
+		if (pPlayer->IsTutorial())
 			continue;
 
 		WORD wID = MAKEWORD(pPlayer->m_bRace, wPetID);
 		MAPTPETTEMP::iterator find = m_mapTPET.find(wID);
-		if( find != m_mapTPET.end() &&
+		if (find != m_mapTPET.end() &&
 			wPetID != PCBANG_PET &&
 			wPetID != PREMIUM1_PET &&
 			wPetID != PREMIUM2_PET)
@@ -4174,14 +4236,14 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_ACK( LPPACKETBUF pBUF)
 			pPET->m_strName = strName;
 			pPET->m_ldwTime = ldwTime;
 
-			pPlayer->m_mapTPET.insert( MAPTPET::value_type( pPET->m_wPetID, pPET));
+			pPlayer->m_mapTPET.insert(MAPTPET::value_type(pPET->m_wPetID, pPET));
 		}
 	}
 
 	pBUF->m_packet
 		>> wCount;
 
-	for(int i = 0; i<wCount; i++)
+	for (int i = 0; i<wCount; i++)
 	{
 		WORD wItemID;
 		BYTE bType;
@@ -4194,43 +4256,43 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_ACK( LPPACKETBUF pBUF)
 			>> dwRemainTime
 			>> tEndTime;
 
-		if(pPlayer->IsTutorial())
+		if (pPlayer->IsTutorial())
 			continue;
 
 		LPTITEM pITEM = FindTItem(wItemID);
-		if(pITEM)
+		if (pITEM)
 		{
 			DWORD dwAdd = 0;
 			BYTE bUseType = DURINGTYPE_TIME;
-			if(pITEM->m_bUseType & DURINGTYPE_TIME)
+			if (pITEM->m_bUseType & DURINGTYPE_TIME)
 				dwAdd = dwRemainTime;
-			else if(pITEM->m_bUseType & DURINGTYPE_DAY)
+			else if (pITEM->m_bUseType & DURINGTYPE_DAY)
 			{
 				bUseType = DURINGTYPE_DAY;
 				dwAdd = DWORD(tEndTime > m_timeCurrent ? tEndTime - m_timeCurrent : 0);
 			}
 
 			LPTDURINGITEM pDI = pPlayer->SetDuringItem(pITEM->m_bKind, pITEM, bUseType, dwAdd);
-			if(pDI)
+			if (pDI)
 				pDI->m_tEndTime = tEndTime;
 
-			if(GetNation() == NATION_KOREA)
+			if (GetNation() == NATION_KOREA)
 			{
-				if(pITEM->m_bKind == IK_GOLDPREMIUM)
+				if (pITEM->m_bKind == IK_GOLDPREMIUM)
 					pPlayer->PetMake(PREMIUM1_PET, GetSvrMsg(PREMIUM_PETNAME), dwAdd);
-				else if(pITEM->m_bKind == IK_GOLDPREMIUM2)
+				else if (pITEM->m_bKind == IK_GOLDPREMIUM2)
 					pPlayer->PetMake(PREMIUM2_PET, GetSvrMsg(PREMIUM_PETNAME), dwAdd);
 			}
 		}
 	}
 
-	if(pPlayer->m_bInPcBang & PCBANG_REAL)
+	if (pPlayer->m_bInPcBang & PCBANG_REAL)
 		pPlayer->PetMake(PCBANG_PET, PCBANG_PETNAME, PET_LIVE_DURATION);
-	
+
 	pBUF->m_packet
 		>> wCount;
 
-	for(int i = 0; i<wCount; i++)
+	for (int i = 0; i<wCount; i++)
 	{
 		DWORD dwLiveTick;
 		DWORD dwID;
@@ -4260,34 +4322,34 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_ACK( LPPACKETBUF pBUF)
 			>> wPosZ
 			>> dwLiveTick;
 
-		if(pPlayer->IsTutorial())
+		if (pPlayer->IsTutorial())
 			continue;
 
 		LPTMONSTER pTemp = FindTMonster(wMonID);
-		if(pTemp)
+		if (pTemp)
 		{
 			LPTPET pPET = NULL;
 
-			if( pTemp->m_bRecallType == TRECALLTYPE_PET )
+			if (pTemp->m_bRecallType == TRECALLTYPE_PET)
 			{
 				MAPTPET::iterator it;
 
-				for( it = pPlayer->m_mapTPET.begin(); it != pPlayer->m_mapTPET.end(); it++)
+				for (it = pPlayer->m_mapTPET.begin(); it != pPlayer->m_mapTPET.end(); it++)
 				{
-					if( wPetID == (*it).second->m_wPetID )
+					if (wPetID == (*it).second->m_wPetID)
 					{
-						if( !(*it).second->m_ldwTime || (*it).second->m_ldwTime > m_timeCurrent )
+						if (!(*it).second->m_ldwTime || (*it).second->m_ldwTime > m_timeCurrent)
 						{
 							__int64 ldwLive = (*it).second->m_ldwTime ? (*it).second->m_ldwTime - m_timeCurrent : 0;
 
 							dwLiveTick = PET_LIVE_DURATION;
-							if( ldwLive < dwLiveTick )
+							if (ldwLive < dwLiveTick)
 								dwLiveTick = DWORD(ldwLive);
 							dwLiveTick *= 1000;
 
 							pPET = (*it).second;
 
-							if((*it).second->m_pTPET->m_bConditionType == PETCON_PCBANG &&
+							if ((*it).second->m_pTPET->m_bConditionType == PETCON_PCBANG &&
 								((*it).second->m_pTPET->m_dwConditionValue && !pPlayer->m_bInPcBang))
 								pPET = NULL;
 						}
@@ -4296,21 +4358,21 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_ACK( LPPACKETBUF pBUF)
 					}
 				}
 
-				if(!pPET)
+				if (!pPET)
 					continue;
 			}
 
 			VWORD vSkill;
 			vSkill.clear();
-			if(pTemp->m_wID)
+			if (pTemp->m_wID)
 				vSkill = pTemp->m_vSKILL;
 			else
 			{
-				for( WORD ms=31; ms<=34; ms++)
+				for (WORD ms = 31; ms <= 34; ms++)
 				{
 					//기본스킬
 					CTSkill * pMy = pPlayer->FindTSkill(ms);
-					if(pMy && pPlayer->IsEquipSkillItem(pMy))
+					if (pMy && pPlayer->IsEquipSkillItem(pMy))
 						vSkill.push_back(ms);
 				}
 			}
@@ -4331,7 +4393,7 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_ACK( LPPACKETBUF pBUF)
 				pTemp->m_wID ? 0 : pPlayer->GetMaxHP(),
 				pTemp->m_wID ? 0 : pPlayer->GetMaxMP(),
 				dwHP, dwMP,
-				100,0,0,0,0,0,
+				100, 0, 0, 0, 0, 0,
 				bSkillLevel,
 				pPlayer->m_fPosX - 2.0f * sinf(FLOAT(pPlayer->m_wDIR) * FLOAT(M_PI) / 900.0f),
 				pPlayer->m_fPosY,
@@ -4346,7 +4408,7 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_ACK( LPPACKETBUF pBUF)
 	pBUF->m_packet
 		>> wCount;
 
-	for(int i = 0; i<wCount; i++)
+	for (int i = 0; i<wCount; i++)
 	{
 		DWORD dwRecallID;
 		WORD wESkillID;
@@ -4368,14 +4430,14 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_ACK( LPPACKETBUF pBUF)
 			>> dwHostID
 			>> bAttackCountry;
 
-		if(pPlayer->IsTutorial())
+		if (pPlayer->IsTutorial())
 			continue;
 
 		CTRecallMon * pRecall = pPlayer->FindRecallMon(dwRecallID);
-		if(pRecall && !pRecall->FindMaintainSkill(wESkillID))
+		if (pRecall && !pRecall->FindMaintainSkill(wESkillID))
 		{
 			CTSkillTemp *pTemp = FindTSkill(wESkillID);
-			if(!pTemp)
+			if (!pTemp)
 				continue;
 
 			CTSkill *pSkill = new CTSkill();
@@ -4390,11 +4452,11 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_ACK( LPPACKETBUF pBUF)
 			pSkill->m_bHostType = bHostType;
 			pSkill->m_bAttackCountry = bAttackCountry;
 
-			for( DWORD j=0; j<DWORD(pSkill->m_pTSKILL->m_vData.size()); j++)
+			for (DWORD j = 0; j<DWORD(pSkill->m_pTSKILL->m_vData.size()); j++)
 			{
 				LPTSKILLDATA pData = pSkill->m_pTSKILL->m_vData[j];
 
-				if( pData->m_bType == SDT_TRANS )
+				if (pData->m_bType == SDT_TRANS)
 					pRecall->SetTransAttack(pData->m_wValue);
 			}
 
@@ -4405,7 +4467,7 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_ACK( LPPACKETBUF pBUF)
 	pBUF->m_packet
 		>> wCount;
 
-	for(int i = 0; i<wCount; i++)
+	for (int i = 0; i<wCount; i++)
 	{
 		LPTPROTECTED pProtected = new TPROTECTED();
 
@@ -4424,14 +4486,14 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_ACK( LPPACKETBUF pBUF)
 		>> pPlayer->m_dwPvPRankOrder
 		>> pPlayer->m_bPvPRankPercent;
 
-	for(BYTE cr=0; cr<TCLASS_COUNT; cr++)
+	for (BYTE cr = 0; cr<TCLASS_COUNT; cr++)
 	{
 		pBUF->m_packet
 			>> pPlayer->m_aPvPRecord[cr][0]
 			>> pPlayer->m_aPvPRecord[cr][1];
 	}
-	for(int i = 0; i < TCLASS_COUNT; i++)
-	{		
+	for (int i = 0; i < TCLASS_COUNT; i++)
+	{
 		pPlayer->m_dwTotalLose += pPlayer->m_aPvPRecord[i][0];
 		pPlayer->m_dwTotalWin += pPlayer->m_aPvPRecord[i][1];
 	}
@@ -4439,7 +4501,7 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_ACK( LPPACKETBUF pBUF)
 	pBUF->m_packet
 		>> wCount;
 
-	for(int i = 0; i<wCount; i++)
+	for (int i = 0; i<wCount; i++)
 	{
 		TRECORDSET set;
 		pBUF->m_packet
@@ -4455,11 +4517,11 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_ACK( LPPACKETBUF pBUF)
 
 	pBUF->m_packet
 		>> wCount;
-	
-	for(int i = 0; i < wCount; i++)
+
+	for (int i = 0; i < wCount; i++)
 	{
 		TRECORDSET set;
-		
+
 		pBUF->m_packet
 			>> set.m_strName
 			>> set.m_bClass
@@ -4467,16 +4529,16 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_ACK( LPPACKETBUF pBUF)
 			>> set.m_bWin
 			>> set.m_dwPoint
 			>> set.m_dTime;
-				
+
 		pPlayer->m_vDuelRecordSet.push_back(set);
 	}
-	
+
 	pBUF->m_packet
 		>> wCount;
 
-	if(wCount)
+	if (wCount)
 	{
-		for(int i = 0; i < TCLASS_COUNT; i++)
+		for (int i = 0; i < TCLASS_COUNT; i++)
 		{
 			pBUF->m_packet
 				>> pPlayer->m_aDuelScore[i][0]
@@ -4484,48 +4546,48 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_ACK( LPPACKETBUF pBUF)
 		}
 	}
 
-	
+
 	pBUF->m_packet
 		>> wCount;
 
 	DWORD dwAuctionID;
 
-	if(wCount)
+	if (wCount)
 	{
-		for(int i = 0; i < wCount; i++)
+		for (int i = 0; i < wCount; i++)
 		{
 			pBUF->m_packet
 				>> dwAuctionID;
-			
-			pPlayer->AuctionBidListSave(TRUE,dwAuctionID);
+
+			pPlayer->AuctionBidListSave(TRUE, dwAuctionID);
 		}
 	}
 
 	pBUF->m_packet
 		>> wCount;
 
-	if(wCount)
+	if (wCount)
 	{
-		for(int i = 0; i < wCount; i++)
+		for (int i = 0; i < wCount; i++)
 		{
 			pBUF->m_packet
-				>> dwAuctionID;			
+				>> dwAuctionID;
 
-			pPlayer->AuctionInterestSave(TRUE,dwAuctionID);
+			pPlayer->AuctionInterestSave(TRUE, dwAuctionID);
 		}
 	}
 
 	pBUF->m_packet
 		>> wCount;
 
-	if(wCount)
+	if (wCount)
 	{
-		for(int i = 0; i < wCount; i++ )
+		for (int i = 0; i < wCount; i++)
 		{
 			pBUF->m_packet
-				>> dwAuctionID;				
+				>> dwAuctionID;
 
-			pPlayer->AuctionRegListSave(TRUE,dwAuctionID);
+			pPlayer->AuctionRegListSave(TRUE, dwAuctionID);
 		}
 	}
 
@@ -4539,11 +4601,11 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_ACK( LPPACKETBUF pBUF)
 	pBUF->m_packet
 		>> wCount;
 
-	if(wCount)
+	if (wCount)
 	{
 		pPlayer->m_mapTTITLE.clear();
 
-		for(int i = 0; i < wCount; i++ )
+		for (int i = 0; i < wCount; i++)
 		{
 			WORD wTitleID;
 			BYTE bSelected;
@@ -4554,30 +4616,30 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_ACK( LPPACKETBUF pBUF)
 
 			MAPTTITLETEMP::iterator find = m_mapTTITLE.find(wTitleID);
 
-			if(find != m_mapTTITLE.end())
+			if (find != m_mapTTITLE.end())
 			{
 				LPTTITLE pTITLE = new TTITLE();
 
 				pTITLE->m_wTitleID = wTitleID;
 				pTITLE->m_bSelected = bSelected;
 
-				pPlayer->m_mapTTITLE.insert( MAPTTITLE::value_type( pTITLE->m_wTitleID, pTITLE));
+				pPlayer->m_mapTTITLE.insert(MAPTTITLE::value_type(pTITLE->m_wTitleID, pTITLE));
 
-				if(bSelected)
+				if (bSelected)
 					pPlayer->m_wTitleID = wTitleID;
 			}
 		}
 	}
 
 	pPlayer->m_bEquipSpecial = pPlayer->IsEquipSpecial();
-	pPlayer->SetAftermath( m_dwTick, bAftermath);
+	pPlayer->SetAftermath(m_dwTick, bAftermath);
 	pPlayer->m_dwSaveTick = m_dwTick - dwSaveTick;
 
 	DWORD dwMaxHP = pPlayer->GetMaxHP();
 	DWORD dwMaxMP = pPlayer->GetMaxMP();
-	if(dwMaxHP < pPlayer->m_dwHP)
+	if (dwMaxHP < pPlayer->m_dwHP)
 		pPlayer->m_dwHP = dwMaxHP;
-	if(dwMaxMP < pPlayer->m_dwMP)
+	if (dwMaxMP < pPlayer->m_dwMP)
 		pPlayer->m_dwMP = dwMaxMP;
 
 	SendMW_ENTERSVR_ACK(
@@ -4611,6 +4673,7 @@ DWORD CTMapSvrModule::OnDM_LOADCHAR_ACK( LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_POSTBILL_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_POSTBILL_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 
@@ -4619,35 +4682,38 @@ DWORD CTMapSvrModule::OnDM_POSTBILL_REQ(LPPACKETBUF pBUF)
 		>> dwKey;
 
 	DEFINE_QUERY(&m_db, CTBLPostBill)
-	query->m_dwSendID = dwCharID;
+		query->m_dwSendID = dwCharID;
 	query->m_bType = POST_BILLS;
-	if(query->Open())
+	if (query->Open())
 	{
-		while(query->Fetch())
+		while (query->Fetch())
 			SendSM_POSTBILL_REQ(dwCharID, query->m_dwPostID, __DBTOTIME(query->m_timeRecv) + POST_DURATION);
 
 		query->Close();
 	}
 	UNDEFINE_QUERY()
 
-	return EC_NOERROR;
+		return EC_NOERROR;
 }
 
 DWORD CTMapSvrModule::OnDM_LOADPOSTMESSAGE_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_LOADPOSTMESSAGE_REQ");
 	return EC_NOERROR;
 }
 
 DWORD CTMapSvrModule::OnDM_LOADPOSTMESSAGE_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_LOADPOSTMESSAGE_ACK");
 	return EC_NOERROR;
 }
 
 DWORD CTMapSvrModule::OnDM_LOGSKILL_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_LOGSKILL_REQ");
 	DEFINE_QUERY(&m_db, CSPLogSkill)
 
-	pBUF->m_packet
+		pBUF->m_packet
 		>> query->m_dwCharID
 		>> query->m_dwGold
 		>> query->m_dwSilver
@@ -4657,11 +4723,12 @@ DWORD CTMapSvrModule::OnDM_LOGSKILL_REQ(LPPACKETBUF pBUF)
 	query->Call();
 
 	UNDEFINE_QUERY()
-	return EC_NOERROR;
+		return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnMW_CONLIST_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnMW_CONLIST_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_CONLIST_REQ");
 	MAPBYTE mapCON;
 	mapCON.clear();
 
@@ -4688,7 +4755,7 @@ DWORD CTMapSvrModule::OnMW_CONLIST_REQ( LPPACKETBUF pBUF)
 		bChannel,
 		wMapID);
 
-	if(!pCH)
+	if (!pCH)
 	{
 		SendMW_CONLIST_ACK(
 			dwCharID,
@@ -4699,7 +4766,7 @@ DWORD CTMapSvrModule::OnMW_CONLIST_REQ( LPPACKETBUF pBUF)
 	}
 
 	MAPTMAP::iterator itMAP = pCH->m_mapTMAP.find(wMapID);
-	if( itMAP == pCH->m_mapTMAP.end() )
+	if (itMAP == pCH->m_mapTMAP.end())
 	{
 		SendMW_CONLIST_ACK(
 			dwCharID,
@@ -4715,7 +4782,7 @@ DWORD CTMapSvrModule::OnMW_CONLIST_REQ( LPPACKETBUF pBUF)
 		WORD(INT(fPosZ) / CELL_SIZE));
 
 	MAPTCELL::iterator itCELL = pMAP->m_mapTCELL.find(dwCell);
-	if( itCELL == pMAP->m_mapTCELL.end() || !(*itCELL).second->IsMainCell(bChannel) )
+	if (itCELL == pMAP->m_mapTCELL.end() || !(*itCELL).second->IsMainCell(bChannel))
 	{
 		SendMW_CONLIST_ACK(
 			dwCharID,
@@ -4726,9 +4793,9 @@ DWORD CTMapSvrModule::OnMW_CONLIST_REQ( LPPACKETBUF pBUF)
 	}
 	CTCell *pCell = (*itCELL).second;
 
-	for( BYTE i=0; i<UD_COUNT; i++)
-		if(pCell->m_vServerID[i][bChannel])
-			mapCON.insert( MAPBYTE::value_type( pCell->m_vServerID[i][bChannel], pCell->m_vServerID[i][bChannel]));
+	for (BYTE i = 0; i<UD_COUNT; i++)
+		if (pCell->m_vServerID[i][bChannel])
+			mapCON.insert(MAPBYTE::value_type(pCell->m_vServerID[i][bChannel], pCell->m_vServerID[i][bChannel]));
 
 	SendMW_CONLIST_ACK(
 		dwCharID,
@@ -4739,8 +4806,9 @@ DWORD CTMapSvrModule::OnMW_CONLIST_REQ( LPPACKETBUF pBUF)
 	return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnMW_MAPSVRLIST_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnMW_MAPSVRLIST_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_MAPSVRLIST_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 
@@ -4764,11 +4832,11 @@ DWORD CTMapSvrModule::OnMW_MAPSVRLIST_REQ( LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
-	if( bChannel != pPlayer->m_bChannel ||
-		wMapID != pPlayer->m_wMapID )
+	if (bChannel != pPlayer->m_bChannel ||
+		wMapID != pPlayer->m_wMapID)
 	{
 		pPlayer->SendCS_CONNECT_ACK(CN_INTERNAL);
 		CloseSession(pPlayer);
@@ -4780,7 +4848,7 @@ DWORD CTMapSvrModule::OnMW_MAPSVRLIST_REQ( LPPACKETBUF pBUF)
 		pPlayer->m_bChannel,
 		pPlayer->m_wMapID);
 
-	if(!pCH)
+	if (!pCH)
 	{
 		pPlayer->SendCS_CONNECT_ACK(CN_NOCHANNEL);
 		CloseSession(pPlayer);
@@ -4789,7 +4857,7 @@ DWORD CTMapSvrModule::OnMW_MAPSVRLIST_REQ( LPPACKETBUF pBUF)
 	}
 
 	MAPTMAP::iterator itMAP = pCH->m_mapTMAP.find(pPlayer->m_wMapID);
-	if( itMAP == pCH->m_mapTMAP.end() )
+	if (itMAP == pCH->m_mapTMAP.end())
 	{
 		pPlayer->SendCS_CONNECT_ACK(CN_INTERNAL);
 		CloseSession(pPlayer);
@@ -4800,10 +4868,10 @@ DWORD CTMapSvrModule::OnMW_MAPSVRLIST_REQ( LPPACKETBUF pBUF)
 
 	WORD wCellX = WORD(fPosX) / CELL_SIZE;
 	WORD wCellY = WORD(fPosZ) / CELL_SIZE;
-	DWORD dwCell = MAKELONG( wCellX, wCellY);
+	DWORD dwCell = MAKELONG(wCellX, wCellY);
 
 	MAPTCELL::iterator itCELL = pMAP->m_mapTCELL.find(dwCell);
-	if( itCELL == pMAP->m_mapTCELL.end() || !(*itCELL).second->IsMainCell(pPlayer->m_bChannel) )
+	if (itCELL == pMAP->m_mapTCELL.end() || !(*itCELL).second->IsMainCell(pPlayer->m_bChannel))
 	{
 		pPlayer->SendCS_CONNECT_ACK(CN_INTERNAL);
 		CloseSession(pPlayer);
@@ -4815,9 +4883,9 @@ DWORD CTMapSvrModule::OnMW_MAPSVRLIST_REQ( LPPACKETBUF pBUF)
 	MAPBYTE mapCON;
 	mapCON.clear();
 
-	for( BYTE i=0; i<UD_COUNT; i++)
-		if(pCell->m_vServerID[i][pPlayer->m_bChannel])
-			mapCON.insert( MAPBYTE::value_type( pCell->m_vServerID[i][pPlayer->m_bChannel], pCell->m_vServerID[i][pPlayer->m_bChannel]));
+	for (BYTE i = 0; i<UD_COUNT; i++)
+		if (pCell->m_vServerID[i][pPlayer->m_bChannel])
+			mapCON.insert(MAPBYTE::value_type(pCell->m_vServerID[i][pPlayer->m_bChannel], pCell->m_vServerID[i][pPlayer->m_bChannel]));
 
 	SendMW_MAPSVRLIST_ACK(
 		pPlayer->m_dwID,
@@ -4828,8 +4896,9 @@ DWORD CTMapSvrModule::OnMW_MAPSVRLIST_REQ( LPPACKETBUF pBUF)
 	return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnMW_ROUTE_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnMW_ROUTE_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_ROUTE_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 
@@ -4853,11 +4922,11 @@ DWORD CTMapSvrModule::OnMW_ROUTE_REQ( LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
-	if( bChannel != pPlayer->m_bChannel ||
-		wMapID != pPlayer->m_wMapID )
+	if (bChannel != pPlayer->m_bChannel ||
+		wMapID != pPlayer->m_wMapID)
 	{
 		pPlayer->SendCS_CONNECT_ACK(CN_INTERNAL);
 		CloseSession(pPlayer);
@@ -4869,7 +4938,7 @@ DWORD CTMapSvrModule::OnMW_ROUTE_REQ( LPPACKETBUF pBUF)
 		pPlayer->m_bChannel,
 		pPlayer->m_wMapID);
 
-	if(!pCH)
+	if (!pCH)
 	{
 		pPlayer->SendCS_CONNECT_ACK(CN_NOCHANNEL);
 		CloseSession(pPlayer);
@@ -4878,7 +4947,7 @@ DWORD CTMapSvrModule::OnMW_ROUTE_REQ( LPPACKETBUF pBUF)
 	}
 
 	MAPTMAP::iterator itMAP = pCH->m_mapTMAP.find(pPlayer->m_wMapID);
-	if( itMAP == pCH->m_mapTMAP.end() )
+	if (itMAP == pCH->m_mapTMAP.end())
 	{
 		pPlayer->SendCS_CONNECT_ACK(CN_INTERNAL);
 		CloseSession(pPlayer);
@@ -4889,10 +4958,10 @@ DWORD CTMapSvrModule::OnMW_ROUTE_REQ( LPPACKETBUF pBUF)
 
 	WORD wCellX = WORD(fPosX) / CELL_SIZE;
 	WORD wCellY = WORD(fPosZ) / CELL_SIZE;
-	DWORD dwCell = MAKELONG( wCellX, wCellY);
+	DWORD dwCell = MAKELONG(wCellX, wCellY);
 
 	MAPTCELL::iterator itCELL = pMAP->m_mapTCELL.find(dwCell);
-	if( itCELL == pMAP->m_mapTCELL.end() )
+	if (itCELL == pMAP->m_mapTCELL.end())
 	{
 		pPlayer->SendCS_CONNECT_ACK(CN_INTERNAL);
 		CloseSession(pPlayer);
@@ -4904,8 +4973,8 @@ DWORD CTMapSvrModule::OnMW_ROUTE_REQ( LPPACKETBUF pBUF)
 	LPPACKETBUF pMSG = new PACKETBUF();
 	BYTE bCount = 0;
 
-	for( BYTE i=0; i<UD_COUNT; i++)
-		if(pCell->m_vServerID[i][pPlayer->m_bChannel])
+	for (BYTE i = 0; i<UD_COUNT; i++)
+		if (pCell->m_vServerID[i][pPlayer->m_bChannel])
 			bCount++;
 
 	pMSG->m_packet.SetID(DM_ROUTE_REQ)
@@ -4913,16 +4982,17 @@ DWORD CTMapSvrModule::OnMW_ROUTE_REQ( LPPACKETBUF pBUF)
 		<< pPlayer->m_dwKEY
 		<< bCount;
 
-	for( BYTE i=0; i<UD_COUNT; i++)
-		if(pCell->m_vServerID[i][pPlayer->m_bChannel])
+	for (BYTE i = 0; i<UD_COUNT; i++)
+		if (pCell->m_vServerID[i][pPlayer->m_bChannel])
 			pMSG->m_packet << pCell->m_vServerID[i][pPlayer->m_bChannel];
 	SayToDB(pMSG);
 
 	return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnMW_ROUTELIST_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnMW_ROUTELIST_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_ROUTELIST_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 
@@ -4937,7 +5007,7 @@ DWORD CTMapSvrModule::OnMW_ROUTELIST_REQ( LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 	LPPACKETBUF pMSG = new PACKETBUF();
 
@@ -4946,7 +5016,7 @@ DWORD CTMapSvrModule::OnMW_ROUTELIST_REQ( LPPACKETBUF pBUF)
 		<< pPlayer->m_dwKEY
 		<< bCount;
 
-	for( BYTE i=0; i<bCount; i++)
+	for (BYTE i = 0; i<bCount; i++)
 	{
 		BYTE bServerID;
 
@@ -4958,8 +5028,9 @@ DWORD CTMapSvrModule::OnMW_ROUTELIST_REQ( LPPACKETBUF pBUF)
 	return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnDM_ROUTE_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnDM_ROUTE_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_ROUTE_REQ");
 	LPPACKETBUF pMSG = new PACKETBUF();
 
 	DWORD dwCharID;
@@ -4977,30 +5048,31 @@ DWORD CTMapSvrModule::OnDM_ROUTE_REQ( LPPACKETBUF pBUF)
 		<< dwKEY
 		<< bCount;
 
-	DEFINE_QUERY( &m_db, CSPRoute)
-	for( BYTE i=0; i<bCount; i++)
-	{
-		query->m_bGroupID = m_bGroupID;
-		query->m_bType = SVRGRP_MAPSVR;
-		query->m_wPort = 0;
+	DEFINE_QUERY(&m_db, CSPRoute)
+		for (BYTE i = 0; i<bCount; i++)
+		{
+			query->m_bGroupID = m_bGroupID;
+			query->m_bType = SVRGRP_MAPSVR;
+			query->m_wPort = 0;
 
-		pBUF->m_packet
-			>> query->m_bServerID;
+			pBUF->m_packet
+				>> query->m_bServerID;
 
-		query->Call();
-		pMSG->m_packet
-			<< DWORD(inet_addr(query->m_szIPAddr))
-			<< query->m_wPort
-			<< query->m_bServerID;
-	}
+			query->Call();
+			pMSG->m_packet
+				<< DWORD(inet_addr(query->m_szIPAddr))
+				<< query->m_wPort
+				<< query->m_bServerID;
+		}
 	UNDEFINE_QUERY()
-	SayToBATCH(pMSG);
+		SayToBATCH(pMSG);
 
 	return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnDM_ROUTE_ACK( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnDM_ROUTE_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_ROUTE_ACK");
 	DWORD dwCharID;
 	DWORD dwKEY;
 
@@ -5015,7 +5087,7 @@ DWORD CTMapSvrModule::OnDM_ROUTE_ACK( LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	CPacket *pMSG = new CPacket();
@@ -5024,7 +5096,7 @@ DWORD CTMapSvrModule::OnDM_ROUTE_ACK( LPPACKETBUF pBUF)
 		<< pPlayer->m_dwKEY
 		<< bCount;
 
-	for( BYTE i=0; i<bCount; i++)
+	for (BYTE i = 0; i<bCount; i++)
 	{
 		BYTE bServerID;
 
@@ -5046,8 +5118,9 @@ DWORD CTMapSvrModule::OnDM_ROUTE_ACK( LPPACKETBUF pBUF)
 	return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnDM_TELEPORT_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnDM_TELEPORT_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_TELEPORT_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 
@@ -5071,19 +5144,19 @@ DWORD CTMapSvrModule::OnDM_TELEPORT_REQ( LPPACKETBUF pBUF)
 		>> fPosZ
 		>> bTutorialOut;
 
-	DEFINE_QUERY( &m_db, CSPGetServerID)
-	query->m_wUnitID = MAKEWORD( BYTE(INT(fPosX) / UNIT_SIZE), BYTE(INT(fPosZ) / UNIT_SIZE));
+	DEFINE_QUERY(&m_db, CSPGetServerID)
+		query->m_wUnitID = MAKEWORD(BYTE(INT(fPosX) / UNIT_SIZE), BYTE(INT(fPosZ) / UNIT_SIZE));
 	query->m_wMapID = wMapID;
 	query->m_bChannel = bChannel;
 	query->m_bServerID = 0xFF;
 
-	if(query->Call())
+	if (query->Call())
 		bServerID = query->m_bServerID;
 	else
 		bServerID = 0xFF;
 	UNDEFINE_QUERY()
 
-	LPPACKETBUF pMSG = new PACKETBUF();
+		LPPACKETBUF pMSG = new PACKETBUF();
 	pMSG->m_packet.SetID(DM_TELEPORT_ACK)
 		<< dwCharID
 		<< dwKey
@@ -5100,8 +5173,9 @@ DWORD CTMapSvrModule::OnDM_TELEPORT_REQ( LPPACKETBUF pBUF)
 	return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnDM_TELEPORT_ACK( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnDM_TELEPORT_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_TELEPORT_ACK");
 	DWORD dwCharID;
 	DWORD dwKEY;
 
@@ -5130,10 +5204,10 @@ DWORD CTMapSvrModule::OnDM_TELEPORT_ACK( LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
-	if( bServerID == 0xFF )
+	if (bServerID == 0xFF)
 	{
 		pPlayer->SendCS_TELEPORT_ACK(
 			TPR_NODESTINATION,
@@ -5146,7 +5220,7 @@ DWORD CTMapSvrModule::OnDM_TELEPORT_ACK( LPPACKETBUF pBUF)
 	else
 	{
 		WORD wAckMsg = 0;
-		if(bTutorialOut && m_bServerID == bServerID)
+		if (bTutorialOut && m_bServerID == bServerID)
 		{
 			wAckMsg = DM_DORELEASEMAIN_ACK;
 
@@ -5168,7 +5242,7 @@ DWORD CTMapSvrModule::OnDM_TELEPORT_ACK( LPPACKETBUF pBUF)
 				bServerID);
 		}
 
-		if(bTutorialOut)
+		if (bTutorialOut)
 		{
 			pPlayer->ReleaseTutorial();
 
@@ -5184,17 +5258,18 @@ DWORD CTMapSvrModule::OnDM_TELEPORT_ACK( LPPACKETBUF pBUF)
 #ifdef	DEF_UDPLOG
 
 /*
- * Memory확인 작업이 필요 함
- */
-DWORD CTMapSvrModule::OnDM_UDPLOG_REQ( LPPACKETBUF pBUF)
+* Memory확인 작업이 필요 함
+*/
+DWORD CTMapSvrModule::OnDM_UDPLOG_REQ(LPPACKETBUF pBUF)
 {
-	
+	LogReceivedPacket("OnDM_UDPLOG_REQ");
+
 	//	
 	_LPUDPPACKET pUDPPacket = new _UDPPACKET;
-	memset( pUDPPacket, 0x00, sizeof(_UDPPACKET));
+	memset(pUDPPacket, 0x00, sizeof(_UDPPACKET));
 
-	pBUF->m_packet.Read( &pUDPPacket->szPacket, sizeof(_LOG_DATA_));
-				
+	pBUF->m_packet.Read(&pUDPPacket->szPacket, sizeof(_LOG_DATA_));
+
 
 	m_pUdpSocket->Log(pUDPPacket);
 
@@ -5203,8 +5278,9 @@ DWORD CTMapSvrModule::OnDM_UDPLOG_REQ( LPPACKETBUF pBUF)
 
 #endif	//	DEF_UDPLOG
 
-DWORD CTMapSvrModule::OnMW_ADDCONNECT_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnMW_ADDCONNECT_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_ADDCONNECT_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	BYTE bCount;
@@ -5218,14 +5294,14 @@ DWORD CTMapSvrModule::OnMW_ADDCONNECT_REQ( LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	CPacket *pMSG = new CPacket();
 	pMSG->SetID(CS_ADDCONNECT_ACK)
 		<< bCount;
 
-	for( BYTE i=0; i<bCount; i++)
+	for (BYTE i = 0; i<bCount; i++)
 	{
 		BYTE bServerID;
 
@@ -5247,8 +5323,9 @@ DWORD CTMapSvrModule::OnMW_ADDCONNECT_REQ( LPPACKETBUF pBUF)
 	return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnMW_RELEASEMAIN_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnMW_RELEASEMAIN_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_RELEASEMAIN_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 
@@ -5272,22 +5349,22 @@ DWORD CTMapSvrModule::OnMW_RELEASEMAIN_REQ( LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
-	if( pPlayer->m_bChannel != bChannel ||
-		pPlayer->m_wMapID != wMapID )
+	if (pPlayer->m_bChannel != bChannel ||
+		pPlayer->m_wMapID != wMapID)
 	{
 		CloseSession(pPlayer);
 		return EC_NOERROR;
 	}
 
-	if(pPlayer->m_bMain)
+	if (pPlayer->m_bMain)
 	{
 		pPlayer->m_fPosY = fPosY;
 		pPlayer->m_bMain = FALSE;
 
-		if(pPlayer->m_pMAP)
+		if (pPlayer->m_pMAP)
 		{
 			pPlayer->m_pMAP->OnMove(
 				pPlayer,
@@ -5307,8 +5384,9 @@ DWORD CTMapSvrModule::OnMW_RELEASEMAIN_REQ( LPPACKETBUF pBUF)
 	return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnDM_SAVECHAR_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnDM_SAVECHAR_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_SAVECHAR_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 
@@ -5318,9 +5396,9 @@ DWORD CTMapSvrModule::OnDM_SAVECHAR_REQ( LPPACKETBUF pBUF)
 		>> dwCharID
 		>> dwKEY;
 
-	DEFINE_QUERY( &m_db, CSPSaveChar)
-	pBUF->m_packet
-		>> query->m_bStartAct  
+	DEFINE_QUERY(&m_db, CSPSaveChar)
+		pBUF->m_packet
+		>> query->m_bStartAct
 		>> query->m_bLevel
 		>> query->m_bHelmetHide
 		>> query->m_dwGold
@@ -5348,21 +5426,21 @@ DWORD CTMapSvrModule::OnDM_SAVECHAR_REQ( LPPACKETBUF pBUF)
 
 	query->m_dwCharID = dwCharID;
 
-	if(!query->Call())
+	if (!query->Call())
 		return EC_NOERROR;
 
-	if(query->m_nRET)
+	if (query->m_nRET)
 		return EC_NOERROR;
 
 	UNDEFINE_QUERY()
 
-	DEFINE_QUERY(&m_db, CSPSavePvPRecord)
-	query->m_dwCharID = dwCharID;
+		DEFINE_QUERY(&m_db, CSPSavePvPRecord)
+		query->m_dwCharID = dwCharID;
 	pBUF->m_packet
 		>> query->m_dwUseablePoint
 		>> query->m_dwTotalPoint;
 
-	for(BYTE cr=0; cr<TCLASS_COUNT; cr++)
+	for (BYTE cr = 0; cr<TCLASS_COUNT; cr++)
 	{
 		pBUF->m_packet
 			>> query->m_aRecord[cr][0]
@@ -5371,11 +5449,11 @@ DWORD CTMapSvrModule::OnDM_SAVECHAR_REQ( LPPACKETBUF pBUF)
 	query->Call();
 	UNDEFINE_QUERY()
 
-	DEFINE_QUERY(&m_db, CSPSaveCharDataStart)
-	query->m_dwCharID = dwCharID;
+		DEFINE_QUERY(&m_db, CSPSaveCharDataStart)
+		query->m_dwCharID = dwCharID;
 
 
-	if(!query->Call())
+	if (!query->Call())
 		return EC_NOERROR;
 	UNDEFINE_QUERY();
 
@@ -5391,13 +5469,13 @@ DWORD CTMapSvrModule::OnDM_SAVECHAR_REQ( LPPACKETBUF pBUF)
 	pBUF->m_packet
 		>> bInvenCount;
 
-	for( WORD i=0; i<bInvenCount; i++)
+	for (WORD i = 0; i<bInvenCount; i++)
 	{
 		BYTE bInvenID;
 		__time64_t dEndTime;
 		BYTE bItemCount;
-		DEFINE_QUERY( &m_db, CSPSaveInven)
-		query->m_dwCharID = dwCharID;
+		DEFINE_QUERY(&m_db, CSPSaveInven)
+			query->m_dwCharID = dwCharID;
 		pBUF->m_packet
 			>> bInvenID
 			>> query->m_wItemID
@@ -5407,20 +5485,20 @@ DWORD CTMapSvrModule::OnDM_SAVECHAR_REQ( LPPACKETBUF pBUF)
 
 		__TIMETODB(dEndTime, query->m_dEndTime);
 		query->m_bInvenID = bInvenID;
-		if(!query->Call())
+		if (!query->Call())
 			return EC_NOERROR;
 		UNDEFINE_QUERY()
 
-		DEFINE_QUERY( &m_db, CSPSaveItem)
-		query->m_bStorageType = STORAGE_INVEN;
+			DEFINE_QUERY(&m_db, CSPSaveItem)
+			query->m_bStorageType = STORAGE_INVEN;
 		query->m_dwStorageID = bInvenID;
 		query->m_bOwnerType = TOWNER_CHAR;
 		query->m_dwOwnerID = dwCharID;
 
-		for( BYTE j=0; j<bItemCount; j++)
+		for (BYTE j = 0; j<bItemCount; j++)
 		{
 			WrapItemQuery(&(pBUF->m_packet), query->m_item);
-			if(!query->Call())
+			if (!query->Call())
 				return EC_NOERROR;
 		}
 		UNDEFINE_QUERY()
@@ -5431,7 +5509,7 @@ DWORD CTMapSvrModule::OnDM_SAVECHAR_REQ( LPPACKETBUF pBUF)
 	pBUF->m_packet
 		>> bCabinetCount;
 
-	for(int i = 0; i<bCabinetCount; i++)
+	for (int i = 0; i<bCabinetCount; i++)
 	{
 		BYTE bCabinetID;
 		BYTE bUse;
@@ -5443,7 +5521,7 @@ DWORD CTMapSvrModule::OnDM_SAVECHAR_REQ( LPPACKETBUF pBUF)
 			>> bUse;
 		query->m_bCabinetID = bCabinetID;
 		query->m_bUse = bUse;
-		if(!query->Call())
+		if (!query->Call())
 			return EC_NOERROR;
 		UNDEFINE_QUERY();
 
@@ -5451,17 +5529,17 @@ DWORD CTMapSvrModule::OnDM_SAVECHAR_REQ( LPPACKETBUF pBUF)
 		pBUF->m_packet
 			>> wCabinetItemCount;
 
-		DEFINE_QUERY( &m_db, CSPSaveItem)
-		query->m_bStorageType = STORAGE_CABINET;
+		DEFINE_QUERY(&m_db, CSPSaveItem)
+			query->m_bStorageType = STORAGE_CABINET;
 		query->m_bOwnerType = TOWNER_CHAR;
 		query->m_dwOwnerID = dwCharID;
-		for( WORD j=0; j<wCabinetItemCount; j++)
+		for (WORD j = 0; j<wCabinetItemCount; j++)
 		{
 			pBUF->m_packet
 				>> query->m_dwStorageID;
 
 			WrapItemQuery(&(pBUF->m_packet), query->m_item);
-			if(!query->Call())
+			if (!query->Call())
 				return EC_NOERROR;
 		}
 		UNDEFINE_QUERY()
@@ -5472,14 +5550,14 @@ DWORD CTMapSvrModule::OnDM_SAVECHAR_REQ( LPPACKETBUF pBUF)
 
 	DEFINE_QUERY(&m_db, CSPSaveSkill);
 	query->m_dwCharID = dwCharID;
-	for(int i = 0; i<bSkillCount; i++)
+	for (int i = 0; i<bSkillCount; i++)
 	{
 		pBUF->m_packet
 			>> query->m_wSkill
 			>> query->m_bLevel
 			>> query->m_dwTick;
 
-		if(!query->Call())
+		if (!query->Call())
 			return EC_NOERROR;
 	}
 	UNDEFINE_QUERY();
@@ -5489,7 +5567,7 @@ DWORD CTMapSvrModule::OnDM_SAVECHAR_REQ( LPPACKETBUF pBUF)
 
 	DEFINE_QUERY(&m_db, CSPSaveSkillMaintain);
 	query->m_dwCharID = dwCharID;
-	for(int i = 0; i<wMaintainCnt; i++)
+	for (int i = 0; i<wMaintainCnt; i++)
 	{
 		pBUF->m_packet
 			>> query->m_wSkillID
@@ -5501,7 +5579,7 @@ DWORD CTMapSvrModule::OnDM_SAVECHAR_REQ( LPPACKETBUF pBUF)
 			>> query->m_dwHostID
 			>> query->m_bAttackCountry;
 
-		if(!query->Call())
+		if (!query->Call())
 			return EC_NOERROR;
 	}
 	UNDEFINE_QUERY();
@@ -5510,7 +5588,7 @@ DWORD CTMapSvrModule::OnDM_SAVECHAR_REQ( LPPACKETBUF pBUF)
 	pBUF->m_packet
 		>> wDuringItem;
 
-	for(int i = 0; i<wDuringItem; i++)
+	for (int i = 0; i<wDuringItem; i++)
 	{
 		BYTE bKind;
 		WORD wItemID;
@@ -5525,27 +5603,27 @@ DWORD CTMapSvrModule::OnDM_SAVECHAR_REQ( LPPACKETBUF pBUF)
 			>> dwRemain
 			>> tEndTime;
 
-		if(bKind == IK_GOLDPREMIUM)
+		if (bKind == IK_GOLDPREMIUM)
 		{
 			DEFINE_QUERY(&m_db, CSPSaveDuringItem)
-			query->m_dwCharID = dwCharID;
+				query->m_dwCharID = dwCharID;
 			query->m_wItemID = wItemID;
 			query->m_bType = bType;
 			query->m_dwRemainTime = dwRemain;
 			__TIMETODB(tEndTime, query->m_tEndTime);
-			if(!query->Call())
+			if (!query->Call())
 				return EC_NOERROR;
 			UNDEFINE_QUERY()
 		}
 		else
 		{
 			DEFINE_QUERY(&m_db, CSPSaveExpItem)
-			query->m_dwCharID = dwCharID;
+				query->m_dwCharID = dwCharID;
 			query->m_wItemID = wItemID;
 			query->m_bType = bType;
 			query->m_dwRemainTime = dwRemain;
 			__TIMETODB(tEndTime, query->m_tEndTime);
-			if(!query->Call())
+			if (!query->Call())
 				return EC_NOERROR;
 			UNDEFINE_QUERY()
 		}
@@ -5556,35 +5634,35 @@ DWORD CTMapSvrModule::OnDM_SAVECHAR_REQ( LPPACKETBUF pBUF)
 		>> wIUCnt;
 
 	DEFINE_QUERY(&m_db, CSPSaveItemUsed)
-	query->m_dwCharID = dwCharID;
-	for(int i = 0; i<wIUCnt; i++)
+		query->m_dwCharID = dwCharID;
+	for (int i = 0; i<wIUCnt; i++)
 	{
 		pBUF->m_packet
 			>> query->m_wDelayGroupID
 			>> query->m_dwTick;
 
-		if(!query->Call())
+		if (!query->Call())
 			return EC_NOERROR;
 	}
 	UNDEFINE_QUERY()
 
-	DEFINE_QUERY(&m_db, CSPSaveCharDataEnd)
-	query->m_dwCharID = dwCharID;
-	if(!query->Call())
+		DEFINE_QUERY(&m_db, CSPSaveCharDataEnd)
+		query->m_dwCharID = dwCharID;
+	if (!query->Call())
 		return EC_NOERROR;
 	UNDEFINE_QUERY();
 
 	DEFINE_QUERY(&m_db, CSPSaveHotkey)
-	WORD wHotkeyInvenCount;
+		WORD wHotkeyInvenCount;
 	pBUF->m_packet >> wHotkeyInvenCount;
-	for(WORD hk=0; hk<wHotkeyInvenCount; hk++)
+	for (WORD hk = 0; hk<wHotkeyInvenCount; hk++)
 	{
 		query->m_dwCharID = dwCharID;
 		pBUF->m_packet
 			>> query->m_bSave
 			>> query->m_bInvenID;
 
-		for(BYTE kp=0; kp<MAX_HOTKEY_POS; kp++)
+		for (BYTE kp = 0; kp<MAX_HOTKEY_POS; kp++)
 		{
 			pBUF->m_packet
 				>> query->m_bType[kp]
@@ -5594,15 +5672,15 @@ DWORD CTMapSvrModule::OnDM_SAVECHAR_REQ( LPPACKETBUF pBUF)
 	}
 	UNDEFINE_QUERY();
 
-	DEFINE_QUERY( &m_db, CSPSaveQuest)
-	query->m_dwCharID = dwCharID;
+	DEFINE_QUERY(&m_db, CSPSaveQuest)
+		query->m_dwCharID = dwCharID;
 
 	WORD wCount;
 
 	pBUF->m_packet
 		>> wCount;
 
-	for(int i = 0; i<wCount; i++)
+	for (int i = 0; i<wCount; i++)
 	{
 		pBUF->m_packet
 			>> query->m_dwQuestID
@@ -5614,14 +5692,14 @@ DWORD CTMapSvrModule::OnDM_SAVECHAR_REQ( LPPACKETBUF pBUF)
 	}
 	UNDEFINE_QUERY()
 
-	DEFINE_QUERY( &m_db, CSPSaveQuestTerm)
-	query->m_dwCharID = dwCharID;
+		DEFINE_QUERY(&m_db, CSPSaveQuestTerm)
+		query->m_dwCharID = dwCharID;
 	WORD wCount;
 
 	pBUF->m_packet
 		>> wCount;
 
-	for(int i = 0; i<wCount; i++)
+	for (int i = 0; i<wCount; i++)
 	{
 		pBUF->m_packet
 			>> query->m_dwQuestID
@@ -5633,8 +5711,8 @@ DWORD CTMapSvrModule::OnDM_SAVECHAR_REQ( LPPACKETBUF pBUF)
 	}
 	UNDEFINE_QUERY()
 
-	DEFINE_QUERY(&m_db, CSPSaveRecallMon)
-	query->m_dwCharID = dwCharID;
+		DEFINE_QUERY(&m_db, CSPSaveRecallMon)
+		query->m_dwCharID = dwCharID;
 	query->m_bDelete = TRUE;
 	query->m_dwMonID = 0;
 	query->m_wTempID = 0;
@@ -5654,7 +5732,7 @@ DWORD CTMapSvrModule::OnDM_SAVECHAR_REQ( LPPACKETBUF pBUF)
 		>> wCount;
 
 	query->m_bDelete = FALSE;
-	for(int i = 0; i<wCount; i++)
+	for (int i = 0; i<wCount; i++)
 	{
 		pBUF->m_packet
 			>> query->m_dwMonID
@@ -5674,11 +5752,11 @@ DWORD CTMapSvrModule::OnDM_SAVECHAR_REQ( LPPACKETBUF pBUF)
 	}
 	UNDEFINE_QUERY()
 
-	pBUF->m_packet >> wMaintainCnt;
+		pBUF->m_packet >> wMaintainCnt;
 
 	DEFINE_QUERY(&m_db, CSPSaveRecallMaintain);
 	query->m_dwCharID = dwCharID;
-	for(int i = 0; i<wMaintainCnt; i++)
+	for (int i = 0; i<wMaintainCnt; i++)
 	{
 		pBUF->m_packet
 			>> query->m_dwRecallID
@@ -5696,7 +5774,7 @@ DWORD CTMapSvrModule::OnDM_SAVECHAR_REQ( LPPACKETBUF pBUF)
 	UNDEFINE_QUERY();
 
 	DEFINE_QUERY(&m_db, CSPSavePet)
-	query->m_dwCharID = dwCharID;
+		query->m_dwCharID = dwCharID;
 
 	BYTE bCount;
 	pBUF->m_packet
@@ -5705,7 +5783,7 @@ DWORD CTMapSvrModule::OnDM_SAVECHAR_REQ( LPPACKETBUF pBUF)
 	CString strPetName;
 	__int64 timeUse;
 
-	for(int i = 0; i<bCount; i++)
+	for (int i = 0; i<bCount; i++)
 	{
 		pBUF->m_packet
 			>> query->m_wPetID
@@ -5720,8 +5798,8 @@ DWORD CTMapSvrModule::OnDM_SAVECHAR_REQ( LPPACKETBUF pBUF)
 
 	UNDEFINE_QUERY()
 
-	DEFINE_QUERY(&m_db, CSPSavePvPRecent)
-	WORD wCount;
+		DEFINE_QUERY(&m_db, CSPSavePvPRecent)
+		WORD wCount;
 	INT64 dlDate;
 	CString strName;
 	pBUF->m_packet
@@ -5731,7 +5809,7 @@ DWORD CTMapSvrModule::OnDM_SAVECHAR_REQ( LPPACKETBUF pBUF)
 	__TIMETODB(0, query->m_dlDate);
 	query->Call();
 
-	for(int i = 0; i<wCount; i++)
+	for (int i = 0; i<wCount; i++)
 	{
 		pBUF->m_packet
 			>> strName
@@ -5747,11 +5825,11 @@ DWORD CTMapSvrModule::OnDM_SAVECHAR_REQ( LPPACKETBUF pBUF)
 	}
 	UNDEFINE_QUERY()
 
-	DEFINE_QUERY(&m_db,CSPDuelCharAdd)
-	CString strName;
+		DEFINE_QUERY(&m_db, CSPDuelCharAdd)
+		CString strName;
 	__time64_t dTime;
 	WORD wCount;
-	
+
 	query->m_dwCharID = dwCharID;
 
 	pBUF->m_packet
@@ -5761,7 +5839,7 @@ DWORD CTMapSvrModule::OnDM_SAVECHAR_REQ( LPPACKETBUF pBUF)
 	__TIMETODB(0, query->m_timeDuel);
 	query->Call();
 
-	for(int i = 0 ; i < wCount; i++)
+	for (int i = 0; i < wCount; i++)
 	{
 		pBUF->m_packet
 			>> strName
@@ -5771,17 +5849,17 @@ DWORD CTMapSvrModule::OnDM_SAVECHAR_REQ( LPPACKETBUF pBUF)
 			>> query->m_dwPoint
 			>> dTime;
 
-		__TIMETODB(dTime,query->m_timeDuel);
-		lstrcpy(query->m_szName,strName);
+		__TIMETODB(dTime, query->m_timeDuel);
+		lstrcpy(query->m_szName, strName);
 
 		query->Call();
 	}
 	UNDEFINE_QUERY()
 
-	DEFINE_QUERY(&m_db,CSPDuelScore)
-	query->m_dwCharID = dwCharID;	
+		DEFINE_QUERY(&m_db, CSPDuelScore)
+		query->m_dwCharID = dwCharID;
 
-	for(int i = 0; i < TCLASS_COUNT; i++)
+	for (int i = 0; i < TCLASS_COUNT; i++)
 	{
 		pBUF->m_packet
 			>> query->m_aDuelScore[i][0]
@@ -5792,17 +5870,17 @@ DWORD CTMapSvrModule::OnDM_SAVECHAR_REQ( LPPACKETBUF pBUF)
 
 	UNDEFINE_QUERY()
 
-	DEFINE_QUERY(&m_db, CSPSaveProtectedOption)
-	query->m_dwCharID = dwCharID;
+		DEFINE_QUERY(&m_db, CSPSaveProtectedOption)
+		query->m_dwCharID = dwCharID;
 	WORD wCount;
 
 	pBUF->m_packet
 		>> wCount;
 
-	for(int i = 0; i<wCount; i++)
+	for (int i = 0; i<wCount; i++)
 	{
 		pBUF->m_packet
-            >> query->m_dwTarget
+			>> query->m_dwTarget
 			>> query->m_bOption;
 
 		query->Call();
@@ -5810,9 +5888,9 @@ DWORD CTMapSvrModule::OnDM_SAVECHAR_REQ( LPPACKETBUF pBUF)
 
 	UNDEFINE_QUERY()
 
-	
-	DEFINE_QUERY(&m_db,CSPSaveAuctionInterest)
-	query->m_dwCharID = dwCharID;
+
+		DEFINE_QUERY(&m_db, CSPSaveAuctionInterest)
+		query->m_dwCharID = dwCharID;
 	query->m_dwAuctionID = 0;
 	query->Call();
 
@@ -5820,7 +5898,7 @@ DWORD CTMapSvrModule::OnDM_SAVECHAR_REQ( LPPACKETBUF pBUF)
 	pBUF->m_packet
 		>> wCount;
 
-	for(int i = 0; i < wCount; i++)
+	for (int i = 0; i < wCount; i++)
 	{
 		pBUF->m_packet
 			>> query->m_dwAuctionID;
@@ -5829,9 +5907,9 @@ DWORD CTMapSvrModule::OnDM_SAVECHAR_REQ( LPPACKETBUF pBUF)
 	}
 
 	UNDEFINE_QUERY()
-	 
-	DEFINE_QUERY(&m_db,CSPSaveMonthPvPoint)
-	query->m_dwCharID = dwCharID;
+
+		DEFINE_QUERY(&m_db, CSPSaveMonthPvPoint)
+		query->m_dwCharID = dwCharID;
 
 	CString strMonthSay;
 	pBUF->m_packet
@@ -5840,17 +5918,17 @@ DWORD CTMapSvrModule::OnDM_SAVECHAR_REQ( LPPACKETBUF pBUF)
 		>> query->m_wLose
 		>> strMonthSay
 		>> query->m_bCountry;
-	
+
 	lstrcpy(query->m_szSay, strMonthSay);
-	if(query->m_dwPoint)
+	if (query->m_dwPoint)
 		query->Call();
 
 	UNDEFINE_QUERY()
 
-	pBUF->m_packet
+		pBUF->m_packet
 		>> wACKMsg;
 
-	if(wACKMsg)
+	if (wACKMsg)
 	{
 		LPPACKETBUF pMSG = new PACKETBUF();
 
@@ -5864,8 +5942,9 @@ DWORD CTMapSvrModule::OnDM_SAVECHAR_REQ( LPPACKETBUF pBUF)
 	return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnDM_SAVEITEM_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnDM_SAVEITEM_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_SAVEITEM_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 
@@ -5884,20 +5963,20 @@ DWORD CTMapSvrModule::OnDM_SAVEITEM_REQ( LPPACKETBUF pBUF)
 		>> bInvenCount;
 
 	DEFINE_QUERY(&m_db, CSPSaveItemDataStart)
-	query->m_dwCharID = dwCharID;
+		query->m_dwCharID = dwCharID;
 
-	if(!query->Call())
+	if (!query->Call())
 		return EC_NOERROR;
 
 	UNDEFINE_QUERY();
 
-	for( WORD i=0; i<bInvenCount; i++)
+	for (WORD i = 0; i<bInvenCount; i++)
 	{
 		BYTE bInvenID;
 		__time64_t dEndTime;
 		BYTE bItemCount;
-		DEFINE_QUERY( &m_db, CSPSaveInven)
-		query->m_dwCharID = dwCharID;
+		DEFINE_QUERY(&m_db, CSPSaveInven)
+			query->m_dwCharID = dwCharID;
 		pBUF->m_packet
 			>> bInvenID
 			>> query->m_wItemID
@@ -5907,37 +5986,38 @@ DWORD CTMapSvrModule::OnDM_SAVEITEM_REQ( LPPACKETBUF pBUF)
 
 		__TIMETODB(dEndTime, query->m_dEndTime);
 		query->m_bInvenID = bInvenID;
-		if(!query->Call())
+		if (!query->Call())
 			return EC_NOERROR;
 
 		UNDEFINE_QUERY()
 
-		DEFINE_QUERY( &m_db, CSPSaveItem)
-		query->m_bStorageType = STORAGE_INVEN;
+			DEFINE_QUERY(&m_db, CSPSaveItem)
+			query->m_bStorageType = STORAGE_INVEN;
 		query->m_dwStorageID = bInvenID;
 		query->m_bOwnerType = TOWNER_CHAR;
 		query->m_dwOwnerID = dwCharID;
-		for( BYTE j=0; j<bItemCount; j++)
+		for (BYTE j = 0; j<bItemCount; j++)
 		{
 			WrapItemQuery(&(pBUF->m_packet), query->m_item);
-			if(!query->Call())
+			if (!query->Call())
 				return EC_NOERROR;
 		}
 		UNDEFINE_QUERY()
 	}
 
 	DEFINE_QUERY(&m_db, CSPSaveItemDataEnd)
-	query->m_dwCharID = dwCharID;
+		query->m_dwCharID = dwCharID;
 	query->Call();
 	UNDEFINE_QUERY();
 
 	return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnDM_LOGOUT_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnDM_LOGOUT_REQ(LPPACKETBUF pBUF)
 {
-	DEFINE_QUERY( &m_db, CSPLogout)
-	DWORD dwCharID;
+	LogReceivedPacket("OnDM_LOGOUT_REQ");
+	DEFINE_QUERY(&m_db, CSPLogout)
+		DWORD dwCharID;
 	DWORD dwKEY;
 	WORD wACKMsg;
 
@@ -5950,7 +6030,7 @@ DWORD CTMapSvrModule::OnDM_LOGOUT_REQ( LPPACKETBUF pBUF)
 	query->m_dwCharID = dwCharID;
 	query->Call();
 
-	if(wACKMsg)
+	if (wACKMsg)
 	{
 		LPPACKETBUF pMSG = new PACKETBUF();
 
@@ -5962,13 +6042,14 @@ DWORD CTMapSvrModule::OnDM_LOGOUT_REQ( LPPACKETBUF pBUF)
 	}
 	UNDEFINE_QUERY()
 
-	return EC_NOERROR;
+		return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnDM_CLEARTITLE_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnDM_CLEARTITLE_REQ(LPPACKETBUF pBUF)
 {
-	DEFINE_QUERY( &m_db, CSPClearTitle)
-	DWORD dwCharID;
+	LogReceivedPacket("OnDM_CLEARTITLE_REQ");
+	DEFINE_QUERY(&m_db, CSPClearTitle)
+		DWORD dwCharID;
 
 	pBUF->m_packet
 		>> dwCharID;
@@ -5978,13 +6059,14 @@ DWORD CTMapSvrModule::OnDM_CLEARTITLE_REQ( LPPACKETBUF pBUF)
 
 	UNDEFINE_QUERY()
 
-	return EC_NOERROR;
+		return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnDM_SAVETITLE_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnDM_SAVETITLE_REQ(LPPACKETBUF pBUF)
 {
-	DEFINE_QUERY( &m_db, CSPSaveTitle)
-	DWORD dwCharID;
+	LogReceivedPacket("OnDM_SAVETITLE_REQ");
+	DEFINE_QUERY(&m_db, CSPSaveTitle)
+		DWORD dwCharID;
 	WORD wTitleID;
 	BYTE bSelected;
 
@@ -6000,11 +6082,12 @@ DWORD CTMapSvrModule::OnDM_SAVETITLE_REQ( LPPACKETBUF pBUF)
 
 	UNDEFINE_QUERY()
 
-	return EC_NOERROR;
+		return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnDM_DORELEASEMAIN_ACK( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnDM_DORELEASEMAIN_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_DORELEASEMAIN_ACK");
 	DWORD dwCharID;
 	DWORD dwKEY;
 
@@ -6016,7 +6099,7 @@ DWORD CTMapSvrModule::OnDM_DORELEASEMAIN_ACK( LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	SendMW_RELEASEMAIN_ACK(pPlayer->ProtectTutorial() ? TRUE : FALSE, pPlayer);
@@ -6029,8 +6112,9 @@ DWORD CTMapSvrModule::OnDM_DORELEASEMAIN_ACK( LPPACKETBUF pBUF)
 	return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnMW_CHGPARTYTYPE_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnMW_CHGPARTYTYPE_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_CHGPARTYTYPE_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 
@@ -6042,7 +6126,7 @@ DWORD CTMapSvrModule::OnMW_CHGPARTYTYPE_REQ( LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	BYTE bRet;
@@ -6052,7 +6136,7 @@ DWORD CTMapSvrModule::OnMW_CHGPARTYTYPE_REQ( LPPACKETBUF pBUF)
 		>> bRet
 		>> bPartyType;
 
-	if(!bRet)
+	if (!bRet)
 		pPlayer->m_bPartyType = bPartyType;
 
 	pPlayer->SendCS_CHGPARTYTYPE_ACK(bRet, bPartyType);
@@ -6060,8 +6144,9 @@ DWORD CTMapSvrModule::OnMW_CHGPARTYTYPE_REQ( LPPACKETBUF pBUF)
 	return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnMW_PARTYADD_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnMW_PARTYADD_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_PARTYADD_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	DWORD dwOrigin;
@@ -6083,7 +6168,7 @@ DWORD CTMapSvrModule::OnMW_PARTYADD_REQ( LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pPlayer || !pPlayer->m_bMain || !pPlayer->m_pMAP)
+	if (!pPlayer || !pPlayer->m_bMain || !pPlayer->m_pMAP)
 	{
 		SendMW_PARTYJOIN_ACK(
 			strOrigin,
@@ -6098,7 +6183,7 @@ DWORD CTMapSvrModule::OnMW_PARTYADD_REQ( LPPACKETBUF pBUF)
 		return EC_NOERROR;
 	}
 
-	if( bReply != PARTY_AGREE )
+	if (bReply != PARTY_AGREE)
 	{
 		pPlayer->SendCS_PARTYADD_ACK(
 			strOrigin,
@@ -6108,7 +6193,7 @@ DWORD CTMapSvrModule::OnMW_PARTYADD_REQ( LPPACKETBUF pBUF)
 		return EC_NOERROR;
 	}
 
-	if( pPlayer->IsActionBlock() )
+	if (pPlayer->IsActionBlock())
 	{
 		SendMW_PARTYJOIN_ACK(
 			strOrigin,
@@ -6123,7 +6208,7 @@ DWORD CTMapSvrModule::OnMW_PARTYADD_REQ( LPPACKETBUF pBUF)
 		return EC_NOERROR;
 	}
 
-	if(!pPlayer->CheckProtected(dwOrigin, PROTECTED_INVITE))
+	if (!pPlayer->CheckProtected(dwOrigin, PROTECTED_INVITE))
 	{
 		SendMW_PARTYJOIN_ACK(
 			strOrigin,
@@ -6144,8 +6229,9 @@ DWORD CTMapSvrModule::OnMW_PARTYADD_REQ( LPPACKETBUF pBUF)
 
 	return EC_NOERROR;
 }
-DWORD CTMapSvrModule::OnMW_PARTYJOIN_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnMW_PARTYJOIN_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_PARTYJOIN_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 
@@ -6157,7 +6243,7 @@ DWORD CTMapSvrModule::OnMW_PARTYJOIN_REQ( LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	CString strMemberID;
@@ -6215,8 +6301,9 @@ DWORD CTMapSvrModule::OnMW_PARTYJOIN_REQ( LPPACKETBUF pBUF)
 	return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnMW_PARTYDEL_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnMW_PARTYDEL_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_PARTYDEL_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	WORD wPartyID;
@@ -6229,7 +6316,7 @@ DWORD CTMapSvrModule::OnMW_PARTYDEL_REQ( LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	DWORD dwMemberID;
@@ -6256,6 +6343,7 @@ DWORD CTMapSvrModule::OnMW_PARTYDEL_REQ( LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_PARTYMANSTAT_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_PARTYMANSTAT_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	DWORD dwID;
@@ -6276,7 +6364,7 @@ DWORD CTMapSvrModule::OnMW_PARTYMANSTAT_REQ(LPPACKETBUF pBUF)
 		>> dwCurMP;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKEY);
-	if(!pPlayer) 
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	pPlayer->SendCS_PARTYMANSTAT_ACK(
@@ -6293,6 +6381,7 @@ DWORD CTMapSvrModule::OnMW_PARTYMANSTAT_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_LEVELUP_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_LEVELUP_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	BYTE bLevel;
@@ -6303,7 +6392,7 @@ DWORD CTMapSvrModule::OnMW_LEVELUP_REQ(LPPACKETBUF pBUF)
 		>> bLevel;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKEY);
-	if(!pPlayer) 
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	pPlayer->m_bLevel = bLevel;
@@ -6312,8 +6401,9 @@ DWORD CTMapSvrModule::OnMW_LEVELUP_REQ(LPPACKETBUF pBUF)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 // 길드
-DWORD CTMapSvrModule::OnMW_GUILDESTABLISH_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnMW_GUILDESTABLISH_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_GUILDESTABLISH_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	BYTE bRet;
@@ -6330,38 +6420,38 @@ DWORD CTMapSvrModule::OnMW_GUILDESTABLISH_REQ( LPPACKETBUF pBUF)
 		>> bEstablish;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKEY);
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
-	if(bEstablish)
+	if (bEstablish)
 		pPlayer->SendCS_GUILDESTABLISH_ACK(bRet, dwGuildID, strGuildName);
 
 #ifdef	DEF_UDPLOGGUILD
-	m_pUdpSocket->LogGuild(LOGMAP_GUILDCREATE, pPlayer, 0, "", dwGuildID, strGuildName, bRet );
+	m_pUdpSocket->LogGuild(LOGMAP_GUILDCREATE, pPlayer, 0, "", dwGuildID, strGuildName, bRet);
 #endif	//	DEF_UDPLOGGUILD
 
-	if(!bRet)
+	if (!bRet)
 	{
 		pPlayer->m_dwGuildID = dwGuildID;
 		pPlayer->m_bGuildDuty = GUILD_DUTY_CHIEF;
 		pPlayer->m_bGuildPeer = GUILD_PEER_NONE;
 		pPlayer->m_strGuildName = strGuildName;
 
-		if(pPlayer->m_bMain && pPlayer->m_pMAP)
+		if (pPlayer->m_bMain && pPlayer->m_pMAP)
 		{
 			VPLAYER vPlayer;
 			vPlayer.clear();
 
 			pPlayer->m_pMAP->GetNeighbor(&vPlayer, pPlayer->m_fPosX, pPlayer->m_fPosZ);
 
-			for(DWORD i=0; i<vPlayer.size(); i++)
+			for (DWORD i = 0; i<vPlayer.size(); i++)
 			{
 				vPlayer[i]->SendCS_GUILDATTR_ACK(
-					dwCharID, 
-					dwGuildID, 
-					0, 
+					dwCharID,
+					dwGuildID,
 					0,
-					strGuildName, 
+					0,
+					strGuildName,
 					GUILD_PEER_NONE,
 					pPlayer->m_dwTacticsID,
 					pPlayer->m_strTacticsName);
@@ -6370,11 +6460,12 @@ DWORD CTMapSvrModule::OnMW_GUILDESTABLISH_REQ( LPPACKETBUF pBUF)
 			vPlayer.clear();
 		}
 	}
-	
+
 	return EC_NOERROR;
 }
-DWORD CTMapSvrModule::OnMW_GUILDDISORGANIZATION_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnMW_GUILDDISORGANIZATION_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_GUILDDISORGANIZATION_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	BYTE bDisorg;
@@ -6390,13 +6481,14 @@ DWORD CTMapSvrModule::OnMW_GUILDDISORGANIZATION_REQ( LPPACKETBUF pBUF)
 	m_pUdpSocket->LogGuildDisorganization(LOGMAP_GUILDDISORGANIZATION, pPlayer, bDisorg);
 #endif	//	DEF_UDPLOGGUILD
 
-	if(pPlayer)
-		pPlayer->SendCS_GUILDDISORGANIZATION_ACK(bDisorg);	
+	if (pPlayer)
+		pPlayer->SendCS_GUILDDISORGANIZATION_ACK(bDisorg);
 
 	return EC_NOERROR;
 }
-DWORD CTMapSvrModule::OnMW_GUILDINVITE_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnMW_GUILDINVITE_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_GUILDINVITE_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	CString strGuildName;
@@ -6411,48 +6503,48 @@ DWORD CTMapSvrModule::OnMW_GUILDINVITE_REQ( LPPACKETBUF pBUF)
 		>> strInviterName;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKEY);
-	if(!pPlayer ||
+	if (!pPlayer ||
 		!pPlayer->m_bMain ||
 		!pPlayer->m_pMAP)
 		return EC_NOERROR;
 
 	CTPlayer * pInviter = FindPlayer(strInviterName);
-	if(pPlayer->m_dwGuildID)
+	if (pPlayer->m_dwGuildID)
 	{
-		if(pInviter)
+		if (pInviter)
 			pInviter->SendCS_GUILDINVITE_ACK(GUILD_HAVEGUILD, strGuildName, 0, strInviterName);
 		return EC_NOERROR;
 	}
 
-	DWORD dwTime = (DWORD)m_timeCurrent-pPlayer->m_dwGuildLeaveTime;
-	if(pPlayer->m_bGuildLeave==GUILD_LEAVE_SELF)
+	DWORD dwTime = (DWORD)m_timeCurrent - pPlayer->m_dwGuildLeaveTime;
+	if (pPlayer->m_bGuildLeave == GUILD_LEAVE_SELF)
 	{
-		if(dwTime < GUILD_LEAVE_DURATION)
+		if (dwTime < GUILD_LEAVE_DURATION)
 		{
-			if(pInviter)
+			if (pInviter)
 				pInviter->SendCS_GUILDINVITE_ACK(GUILD_LEAVE_SELF, strGuildName, 0, strInviterName);
 			return EC_NOERROR;
 		}
 	}
-	else if(pPlayer->m_bGuildLeave==GUILD_LEAVE_DISORGANIZATION)
+	else if (pPlayer->m_bGuildLeave == GUILD_LEAVE_DISORGANIZATION)
 	{
-		if(dwTime < GUILD_DIS_DURATION)
+		if (dwTime < GUILD_DIS_DURATION)
 		{
-			if(pInviter)
+			if (pInviter)
 				pInviter->SendCS_GUILDINVITE_ACK(GUILD_LEAVE_DISORGANIZATION, strGuildName, 0, strInviterName);
 			return EC_NOERROR;
 		}
 	}
-	else if(!pPlayer->CheckProtected(dwInviter, PROTECTED_INVITE))
+	else if (!pPlayer->CheckProtected(dwInviter, PROTECTED_INVITE))
 	{
-		if(pInviter)
+		if (pInviter)
 			pInviter->SendCS_GUILDINVITE_ACK(GUILD_JOIN_DENY, strGuildName, 0, strInviterName);
 		return EC_NOERROR;
 	}
 
 #ifdef DEF_UDPLOGGUILD
 
-	m_pUdpSocket->LogGuild( LOGMAP_GUILDINVITE, pPlayer, dwInviter, strInviterName, pPlayer->m_dwGuildID, pPlayer->m_strGuildName, GUILD_SUCCESS );
+	m_pUdpSocket->LogGuild(LOGMAP_GUILDINVITE, pPlayer, dwInviter, strInviterName, pPlayer->m_dwGuildID, pPlayer->m_strGuildName, GUILD_SUCCESS);
 
 #endif	//	DEF_UDPLOGGUILD
 
@@ -6465,8 +6557,9 @@ DWORD CTMapSvrModule::OnMW_GUILDINVITE_REQ( LPPACKETBUF pBUF)
 	return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnMW_GUILDJOIN_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnMW_GUILDJOIN_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_GUILDJOIN_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	BYTE bRet;
@@ -6491,11 +6584,11 @@ DWORD CTMapSvrModule::OnMW_GUILDJOIN_REQ( LPPACKETBUF pBUF)
 		>> bMaxGuildMember;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKEY);
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
 #ifdef	DEF_UDPLOGGUILD
-	m_pUdpSocket->LogGuild(LOGMAP_GUILDJOIN, pPlayer, dwNewMemberID, strNewMemberName, dwGuildID, strGuildName, bRet );
+	m_pUdpSocket->LogGuild(LOGMAP_GUILDJOIN, pPlayer, dwNewMemberID, strNewMemberName, dwGuildID, strGuildName, bRet);
 #endif	//	DEF_UDPLOGGUILD
 
 	pPlayer->SendCS_GUILDJOIN_ACK(
@@ -6506,7 +6599,7 @@ DWORD CTMapSvrModule::OnMW_GUILDJOIN_REQ( LPPACKETBUF pBUF)
 		strNewMemberName,
 		bMaxGuildMember);
 
-	if(dwCharID == dwNewMemberID)
+	if (dwCharID == dwNewMemberID)
 	{
 		pPlayer->m_dwGuildID = dwGuildID;
 		pPlayer->m_strGuildName = strGuildName;
@@ -6517,21 +6610,21 @@ DWORD CTMapSvrModule::OnMW_GUILDJOIN_REQ( LPPACKETBUF pBUF)
 		pPlayer->m_bGuildLeave = 0;
 		pPlayer->m_dwGuildLeaveTime = 0;
 
-		if(pPlayer->m_bMain && pPlayer->m_pMAP)
+		if (pPlayer->m_bMain && pPlayer->m_pMAP)
 		{
 			VPLAYER vPlayer;
 			vPlayer.clear();
 
 			pPlayer->m_pMAP->GetNeighbor(&vPlayer, pPlayer->m_fPosX, pPlayer->m_fPosZ);
 
-			for(DWORD i=0; i<vPlayer.size(); i++)
+			for (DWORD i = 0; i<vPlayer.size(); i++)
 			{
 				vPlayer[i]->SendCS_GUILDATTR_ACK(
-					dwCharID, 
-					dwGuildID, 
+					dwCharID,
+					dwGuildID,
 					dwFame,
 					dwFameColor,
-					strGuildName, 
+					strGuildName,
 					GUILD_PEER_NONE,
 					pPlayer->m_dwTacticsID,
 					pPlayer->m_strTacticsName);
@@ -6543,8 +6636,9 @@ DWORD CTMapSvrModule::OnMW_GUILDJOIN_REQ( LPPACKETBUF pBUF)
 
 	return EC_NOERROR;
 }
-DWORD CTMapSvrModule::OnMW_GUILDDUTY_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnMW_GUILDDUTY_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_GUILDDUTY_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	CString strTarget;
@@ -6557,23 +6651,24 @@ DWORD CTMapSvrModule::OnMW_GUILDDUTY_REQ( LPPACKETBUF pBUF)
 		>> bDuty;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKEY);
-	if(pPlayer)
+	if (pPlayer)
 	{
 
 #ifdef	DEF_UDPLOGGUILD
-		m_pUdpSocket->LogGuildDutyPeer(LOGMAP_GUILDDUTY, pPlayer, 0, strTarget, pPlayer->m_dwGuildID, pPlayer->m_strGuildName, bDuty, GUILD_SUCCESS );
+		m_pUdpSocket->LogGuildDutyPeer(LOGMAP_GUILDDUTY, pPlayer, 0, strTarget, pPlayer->m_dwGuildID, pPlayer->m_strGuildName, bDuty, GUILD_SUCCESS);
 #endif	//	DEF_UDPLOGGUILD
 
 		pPlayer->SendCS_GUILDDUTY_ACK(GUILD_SUCCESS, strTarget, bDuty);
 
-		if(pPlayer->m_strNAME == strTarget)
+		if (pPlayer->m_strNAME == strTarget)
 			pPlayer->m_bGuildDuty = bDuty;
 	}
 
 	return EC_NOERROR;
 }
-DWORD CTMapSvrModule::OnMW_GUILDPEER_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnMW_GUILDPEER_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_GUILDPEER_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	BYTE bResult;
@@ -6590,34 +6685,34 @@ DWORD CTMapSvrModule::OnMW_GUILDPEER_REQ( LPPACKETBUF pBUF)
 		>> bOldPeer;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKEY);
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
 #ifdef	DEF_UDPLOGGUILD
-	m_pUdpSocket->LogGuildDutyPeer(LOGMAP_GUILDPEER, pPlayer, 0, strTarget, pPlayer->m_dwGuildID, pPlayer->m_strGuildName, bPeer, bResult );
+	m_pUdpSocket->LogGuildDutyPeer(LOGMAP_GUILDPEER, pPlayer, 0, strTarget, pPlayer->m_dwGuildID, pPlayer->m_strGuildName, bPeer, bResult);
 #endif	//	DEF_UDPLOGGUILD
 
 	pPlayer->SendCS_GUILDPEER_ACK(bResult, strTarget, bPeer, bOldPeer);
 
-	if(!bResult && pPlayer->m_strNAME == strTarget)
+	if (!bResult && pPlayer->m_strNAME == strTarget)
 	{
 		pPlayer->m_bGuildPeer = bPeer;
-		
-		if(pPlayer->m_bMain && pPlayer->m_pMAP)
+
+		if (pPlayer->m_bMain && pPlayer->m_pMAP)
 		{
 			VPLAYER vPlayer;
 			vPlayer.clear();
 
 			pPlayer->m_pMAP->GetNeighbor(&vPlayer, pPlayer->m_fPosX, pPlayer->m_fPosZ);
 
-			for(DWORD i=0; i<vPlayer.size(); i++)
+			for (DWORD i = 0; i<vPlayer.size(); i++)
 			{
 				vPlayer[i]->SendCS_GUILDATTR_ACK(
-					dwCharID, 
-					pPlayer->m_dwGuildID, 
+					dwCharID,
+					pPlayer->m_dwGuildID,
 					pPlayer->m_dwFame,
 					pPlayer->m_dwFameColor,
-					pPlayer->m_strGuildName, 
+					pPlayer->m_strGuildName,
 					bPeer,
 					pPlayer->m_dwTacticsID,
 					pPlayer->m_strTacticsName);
@@ -6629,8 +6724,9 @@ DWORD CTMapSvrModule::OnMW_GUILDPEER_REQ( LPPACKETBUF pBUF)
 
 	return EC_NOERROR;
 }
-DWORD CTMapSvrModule::OnMW_GUILDLEAVE_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnMW_GUILDLEAVE_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_GUILDLEAVE_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	CString strTarget;
@@ -6645,23 +6741,23 @@ DWORD CTMapSvrModule::OnMW_GUILDLEAVE_REQ( LPPACKETBUF pBUF)
 		>> dwTime;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKEY);
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
 #ifdef	DEF_UDPLOGGUILD
-	m_pUdpSocket->LogGuild(LOGMAP_GUILDLEAVE, pPlayer, 0,strTarget, pPlayer->m_dwGuildID, pPlayer->m_strGuildName, bReason);
+	m_pUdpSocket->LogGuild(LOGMAP_GUILDLEAVE, pPlayer, 0, strTarget, pPlayer->m_dwGuildID, pPlayer->m_strGuildName, bReason);
 #endif	//	DEF_UDPLOGGUILD
 
 	pPlayer->SendCS_GUILDLEAVE_ACK(GUILD_SUCCESS, strTarget, bReason);
 
-	if(pPlayer->m_strNAME == strTarget)
+	if (pPlayer->m_strNAME == strTarget)
 	{
-		if(bReason == GUILD_LEAVE_SELF)
+		if (bReason == GUILD_LEAVE_SELF)
 		{
 			pPlayer->m_bGuildLeave = GUILD_LEAVE_SELF;
 			pPlayer->m_dwGuildLeaveTime = dwTime;
 		}
-		else if(bReason == GUILD_LEAVE_DISORGANIZATION && pPlayer->m_bGuildDuty == GUILD_DUTY_CHIEF)
+		else if (bReason == GUILD_LEAVE_DISORGANIZATION && pPlayer->m_bGuildDuty == GUILD_DUTY_CHIEF)
 		{
 			pPlayer->m_bGuildLeave = GUILD_LEAVE_DISORGANIZATION;
 			pPlayer->m_dwGuildLeaveTime = dwTime;
@@ -6675,27 +6771,27 @@ DWORD CTMapSvrModule::OnMW_GUILDLEAVE_REQ( LPPACKETBUF pBUF)
 		pPlayer->m_strGuildName = NAME_NULL;
 		pPlayer->m_dwFame = 0;
 		pPlayer->m_dwFameColor = 0;
-		if(!pPlayer->m_dwTacticsID)
+		if (!pPlayer->m_dwTacticsID)
 		{
 			pPlayer->m_wCastle = 0;
 			pPlayer->m_bCamp = 0;
 		}
 
-		if(pPlayer->m_bMain && pPlayer->m_pMAP)
+		if (pPlayer->m_bMain && pPlayer->m_pMAP)
 		{
 			VPLAYER vPlayer;
 			vPlayer.clear();
 
 			pPlayer->m_pMAP->GetNeighbor(&vPlayer, pPlayer->m_fPosX, pPlayer->m_fPosZ);
 
-			for(DWORD i=0; i<vPlayer.size(); i++)
+			for (DWORD i = 0; i<vPlayer.size(); i++)
 			{
 				vPlayer[i]->SendCS_GUILDATTR_ACK(
-					dwCharID, 
-					pPlayer->m_dwGuildID, 
+					dwCharID,
+					pPlayer->m_dwGuildID,
 					pPlayer->m_dwFame,
 					pPlayer->m_dwFameColor,
-					pPlayer->m_strGuildName, 
+					pPlayer->m_strGuildName,
 					GUILD_PEER_NONE,
 					pPlayer->m_dwTacticsID,
 					pPlayer->m_strTacticsName);
@@ -6703,7 +6799,7 @@ DWORD CTMapSvrModule::OnMW_GUILDLEAVE_REQ( LPPACKETBUF pBUF)
 
 			vPlayer.clear();
 
-			if(pPlayer->IsInCastle())
+			if (pPlayer->IsInCastle())
 				Teleport(pPlayer, pPlayer->m_wLastSpawnID ? pPlayer->m_wLastSpawnID : pPlayer->m_wSpawnID);
 		}
 	}
@@ -6712,6 +6808,7 @@ DWORD CTMapSvrModule::OnMW_GUILDLEAVE_REQ( LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnMW_GUILDMEMBERLIST_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_GUILDMEMBERLIST_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 
@@ -6720,13 +6817,14 @@ DWORD CTMapSvrModule::OnMW_GUILDMEMBERLIST_REQ(LPPACKETBUF pBUF)
 		>> dwKEY;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKEY);
-	if(pPlayer)
+	if (pPlayer)
 		pPlayer->SendCS_GUILDMEMBERLIST_ACK(pBUF);
 
 	return EC_NOERROR;
 }
-DWORD CTMapSvrModule::OnMW_GUILDINFO_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnMW_GUILDINFO_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_GUILDINFO_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 
@@ -6735,14 +6833,15 @@ DWORD CTMapSvrModule::OnMW_GUILDINFO_REQ( LPPACKETBUF pBUF)
 		>> dwKEY;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKEY);
-	if(pPlayer)
+	if (pPlayer)
 		pPlayer->SendCS_GUILDINFO_ACK(pBUF);
 
 	return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnMW_GUILDCABINETLIST_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnMW_GUILDCABINETLIST_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_GUILDCABINETLIST_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	BYTE bMaxCabinet;
@@ -6756,19 +6855,19 @@ DWORD CTMapSvrModule::OnMW_GUILDCABINETLIST_REQ( LPPACKETBUF pBUF)
 		>> bItemCnt;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKEY);
-	if(!pPlayer || !pPlayer->m_bMain)
+	if (!pPlayer || !pPlayer->m_bMain)
 		return EC_NOERROR;
 
 	VTITEM vItem;
 	vItem.clear();
 
-	for(BYTE i=0; i<bItemCnt; i++)
+	for (BYTE i = 0; i<bItemCnt; i++)
 	{
 		pBUF->m_packet
 			>> dwStItemID;
 
 		CTItem * pItem = CreateItem(&(pBUF->m_packet));
-		if(pItem)
+		if (pItem)
 		{
 			pItem->m_dwStItemID = dwStItemID;
 			vItem.push_back(pItem);
@@ -6781,6 +6880,7 @@ DWORD CTMapSvrModule::OnMW_GUILDCABINETLIST_REQ( LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnDM_GUILDCABINETPUTIN_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_GUILDCABINETPUTIN_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	BYTE bRet;
@@ -6792,14 +6892,14 @@ DWORD CTMapSvrModule::OnDM_GUILDCABINETPUTIN_REQ(LPPACKETBUF pBUF)
 		>> dwKEY;
 
 	DEFINE_QUERY(&m_db, CSPGuildItemPutIn)
-	query->m_dwItemID = 0;
+		query->m_dwItemID = 0;
 	pBUF->m_packet
 		>> query->m_dwGuildID
 		>> bCount;
 
 	WrapItemQuery(&(pBUF->m_packet), query->m_item);
 	query->m_item.m_bCount = bCount;
-	if(query->Call())
+	if (query->Call())
 	{
 		bRet = BYTE(query->m_nRET);
 		dwItemID = query->m_dwItemID;
@@ -6808,7 +6908,7 @@ DWORD CTMapSvrModule::OnDM_GUILDCABINETPUTIN_REQ(LPPACKETBUF pBUF)
 		bRet = GUILD_NOTFOUND;
 	UNDEFINE_QUERY()
 
-	LPPACKETBUF pMSG = new PACKETBUF();
+		LPPACKETBUF pMSG = new PACKETBUF();
 	pMSG->m_packet.SetID(DM_GUILDCABINETPUTIN_ACK)
 		<< dwCharID
 		<< dwKEY
@@ -6821,6 +6921,7 @@ DWORD CTMapSvrModule::OnDM_GUILDCABINETPUTIN_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnDM_GUILDCABINETPUTIN_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_GUILDCABINETPUTIN_ACK");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	BYTE bRet;
@@ -6833,12 +6934,12 @@ DWORD CTMapSvrModule::OnDM_GUILDCABINETPUTIN_ACK(LPPACKETBUF pBUF)
 		>> dwItemID;
 
 	CTPlayer *pPlayer = FindPlayer(dwCharID, dwKEY);
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	pPlayer->SendCS_GUILDCABINETPUTIN_ACK(bRet);
 
-	if(bRet)
+	if (bRet)
 	{
 		pPlayer->BackGuildItem();
 		SendMW_GUILDCABINETLIST_ACK(dwCharID, dwKEY);
@@ -6846,7 +6947,7 @@ DWORD CTMapSvrModule::OnDM_GUILDCABINETPUTIN_ACK(LPPACKETBUF pBUF)
 	}
 
 #ifdef	DEF_UDPLOGGUILD
-	m_pUdpSocket->LogGuildCabinet(	LOGMAP_GUILDCABINETPUTIN,  pPlayer,  pPlayer->m_dwGuildID,  pPlayer->m_strGuildName,  0, pPlayer->m_guildItem, pPlayer->m_guildItem->m_bCount, 0);
+	m_pUdpSocket->LogGuildCabinet(LOGMAP_GUILDCABINETPUTIN, pPlayer, pPlayer->m_dwGuildID, pPlayer->m_strGuildName, 0, pPlayer->m_guildItem, pPlayer->m_guildItem->m_bCount, 0);
 #endif	//	DEF_UDPLOGGUILD
 
 	SendMW_GUILDCABINETPUTIN_ACK(dwCharID, dwKEY, dwItemID, pPlayer->m_guildItem);
@@ -6856,6 +6957,7 @@ DWORD CTMapSvrModule::OnDM_GUILDCABINETPUTIN_ACK(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnDM_GUILDCABINETTAKEOUT_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_GUILDCABINETTAKEOUT_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	DWORD dwGuildID;
@@ -6884,11 +6986,11 @@ DWORD CTMapSvrModule::OnDM_GUILDCABINETTAKEOUT_REQ(LPPACKETBUF pBUF)
 		<< bItemID;
 
 	DEFINE_QUERY(&m_db, CSPGuildItemTakeOut)
-	query->m_dwGuildID = dwGuildID;
+		query->m_dwGuildID = dwGuildID;
 	query->m_dwItemID = dwItemID;
 	query->m_item.m_bCount = bCount;
 
-    if(query->Call())
+	if (query->Call())
 		bRet = BYTE(query->m_nRET);
 	else
 		bRet = GUILD_NOTFOUND;
@@ -6896,18 +6998,19 @@ DWORD CTMapSvrModule::OnDM_GUILDCABINETTAKEOUT_REQ(LPPACKETBUF pBUF)
 	pMSG->m_packet
 		<< bRet;
 
-	if(!bRet)
+	if (!bRet)
 		WrapItem(
 			&(pMSG->m_packet),
-            query->m_item);
+			query->m_item);
 
 	UNDEFINE_QUERY()
 
-	SayToBATCH(pMSG);
+		SayToBATCH(pMSG);
 	return EC_NOERROR;
 }
 DWORD CTMapSvrModule::OnDM_GUILDCABINETTAKEOUT_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_GUILDCABINETTAKEOUT_ACK");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	DWORD dwGuildID;
@@ -6926,13 +7029,13 @@ DWORD CTMapSvrModule::OnDM_GUILDCABINETTAKEOUT_ACK(LPPACKETBUF pBUF)
 		>> bRet;
 
 	CTPlayer *pPlayer = FindPlayer(dwCharID, dwKEY);
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
-	if(pPlayer->ProtectTutorial())
+	if (pPlayer->ProtectTutorial())
 		return EC_NOERROR;
 
-	if(bRet)
+	if (bRet)
 	{
 		pPlayer->SendCS_GUILDCABINETTAKEOUT_ACK(bRet);
 		SendMW_GUILDCABINETLIST_ACK(dwCharID, dwKEY);
@@ -6941,7 +7044,7 @@ DWORD CTMapSvrModule::OnDM_GUILDCABINETTAKEOUT_ACK(LPPACKETBUF pBUF)
 
 	CTItem * pItem = CreateItem(&(pBUF->m_packet));
 
-	if(!pItem)
+	if (!pItem)
 		return EC_NOERROR;
 
 #ifdef	DEF_UDPLOGGUILD
@@ -6949,25 +7052,25 @@ DWORD CTMapSvrModule::OnDM_GUILDCABINETTAKEOUT_ACK(LPPACKETBUF pBUF)
 #endif	//	DEF_UDPLOGGUILD
 
 	CTInven * pTInvenDEST = pPlayer->FindTInven(bInvenID);
-	if(!pTInvenDEST)
+	if (!pTInvenDEST)
 	{
 		pPlayer->SendCS_GUILDCABINETTAKEOUT_ACK(GUILD_CABINET_FAIL);
 		SendMW_GUILDCABINETLIST_ACK(dwCharID, dwKEY);
 
 		SendDM_GUILDCABINETROLLBACK_REQ(
-			dwGuildID, 
-			dwItemID, 
+			dwGuildID,
+			dwItemID,
 			pItem);
 		delete pItem;
 		return EC_NOERROR;
 	}
 
 	CTItem *pTItemDEST = pTInvenDEST->FindTItem(bItemID);
-	if(!pTItemDEST)
+	if (!pTItemDEST)
 	{
 		pItem->m_bItemID = bItemID;
 
-		pTInvenDEST->m_mapTITEM.insert( MAPTITEM::value_type( pItem->m_bItemID, pItem));
+		pTInvenDEST->m_mapTITEM.insert(MAPTITEM::value_type(pItem->m_bItemID, pItem));
 		pPlayer->SendCS_ADDITEM_ACK(
 			pItem,
 			pTInvenDEST->m_bInvenID);
@@ -6989,7 +7092,7 @@ DWORD CTMapSvrModule::OnDM_GUILDCABINETTAKEOUT_ACK(LPPACKETBUF pBUF)
 		VTITEM vItem;
 		vItem.clear();
 		vItem.push_back(pItem);
-		if(pPlayer->CanPush(&vItem, 0))
+		if (pPlayer->CanPush(&vItem, 0))
 		{
 			pPlayer->PushTItem(&vItem);
 			pPlayer->SendCS_GUILDCABINETTAKEOUT_ACK(bRet);
@@ -7008,8 +7111,8 @@ DWORD CTMapSvrModule::OnDM_GUILDCABINETTAKEOUT_ACK(LPPACKETBUF pBUF)
 			SendMW_GUILDCABINETLIST_ACK(dwCharID, dwKEY);
 
 			SendDM_GUILDCABINETROLLBACK_REQ(
-				dwGuildID, 
-				dwItemID, 
+				dwGuildID,
+				dwItemID,
 				pItem);
 			delete pItem;
 		}
@@ -7019,6 +7122,7 @@ DWORD CTMapSvrModule::OnDM_GUILDCABINETTAKEOUT_ACK(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnDM_GUILDCABINETROLLBACK_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_GUILDCABINETROLLBACK_REQ");
 	DWORD dwGuildID;
 	DWORD dwItemID;
 
@@ -7027,16 +7131,17 @@ DWORD CTMapSvrModule::OnDM_GUILDCABINETROLLBACK_REQ(LPPACKETBUF pBUF)
 		>> dwItemID;
 
 	DEFINE_QUERY(&m_db, CSPGuildItemRollback)
-	query->m_dwGuildID = dwGuildID;
+		query->m_dwGuildID = dwGuildID;
 	query->m_dwItemID = dwItemID;
 	WrapItemQuery(&(pBUF->m_packet), query->m_item);
 	query->Call();
 	UNDEFINE_QUERY()
 
-	return EC_NOERROR;
+		return EC_NOERROR;
 }
-DWORD CTMapSvrModule::OnMW_GUILDCONTRIBUTION_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnMW_GUILDCONTRIBUTION_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_GUILDCONTRIBUTION_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	BYTE bResult;
@@ -7057,33 +7162,33 @@ DWORD CTMapSvrModule::OnMW_GUILDCONTRIBUTION_REQ( LPPACKETBUF pBUF)
 		>> dwPvPoint;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKEY);
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
-	if(pPlayer->ProtectTutorial())
+	if (pPlayer->ProtectTutorial())
 		return EC_NOERROR;
 
-	if(!bResult)
+	if (!bResult)
 	{
-		if(dwExp && pPlayer->UseExp(dwExp, TRUE))
+		if (dwExp && pPlayer->UseExp(dwExp, TRUE))
 		{
 			pPlayer->SendCS_EXP_ACK();
 			SendDM_SAVEEXP_REQ(pPlayer->m_dwID, pPlayer->m_dwEXP);
 		}
 
-		__int64 llMoney = CalcMoney(dwGold, dwSilver, dwCooper); 
-		if(llMoney && pPlayer->UseMoney(llMoney, TRUE))
+		__int64 llMoney = CalcMoney(dwGold, dwSilver, dwCooper);
+		if (llMoney && pPlayer->UseMoney(llMoney, TRUE))
 		{
 			pPlayer->SendCS_MONEY_ACK();
 			SendDM_SAVEMONEY_REQ(pPlayer->m_dwID, pPlayer->m_dwGold, pPlayer->m_dwSilver, pPlayer->m_dwCooper);
 		}
 
-		if(dwPvPoint)
+		if (dwPvPoint)
 			pPlayer->UsePvPoint(dwPvPoint, PVPE_GUILD, PVP_USEABLE);
 	}
 
 #ifdef	DEF_UDPLOGGUILD
-	m_pUdpSocket->LogGuildExpMoeny( LOGMAP_GUILDCONTRIBUTION, pPlayer, dwExp, dwGold, dwSilver, dwCooper, dwPvPoint, bResult);
+	m_pUdpSocket->LogGuildExpMoeny(LOGMAP_GUILDCONTRIBUTION, pPlayer, dwExp, dwGold, dwSilver, dwCooper, dwPvPoint, bResult);
 #endif	//	DEF_UDPLOGGUILD
 
 
@@ -7091,8 +7196,9 @@ DWORD CTMapSvrModule::OnMW_GUILDCONTRIBUTION_REQ( LPPACKETBUF pBUF)
 
 	return EC_NOERROR;
 }
-DWORD CTMapSvrModule::OnMW_GUILDARTICLELIST_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnMW_GUILDARTICLELIST_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_GUILDARTICLELIST_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 
@@ -7101,13 +7207,14 @@ DWORD CTMapSvrModule::OnMW_GUILDARTICLELIST_REQ( LPPACKETBUF pBUF)
 		>> dwKEY;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKEY);
-	if(pPlayer)
+	if (pPlayer)
 		pPlayer->SendCS_GUILDARTICLELIST_ACK(pBUF);
 
 	return EC_NOERROR;
 }
-DWORD CTMapSvrModule::OnMW_GUILDARTICLEADD_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnMW_GUILDARTICLEADD_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_GUILDARTICLEADD_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	BYTE bResult;
@@ -7118,13 +7225,14 @@ DWORD CTMapSvrModule::OnMW_GUILDARTICLEADD_REQ( LPPACKETBUF pBUF)
 		>> bResult;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKEY);
-	if(pPlayer)
+	if (pPlayer)
 		pPlayer->SendCS_GUILDARTICLEADD_ACK(bResult);
 
 	return EC_NOERROR;
 }
-DWORD CTMapSvrModule::OnMW_GUILDARTICLEDEL_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnMW_GUILDARTICLEDEL_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_GUILDARTICLEDEL_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	BYTE bResult;
@@ -7135,13 +7243,14 @@ DWORD CTMapSvrModule::OnMW_GUILDARTICLEDEL_REQ( LPPACKETBUF pBUF)
 		>> bResult;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKEY);
-	if(pPlayer)
+	if (pPlayer)
 		pPlayer->SendCS_GUILDARTICLEDEL_ACK(bResult);
 
 	return EC_NOERROR;
 }
-DWORD CTMapSvrModule::OnMW_GUILDARTICLEUPDATE_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnMW_GUILDARTICLEUPDATE_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_GUILDARTICLEUPDATE_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	BYTE bResult;
@@ -7152,13 +7261,14 @@ DWORD CTMapSvrModule::OnMW_GUILDARTICLEUPDATE_REQ( LPPACKETBUF pBUF)
 		>> bResult;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKEY);
-	if(pPlayer)
+	if (pPlayer)
 		pPlayer->SendCS_GUILDARTICLEUPDATE_ACK(bResult);
 
 	return EC_NOERROR;
 }
-DWORD CTMapSvrModule::OnMW_GUILDFAME_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnMW_GUILDFAME_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_GUILDFAME_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	BYTE bResult;
@@ -7175,32 +7285,32 @@ DWORD CTMapSvrModule::OnMW_GUILDFAME_REQ( LPPACKETBUF pBUF)
 		>> dwFameColor;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKEY);
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
-	if(dwID == dwCharID)
+	if (dwID == dwCharID)
 		pPlayer->SendCS_GUILDFAME_ACK(bResult, dwFame, dwFameColor);
 
-	if(bResult == GUILD_SUCCESS)
+	if (bResult == GUILD_SUCCESS)
 	{
 		pPlayer->m_dwFame = dwFame;
 		pPlayer->m_dwFameColor = dwFameColor;
 
-		if(pPlayer->m_bMain && pPlayer->m_pMAP)
+		if (pPlayer->m_bMain && pPlayer->m_pMAP)
 		{
 			VPLAYER vPlayer;
 			vPlayer.clear();
 
 			pPlayer->m_pMAP->GetNeighbor(&vPlayer, pPlayer->m_fPosX, pPlayer->m_fPosZ);
 
-			for(DWORD i=0; i<vPlayer.size(); i++)
+			for (DWORD i = 0; i<vPlayer.size(); i++)
 			{
 				vPlayer[i]->SendCS_GUILDATTR_ACK(
-					dwCharID, 
-					pPlayer->m_dwGuildID, 
+					dwCharID,
+					pPlayer->m_dwGuildID,
 					pPlayer->m_dwFame,
 					pPlayer->m_dwFameColor,
-					pPlayer->m_strGuildName, 
+					pPlayer->m_strGuildName,
 					pPlayer->m_bGuildPeer,
 					pPlayer->m_dwTacticsID,
 					pPlayer->m_strTacticsName);
@@ -7214,6 +7324,7 @@ DWORD CTMapSvrModule::OnMW_GUILDFAME_REQ( LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnMW_GUILDWANTEDADD_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_GUILDWANTEDADD_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	BYTE bResult;
@@ -7224,7 +7335,7 @@ DWORD CTMapSvrModule::OnMW_GUILDWANTEDADD_REQ(LPPACKETBUF pBUF)
 		>> bResult;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(pPlayer)
+	if (pPlayer)
 		pPlayer->SendCS_GUILDWANTEDADD_ACK(bResult);
 
 	return EC_NOERROR;
@@ -7232,6 +7343,7 @@ DWORD CTMapSvrModule::OnMW_GUILDWANTEDADD_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_GUILDWANTEDDEL_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_GUILDWANTEDDEL_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	BYTE bResult;
@@ -7242,7 +7354,7 @@ DWORD CTMapSvrModule::OnMW_GUILDWANTEDDEL_REQ(LPPACKETBUF pBUF)
 		>> bResult;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(pPlayer)
+	if (pPlayer)
 		pPlayer->SendCS_GUILDWANTEDDEL_ACK(bResult);
 
 	return EC_NOERROR;
@@ -7250,6 +7362,7 @@ DWORD CTMapSvrModule::OnMW_GUILDWANTEDDEL_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_GUILDWANTEDLIST_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_GUILDWANTEDLIST_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 
@@ -7259,13 +7372,14 @@ DWORD CTMapSvrModule::OnMW_GUILDWANTEDLIST_REQ(LPPACKETBUF pBUF)
 		>> dwKey;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(pPlayer)
+	if (pPlayer)
 		pPlayer->SendCS_GUILDWANTEDLIST_ACK(&(pBUF->m_packet));
 
 	return EC_NOERROR;
 }
 DWORD CTMapSvrModule::OnMW_GUILDVOLUNTEERING_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_GUILDVOLUNTEERING_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	BYTE bResult;
@@ -7276,13 +7390,14 @@ DWORD CTMapSvrModule::OnMW_GUILDVOLUNTEERING_REQ(LPPACKETBUF pBUF)
 		>> bResult;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(pPlayer)
+	if (pPlayer)
 		pPlayer->SendCS_GUILDVOLUNTEERING_ACK(bResult);
 
 	return EC_NOERROR;
 }
 DWORD CTMapSvrModule::OnMW_GUILDVOLUNTEERINGDEL_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_GUILDVOLUNTEERINGDEL_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	BYTE bResult;
@@ -7293,13 +7408,14 @@ DWORD CTMapSvrModule::OnMW_GUILDVOLUNTEERINGDEL_REQ(LPPACKETBUF pBUF)
 		>> bResult;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(pPlayer)
+	if (pPlayer)
 		pPlayer->SendCS_GUILDVOLUNTEERINGDEL_ACK(bResult);
 
 	return EC_NOERROR;
 }
 DWORD CTMapSvrModule::OnMW_GUILDVOLUNTEERLIST_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_GUILDVOLUNTEERLIST_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 
@@ -7308,13 +7424,14 @@ DWORD CTMapSvrModule::OnMW_GUILDVOLUNTEERLIST_REQ(LPPACKETBUF pBUF)
 		>> dwKey;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(pPlayer)
+	if (pPlayer)
 		pPlayer->SendCS_GUILDVOLUNTEERLIST_ACK(&(pBUF->m_packet));
 
 	return EC_NOERROR;
 }
 DWORD CTMapSvrModule::OnMW_GUILDVOLUNTEERREPLY_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_GUILDVOLUNTEERREPLY_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	BYTE bResult;
@@ -7325,13 +7442,14 @@ DWORD CTMapSvrModule::OnMW_GUILDVOLUNTEERREPLY_REQ(LPPACKETBUF pBUF)
 		>> bResult;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(pPlayer)
+	if (pPlayer)
 		pPlayer->SendCS_GUILDVOLUNTEERREPLY_ACK(bResult);
 
 	return EC_NOERROR;
 }
 DWORD CTMapSvrModule::OnMW_GUILDTACTICSWANTEDADD_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_GUILDTACTICSWANTEDADD_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	BYTE bResult;
@@ -7342,13 +7460,14 @@ DWORD CTMapSvrModule::OnMW_GUILDTACTICSWANTEDADD_REQ(LPPACKETBUF pBUF)
 		>> bResult;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(pPlayer)
+	if (pPlayer)
 		pPlayer->SendCS_GUILDTACTICSWANTEDADD_ACK(bResult);
 
 	return EC_NOERROR;
 }
 DWORD CTMapSvrModule::OnMW_GUILDTACTICSWANTEDDEL_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_GUILDTACTICSWANTEDDEL_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	BYTE bResult;
@@ -7359,13 +7478,14 @@ DWORD CTMapSvrModule::OnMW_GUILDTACTICSWANTEDDEL_REQ(LPPACKETBUF pBUF)
 		>> bResult;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(pPlayer)
+	if (pPlayer)
 		pPlayer->SendCS_GUILDTACTICSWANTEDDEL_ACK(bResult);
 
 	return EC_NOERROR;
 }
 DWORD CTMapSvrModule::OnMW_GUILDTACTICSWANTEDLIST_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_GUILDTACTICSWANTEDLIST_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 
@@ -7374,13 +7494,14 @@ DWORD CTMapSvrModule::OnMW_GUILDTACTICSWANTEDLIST_REQ(LPPACKETBUF pBUF)
 		>> dwKey;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(pPlayer)
+	if (pPlayer)
 		pPlayer->SendCS_GUILDTACTICSWANTEDLIST_ACK(&(pBUF->m_packet));
 
 	return EC_NOERROR;
 }
 DWORD CTMapSvrModule::OnMW_GUILDTACTICSVOLUNTEERING_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_GUILDTACTICSVOLUNTEERING_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	BYTE bResult;
@@ -7391,13 +7512,14 @@ DWORD CTMapSvrModule::OnMW_GUILDTACTICSVOLUNTEERING_REQ(LPPACKETBUF pBUF)
 		>> bResult;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(pPlayer)
+	if (pPlayer)
 		pPlayer->SendCS_GUILDTACTICSVOLUNTEERING_ACK(bResult);
 
 	return EC_NOERROR;
 }
 DWORD CTMapSvrModule::OnMW_GUILDTACTICSVOLUNTEERINGDEL_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_GUILDTACTICSVOLUNTEERINGDEL_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	BYTE bResult;
@@ -7408,13 +7530,14 @@ DWORD CTMapSvrModule::OnMW_GUILDTACTICSVOLUNTEERINGDEL_REQ(LPPACKETBUF pBUF)
 		>> bResult;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(pPlayer)
+	if (pPlayer)
 		pPlayer->SendCS_GUILDTACTICSVOLUNTEERINGDEL_ACK(bResult);
 
 	return EC_NOERROR;
 }
 DWORD CTMapSvrModule::OnMW_GUILDTACTICSVOLUNTEERLIST_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_GUILDTACTICSVOLUNTEERLIST_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 
@@ -7423,13 +7546,14 @@ DWORD CTMapSvrModule::OnMW_GUILDTACTICSVOLUNTEERLIST_REQ(LPPACKETBUF pBUF)
 		>> dwKey;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(pPlayer)
+	if (pPlayer)
 		pPlayer->SendCS_GUILDTACTICSVOLUNTEERLIST_ACK(&(pBUF->m_packet));
 
 	return EC_NOERROR;
 }
 DWORD CTMapSvrModule::OnMW_GUILDTACTICSREPLY_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_GUILDTACTICSREPLY_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	BYTE bResult;
@@ -7454,14 +7578,14 @@ DWORD CTMapSvrModule::OnMW_GUILDTACTICSREPLY_REQ(LPPACKETBUF pBUF)
 		>> dwCooper;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	pPlayer->SendCS_GUILDTACTICSREPLY_ACK(bResult, dwMemberID);
 
-	if(!bResult)
+	if (!bResult)
 	{
-		if(dwCharID == dwMemberID)
+		if (dwCharID == dwMemberID)
 		{
 #ifdef DEF_UDPLOG
 			m_pUdpSocket->LogTactics(LOGMAP_TACTICSADD, pPlayer, dwGuildID, strGuildName);
@@ -7471,21 +7595,21 @@ DWORD CTMapSvrModule::OnMW_GUILDTACTICSREPLY_REQ(LPPACKETBUF pBUF)
 			pPlayer->m_wCastle = 0;
 			pPlayer->m_bCamp = 0;
 
-			if(pPlayer->m_bMain && pPlayer->m_pMAP)
+			if (pPlayer->m_bMain && pPlayer->m_pMAP)
 			{
 				VPLAYER vPlayer;
 				vPlayer.clear();
 
 				pPlayer->m_pMAP->GetNeighbor(&vPlayer, pPlayer->m_fPosX, pPlayer->m_fPosZ);
 
-				for(DWORD i=0; i<vPlayer.size(); i++)
+				for (DWORD i = 0; i<vPlayer.size(); i++)
 				{
 					vPlayer[i]->SendCS_GUILDATTR_ACK(
-						dwCharID, 
-						pPlayer->m_dwGuildID, 
+						dwCharID,
+						pPlayer->m_dwGuildID,
 						pPlayer->m_dwFame,
 						pPlayer->m_dwFameColor,
-						pPlayer->m_strGuildName, 
+						pPlayer->m_strGuildName,
 						pPlayer->m_bGuildPeer,
 						pPlayer->m_dwTacticsID,
 						pPlayer->m_strTacticsName);
@@ -7493,7 +7617,7 @@ DWORD CTMapSvrModule::OnMW_GUILDTACTICSREPLY_REQ(LPPACKETBUF pBUF)
 
 				vPlayer.clear();
 
-				if(pPlayer->IsInCastle())
+				if (pPlayer->IsInCastle())
 					Teleport(pPlayer, pPlayer->m_wLastSpawnID ? pPlayer->m_wLastSpawnID : pPlayer->m_wSpawnID);
 			}
 		}
@@ -7521,6 +7645,7 @@ DWORD CTMapSvrModule::OnMW_GUILDTACTICSREPLY_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnMW_GUILDTACTICSKICKOUT_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_GUILDTACTICSKICKOUT_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	BYTE bResult;
@@ -7535,15 +7660,15 @@ DWORD CTMapSvrModule::OnMW_GUILDTACTICSKICKOUT_REQ(LPPACKETBUF pBUF)
 		>> bKick;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	pPlayer->SendCS_GUILDTACTICSKICKOUT_ACK(bResult, dwTarget);
 
-	if(!bResult && dwCharID == dwTarget)
+	if (!bResult && dwCharID == dwTarget)
 	{
 #ifdef DEF_UDPLOG
-		if(bKick)
+		if (bKick)
 			m_pUdpSocket->LogTactics(LOGMAP_TACTICSKICKOUT, pPlayer, pPlayer->m_dwTacticsID, pPlayer->m_strTacticsName);
 		else
 			m_pUdpSocket->LogTactics(LOGMAP_TACTICSLEAVE, pPlayer, pPlayer->m_dwTacticsID, pPlayer->m_strTacticsName);
@@ -7553,21 +7678,21 @@ DWORD CTMapSvrModule::OnMW_GUILDTACTICSKICKOUT_REQ(LPPACKETBUF pBUF)
 		pPlayer->m_wCastle = 0;
 		pPlayer->m_bCamp = 0;
 
-		if(pPlayer->m_bMain && pPlayer->m_pMAP)
+		if (pPlayer->m_bMain && pPlayer->m_pMAP)
 		{
 			VPLAYER vPlayer;
 			vPlayer.clear();
 
 			pPlayer->m_pMAP->GetNeighbor(&vPlayer, pPlayer->m_fPosX, pPlayer->m_fPosZ);
 
-			for(DWORD i=0; i<vPlayer.size(); i++)
+			for (DWORD i = 0; i<vPlayer.size(); i++)
 			{
 				vPlayer[i]->SendCS_GUILDATTR_ACK(
-					dwCharID, 
-					pPlayer->m_dwGuildID, 
+					dwCharID,
+					pPlayer->m_dwGuildID,
 					pPlayer->m_dwFame,
 					pPlayer->m_dwFameColor,
-					pPlayer->m_strGuildName, 
+					pPlayer->m_strGuildName,
 					pPlayer->m_bGuildPeer,
 					pPlayer->m_dwTacticsID,
 					pPlayer->m_strTacticsName);
@@ -7575,7 +7700,7 @@ DWORD CTMapSvrModule::OnMW_GUILDTACTICSKICKOUT_REQ(LPPACKETBUF pBUF)
 
 			vPlayer.clear();
 
-			if(pPlayer->IsInCastle())
+			if (pPlayer->IsInCastle())
 				Teleport(pPlayer, pPlayer->m_wLastSpawnID ? pPlayer->m_wLastSpawnID : pPlayer->m_wSpawnID);
 		}
 	}
@@ -7584,6 +7709,7 @@ DWORD CTMapSvrModule::OnMW_GUILDTACTICSKICKOUT_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnMW_GUILDTACTICSINVITE_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_GUILDTACTICSINVITE_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	CString strGuildName;
@@ -7606,7 +7732,7 @@ DWORD CTMapSvrModule::OnMW_GUILDTACTICSINVITE_REQ(LPPACKETBUF pBUF)
 		>> dwCooper;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(pPlayer)
+	if (pPlayer)
 		pPlayer->SendCS_GUILDTACTICSINVITE_ACK(
 			strGuildName,
 			strName,
@@ -7620,6 +7746,7 @@ DWORD CTMapSvrModule::OnMW_GUILDTACTICSINVITE_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnMW_GUILDTACTICSANSWER_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_GUILDTACTICSANSWER_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	BYTE bResult;
@@ -7644,14 +7771,14 @@ DWORD CTMapSvrModule::OnMW_GUILDTACTICSANSWER_REQ(LPPACKETBUF pBUF)
 		>> dwCooper;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	pPlayer->SendCS_GUILDTACTICSANSWER_ACK(bResult, dwMemberID);
 
-	if(!bResult)
+	if (!bResult)
 	{
-		if(dwCharID == dwMemberID)
+		if (dwCharID == dwMemberID)
 		{
 #ifdef DEF_UDPLOG
 			m_pUdpSocket->LogTactics(LOGMAP_TACTICSADD, pPlayer, dwGuildID, strGuildName);
@@ -7661,21 +7788,21 @@ DWORD CTMapSvrModule::OnMW_GUILDTACTICSANSWER_REQ(LPPACKETBUF pBUF)
 			pPlayer->m_wCastle = 0;
 			pPlayer->m_bCamp = 0;
 
-			if(pPlayer->m_bMain && pPlayer->m_pMAP)
+			if (pPlayer->m_bMain && pPlayer->m_pMAP)
 			{
 				VPLAYER vPlayer;
 				vPlayer.clear();
 
 				pPlayer->m_pMAP->GetNeighbor(&vPlayer, pPlayer->m_fPosX, pPlayer->m_fPosZ);
 
-				for(DWORD i=0; i<vPlayer.size(); i++)
+				for (DWORD i = 0; i<vPlayer.size(); i++)
 				{
 					vPlayer[i]->SendCS_GUILDATTR_ACK(
-						dwCharID, 
-						pPlayer->m_dwGuildID, 
+						dwCharID,
+						pPlayer->m_dwGuildID,
 						pPlayer->m_dwFame,
 						pPlayer->m_dwFameColor,
-						pPlayer->m_strGuildName, 
+						pPlayer->m_strGuildName,
 						pPlayer->m_bGuildPeer,
 						pPlayer->m_dwTacticsID,
 						pPlayer->m_strTacticsName);
@@ -7683,7 +7810,7 @@ DWORD CTMapSvrModule::OnMW_GUILDTACTICSANSWER_REQ(LPPACKETBUF pBUF)
 
 				vPlayer.clear();
 
-				if(pPlayer->IsInCastle())
+				if (pPlayer->IsInCastle())
 					Teleport(pPlayer, pPlayer->m_wLastSpawnID ? pPlayer->m_wLastSpawnID : pPlayer->m_wSpawnID);
 			}
 		}
@@ -7711,6 +7838,7 @@ DWORD CTMapSvrModule::OnMW_GUILDTACTICSANSWER_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnMW_GUILDTACTICSLIST_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_GUILDTACTICSLIST_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 
@@ -7719,7 +7847,7 @@ DWORD CTMapSvrModule::OnMW_GUILDTACTICSLIST_REQ(LPPACKETBUF pBUF)
 		>> dwKEY;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKEY);
-	if(pPlayer)
+	if (pPlayer)
 		pPlayer->SendCS_GUILDTACTICSLIST_ACK(pBUF);
 
 	return EC_NOERROR;
@@ -7728,6 +7856,7 @@ DWORD CTMapSvrModule::OnMW_GUILDTACTICSLIST_REQ(LPPACKETBUF pBUF)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 DWORD CTMapSvrModule::OnMW_CHAT_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_CHAT_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	BYTE bChannel;
@@ -7754,15 +7883,15 @@ DWORD CTMapSvrModule::OnMW_CHAT_REQ(LPPACKETBUF pBUF)
 		>> strTalk;
 
 	MAPPLAYER::iterator it;
-	switch(bGroup)
+	switch (bGroup)
 	{
 	case CHAT_SHOW:
 	case CHAT_MAP:
 	case CHAT_WORLD:
-		for(it=m_mapPLAYER.begin(); it!=m_mapPLAYER.end(); it++)
+		for (it = m_mapPLAYER.begin(); it != m_mapPLAYER.end(); it++)
 		{
 			CTPlayer * pTarget = (*it).second;
-			if(pTarget->m_bMain &&
+			if (pTarget->m_bMain &&
 				pTarget->CanTalk(bGroup, bCountry, bAidCountry))
 				(*it).second->SendCS_CHAT_ACK(
 					bType,
@@ -7777,21 +7906,21 @@ DWORD CTMapSvrModule::OnMW_CHAT_REQ(LPPACKETBUF pBUF)
 	case CHAT_GUILD:
 	case CHAT_PARTY:
 	case CHAT_WHISPER:
+	{
+		CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
+		if (pPlayer &&
+			pPlayer->m_bMain &&
+			pPlayer->CanTalk(bGroup, bCountry, bAidCountry))
 		{
-			CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-			if( pPlayer &&
-				pPlayer->m_bMain &&
-				pPlayer->CanTalk(bGroup, bCountry, bAidCountry))
-			{
-				pPlayer->SendCS_CHAT_ACK(
-					dwCharID == dwSenderID ? bGroup : bType,
-					dwSenderID,
-					strSenderName,
-					strTalk);
-				//LogEvent("6");
-			}
+			pPlayer->SendCS_CHAT_ACK(
+				dwCharID == dwSenderID ? bGroup : bType,
+				dwSenderID,
+				strSenderName,
+				strTalk);
+			//LogEvent("6");
 		}
-		break;
+	}
+	break;
 	}
 
 	return EC_NOERROR;
@@ -7799,6 +7928,7 @@ DWORD CTMapSvrModule::OnMW_CHAT_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_CABINETITEM_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_CABINETITEM_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 
@@ -7818,6 +7948,7 @@ DWORD CTMapSvrModule::OnDM_CABINETITEM_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_CABINETITEM_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_CABINETITEM_ACK");
 	DWORD dwCharID;
 	DWORD dwKey;
 	BYTE bCount;
@@ -7828,7 +7959,7 @@ DWORD CTMapSvrModule::OnDM_CABINETITEM_ACK(LPPACKETBUF pBUF)
 		>> bCount;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	return EC_NOERROR;
@@ -7836,6 +7967,7 @@ DWORD CTMapSvrModule::OnDM_CABINETITEM_ACK(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_TAKEMONMONEY_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_TAKEMONMONEY_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	DWORD dwMoney;
@@ -7845,8 +7977,8 @@ DWORD CTMapSvrModule::OnMW_TAKEMONMONEY_REQ(LPPACKETBUF pBUF)
 		>> dwKEY
 		>> dwMoney;
 
-	CTPlayer *pPlayer = FindPlayer( dwCharID, dwKEY);
-	if(!pPlayer || !pPlayer->m_bMain)
+	CTPlayer *pPlayer = FindPlayer(dwCharID, dwKEY);
+	if (!pPlayer || !pPlayer->m_bMain)
 		return EC_NOERROR;
 
 	pPlayer->EarnMoney(dwMoney);
@@ -7857,6 +7989,7 @@ DWORD CTMapSvrModule::OnMW_TAKEMONMONEY_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_MONSTERDIE_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_MONSTERDIE_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	DWORD dwExp;
@@ -7883,11 +8016,11 @@ DWORD CTMapSvrModule::OnMW_MONSTERDIE_REQ(LPPACKETBUF pBUF)
 		>> bCount;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKEY);
-	if(!pPlayer || !pPlayer->m_bMain)
+	if (!pPlayer || !pPlayer->m_bMain)
 		return EC_NOERROR;
 
-	if(dwExp)
-		pPlayer->GainExp( dwExp, TRUE);
+	if (dwExp)
+		pPlayer->GainExp(dwExp, TRUE);
 
 	CheckQuest(
 		pPlayer,
@@ -7905,6 +8038,7 @@ DWORD CTMapSvrModule::OnMW_MONSTERDIE_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_ADDITEM_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_ADDITEM_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	BYTE bServerID;
@@ -7927,7 +8061,7 @@ DWORD CTMapSvrModule::OnMW_ADDITEM_REQ(LPPACKETBUF pBUF)
 	CTItem * pItem = CreateItem(&(pBUF->m_packet));
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKEY);
-	if(!pPlayer || !pPlayer->m_bMain || !pItem)
+	if (!pPlayer || !pPlayer->m_bMain || !pItem)
 	{
 		SendMW_ADDITEMRESULT_ACK(
 			dwCharID,
@@ -7947,7 +8081,7 @@ DWORD CTMapSvrModule::OnMW_ADDITEM_REQ(LPPACKETBUF pBUF)
 	CTItem logItem;
 	logItem.Copy(pItem, FALSE);
 
-	if(pPlayer->PushTItem(pItem, bInven, bSlot))
+	if (pPlayer->PushTItem(pItem, bInven, bSlot))
 	{
 		SendMW_ADDITEMRESULT_ACK(
 			pPlayer->m_dwID,
@@ -7970,7 +8104,7 @@ DWORD CTMapSvrModule::OnMW_ADDITEM_REQ(LPPACKETBUF pBUF)
 			TT_GETITEM,
 			logItem.m_bCount);
 
-		if( pPlayer->GetPartyID() )
+		if (pPlayer->GetPartyID())
 			PartyMonItemTake(pPlayer, &logItem);
 	}
 	else
@@ -7992,6 +8126,7 @@ DWORD CTMapSvrModule::OnMW_ADDITEM_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnMW_ADDITEMRESULT_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_ADDITEMRESULT_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	BYTE bChannel;
@@ -8009,38 +8144,38 @@ DWORD CTMapSvrModule::OnMW_ADDITEMRESULT_REQ(LPPACKETBUF pBUF)
 		>> bItemID
 		>> bResult;
 
-	CTPlayer *pPlayer = FindPlayer( dwCharID, dwKEY);
-	if(!pPlayer)
+	CTPlayer *pPlayer = FindPlayer(dwCharID, dwKEY);
+	if (!pPlayer)
 		return EC_NOERROR;
 
-	if(!pPlayer->m_pMAP)
+	if (!pPlayer->m_pMAP)
 		return EC_NOERROR;
 
 	pPlayer->SendCS_MONITEMTAKE_ACK(bResult);
 
 	CTMonster *pMON = pPlayer->m_pMAP->FindMonster(dwMonID);
-	if(!pMON)
+	if (!pMON)
 		return EC_NOERROR;
 
 	CTItem *pItem = pMON->EraseItemList(bItemID);
-	if(pItem)
+	if (pItem)
 	{
-		if(pMON->m_bStatus == OS_DEAD)
+		if (pMON->m_bStatus == OS_DEAD)
 		{
-			if(!bResult)
+			if (!bResult)
 			{
 				pPlayer->SendCS_GETITEM_ACK(pItem);
 
 				CTInven *pInven = pMON->FindTInven(INVEN_DEFAULT);
-				if(pInven)
-					pPlayer->SendCS_MONITEMLIST_ACK( MIL_SUCCESS, dwMonID, pMON->m_dwMoney, pInven, TRUE);
+				if (pInven)
+					pPlayer->SendCS_MONITEMLIST_ACK(MIL_SUCCESS, dwMonID, pMON->m_dwMoney, pInven, TRUE);
 
 				delete pItem;
 			}
 			else
 			{
 				pMON->AddItem(pItem);
-				if(pMON->m_dwInvenLock)
+				if (pMON->m_dwInvenLock)
 					ReviewMonItemList(pMON->m_dwInvenLock, pMON);
 			}
 		}
@@ -8053,13 +8188,14 @@ DWORD CTMapSvrModule::OnMW_ADDITEMRESULT_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_PARTYORDERTAKEITEM_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_PARTYORDERTAKEITEM_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	BYTE bServerID;
 	BYTE bChannel;
 	WORD wMapID;
 	DWORD dwMonID;
-	WORD wTempMonID;  	
+	WORD wTempMonID;
 
 	pBUF->m_packet
 		>> dwCharID
@@ -8068,15 +8204,15 @@ DWORD CTMapSvrModule::OnMW_PARTYORDERTAKEITEM_REQ(LPPACKETBUF pBUF)
 		>> bChannel
 		>> wMapID
 		>> dwMonID
-		>> wTempMonID;  
+		>> wTempMonID;
 
 	CTItem * pItem = CreateItem(&(pBUF->m_packet));
-	if(!pItem)
+	if (!pItem)
 		return EC_NOERROR;
-	
+
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKEY);
-	if(!pPlayer || 
+	if (!pPlayer ||
 		!pPlayer->m_bMain)
 	{
 		SendMW_ADDITEMRESULT_ACK(
@@ -8098,7 +8234,7 @@ DWORD CTMapSvrModule::OnMW_PARTYORDERTAKEITEM_REQ(LPPACKETBUF pBUF)
 	vItem.clear();
 	vItem.push_back(pItem);
 
-	if(pPlayer->CanPush(&vItem, 0))
+	if (pPlayer->CanPush(&vItem, 0))
 	{
 		CTItem logItem;
 		logItem.Copy(pItem, FALSE);
@@ -8112,7 +8248,7 @@ DWORD CTMapSvrModule::OnMW_PARTYORDERTAKEITEM_REQ(LPPACKETBUF pBUF)
 #ifdef DEF_UDPLOG
 		m_pUdpSocket->LogItemByMonster(LOGMAP_ITEMBYMONPARTY, pPlayer, wTempMonID, &logItem);
 #endif	//	DEF_UDPLOG
-		
+
 		SendMW_ADDITEMRESULT_ACK(
 			pPlayer->m_dwID,
 			pPlayer->m_dwKEY,
@@ -8157,6 +8293,7 @@ DWORD CTMapSvrModule::OnMW_PARTYORDERTAKEITEM_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_FRIENDLIST_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_FRIENDLIST_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	DWORD dwSoulID;
@@ -8172,38 +8309,38 @@ DWORD CTMapSvrModule::OnMW_FRIENDLIST_REQ(LPPACKETBUF pBUF)
 		>> dwKey
 		>> dwSoulID;
 
-	if(dwSoulID)
+	if (dwSoulID)
 		pBUF->m_packet
-			>> strSoulName
-			>> bSoulLevel
-			>> bSoulClass
-			>> bSoulConnected
-			>> dwSoulRegion;
+		>> strSoulName
+		>> bSoulLevel
+		>> bSoulClass
+		>> bSoulConnected
+		>> dwSoulRegion;
 
 	pBUF->m_packet
 		>> bCount;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(pPlayer)
+	if (pPlayer)
 	{
 		CPacket * pMsg = new CPacket();
 		(*pMsg)
 			<< dwSoulID;
 
-		if(dwSoulID)
+		if (dwSoulID)
 			(*pMsg)
-				<< strSoulName
-				<< bSoulLevel
-				<< bSoulClass
-				<< bSoulConnected
-				<< dwSoulRegion;
+			<< strSoulName
+			<< bSoulLevel
+			<< bSoulClass
+			<< bSoulConnected
+			<< dwSoulRegion;
 
 		(*pMsg)
 			<< bCount;
 
 		BYTE bGroup;
 		CString strGpName;
-		for(BYTE i=0; i<bCount; i++)
+		for (BYTE i = 0; i<bCount; i++)
 		{
 			pBUF->m_packet
 				>> bGroup
@@ -8227,7 +8364,7 @@ DWORD CTMapSvrModule::OnMW_FRIENDLIST_REQ(LPPACKETBUF pBUF)
 		BYTE bConnected;
 		DWORD dwRegion;
 
-		for(BYTE i=0; i<bCount; i++)
+		for (BYTE i = 0; i<bCount; i++)
 		{
 			pBUF->m_packet
 				>> dwFriendID
@@ -8253,6 +8390,7 @@ DWORD CTMapSvrModule::OnMW_FRIENDLIST_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnMW_FRIENDCONNECTION_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_FRIENDCONNECTION_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	BYTE bRet;
@@ -8267,13 +8405,14 @@ DWORD CTMapSvrModule::OnMW_FRIENDCONNECTION_REQ(LPPACKETBUF pBUF)
 		>> dwRegion;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(pPlayer)
+	if (pPlayer)
 		pPlayer->SendCS_FRIENDCONNECTION_ACK(bRet, strName, dwRegion);
 
 	return EC_NOERROR;
 }
 DWORD CTMapSvrModule::OnMW_FRIENDREGION_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_FRIENDREGION_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	CString strName;
@@ -8286,7 +8425,7 @@ DWORD CTMapSvrModule::OnMW_FRIENDREGION_REQ(LPPACKETBUF pBUF)
 		>> dwRegion;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKEY);
-	if(pPlayer)
+	if (pPlayer)
 		pPlayer->SendCS_FRIENDREGION_ACK(strName, dwRegion);
 
 	return EC_NOERROR;
@@ -8294,6 +8433,7 @@ DWORD CTMapSvrModule::OnMW_FRIENDREGION_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_FRIENDADD_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_FRIENDADD_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	BYTE bResult;
@@ -8316,7 +8456,7 @@ DWORD CTMapSvrModule::OnMW_FRIENDADD_REQ(LPPACKETBUF pBUF)
 		>> dwRegion;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(pPlayer)
+	if (pPlayer)
 		pPlayer->SendCS_FRIENDADD_ACK(
 			bResult,
 			dwFriendID,
@@ -8330,6 +8470,7 @@ DWORD CTMapSvrModule::OnMW_FRIENDADD_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnMW_FRIENDASK_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_FRIENDASK_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	CString strInviter;
@@ -8342,13 +8483,13 @@ DWORD CTMapSvrModule::OnMW_FRIENDASK_REQ(LPPACKETBUF pBUF)
 		>> dwInviter;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(pPlayer)
+	if (pPlayer)
 	{
 		// 차단검사
 		MAPTPROTECTED::iterator it;
-		for(it=pPlayer->m_mapTPROTECTED.begin(); it!=pPlayer->m_mapTPROTECTED.end(); it++)
+		for (it = pPlayer->m_mapTPROTECTED.begin(); it != pPlayer->m_mapTPROTECTED.end(); it++)
 		{
-			if((*it).second->m_strName == strInviter)
+			if ((*it).second->m_strName == strInviter)
 			{
 				SendMW_FRIENDPROTECTEDASK_ACK(dwCharID, dwKey, strInviter);
 				return EC_NOERROR;
@@ -8362,6 +8503,7 @@ DWORD CTMapSvrModule::OnMW_FRIENDASK_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnMW_FRIENDERASE_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_FRIENDERASE_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	BYTE bRet;
@@ -8374,13 +8516,14 @@ DWORD CTMapSvrModule::OnMW_FRIENDERASE_REQ(LPPACKETBUF pBUF)
 		>> dwTarget;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(pPlayer)
+	if (pPlayer)
 		pPlayer->SendCS_FRIENDERASE_ACK(bRet, dwTarget);
 
 	return EC_NOERROR;
 }
 DWORD CTMapSvrModule::OnMW_FRIENDGROUPMAKE_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_FRIENDGROUPMAKE_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	BYTE bRet;
@@ -8395,17 +8538,18 @@ DWORD CTMapSvrModule::OnMW_FRIENDGROUPMAKE_REQ(LPPACKETBUF pBUF)
 		>> strName;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(pPlayer)
+	if (pPlayer)
 		pPlayer->SendCS_FRIENDGROUPMAKE_ACK(bRet, bGroup, strName);
 
 	return EC_NOERROR;
 }
 DWORD CTMapSvrModule::OnMW_FRIENDGROUPDELETE_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_FRIENDGROUPDELETE_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	BYTE bRet;
-	BYTE bGroup;	
+	BYTE bGroup;
 
 	pBUF->m_packet
 		>> dwCharID
@@ -8414,13 +8558,14 @@ DWORD CTMapSvrModule::OnMW_FRIENDGROUPDELETE_REQ(LPPACKETBUF pBUF)
 		>> bGroup;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(pPlayer)
+	if (pPlayer)
 		pPlayer->SendCS_FRIENDGROUPDELETE_ACK(bRet, bGroup);
 
 	return EC_NOERROR;
 }
 DWORD CTMapSvrModule::OnMW_FRIENDGROUPCHANGE_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_FRIENDGROUPCHANGE_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	BYTE bRet;
@@ -8435,13 +8580,14 @@ DWORD CTMapSvrModule::OnMW_FRIENDGROUPCHANGE_REQ(LPPACKETBUF pBUF)
 		>> dwFriend;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(pPlayer)
+	if (pPlayer)
 		pPlayer->SendCS_FRIENDGROUPCHANGE_ACK(bRet, bGroup, dwFriend);
 
 	return EC_NOERROR;
 }
 DWORD CTMapSvrModule::OnMW_FRIENDGROUPNAME_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_FRIENDGROUPNAME_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	BYTE bRet;
@@ -8456,13 +8602,14 @@ DWORD CTMapSvrModule::OnMW_FRIENDGROUPNAME_REQ(LPPACKETBUF pBUF)
 		>> strName;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(pPlayer)
+	if (pPlayer)
 		pPlayer->SendCS_FRIENDGROUPNAME_ACK(bRet, bGroup, strName);
 
 	return EC_NOERROR;
 }
 DWORD CTMapSvrModule::OnMW_CHGPARTYCHIEF_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_CHGPARTYCHIEF_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	BYTE bRET;
@@ -8473,13 +8620,14 @@ DWORD CTMapSvrModule::OnMW_CHGPARTYCHIEF_REQ(LPPACKETBUF pBUF)
 		>> bRET;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(pPlayer)
+	if (pPlayer)
 		pPlayer->SendCS_CHGPARTYCHIEF_ACK(bRET);
 
 	return EC_NOERROR;
 }
 DWORD CTMapSvrModule::OnMW_CHGSQUADCHIEF_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_CHGSQUADCHIEF_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	WORD wSquadID;
@@ -8491,15 +8639,16 @@ DWORD CTMapSvrModule::OnMW_CHGSQUADCHIEF_REQ(LPPACKETBUF pBUF)
 		>> wSquadID
 		>> dwChiefID;
 
-	CTPlayer * pPlayer = FindPlayer( dwCharID, dwKey);
-	if(pPlayer)
-		pPlayer->SendCS_CHGSQUADCHIEF_ACK( wSquadID, dwChiefID);
+	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
+	if (pPlayer)
+		pPlayer->SendCS_CHGSQUADCHIEF_ACK(wSquadID, dwChiefID);
 
 	return EC_NOERROR;
 }
 
 DWORD CTMapSvrModule::OnMW_PARTYATTR_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_PARTYATTR_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 
@@ -8518,10 +8667,10 @@ DWORD CTMapSvrModule::OnMW_PARTYATTR_REQ(LPPACKETBUF pBUF)
 		>> wCommander;
 
 	WORD wPrevPartyID = 0;
-	CTPlayer *pPlayer = FindPlayer( dwCharID, dwKey);
-	if(pPlayer)
+	CTPlayer *pPlayer = FindPlayer(dwCharID, dwKey);
+	if (pPlayer)
 	{
-		if(!wPartyID)
+		if (!wPartyID)
 			ArenaLeave(pPlayer);
 
 		wPrevPartyID = pPlayer->m_wPartyID;
@@ -8533,11 +8682,11 @@ DWORD CTMapSvrModule::OnMW_PARTYATTR_REQ(LPPACKETBUF pBUF)
 	else
 		return EC_NOERROR;
 
-	if(pPlayer->m_bMain)
+	if (pPlayer->m_bMain)
 	{
 		pPlayer->SendCS_PARTYATTR_ACK(pPlayer->m_dwID, pPlayer->GetPartyID(), pPlayer->GetPartyChiefID(), pPlayer->GetCommanderID());
 
-		if(pPlayer->m_pMAP)
+		if (pPlayer->m_pMAP)
 		{
 			VPLAYER vPlayer;
 			vPlayer.clear();
@@ -8547,18 +8696,18 @@ DWORD CTMapSvrModule::OnMW_PARTYATTR_REQ(LPPACKETBUF pBUF)
 				pPlayer->m_fPosX,
 				pPlayer->m_fPosZ);
 
-			for( DWORD i=0; i<DWORD(vPlayer.size()); i++)
-				if(vPlayer[i]->m_dwID != pPlayer->m_dwID)
-					vPlayer[i]->SendCS_PARTYATTR_ACK( pPlayer->m_dwID, pPlayer->GetPartyID(), pPlayer->GetPartyChiefID(), pPlayer->GetCommanderID());
+			for (DWORD i = 0; i<DWORD(vPlayer.size()); i++)
+				if (vPlayer[i]->m_dwID != pPlayer->m_dwID)
+					vPlayer[i]->SendCS_PARTYATTR_ACK(pPlayer->m_dwID, pPlayer->GetPartyID(), pPlayer->GetPartyChiefID(), pPlayer->GetCommanderID());
 
 			vPlayer.clear();
 
-			if(wPrevPartyID && !wPartyID)
+			if (wPrevPartyID && !wPartyID)
 			{
-				if(pPlayer->m_pMAP->m_bType == MAP_INDUN)
+				if (pPlayer->m_pMAP->m_bType == MAP_INDUN)
 				{
 					WORD wSpawn = GetIndunOutPos(pPlayer->m_wMapID, pPlayer->GetWarCountry());
-					if(wSpawn)
+					if (wSpawn)
 						Teleport(pPlayer, wSpawn);
 				}
 			}
@@ -8570,6 +8719,7 @@ DWORD CTMapSvrModule::OnMW_PARTYATTR_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_POSTDEL_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_POSTDEL_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	DWORD dwPostID;
@@ -8581,14 +8731,14 @@ DWORD CTMapSvrModule::OnDM_POSTDEL_REQ(LPPACKETBUF pBUF)
 
 	LPPACKETBUF pMSG = new PACKETBUF();
 	DEFINE_QUERY(&m_db, CSPPostDelete)
-	query->m_dwCharID = dwCharID;
+		query->m_dwCharID = dwCharID;
 	query->m_dwPostID = dwPostID;
-	if(!query->Call() || query->m_nRet)
+	if (!query->Call() || query->m_nRet)
 		dwPostID = 0;
 
 	UNDEFINE_QUERY()
 
-	pMSG->m_packet.SetID(DM_POSTDEL_ACK)
+		pMSG->m_packet.SetID(DM_POSTDEL_ACK)
 		<< dwCharID
 		<< dwKey
 		<< dwPostID;
@@ -8600,6 +8750,7 @@ DWORD CTMapSvrModule::OnDM_POSTDEL_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_POSTDEL_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_POSTDEL_ACK");
 	DWORD dwCharID;
 	DWORD dwKey;
 	DWORD dwPostID;
@@ -8610,7 +8761,7 @@ DWORD CTMapSvrModule::OnDM_POSTDEL_ACK(LPPACKETBUF pBUF)
 		>> dwPostID;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(pPlayer)
+	if (pPlayer)
 		pPlayer->SendCS_POSTDEL_ACK(dwPostID);
 
 	return EC_NOERROR;
@@ -8618,6 +8769,7 @@ DWORD CTMapSvrModule::OnDM_POSTDEL_ACK(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_POSTLIST_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_POSTLIST_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	WORD wPage;
@@ -8635,11 +8787,11 @@ DWORD CTMapSvrModule::OnDM_POSTLIST_REQ(LPPACKETBUF pBUF)
 	DWORD dwBegin = 0;
 
 	DEFINE_QUERY(&m_db, CSPGetPostInfo)
-	query->m_dwCharID = dwCharID;
+		query->m_dwCharID = dwCharID;
 	query->m_wPage = wPage;
 	query->m_wTotalCount = 0;
 	query->m_wNotReadCount = 0;
-	if(query->Call())
+	if (query->Call())
 		dwBegin = query->m_dwBeginID;
 
 	pMsg->m_packet
@@ -8649,8 +8801,8 @@ DWORD CTMapSvrModule::OnDM_POSTLIST_REQ(LPPACKETBUF pBUF)
 
 	UNDEFINE_QUERY()
 
-	DEFINE_QUERY(&m_db, CTBLPostTable)
-	query->m_dwCharID = dwCharID;
+		DEFINE_QUERY(&m_db, CTBLPostTable)
+		query->m_dwCharID = dwCharID;
 	query->m_dwBeginID = dwBegin;
 
 	WORD wSize = pMsg->m_packet.GetSize();
@@ -8659,9 +8811,9 @@ DWORD CTMapSvrModule::OnDM_POSTLIST_REQ(LPPACKETBUF pBUF)
 	pMsg->m_packet
 		<< wCount;
 
-	if(query->Open())
+	if (query->Open())
 	{
-		while(query->Fetch())
+		while (query->Fetch())
 		{
 			pMsg->m_packet
 				<< query->m_dwPostID
@@ -8675,7 +8827,7 @@ DWORD CTMapSvrModule::OnDM_POSTLIST_REQ(LPPACKETBUF pBUF)
 
 			wCount++;
 		}
-		memcpy(pMsg->m_packet.GetBuffer()+wSize, &wCount, sizeof(wCount));
+		memcpy(pMsg->m_packet.GetBuffer() + wSize, &wCount, sizeof(wCount));
 		query->Close();
 	}
 	UNDEFINE_QUERY();
@@ -8686,6 +8838,7 @@ DWORD CTMapSvrModule::OnDM_POSTLIST_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnDM_POSTLIST_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_POSTLIST_ACK");
 	DWORD dwCharID;
 	DWORD dwKey;
 
@@ -8694,7 +8847,7 @@ DWORD CTMapSvrModule::OnDM_POSTLIST_ACK(LPPACKETBUF pBUF)
 		>> dwKey;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	WORD wPage;
@@ -8720,7 +8873,7 @@ DWORD CTMapSvrModule::OnDM_POSTLIST_ACK(LPPACKETBUF pBUF)
 	BYTE bType;
 	CString strTitle;
 
-	for(WORD i=0; i<wCount; i++)
+	for (WORD i = 0; i<wCount; i++)
 	{
 		pBUF->m_packet
 			>> dwPostID
@@ -8746,6 +8899,7 @@ DWORD CTMapSvrModule::OnDM_POSTLIST_ACK(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_POSTGETITEM_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_POSTGETITEM_REQ");
 	DWORD dwCharID;
 	DWORD dwPostID;
 
@@ -8754,7 +8908,7 @@ DWORD CTMapSvrModule::OnDM_POSTGETITEM_REQ(LPPACKETBUF pBUF)
 		>> dwPostID;
 
 	DEFINE_QUERY(&m_db, CSPPostGetItem)
-	query->m_dwCharID = dwCharID;
+		query->m_dwCharID = dwCharID;
 	query->m_dwPostID = dwPostID;
 	query->Call();
 	UNDEFINE_QUERY();
@@ -8764,6 +8918,7 @@ DWORD CTMapSvrModule::OnDM_POSTGETITEM_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_POSTRECV_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_POSTRECV_REQ");
 	DWORD dwPostID;
 	BYTE bType;
 	CString strTarget;
@@ -8779,7 +8934,7 @@ DWORD CTMapSvrModule::OnMW_POSTRECV_REQ(LPPACKETBUF pBUF)
 
 	CTPlayer * pRecver = FindPlayer(strTarget);
 
-	if(pRecver && pRecver->m_bMain)
+	if (pRecver && pRecver->m_bMain)
 	{
 		pRecver->SendCS_POSTRECV_ACK(
 			dwPostID,
@@ -8795,6 +8950,7 @@ DWORD CTMapSvrModule::OnMW_POSTRECV_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_POSTCANSEND_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_POSTCANSEND_REQ");
 	BYTE bRet;
 	DWORD dwSendID;
 	CString strSender;
@@ -8823,10 +8979,10 @@ DWORD CTMapSvrModule::OnDM_POSTCANSEND_REQ(LPPACKETBUF pBUF)
 
 	DWORD dwCharID = 0;
 	DEFINE_QUERY(&m_db, CSPPostCanSend)
-	lstrcpy(query->m_szName, strSender);
+		lstrcpy(query->m_szName, strSender);
 	lstrcpy(query->m_szTarget, strTarget);
 	query->m_bType = bType;
-	if(query->Call())
+	if (query->Call())
 	{
 		bRet = query->m_nRet;
 		dwCharID = query->m_dwCharID;
@@ -8836,7 +8992,7 @@ DWORD CTMapSvrModule::OnDM_POSTCANSEND_REQ(LPPACKETBUF pBUF)
 
 	UNDEFINE_QUERY()
 
-	LPPACKETBUF pMsg = new PACKETBUF();
+		LPPACKETBUF pMsg = new PACKETBUF();
 	pMsg->m_packet.SetID(DM_POSTCANSEND_ACK)
 		<< bRet
 		<< dwSendID
@@ -8859,6 +9015,7 @@ DWORD CTMapSvrModule::OnDM_POSTCANSEND_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_POSTCANSEND_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_POSTCANSEND_ACK");
 	BYTE bRet;
 	DWORD dwSendID;
 	DWORD dwCharID;
@@ -8889,10 +9046,10 @@ DWORD CTMapSvrModule::OnDM_POSTCANSEND_ACK(LPPACKETBUF pBUF)
 		>> bSlot;
 
 	CTPlayer * pSender = FindPlayer(strSender);
-	if(!pSender || !pSender->m_bMain)
+	if (!pSender || !pSender->m_bMain)
 		return EC_NOERROR;
 
-	if(bRet)
+	if (bRet)
 	{
 		pSender->SendCS_POSTSEND_ACK(bRet);
 		return EC_NOERROR;
@@ -8900,10 +9057,10 @@ DWORD CTMapSvrModule::OnDM_POSTCANSEND_ACK(LPPACKETBUF pBUF)
 
 	__int64 llMoney = GetPostMoney(bType);
 
-	if(bType != POST_BILLS)
+	if (bType != POST_BILLS)
 		llMoney += CalcMoney(dwGold, dwSilver, dwCooper);
 
-	if(!pSender->UseMoney(llMoney, FALSE))
+	if (!pSender->UseMoney(llMoney, FALSE))
 	{
 		pSender->SendCS_POSTSEND_ACK(POST_NEEDMONEY);
 		return EC_NOERROR;
@@ -8912,14 +9069,14 @@ DWORD CTMapSvrModule::OnDM_POSTCANSEND_ACK(LPPACKETBUF pBUF)
 	CTItem * pItem = NULL;
 	CTInven * pInven = NULL;
 
-	if(bInven != INVEN_NULL)
+	if (bInven != INVEN_NULL)
 	{
 		pInven = pSender->FindTInven(bInven);
 
-		if(pInven)
+		if (pInven)
 		{
 			pItem = pInven->FindTItem(bSlot);
-			if(!pItem)
+			if (!pItem)
 			{
 				pSender->SendCS_POSTSEND_ACK(POST_NEEDITEM);
 				return EC_NOERROR;
@@ -8931,20 +9088,20 @@ DWORD CTMapSvrModule::OnDM_POSTCANSEND_ACK(LPPACKETBUF pBUF)
 			pSender->SendCS_POSTSEND_ACK(POST_NEEDITEM);
 			return EC_NOERROR;
 		}
-		if(!pItem->CanDeal() ||
+		if (!pItem->CanDeal() ||
 			!(pItem->m_pTITEM->m_bIsSell & ITEMTRADE_CABINET))
 		{
 			pSender->SendCS_POSTSEND_ACK(POST_NOTDEAL);
 			return EC_NOERROR;
 		}
-		if(!pSender->CheckDealItem(bInven, bSlot))
+		if (!pSender->CheckDealItem(bInven, bSlot))
 		{
 			pSender->SendCS_POSTSEND_ACK(POST_NOTDEAL);
 			return EC_NOERROR;
 		}
 	}
 
-	if(bType == POST_BILLS && !pItem)
+	if (bType == POST_BILLS && !pItem)
 	{
 		pSender->SendCS_POSTSEND_ACK(POST_NEEDITEM);
 		return EC_NOERROR;
@@ -8963,7 +9120,7 @@ DWORD CTMapSvrModule::OnDM_POSTCANSEND_ACK(LPPACKETBUF pBUF)
 		dwCooper,
 		pItem);
 
-	if(pItem)
+	if (pItem)
 	{
 #ifdef	DEF_UDPLOG
 		m_pUdpSocket->LogItemTrade(LOGMAP_ITEMPOSTSEND, pSender, pItem, strTarget);
@@ -8977,10 +9134,10 @@ DWORD CTMapSvrModule::OnDM_POSTCANSEND_ACK(LPPACKETBUF pBUF)
 		delete pItem;
 	}
 
-	if(llMoney)
+	if (llMoney)
 	{
 #ifdef DEF_UDPLOG
-		m_pUdpSocket->LogMoneyTrade(LOGMAP_MONEYPOSTSEND, pSender, strTarget, -llMoney, -(int)GetPostMoney(bType) );
+		m_pUdpSocket->LogMoneyTrade(LOGMAP_MONEYPOSTSEND, pSender, strTarget, -llMoney, -(int)GetPostMoney(bType));
 #endif
 
 		pSender->UseMoney(llMoney, TRUE);
@@ -8994,6 +9151,7 @@ DWORD CTMapSvrModule::OnDM_POSTCANSEND_ACK(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_POSTRECV_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_POSTRECV_REQ");
 	DWORD dwSendID;
 	DWORD dwRecvID;
 	CString strTarget;
@@ -9023,7 +9181,7 @@ DWORD CTMapSvrModule::OnDM_POSTRECV_REQ(LPPACKETBUF pBUF)
 	DWORD dwMakeID = 0;
 	BYTE bRet = POST_SUCCESS;
 	DEFINE_QUERY(&m_db, CSPSavePost)
-	query->m_dwCharID = dwRecvID;
+		query->m_dwCharID = dwRecvID;
 	query->m_dwSendID = dwSendID;
 	lstrcpy(query->m_szTarget, strTarget);
 	lstrcpy(query->m_szSender, strSender);
@@ -9036,7 +9194,7 @@ DWORD CTMapSvrModule::OnDM_POSTRECV_REQ(LPPACKETBUF pBUF)
 	query->m_dwCooper = dwCooper;
 	__TIMETODB(m_timeCurrent, query->m_timeRecv);
 
-	if(query->Call())
+	if (query->Call())
 	{
 		dwMakeID = query->m_dwMakeID;
 		dwRecvID = query->m_dwRecvID;
@@ -9047,7 +9205,7 @@ DWORD CTMapSvrModule::OnDM_POSTRECV_REQ(LPPACKETBUF pBUF)
 
 	UNDEFINE_QUERY()
 
-	LPPACKETBUF pMsg = new PACKETBUF();
+		LPPACKETBUF pMsg = new PACKETBUF();
 	pMsg->m_packet.SetID(DM_POSTRECV_ACK)
 		<< bRet
 		<< dwMakeID
@@ -9063,10 +9221,10 @@ DWORD CTMapSvrModule::OnDM_POSTRECV_REQ(LPPACKETBUF pBUF)
 		<< dwCooper
 		<< bItemCnt;
 
-	for(BYTE i=0; i<bItemCnt; i++)
+	for (BYTE i = 0; i<bItemCnt; i++)
 	{
 		DEFINE_QUERY(&m_db, CSPSaveItemDirect)
-		query->m_bStorageType = STORAGE_POST;
+			query->m_bStorageType = STORAGE_POST;
 		query->m_dwStorageID = dwMakeID;
 		query->m_bOwnerType = TOWNER_CHAR;
 		query->m_dwOwnerID = dwRecvID;
@@ -9083,7 +9241,7 @@ DWORD CTMapSvrModule::OnDM_POSTRECV_REQ(LPPACKETBUF pBUF)
 			&(pMsg->m_packet),
 			query->m_item);
 
-		if(dwMakeID)
+		if (dwMakeID)
 			query->Call();
 
 		UNDEFINE_QUERY();
@@ -9096,6 +9254,7 @@ DWORD CTMapSvrModule::OnDM_POSTRECV_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_POSTRECV_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_POSTRECV_ACK");
 	BYTE bRet;
 	DWORD dwPostID;
 	DWORD dwSendID;
@@ -9129,33 +9288,33 @@ DWORD CTMapSvrModule::OnDM_POSTRECV_ACK(LPPACKETBUF pBUF)
 	VTITEM vItem;
 	vItem.clear();
 
-	for(BYTE i=0; i<bItemCnt; i++)
+	for (BYTE i = 0; i<bItemCnt; i++)
 	{
 		pBUF->m_packet
 			>> bInven;
 
 		CTItem *pTITEM = CreateItem(&(pBUF->m_packet));
 
-		if(pTITEM)
+		if (pTITEM)
 			vItem.push_back(pTITEM);
 	}
 
 	CTPlayer * pSender = FindPlayer(strSender);
-	if(bRet)
+	if (bRet)
 	{
-		if(pSender && pSender->m_bMain)
+		if (pSender && pSender->m_bMain)
 		{
-			for(BYTE i=0; i<bItemCnt; i++)
+			for (BYTE i = 0; i<bItemCnt; i++)
 				SetItemAttr(vItem[i], vItem[i]->m_bLevel);
 
-			if(pSender->CanPush(&vItem, 0))
+			if (pSender->CanPush(&vItem, 0))
 			{
 				pSender->PushTItem(&vItem);
 				pSender->SendCS_MOVEITEM_ACK(MI_SUCCESS);
 			}
 			else
 			{
-				while(!vItem.empty())
+				while (!vItem.empty())
 				{
 					delete vItem.back();
 					vItem.pop_back();
@@ -9170,17 +9329,17 @@ DWORD CTMapSvrModule::OnDM_POSTRECV_ACK(LPPACKETBUF pBUF)
 		return EC_NOERROR;
 	}
 
-	if(pSender && pSender->m_bMain)
+	if (pSender && pSender->m_bMain)
 	{
-		if(!vItem.empty())
+		if (!vItem.empty())
 			SendDM_SAVEITEM_REQ(pSender);
 
-		if(bType == POST_BILLS)
+		if (bType == POST_BILLS)
 			SendSM_POSTBILL_REQ(pSender->m_dwID, dwPostID, m_timeCurrent + POST_DURATION);
 	}
 
 	CTPlayer * pRecver = FindPlayer(strTarget);
-	if(pRecver && pRecver->m_bMain)
+	if (pRecver && pRecver->m_bMain)
 	{
 		pRecver->SendCS_POSTRECV_ACK(
 			dwPostID,
@@ -9200,7 +9359,7 @@ DWORD CTMapSvrModule::OnDM_POSTRECV_ACK(LPPACKETBUF pBUF)
 			bType);
 	}
 
-	while(!vItem.empty())
+	while (!vItem.empty())
 	{
 		delete vItem.back();
 		vItem.pop_back();
@@ -9213,19 +9372,21 @@ DWORD CTMapSvrModule::OnDM_POSTRECV_ACK(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_CHARSTATINFO_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_CHARSTATINFO_REQ");
 	DWORD dwCharID;
 
 	pBUF->m_packet
 		>> dwCharID;
 
 	MAPPLAYER::iterator it = m_mapPLAYER.find(dwCharID);
-	if(it!=m_mapPLAYER.end())
+	if (it != m_mapPLAYER.end())
 		(*it).second->SendCS_CHARSTATINFO_ACK(&(pBUF->m_packet));
 
 	return EC_NOERROR;
 }
 DWORD CTMapSvrModule::OnMW_CHARSTATINFOANS_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_CHARSTATINFOANS_REQ");
 	DWORD dwReqCharID;
 	DWORD dwCharID;
 	pBUF->m_packet
@@ -9233,14 +9394,15 @@ DWORD CTMapSvrModule::OnMW_CHARSTATINFOANS_REQ(LPPACKETBUF pBUF)
 		>> dwCharID;
 
 	MAPPLAYER::iterator it = m_mapPLAYER.find(dwCharID);
-	if(it!=m_mapPLAYER.end() &&
-		(*it).second->m_bMain )
+	if (it != m_mapPLAYER.end() &&
+		(*it).second->m_bMain)
 		SendMW_CHARSTATINFOANS_ACK(dwReqCharID, (*it).second);
 
 	return EC_NOERROR;
 }
 DWORD CTMapSvrModule::OnMW_LOCALENABLE_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_LOCALENABLE_REQ");
 	static int bCurStatus = BS_NORMAL;
 
 	BYTE bStatus;
@@ -9256,40 +9418,40 @@ DWORD CTMapSvrModule::OnMW_LOCALENABLE_REQ(LPPACKETBUF pBUF)
 		>> bCastleDay
 		>> dwCastleStart;
 
-	for(DWORD ll=0; ll<m_vOccupation.size(); ll++)
+	for (DWORD ll = 0; ll<m_vOccupation.size(); ll++)
 	{
 		LPTLOCAL pLocal = m_vOccupation[ll];
 
-		if(dwLocalStart)
+		if (dwLocalStart)
 		{
 			CTime curtime = CTime::GetCurrentTime().GetTime();
 			INT nCH = curtime.GetHour();
 			INT nCM = curtime.GetMinute();
 			INT nCS = curtime.GetSecond();
 			INT nCD = curtime.GetDayOfWeek();
-			DWORD dwCLT = nCH*60*60+nCM*60+nCS;
-			if(dwCLT > dwLocalStart)
+			DWORD dwCLT = nCH * 60 * 60 + nCM * 60 + nCS;
+			if (dwCLT > dwLocalStart)
 				pLocal->m_timeNextDefend = curtime.GetTime() + (DAY_ONE - dwCLT) + dwLocalStart;
 			else
 				pLocal->m_timeNextDefend = curtime.GetTime() + (dwLocalStart - dwCLT);
 		}
 
-		if(bCastleDay)
+		if (bCastleDay)
 		{
 			CTime curtime = CTime::GetCurrentTime().GetTime();
 			INT nCH = curtime.GetHour();
 			INT nCM = curtime.GetMinute();
 			INT nCS = curtime.GetSecond();
 			INT nCD = curtime.GetDayOfWeek();
-			DWORD dwCLT = nCH*60*60+nCM*60+nCS;
+			DWORD dwCLT = nCH * 60 * 60 + nCM * 60 + nCS;
 
 			LPTLOCAL pCastle = FindCastle(pLocal->m_pZone->m_wCastle);
-			if(pCastle)
+			if (pCastle)
 			{
 				pCastle->m_bDay = bCastleDay;
-				DWORD dwStart = (pCastle->m_bDay-1) * DAY_ONE + dwCastleStart;
-				DWORD dwCSW = (nCD-1) * DAY_ONE + dwCLT;
-				if(dwCSW > dwStart)
+				DWORD dwStart = (pCastle->m_bDay - 1) * DAY_ONE + dwCastleStart;
+				DWORD dwCSW = (nCD - 1) * DAY_ONE + dwCLT;
+				if (dwCSW > dwStart)
 					pCastle->m_timeNextDefend = curtime.GetTime() + (WEEK_ONE - dwCSW) + dwStart;
 				else
 					pCastle->m_timeNextDefend = curtime.GetTime() + (dwStart - dwCSW);
@@ -9297,116 +9459,116 @@ DWORD CTMapSvrModule::OnMW_LOCALENABLE_REQ(LPPACKETBUF pBUF)
 				CTime local(pLocal->m_timeNextDefend);
 				CTime castle(pCastle->m_timeNextDefend);
 
-				if(local.GetDay() == castle.GetDay())
+				if (local.GetDay() == castle.GetDay())
 					pLocal->m_timeNextDefend += DAY_ONE;
 			}
 		}
 
-		if(!pLocal->m_pZone ||
+		if (!pLocal->m_pZone ||
 			!pLocal->m_bValid ||
 			pLocal->m_bStatus == bStatus)
 			continue;
 
 		pLocal->m_bStatus = bStatus;
 
-		switch(bStatus)
+		switch (bStatus)
 		{
 		case BS_NORMAL:
-			{
-				pLocal->m_bCanBattle = TRUE;
+		{
+			pLocal->m_bCanBattle = TRUE;
 
-				CTMap *pMap = FindTMap( DEFAULT_CHANNEL, 0, pLocal->m_pZone->m_wMapID);
-				if(pMap)
-				{
-					DelMonSpawn(pMap, pLocal->m_pZone->m_wBossSpawnID);
-					DelMonSpawn(pMap, pLocal->m_pZone->m_wLGateKeeperSpawnID);
-					DelMonSpawn(pMap, pLocal->m_pZone->m_wRGateKeeperSpawnID);
-				}
+			CTMap *pMap = FindTMap(DEFAULT_CHANNEL, 0, pLocal->m_pZone->m_wMapID);
+			if (pMap)
+			{
+				DelMonSpawn(pMap, pLocal->m_pZone->m_wBossSpawnID);
+				DelMonSpawn(pMap, pLocal->m_pZone->m_wLGateKeeperSpawnID);
+				DelMonSpawn(pMap, pLocal->m_pZone->m_wRGateKeeperSpawnID);
 			}
-			break;
+		}
+		break;
 		case BS_BATTLE:
+		{
+			pLocal->m_bCanBattle = TRUE;
+			pLocal->m_mapTRecord.clear();
+
+			CTMap *pMap = FindTMap(DEFAULT_CHANNEL, 0, pLocal->m_pZone->m_wMapID);
+
+			if (pMap)
 			{
-				pLocal->m_bCanBattle = TRUE;
-				pLocal->m_mapTRecord.clear();
+				pLocal->m_bGateOpened = FALSE;
+				ChangeSwitch(pMap, pLocal->m_pZone->m_dwLSwitchID, SWC_CLOSE);
+				ChangeSwitch(pMap, pLocal->m_pZone->m_dwRSwitchID, SWC_CLOSE);
 
-				CTMap *pMap = FindTMap( DEFAULT_CHANNEL, 0, pLocal->m_pZone->m_wMapID);
+				AddMonSpawn(pMap, pLocal->m_pZone->m_wLGateKeeperSpawnID, MONSPAWN_SUSPEND);
+				AddMonSpawn(pMap, pLocal->m_pZone->m_wRGateKeeperSpawnID, MONSPAWN_SUSPEND);
 
-				if(pMap)
+				for (DWORD i = 0; i<pLocal->m_pZone->m_vSpawnID.size(); i++)
 				{
-					pLocal->m_bGateOpened = FALSE;
-					ChangeSwitch( pMap, pLocal->m_pZone->m_dwLSwitchID, SWC_CLOSE);
-					ChangeSwitch( pMap, pLocal->m_pZone->m_dwRSwitchID, SWC_CLOSE);
+					MAPTMONSPAWN::iterator it = pMap->m_mapTMONSPAWN.find(pLocal->m_pZone->m_vSpawnID[i]);
 
-					AddMonSpawn(pMap, pLocal->m_pZone->m_wLGateKeeperSpawnID, MONSPAWN_SUSPEND);
-					AddMonSpawn(pMap, pLocal->m_pZone->m_wRGateKeeperSpawnID, MONSPAWN_SUSPEND);
-
-					for( DWORD i=0; i<pLocal->m_pZone->m_vSpawnID.size(); i++)
+					if (it != pMap->m_mapTMONSPAWN.end())
 					{
-						MAPTMONSPAWN::iterator it = pMap->m_mapTMONSPAWN.find(pLocal->m_pZone->m_vSpawnID[i]);
-
-						if(it!=pMap->m_mapTMONSPAWN.end())
-						{
-							CTMonSpawn *pSpawn = (*it).second;
-							pSpawn->m_bStatus = MONSPAWN_SUSPEND;
-						}
+						CTMonSpawn *pSpawn = (*it).second;
+						pSpawn->m_bStatus = MONSPAWN_SUSPEND;
 					}
 				}
 			}
-			break;
+		}
+		break;
 		case BS_PEACE:
+		{
+			if (!pLocal->m_bOccupied)
+				SendDM_LOCALOCCUPY_REQ(
+					pLocal->m_wLocal,
+					OCCUPY_DEFEND, 0, 0);
+
+			pLocal->m_bOccupied = FALSE;
+			pLocal->m_bCanBattle = FALSE;
+
+			CTMap *pMap = FindTMap(DEFAULT_CHANNEL, 0, pLocal->m_pZone->m_wMapID);
+
+			if (pMap)
 			{
-				if(!pLocal->m_bOccupied)
-					SendDM_LOCALOCCUPY_REQ(
-						pLocal->m_wLocal,
-						OCCUPY_DEFEND, 0, 0);
+				pLocal->m_bGateOpened = TRUE;
+				ChangeSwitch(pMap, pLocal->m_pZone->m_dwLSwitchID, SWC_OPEN);
+				ChangeSwitch(pMap, pLocal->m_pZone->m_dwRSwitchID, SWC_OPEN);
 
-				pLocal->m_bOccupied = FALSE;
-				pLocal->m_bCanBattle = FALSE;
-
-				CTMap *pMap = FindTMap(DEFAULT_CHANNEL, 0, pLocal->m_pZone->m_wMapID);
-
-				if(pMap)
+				for (DWORD i = 0; i<pLocal->m_pZone->m_vSpawnID.size(); i++)
 				{
-					pLocal->m_bGateOpened = TRUE;
-					ChangeSwitch( pMap, pLocal->m_pZone->m_dwLSwitchID, SWC_OPEN);
-					ChangeSwitch( pMap, pLocal->m_pZone->m_dwRSwitchID, SWC_OPEN);
+					MAPTMONSPAWN::iterator it = pMap->m_mapTMONSPAWN.find(pLocal->m_pZone->m_vSpawnID[i]);
 
-					for(DWORD i=0; i<pLocal->m_pZone->m_vSpawnID.size(); i++)
+					if (it != pMap->m_mapTMONSPAWN.end())
 					{
-						MAPTMONSPAWN::iterator it = pMap->m_mapTMONSPAWN.find(pLocal->m_pZone->m_vSpawnID[i]);
-
-						if(it!=pMap->m_mapTMONSPAWN.end())
+						(*it).second->m_bStatus = MONSPAWN_READY;
+						for (DWORD j = 0; j<(*it).second->m_vTMON.size(); j++)
 						{
-							(*it).second->m_bStatus = MONSPAWN_READY;
-							for(DWORD j=0; j<(*it).second->m_vTMON.size(); j++)
-							{
-								(*it).second->m_vTMON[j]->OnEvent( AT_DEAD, 0, 0, 0, 0);
-							}
+							(*it).second->m_vTMON[j]->OnEvent(AT_DEAD, 0, 0, 0, 0);
 						}
 					}
 				}
 			}
-			break;
+		}
+		break;
 		}
 	}
 
 	BYTE bType = SM_NONE;
-	switch(bStatus)
+	switch (bStatus)
 	{
 	case BS_NORMAL:
-		if(bCurStatus == BS_NORMAL)
+		if (bCurStatus == BS_NORMAL)
 			bType = SM_BATTLE_START_ALARM;
 		else if (bCurStatus == BS_PEACE)
 			bType = SM_BATTLE_NORMAL;
 		break;
 	case BS_BATTLE:
-		if(bCurStatus == BS_BATTLE)
+		if (bCurStatus == BS_BATTLE)
 			bType = SM_BATTLE_END_ALARM;
-		else if(bCurStatus == BS_NORMAL)
+		else if (bCurStatus == BS_NORMAL)
 			bType = SM_BATTLE_START;
 		break;
 	case BS_PEACE:
-		if(bCurStatus == BS_BATTLE)
+		if (bCurStatus == BS_BATTLE)
 		{
 			bType = SM_BATTLE_PEACE;
 			LocalReward();
@@ -9420,20 +9582,20 @@ DWORD CTMapSvrModule::OnMW_LOCALENABLE_REQ(LPPACKETBUF pBUF)
 
 	bCurStatus = bStatus;
 
-	if(bCastleDay)
+	if (bCastleDay)
 	{
 		BYTE bSent = FALSE;
-		for(DWORD ll=0; ll<m_vCastle.size(); ll++)
+		for (DWORD ll = 0; ll<m_vCastle.size(); ll++)
 		{
 			LPTLOCAL pCastle = m_vCastle[ll];
-			if(pCastle->m_bValid)
+			if (pCastle->m_bValid)
 			{
 				SendMW_CASTLEWARINFO_ACK(pCastle);
 				bSent = TRUE;
 			}
 		}
 
-		if(!bSent)
+		if (!bSent)
 			SendMW_CASTLEWARINFO_ACK(NULL);
 	}
 
@@ -9442,6 +9604,7 @@ DWORD CTMapSvrModule::OnMW_LOCALENABLE_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_LOCALOCCUPY_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_LOCALOCCUPY_REQ");
 	DWORD dwGuildID;
 	WORD wLocalID;
 
@@ -9457,9 +9620,9 @@ DWORD CTMapSvrModule::OnMW_LOCALOCCUPY_REQ(LPPACKETBUF pBUF)
 		>> strGuildName;
 
 	LPTLOCAL pLocal = FindOccupation(wLocalID);
-	if(pLocal)
+	if (pLocal)
 	{
-		if(bType == OCCUPY_ACCEPT)
+		if (bType == OCCUPY_ACCEPT)
 			NotifyLocalInfo(
 				SM_BATTLE_BOSSDIE,
 				bCountry,
@@ -9467,18 +9630,19 @@ DWORD CTMapSvrModule::OnMW_LOCALOCCUPY_REQ(LPPACKETBUF pBUF)
 				pLocal->m_pZone->m_strName,
 				strGuildName);
 
-		ResetLocal( pLocal, bCountry, dwGuildID, strGuildName, bType);
+		ResetLocal(pLocal, bCountry, dwGuildID, strGuildName, bType);
 	}
 
 	MAPPLAYER::iterator it;
-	for( it = m_mapPLAYER.begin(); it != m_mapPLAYER.end(); it++)
-		(*it).second->SendCS_LOCALOCCUPY_ACK( bType, wLocalID, bCountry, dwGuildID);
+	for (it = m_mapPLAYER.begin(); it != m_mapPLAYER.end(); it++)
+		(*it).second->SendCS_LOCALOCCUPY_ACK(bType, wLocalID, bCountry, dwGuildID);
 
 	return EC_NOERROR;
 }
 
 DWORD CTMapSvrModule::OnMW_MISSIONOCCUPY_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_MISSIONOCCUPY_REQ");
 	WORD wLocalID;
 	BYTE bCountry;
 	BYTE bType;
@@ -9489,7 +9653,7 @@ DWORD CTMapSvrModule::OnMW_MISSIONOCCUPY_REQ(LPPACKETBUF pBUF)
 		>> bCountry;
 
 	LPTLOCAL pLocal = FindMission(wLocalID);
-	if(pLocal)
+	if (pLocal)
 	{
 		NotifyLocalInfo(
 			bType == OCCUPY_ACCEPT ? SM_MISSION_BOSSDIE : SM_MISSION_TIMEOUT,
@@ -9497,7 +9661,7 @@ DWORD CTMapSvrModule::OnMW_MISSIONOCCUPY_REQ(LPPACKETBUF pBUF)
 			pLocal->m_pZone->m_wMapID,
 			pLocal->m_pZone->m_strName);
 
-		ResetMission( pLocal, bCountry, bType);
+		ResetMission(pLocal, bCountry, bType);
 	}
 
 	return EC_NOERROR;
@@ -9505,6 +9669,7 @@ DWORD CTMapSvrModule::OnMW_MISSIONOCCUPY_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_CASTLEOCCUPY_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_CASTLEOCCUPY_REQ");
 	BYTE bType;
 	BYTE bCountry;
 	WORD wCastleID;
@@ -9520,10 +9685,10 @@ DWORD CTMapSvrModule::OnMW_CASTLEOCCUPY_REQ(LPPACKETBUF pBUF)
 		>> strGuildName;
 
 	LPTLOCAL pCastle = FindCastle(wCastleID);
-	if(!pCastle)
+	if (!pCastle)
 		return EC_NOERROR;
 
-	if(pCastle->m_dwGuild != dwGuildID)
+	if (pCastle->m_dwGuild != dwGuildID)
 	{
 		pCastle->m_strHero = NAME_NULL;
 		pCastle->m_timeHero = 0;
@@ -9549,20 +9714,20 @@ DWORD CTMapSvrModule::OnMW_CASTLEOCCUPY_REQ(LPPACKETBUF pBUF)
 	pCastle->m_vTop3[TCONTRY_C].clear();
 
 	MAPTLOCAL::iterator itLo;
-	for(itLo = pCastle->m_mapLocal.begin(); itLo != pCastle->m_mapLocal.end(); itLo++)
+	for (itLo = pCastle->m_mapLocal.begin(); itLo != pCastle->m_mapLocal.end(); itLo++)
 	{
 		memset((*itLo).second->m_occupyGuild, 0, sizeof((*itLo).second->m_occupyGuild));
 		memset((*itLo).second->m_occupyType, 0, sizeof((*itLo).second->m_occupyType));
 	}
 
 	MAPPLAYER::iterator it;
-	for(it=m_mapPLAYER.begin(); it!=m_mapPLAYER.end(); it++)
+	for (it = m_mapPLAYER.begin(); it != m_mapPLAYER.end(); it++)
 	{
 		CTPlayer * pChar = (*it).second;
-		if(pChar->m_bMain)
+		if (pChar->m_bMain)
 		{
-			if(bType == OCCUPY_ACCEPT && CheckMapGuild(pChar))
-				Teleport( pChar, pChar->m_wLastSpawnID);
+			if (bType == OCCUPY_ACCEPT && CheckMapGuild(pChar))
+				Teleport(pChar, pChar->m_wLastSpawnID);
 		}
 	}
 
@@ -9573,12 +9738,12 @@ DWORD CTMapSvrModule::OnMW_CASTLEOCCUPY_REQ(LPPACKETBUF pBUF)
 		pCastle->m_pZone->m_strName,
 		strGuildName);
 
-	if(!pCastle->m_bValid)
+	if (!pCastle->m_bValid)
 		return EC_NOERROR;
 
 	PvPEvent(PVPE_ENTRY, pCastle, 0);
 
-	if(dwPrevGuildID != dwGuildID)
+	if (dwPrevGuildID != dwGuildID)
 		PvPEvent(PVPE_WIN, pCastle, dwPrevGuildID);
 	else
 		PvPEvent(PVPE_DEFEND, pCastle, dwPrevGuildID);
@@ -9589,6 +9754,7 @@ DWORD CTMapSvrModule::OnMW_CASTLEOCCUPY_REQ(LPPACKETBUF pBUF)
 #ifdef SKYGARDEN
 DWORD CTMapSvrModule::OnMW_SKYGARDENOCCUPY_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_SKYGARDENOCCUPY_REQ");
 	BYTE bType;
 	BYTE bCountry;
 	WORD wSkyGardenID;
@@ -9599,7 +9765,7 @@ DWORD CTMapSvrModule::OnMW_SKYGARDENOCCUPY_REQ(LPPACKETBUF pBUF)
 		>> bCountry;
 
 	LPTLOCAL pSkyGarden = FindSkygarden(wSkyGardenID);
-	if(!pSkyGarden)
+	if (!pSkyGarden)
 		return EC_NOERROR;
 
 	pSkyGarden->m_dwGuild = 0;
@@ -9628,14 +9794,14 @@ DWORD CTMapSvrModule::OnMW_SKYGARDENOCCUPY_REQ(LPPACKETBUF pBUF)
 
 	CTMap * pMap = FindTMap(DEFAULT_CHANNEL, 0, pSkyGarden->m_pZone->m_wMapID);
 
-	if(pMap)
+	if (pMap)
 	{
-		for( DWORD i=0; i<pSkyGarden->m_pZone->m_vSpawnID.size(); i++)
+		for (DWORD i = 0; i<pSkyGarden->m_pZone->m_vSpawnID.size(); i++)
 			DelMonSpawn(pMap, pSkyGarden->m_pZone->m_vSpawnID[i]);
 
-		ChangeSwitch( pMap, pSkyGarden->m_pZone->m_dwLSwitchID, SWC_OPEN);
-		ChangeSwitch( pMap, pSkyGarden->m_pZone->m_dwRSwitchID, SWC_OPEN);
-		ChangeSwitch( pMap, pSkyGarden->m_pZone->m_dwCSwitchID, SWC_OPEN);
+		ChangeSwitch(pMap, pSkyGarden->m_pZone->m_dwLSwitchID, SWC_OPEN);
+		ChangeSwitch(pMap, pSkyGarden->m_pZone->m_dwRSwitchID, SWC_OPEN);
+		ChangeSwitch(pMap, pSkyGarden->m_pZone->m_dwCSwitchID, SWC_OPEN);
 	}
 
 	NotifyLocalInfo(
@@ -9653,6 +9819,7 @@ DWORD CTMapSvrModule::OnMW_SKYGARDENOCCUPY_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_CHGCORPSCOMMANDER_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_CHGCORPSCOMMANDER_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	BYTE bRET;
@@ -9663,7 +9830,7 @@ DWORD CTMapSvrModule::OnMW_CHGCORPSCOMMANDER_REQ(LPPACKETBUF pBUF)
 		>> bRET;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	pPlayer->SendCS_CHGCORPSCOMMANDER_ACK(bRET);
@@ -9673,6 +9840,7 @@ DWORD CTMapSvrModule::OnMW_CHGCORPSCOMMANDER_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_CORPSASK_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_CORPSASK_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	DWORD dwAskID;
@@ -9685,10 +9853,10 @@ DWORD CTMapSvrModule::OnMW_CORPSASK_REQ(LPPACKETBUF pBUF)
 		>> strAskName;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
-	if(!pPlayer->CheckProtected(dwAskID, PROTECTED_INVITE))
+	if (!pPlayer->CheckProtected(dwAskID, PROTECTED_INVITE))
 		return EC_NOERROR;
 
 	pPlayer->SendCS_CORPSASK_ACK(strAskName);
@@ -9698,6 +9866,7 @@ DWORD CTMapSvrModule::OnMW_CORPSASK_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_CORPSREPLY_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_CORPSREPLY_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	BYTE bResult;
@@ -9710,7 +9879,7 @@ DWORD CTMapSvrModule::OnMW_CORPSREPLY_REQ(LPPACKETBUF pBUF)
 		>> strAskName;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	pPlayer->SendCS_CORPSREPLY_ACK(bResult, strAskName);
@@ -9720,6 +9889,7 @@ DWORD CTMapSvrModule::OnMW_CORPSREPLY_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_CORPSJOIN_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_CORPSJOIN_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	WORD wCorpsID;
@@ -9732,7 +9902,7 @@ DWORD CTMapSvrModule::OnMW_CORPSJOIN_REQ(LPPACKETBUF pBUF)
 		>> wCommander;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	pPlayer->m_wCommanderID = wCommander;
@@ -9745,6 +9915,7 @@ DWORD CTMapSvrModule::OnMW_CORPSJOIN_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_ADDSQUAD_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_ADDSQUAD_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 
@@ -9753,7 +9924,7 @@ DWORD CTMapSvrModule::OnMW_ADDSQUAD_REQ(LPPACKETBUF pBUF)
 		>> dwKey;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	pPlayer->SendCS_ADDSQUAD_ACK(&pBUF->m_packet);
@@ -9763,6 +9934,7 @@ DWORD CTMapSvrModule::OnMW_ADDSQUAD_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_DELSQUAD_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_DELSQUAD_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	WORD wSquad;
@@ -9773,7 +9945,7 @@ DWORD CTMapSvrModule::OnMW_DELSQUAD_REQ(LPPACKETBUF pBUF)
 		>> wSquad;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	pPlayer->SendCS_DELSQUAD_ACK(wSquad);
@@ -9783,6 +9955,7 @@ DWORD CTMapSvrModule::OnMW_DELSQUAD_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_DELCORPSUNIT_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_DELCORPSUNIT_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	WORD wSquad;
@@ -9795,7 +9968,7 @@ DWORD CTMapSvrModule::OnMW_DELCORPSUNIT_REQ(LPPACKETBUF pBUF)
 		>> dwTarget;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	pPlayer->SendCS_DELCORPSUNIT_ACK(wSquad, dwTarget);
@@ -9805,6 +9978,7 @@ DWORD CTMapSvrModule::OnMW_DELCORPSUNIT_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_ADDCORPSUNIT_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_ADDCORPSUNIT_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 
@@ -9813,7 +9987,7 @@ DWORD CTMapSvrModule::OnMW_ADDCORPSUNIT_REQ(LPPACKETBUF pBUF)
 		>> dwKey;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	pPlayer->SendCS_ADDCORPSUNIT_ACK(&pBUF->m_packet);
@@ -9823,6 +9997,7 @@ DWORD CTMapSvrModule::OnMW_ADDCORPSUNIT_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_CORPSCMD_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_CORPSCMD_REQ");
 	DWORD dwMemberID;
 	DWORD dwKey;
 	WORD wSquadID;
@@ -9839,7 +10014,7 @@ DWORD CTMapSvrModule::OnMW_CORPSCMD_REQ(LPPACKETBUF pBUF)
 		>> dwKey;
 
 	CTPlayer * pPlayer = FindPlayer(dwMemberID, dwKey);
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	pBUF->m_packet
@@ -9867,6 +10042,7 @@ DWORD CTMapSvrModule::OnMW_CORPSCMD_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_CORPSENEMYLIST_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_CORPSENEMYLIST_REQ");
 	DWORD dwKey;
 	DWORD dwCharID;
 
@@ -9875,7 +10051,7 @@ DWORD CTMapSvrModule::OnMW_CORPSENEMYLIST_REQ(LPPACKETBUF pBUF)
 		>> dwKey;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(pPlayer)
+	if (pPlayer)
 		pPlayer->SendCS_CORPSENEMYLIST_ACK(&pBUF->m_packet);
 
 	return EC_NOERROR;
@@ -9883,6 +10059,7 @@ DWORD CTMapSvrModule::OnMW_CORPSENEMYLIST_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_MOVECORPSENEMY_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_MOVECORPSENEMY_REQ");
 	DWORD dwKey;
 	DWORD dwCharID;
 
@@ -9891,7 +10068,7 @@ DWORD CTMapSvrModule::OnMW_MOVECORPSENEMY_REQ(LPPACKETBUF pBUF)
 		>> dwKey;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(pPlayer)
+	if (pPlayer)
 		pPlayer->SendCS_MOVECORPSENEMY_ACK(&pBUF->m_packet);
 
 	return EC_NOERROR;
@@ -9899,6 +10076,7 @@ DWORD CTMapSvrModule::OnMW_MOVECORPSENEMY_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_MOVECORPSUNIT_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_MOVECORPSUNIT_REQ");
 	DWORD dwKey;
 	DWORD dwCharID;
 
@@ -9907,7 +10085,7 @@ DWORD CTMapSvrModule::OnMW_MOVECORPSUNIT_REQ(LPPACKETBUF pBUF)
 		>> dwKey;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(pPlayer)
+	if (pPlayer)
 		pPlayer->SendCS_MOVECORPSUNIT_ACK(&pBUF->m_packet);
 
 	return EC_NOERROR;
@@ -9915,6 +10093,7 @@ DWORD CTMapSvrModule::OnMW_MOVECORPSUNIT_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_ADDCORPSENEMY_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_ADDCORPSENEMY_REQ");
 	DWORD dwKey;
 	DWORD dwCharID;
 
@@ -9923,7 +10102,7 @@ DWORD CTMapSvrModule::OnMW_ADDCORPSENEMY_REQ(LPPACKETBUF pBUF)
 		>> dwKey;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(pPlayer)
+	if (pPlayer)
 		pPlayer->SendCS_ADDCORPSENEMY_ACK(&pBUF->m_packet);
 
 	return EC_NOERROR;
@@ -9931,6 +10110,7 @@ DWORD CTMapSvrModule::OnMW_ADDCORPSENEMY_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_DELCORPSENEMY_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_DELCORPSENEMY_REQ");
 	DWORD dwKey;
 	DWORD dwCharID;
 
@@ -9939,7 +10119,7 @@ DWORD CTMapSvrModule::OnMW_DELCORPSENEMY_REQ(LPPACKETBUF pBUF)
 		>> dwKey;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(pPlayer)
+	if (pPlayer)
 		pPlayer->SendCS_DELCORPSENEMY_ACK(&pBUF->m_packet);
 
 	return EC_NOERROR;
@@ -9947,6 +10127,7 @@ DWORD CTMapSvrModule::OnMW_DELCORPSENEMY_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_CORPSHP_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_CORPSHP_REQ");
 	DWORD dwKey;
 	DWORD dwCharID;
 
@@ -9955,7 +10136,7 @@ DWORD CTMapSvrModule::OnMW_CORPSHP_REQ(LPPACKETBUF pBUF)
 		>> dwKey;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(pPlayer)
+	if (pPlayer)
 		pPlayer->SendCS_CORPSHP_ACK(&pBUF->m_packet);
 
 	return EC_NOERROR;
@@ -9963,6 +10144,7 @@ DWORD CTMapSvrModule::OnMW_CORPSHP_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_REPORTENEMYLIST_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_REPORTENEMYLIST_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	WORD wSquadID;
@@ -9975,7 +10157,7 @@ DWORD CTMapSvrModule::OnMW_REPORTENEMYLIST_REQ(LPPACKETBUF pBUF)
 		>> dwChar;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(pPlayer)
+	if (pPlayer)
 		pPlayer->SendCS_REPORTENEMYLIST_ACK(wSquadID, dwChar);
 
 	return EC_NOERROR;
@@ -9983,6 +10165,7 @@ DWORD CTMapSvrModule::OnMW_REPORTENEMYLIST_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_PARTYMOVE_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_PARTYMOVE_REQ");
 	DWORD dwKey;
 	DWORD dwCharID;
 	BYTE bResult;
@@ -9993,7 +10176,7 @@ DWORD CTMapSvrModule::OnMW_PARTYMOVE_REQ(LPPACKETBUF pBUF)
 		>> bResult;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(pPlayer)
+	if (pPlayer)
 		pPlayer->SendCS_PARTYMOVE_ACK(bResult);
 
 	return EC_NOERROR;
@@ -10001,6 +10184,7 @@ DWORD CTMapSvrModule::OnMW_PARTYMOVE_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_TMSRECV_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_TMSRECV_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	DWORD dwTMS;
@@ -10015,13 +10199,14 @@ DWORD CTMapSvrModule::OnMW_TMSRECV_REQ(LPPACKETBUF pBUF)
 		>> strMessage;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(pPlayer)
+	if (pPlayer)
 		pPlayer->SendCS_TMSRECV_ACK(dwTMS, strSender, strMessage);
 
 	return EC_NOERROR;
 }
 DWORD CTMapSvrModule::OnMW_TMSINVITEASK_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_TMSINVITEASK_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	DWORD dwTargetID;
@@ -10040,9 +10225,9 @@ DWORD CTMapSvrModule::OnMW_TMSINVITEASK_REQ(LPPACKETBUF pBUF)
 	BYTE bResult = FALSE;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKEY);
-	if(pPlayer)
+	if (pPlayer)
 	{
-		if(pPlayer->CheckProtected(dwTargetID, PROTECTED_INVITE))
+		if (pPlayer->CheckProtected(dwTargetID, PROTECTED_INVITE))
 			bResult = TRUE;
 	}
 
@@ -10052,6 +10237,7 @@ DWORD CTMapSvrModule::OnMW_TMSINVITEASK_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnMW_TMSINVITE_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_TMSINVITE_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 
@@ -10060,13 +10246,14 @@ DWORD CTMapSvrModule::OnMW_TMSINVITE_REQ(LPPACKETBUF pBUF)
 		>> dwKey;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(pPlayer)
+	if (pPlayer)
 		pPlayer->SendCS_TMSINVITE_ACK(&pBUF->m_packet);
 
 	return EC_NOERROR;
 }
 DWORD CTMapSvrModule::OnMW_TMSOUT_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_TMSOUT_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	DWORD dwTMS;
@@ -10079,7 +10266,7 @@ DWORD CTMapSvrModule::OnMW_TMSOUT_REQ(LPPACKETBUF pBUF)
 		>> strMember;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(pPlayer)
+	if (pPlayer)
 		pPlayer->SendCS_TMSOUT_ACK(dwTMS, strMember);
 
 	return EC_NOERROR;
@@ -10087,6 +10274,7 @@ DWORD CTMapSvrModule::OnMW_TMSOUT_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_CASTLEENABLE_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_CASTLEENABLE_REQ");
 	static int bCurStatus = BS_NORMAL;
 
 	BYTE bStatus;
@@ -10095,107 +10283,107 @@ DWORD CTMapSvrModule::OnMW_CASTLEENABLE_REQ(LPPACKETBUF pBUF)
 		>> bStatus
 		>> dwSecond;
 
-	for(DWORD ll=0; ll<m_vCastle.size(); ll++)
+	for (DWORD ll = 0; ll<m_vCastle.size(); ll++)
 	{
 		LPTLOCAL pCastle = m_vCastle[ll];
 
-		if(pCastle->m_bStatus == BS_PEACE && bStatus != BS_NORMAL)
+		if (pCastle->m_bStatus == BS_PEACE && bStatus != BS_NORMAL)
 			continue;
 
 		BYTE bPrevStatus = pCastle->m_bStatus;
 		pCastle->m_bStatus = bStatus;
 
-		if(!pCastle->m_pZone ||
+		if (!pCastle->m_pZone ||
 			!pCastle->m_bValid ||
 			bPrevStatus == bStatus)
 			continue;
 
-		switch(bStatus)
+		switch (bStatus)
 		{
 		case BS_NORMAL:
+		{
+			CTMap * pMap = FindTMap(DEFAULT_CHANNEL, 0, pCastle->m_pZone->m_wMapID);
+			if (pMap)
 			{
-				CTMap * pMap = FindTMap(DEFAULT_CHANNEL, 0, pCastle->m_pZone->m_wMapID);
-				if(pMap)
-				{
-					ChangeSwitch( pMap, pCastle->m_pZone->m_dwLSwitchID, SWC_CLOSE);
-					ChangeSwitch( pMap, pCastle->m_pZone->m_dwRSwitchID, SWC_CLOSE);
-					ChangeSwitch( pMap, pCastle->m_pZone->m_dwCSwitchID, SWC_CLOSE);
-					LeaveCastleMap(pMap);
-					pMap->ClearMonster();
-				}
+				ChangeSwitch(pMap, pCastle->m_pZone->m_dwLSwitchID, SWC_CLOSE);
+				ChangeSwitch(pMap, pCastle->m_pZone->m_dwRSwitchID, SWC_CLOSE);
+				ChangeSwitch(pMap, pCastle->m_pZone->m_dwCSwitchID, SWC_CLOSE);
+				LeaveCastleMap(pMap);
+				pMap->ClearMonster();
 			}
-			break;
+		}
+		break;
 		case BS_BATTLE:
-			{
-				pCastle->m_mapTRecord.clear();
-				pCastle->m_bCanBattle = TRUE;
+		{
+			pCastle->m_mapTRecord.clear();
+			pCastle->m_bCanBattle = TRUE;
 
-				CTMap * pMap = FindTMap(DEFAULT_CHANNEL, 0, pCastle->m_pZone->m_wMapID);
-				if(pMap)
+			CTMap * pMap = FindTMap(DEFAULT_CHANNEL, 0, pCastle->m_pZone->m_wMapID);
+			if (pMap)
+			{
+				ChangeSwitch(pMap, pCastle->m_pZone->m_dwLSwitchID, SWC_CLOSE);
+				ChangeSwitch(pMap, pCastle->m_pZone->m_dwRSwitchID, SWC_CLOSE);
+				ChangeSwitch(pMap, pCastle->m_pZone->m_dwCSwitchID, SWC_CLOSE);
+
+				AddMonSpawn(pMap, pCastle->m_pZone->m_wLGateKeeperSpawnID, MONSPAWN_SUSPEND);
+				AddMonSpawn(pMap, pCastle->m_pZone->m_wRGateKeeperSpawnID, MONSPAWN_SUSPEND);
+				AddMonSpawn(pMap, pCastle->m_pZone->m_wCGateKeeperSpawnID, MONSPAWN_SUSPEND);
+
+				for (DWORD i = 0; i<pCastle->m_pZone->m_vSpawnID.size(); i++)
 				{
-					ChangeSwitch( pMap, pCastle->m_pZone->m_dwLSwitchID, SWC_CLOSE);
-					ChangeSwitch( pMap, pCastle->m_pZone->m_dwRSwitchID, SWC_CLOSE);
-					ChangeSwitch( pMap, pCastle->m_pZone->m_dwCSwitchID, SWC_CLOSE);
+					MAPTMONSPAWN::iterator it = pMap->m_mapTMONSPAWN.find(pCastle->m_pZone->m_vSpawnID[i]);
 
-					AddMonSpawn(pMap, pCastle->m_pZone->m_wLGateKeeperSpawnID, MONSPAWN_SUSPEND);
-					AddMonSpawn(pMap, pCastle->m_pZone->m_wRGateKeeperSpawnID, MONSPAWN_SUSPEND);
-					AddMonSpawn(pMap, pCastle->m_pZone->m_wCGateKeeperSpawnID, MONSPAWN_SUSPEND);
-
-					for( DWORD i=0; i<pCastle->m_pZone->m_vSpawnID.size(); i++)
+					if (it != pMap->m_mapTMONSPAWN.end())
 					{
-						MAPTMONSPAWN::iterator it = pMap->m_mapTMONSPAWN.find(pCastle->m_pZone->m_vSpawnID[i]);
-
-						if(it!=pMap->m_mapTMONSPAWN.end())
-						{
-							CTMonSpawn *pSpawn = (*it).second;
-							pSpawn->m_bStatus = MONSPAWN_SUSPEND;
-						}
+						CTMonSpawn *pSpawn = (*it).second;
+						pSpawn->m_bStatus = MONSPAWN_SUSPEND;
 					}
-
-					pMap->StartWar(
-						pCastle->m_wLocal,
-						pCastle->m_bDefCountry,
-						pCastle->m_dwDefGuildID,
-						pCastle->m_wDPoint,
-						pCastle->m_dwAtkGuildID,
-						pCastle->m_wCPoint,
-						m_dwTick + dwSecond * 1000);
-
-					if(!pCastle->m_dwDefGuildID || !pCastle->m_dwAtkGuildID)
-						EndWar(pCastle, pMap, WIN_NOWAR);
-					else
-						SendSM_GODBALLCMD_REQ(0, GB_STARTWAR, pMap->m_bChannel, pMap->m_wMapID, pCastle->m_wLocal, m_dwGBDelay[GB_STARTWAR], 0);
 				}
-			}
-			break;
-		case BS_PEACE:
-			{
-				CTMap * pMap = FindTMap(DEFAULT_CHANNEL, 0, pCastle->m_pZone->m_wMapID);
 
-				if(pMap)
-					EndWar(pCastle, pMap, WIN_TIME);
+				pMap->StartWar(
+					pCastle->m_wLocal,
+					pCastle->m_bDefCountry,
+					pCastle->m_dwDefGuildID,
+					pCastle->m_wDPoint,
+					pCastle->m_dwAtkGuildID,
+					pCastle->m_wCPoint,
+					m_dwTick + dwSecond * 1000);
+
+				if (!pCastle->m_dwDefGuildID || !pCastle->m_dwAtkGuildID)
+					EndWar(pCastle, pMap, WIN_NOWAR);
+				else
+					SendSM_GODBALLCMD_REQ(0, GB_STARTWAR, pMap->m_bChannel, pMap->m_wMapID, pCastle->m_wLocal, m_dwGBDelay[GB_STARTWAR], 0);
 			}
-			break;
+		}
+		break;
+		case BS_PEACE:
+		{
+			CTMap * pMap = FindTMap(DEFAULT_CHANNEL, 0, pCastle->m_pZone->m_wMapID);
+
+			if (pMap)
+				EndWar(pCastle, pMap, WIN_TIME);
+		}
+		break;
 		}
 	}
 
 	BYTE bType = SM_NONE;
-	switch(bStatus)
+	switch (bStatus)
 	{
 	case BS_NORMAL:
-		if(bCurStatus == BS_NORMAL)
+		if (bCurStatus == BS_NORMAL)
 			bType = SM_CASTLE_START_ALARM;
 		else if (bCurStatus == BS_PEACE)
 			bType = SM_CASTLE_NORMAL;
 		break;
 	case BS_BATTLE:
-		if(bCurStatus == BS_BATTLE)
+		if (bCurStatus == BS_BATTLE)
 			bType = SM_CASTLE_END_ALARM;
-		else if(bCurStatus == BS_NORMAL)
+		else if (bCurStatus == BS_NORMAL)
 			bType = SM_CASTLE_START;
 		break;
 	case BS_PEACE:
-		if(bCurStatus == BS_BATTLE)
+		if (bCurStatus == BS_BATTLE)
 		{
 			bType = SM_CASTLE_PEACE;
 		}
@@ -10213,6 +10401,7 @@ DWORD CTMapSvrModule::OnMW_CASTLEENABLE_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_CASTLEAPPLY_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_CASTLEAPPLY_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	WORD wCastle;
@@ -10229,10 +10418,10 @@ DWORD CTMapSvrModule::OnMW_CASTLEAPPLY_REQ(LPPACKETBUF pBUF)
 		>> bCamp;
 
 	CTPlayer *pPlayer = FindPlayer(dwCharID, dwKey);
-	if(!pPlayer || !pPlayer->m_bMain)
+	if (!pPlayer || !pPlayer->m_bMain)
 		return EC_NOERROR;
 
-	if(bResult != CBS_SUCCESS)
+	if (bResult != CBS_SUCCESS)
 	{
 		pPlayer->SendCS_CASTLEAPPLY_ACK(bResult);
 		return EC_NOERROR;
@@ -10244,12 +10433,12 @@ DWORD CTMapSvrModule::OnMW_CASTLEAPPLY_REQ(LPPACKETBUF pBUF)
 		dwTarget,
 		bCamp);
 
-	if(dwCharID == dwTarget)
+	if (dwCharID == dwTarget)
 	{
 		pPlayer->m_wCastle = wCastle;
 		pPlayer->m_bCamp = bCamp;
 
-		if(pPlayer->IsInCastle())
+		if (pPlayer->IsInCastle())
 			Teleport(pPlayer, pPlayer->m_wLastSpawnID);
 	}
 
@@ -10259,6 +10448,7 @@ DWORD CTMapSvrModule::OnMW_CASTLEAPPLY_REQ(LPPACKETBUF pBUF)
 #ifdef SKYGARDEN
 DWORD CTMapSvrModule::OnMW_SKYGARDENENABLE_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_SKYGARDENENABLE_REQ");
 	static int bCurStatus = BS_NORMAL;
 
 	BYTE bStatus;
@@ -10272,25 +10462,25 @@ DWORD CTMapSvrModule::OnMW_SKYGARDENENABLE_REQ(LPPACKETBUF pBUF)
 		>> bSkyGardenDay
 		>> dwSkyGardenStart;
 
-	for(DWORD ll=0; ll<m_vSkygarden.size(); ll++)
+	for (DWORD ll = 0; ll<m_vSkygarden.size(); ll++)
 	{
 		LPTLOCAL pSkygarden = m_vSkygarden[ll];
 
-		if(bSkyGardenDay)
+		if (bSkyGardenDay)
 		{
 			CTime curtime = CTime::GetCurrentTime().GetTime();
 			INT nCH = curtime.GetHour();
 			INT nCM = curtime.GetMinute();
 			INT nCS = curtime.GetSecond();
 			INT nCD = curtime.GetDayOfWeek();
-			DWORD dwCLT = nCH*60*60+nCM*60+nCS;
+			DWORD dwCLT = nCH * 60 * 60 + nCM * 60 + nCS;
 
-			if(pSkygarden)
+			if (pSkygarden)
 			{
 				pSkygarden->m_bDay = bSkyGardenDay;
-				DWORD dwStart = (pSkygarden->m_bDay-1) * DAY_ONE + dwSkyGardenStart;
-				DWORD dwCSW = (nCD-1) * DAY_ONE + dwCLT;
-				if(dwCSW > dwStart)
+				DWORD dwStart = (pSkygarden->m_bDay - 1) * DAY_ONE + dwSkyGardenStart;
+				DWORD dwCSW = (nCD - 1) * DAY_ONE + dwCLT;
+				if (dwCSW > dwStart)
 					pSkygarden->m_timeNextDefend = curtime.GetTime() + (WEEK_ONE - dwCSW) + dwStart;
 				else
 					pSkygarden->m_timeNextDefend = curtime.GetTime() + (dwStart - dwCSW);
@@ -10299,152 +10489,152 @@ DWORD CTMapSvrModule::OnMW_SKYGARDENENABLE_REQ(LPPACKETBUF pBUF)
 
 		BYTE bNothing = FALSE;
 
-		if(pSkygarden->m_bStatus == BS_PEACE && bStatus == BS_NORMAL)
+		if (pSkygarden->m_bStatus == BS_PEACE && bStatus == BS_NORMAL)
 			bNothing = TRUE;
 
-		if(pSkygarden->m_bStatus == BS_PEACE && bStatus != BS_NORMAL)
+		if (pSkygarden->m_bStatus == BS_PEACE && bStatus != BS_NORMAL)
 			continue;
 
-		if(pSkygarden->m_bStatus == bStatus)
+		if (pSkygarden->m_bStatus == bStatus)
 			continue;
 
 		pSkygarden->m_bStatus = bStatus;
 
-		if(!pSkygarden->m_pZone ||
+		if (!pSkygarden->m_pZone ||
 			!pSkygarden->m_bValid)
 			continue;
 
-		switch(bStatus)
+		switch (bStatus)
 		{
 		case BS_NORMAL:
+		{
+			CTMap * pMap = FindTMap(DEFAULT_CHANNEL, 0, pSkygarden->m_pZone->m_wMapID);
+			if (pMap)
 			{
-				CTMap * pMap = FindTMap(DEFAULT_CHANNEL, 0, pSkygarden->m_pZone->m_wMapID);
-				if(pMap)
+				if (!bNothing)
 				{
-					if(!bNothing)
-					{
-						pSkygarden->m_bCanBattle = FALSE;
-						ChangeSwitch( pMap, pSkygarden->m_pZone->m_dwLSwitchID, SWC_CLOSE);
-						ChangeSwitch( pMap, pSkygarden->m_pZone->m_dwRSwitchID, SWC_CLOSE);
-						ChangeSwitch( pMap, pSkygarden->m_pZone->m_dwCSwitchID, SWC_CLOSE);
-					}
-					else
-					{
-						pSkygarden->m_bCanBattle = TRUE;
-						ChangeSwitch( pMap, pSkygarden->m_pZone->m_dwLSwitchID, SWC_OPEN);
-						ChangeSwitch( pMap, pSkygarden->m_pZone->m_dwRSwitchID, SWC_OPEN);
-						ChangeSwitch( pMap, pSkygarden->m_pZone->m_dwCSwitchID, SWC_OPEN);
-						pMap->ClearMonster();
-					}
-					LeaveCastleMap(pMap);
+					pSkygarden->m_bCanBattle = FALSE;
+					ChangeSwitch(pMap, pSkygarden->m_pZone->m_dwLSwitchID, SWC_CLOSE);
+					ChangeSwitch(pMap, pSkygarden->m_pZone->m_dwRSwitchID, SWC_CLOSE);
+					ChangeSwitch(pMap, pSkygarden->m_pZone->m_dwCSwitchID, SWC_CLOSE);
 				}
+				else
+				{
+					pSkygarden->m_bCanBattle = TRUE;
+					ChangeSwitch(pMap, pSkygarden->m_pZone->m_dwLSwitchID, SWC_OPEN);
+					ChangeSwitch(pMap, pSkygarden->m_pZone->m_dwRSwitchID, SWC_OPEN);
+					ChangeSwitch(pMap, pSkygarden->m_pZone->m_dwCSwitchID, SWC_OPEN);
+					pMap->ClearMonster();
+				}
+				LeaveCastleMap(pMap);
 			}
-			break;
+		}
+		break;
 		case BS_BATTLE:
+		{
+			pSkygarden->m_mapTRecord.clear();
+			pSkygarden->m_bCanBattle = TRUE;
+
+			CTMap * pMap = FindTMap(DEFAULT_CHANNEL, 0, pSkygarden->m_pZone->m_wMapID);
+			if (pMap)
 			{
-				pSkygarden->m_mapTRecord.clear();
-				pSkygarden->m_bCanBattle = TRUE;
+				ChangeSwitch(pMap, pSkygarden->m_pZone->m_dwLSwitchID, SWC_CLOSE);
+				ChangeSwitch(pMap, pSkygarden->m_pZone->m_dwRSwitchID, SWC_CLOSE);
+				ChangeSwitch(pMap, pSkygarden->m_pZone->m_dwCSwitchID, SWC_CLOSE);
 
-				CTMap * pMap = FindTMap(DEFAULT_CHANNEL, 0, pSkygarden->m_pZone->m_wMapID);
-				if(pMap)
+				AddMonSpawn(pMap, pSkygarden->m_pZone->m_wCGateKeeperSpawnID, MONSPAWN_SUSPEND);
+				AddMonSpawn(pMap, pSkygarden->m_pZone->m_wLGateKeeperSpawnID, MONSPAWN_SUSPEND);
+				AddMonSpawn(pMap, pSkygarden->m_pZone->m_wRGateKeeperSpawnID, MONSPAWN_SUSPEND);
+
+				pSkygarden->m_bLeftOwner = CAMP_DEFEND;
+				pSkygarden->m_bMiddleOwner = CAMP_DEFEND;
+				pSkygarden->m_bRightOwner = CAMP_DEFEND;
+
+				MAPTMONSPAWNTEMP::iterator it_boss = m_mapTMONSPAWN.find(pSkygarden->m_pZone->m_wMiddleSpawnID);
+
+				if (it_boss != m_mapTMONSPAWN.end())
 				{
-					ChangeSwitch( pMap, pSkygarden->m_pZone->m_dwLSwitchID, SWC_CLOSE);
-					ChangeSwitch( pMap, pSkygarden->m_pZone->m_dwRSwitchID, SWC_CLOSE);
-					ChangeSwitch( pMap, pSkygarden->m_pZone->m_dwCSwitchID, SWC_CLOSE);
+					pMap->AddMonSpawn((*it_boss).second, pMap->m_bChannel, pSkygarden->m_bCountry);
 
-					AddMonSpawn(pMap, pSkygarden->m_pZone->m_wCGateKeeperSpawnID, MONSPAWN_SUSPEND);
-					AddMonSpawn(pMap, pSkygarden->m_pZone->m_wLGateKeeperSpawnID, MONSPAWN_SUSPEND);
-					AddMonSpawn(pMap, pSkygarden->m_pZone->m_wRGateKeeperSpawnID, MONSPAWN_SUSPEND);
+					MAPTMONSPAWN::iterator itCM = pMap->m_mapTMONSPAWN.find(pSkygarden->m_pZone->m_wMiddleSpawnID);
 
-					pSkygarden->m_bLeftOwner = CAMP_DEFEND;
-					pSkygarden->m_bMiddleOwner = CAMP_DEFEND;
-					pSkygarden->m_bRightOwner = CAMP_DEFEND;
+					if (itCM != pMap->m_mapTMONSPAWN.end())
+						(*itCM).second->m_bStatus = MONSPAWN_SUSPEND;
+				}
 
-					MAPTMONSPAWNTEMP::iterator it_boss = m_mapTMONSPAWN.find(pSkygarden->m_pZone->m_wMiddleSpawnID);
+				MAPTMONSPAWNTEMP::iterator it_left_gua = m_mapTMONSPAWN.find(pSkygarden->m_pZone->m_wLeftSpawnID);
 
-					if(it_boss != m_mapTMONSPAWN.end())
+				if (it_left_gua != m_mapTMONSPAWN.end())
+				{
+					pMap->AddMonSpawn((*it_left_gua).second, pMap->m_bChannel, pSkygarden->m_bCountry);
+
+					MAPTMONSPAWN::iterator itCM = pMap->m_mapTMONSPAWN.find(pSkygarden->m_pZone->m_wLeftSpawnID);
+
+					if (itCM != pMap->m_mapTMONSPAWN.end())
+						(*itCM).second->m_bStatus = MONSPAWN_SUSPEND;
+				}
+
+				MAPTMONSPAWNTEMP::iterator it_right_gua = m_mapTMONSPAWN.find(pSkygarden->m_pZone->m_wRightSpawnID);
+
+				if (it_right_gua != m_mapTMONSPAWN.end())
+				{
+					pMap->AddMonSpawn((*it_right_gua).second, pMap->m_bChannel, pSkygarden->m_bCountry);
+
+					MAPTMONSPAWN::iterator itCM = pMap->m_mapTMONSPAWN.find(pSkygarden->m_pZone->m_wRightSpawnID);
+
+					if (itCM != pMap->m_mapTMONSPAWN.end())
+						(*itCM).second->m_bStatus = MONSPAWN_SUSPEND;
+				}
+
+				for (DWORD i = 0; i<pSkygarden->m_pZone->m_vSpawnID.size(); i++)
+				{
+					MAPTMONSPAWNTEMP::iterator it = m_mapTMONSPAWN.find(pSkygarden->m_pZone->m_vSpawnID[i]);
+
+					if (it != m_mapTMONSPAWN.end())
 					{
-						pMap->AddMonSpawn((*it_boss).second, pMap->m_bChannel, pSkygarden->m_bCountry);
-						
-						MAPTMONSPAWN::iterator itCM = pMap->m_mapTMONSPAWN.find(pSkygarden->m_pZone->m_wMiddleSpawnID);
+						LPTMONSPAWN pSpawn = (*it).second;
 
-						if( itCM != pMap->m_mapTMONSPAWN.end() )
-							(*itCM).second->m_bStatus = MONSPAWN_SUSPEND;
-					}
-
-					MAPTMONSPAWNTEMP::iterator it_left_gua = m_mapTMONSPAWN.find(pSkygarden->m_pZone->m_wLeftSpawnID);
-
-					if(it_left_gua != m_mapTMONSPAWN.end())
-					{
-						pMap->AddMonSpawn((*it_left_gua).second, pMap->m_bChannel, pSkygarden->m_bCountry);
-						
-						MAPTMONSPAWN::iterator itCM = pMap->m_mapTMONSPAWN.find(pSkygarden->m_pZone->m_wLeftSpawnID);
-
-						if( itCM != pMap->m_mapTMONSPAWN.end() )
-							(*itCM).second->m_bStatus = MONSPAWN_SUSPEND;
-					}
-
-					MAPTMONSPAWNTEMP::iterator it_right_gua = m_mapTMONSPAWN.find(pSkygarden->m_pZone->m_wRightSpawnID);
-
-					if(it_right_gua != m_mapTMONSPAWN.end())
-					{
-						pMap->AddMonSpawn((*it_right_gua).second, pMap->m_bChannel, pSkygarden->m_bCountry);
-						
-						MAPTMONSPAWN::iterator itCM = pMap->m_mapTMONSPAWN.find(pSkygarden->m_pZone->m_wRightSpawnID);
-
-						if( itCM != pMap->m_mapTMONSPAWN.end() )
-							(*itCM).second->m_bStatus = MONSPAWN_SUSPEND;
-					}
-
-					for( DWORD i=0; i<pSkygarden->m_pZone->m_vSpawnID.size(); i++)
-					{
-						MAPTMONSPAWNTEMP::iterator it = m_mapTMONSPAWN.find(pSkygarden->m_pZone->m_vSpawnID[i]);
-
-						if(it!=m_mapTMONSPAWN.end())
-						{
-							LPTMONSPAWN pSpawn = (*it).second;
-							
-							if(pSkygarden->m_bCountry == pSpawn->m_bCountry && pSpawn->m_bEvent == CAMP_DEFEND)
-								AddMonSpawn(pMap, pSkygarden->m_pZone->m_vSpawnID[i], MONSPAWN_SUSPEND);
-							else if(pSkygarden->m_bCountry != pSpawn->m_bCountry && pSpawn->m_bEvent == CAMP_ATTACK)
-								AddMonSpawn(pMap, pSkygarden->m_pZone->m_vSpawnID[i], MONSPAWN_SUSPEND);
-						}
+						if (pSkygarden->m_bCountry == pSpawn->m_bCountry && pSpawn->m_bEvent == CAMP_DEFEND)
+							AddMonSpawn(pMap, pSkygarden->m_pZone->m_vSpawnID[i], MONSPAWN_SUSPEND);
+						else if (pSkygarden->m_bCountry != pSpawn->m_bCountry && pSpawn->m_bEvent == CAMP_ATTACK)
+							AddMonSpawn(pMap, pSkygarden->m_pZone->m_vSpawnID[i], MONSPAWN_SUSPEND);
 					}
 				}
 			}
-			break;
+		}
+		break;
 		case BS_PEACE:
+		{
+			CTMap * pMap = FindTMap(DEFAULT_CHANNEL, 0, pSkygarden->m_pZone->m_wMapID);
+			pSkygarden->m_bCanBattle = FALSE;
+
+			if (!pSkygarden->m_bOccupied)
 			{
-				CTMap * pMap = FindTMap(DEFAULT_CHANNEL, 0, pSkygarden->m_pZone->m_wMapID);
-				pSkygarden->m_bCanBattle = FALSE;
+				BYTE bWin = CAMP_ATTACK;
 
-				if(!pSkygarden->m_bOccupied)
+				if (pSkygarden->m_bMiddleOwner == CAMP_DEFEND && pSkygarden->m_bLeftOwner == CAMP_DEFEND ||
+					pSkygarden->m_bLeftOwner == CAMP_DEFEND && pSkygarden->m_bRightOwner == CAMP_DEFEND ||
+					pSkygarden->m_bRightOwner == CAMP_DEFEND && pSkygarden->m_bMiddleOwner == CAMP_DEFEND)
 				{
-					BYTE bWin = CAMP_ATTACK;
-
-					if(pSkygarden->m_bMiddleOwner == CAMP_DEFEND && pSkygarden->m_bLeftOwner == CAMP_DEFEND ||
-						pSkygarden->m_bLeftOwner == CAMP_DEFEND && pSkygarden->m_bRightOwner == CAMP_DEFEND ||
-						pSkygarden->m_bRightOwner == CAMP_DEFEND && pSkygarden->m_bMiddleOwner == CAMP_DEFEND)
-					{
-						bWin = CAMP_DEFEND;
-					}
-
-					BYTE bCountry = NULL;
-
-					if(bWin == CAMP_DEFEND)
-						bCountry = (pSkygarden->m_bCountry == TCONTRY_D) ? TCONTRY_D : TCONTRY_C;
-					else
-						bCountry = (pSkygarden->m_bCountry != TCONTRY_D) ? TCONTRY_D : TCONTRY_C;
-
-					SendDM_SKYGARDENOCCUPY_REQ(pSkygarden->m_wLocal, OCCUPY_ACCEPT, bCountry);
+					bWin = CAMP_DEFEND;
 				}
+
+				BYTE bCountry = NULL;
+
+				if (bWin == CAMP_DEFEND)
+					bCountry = (pSkygarden->m_bCountry == TCONTRY_D) ? TCONTRY_D : TCONTRY_C;
+				else
+					bCountry = (pSkygarden->m_bCountry != TCONTRY_D) ? TCONTRY_D : TCONTRY_C;
+
+				SendDM_SKYGARDENOCCUPY_REQ(pSkygarden->m_wLocal, OCCUPY_ACCEPT, bCountry);
 			}
-			break;
+		}
+		break;
 		}
 	}
 
 	BYTE bType = SM_NONE;
-	switch(bStatus)
+	switch (bStatus)
 	{
 	case BS_NORMAL:
 		if (bCurStatus == BS_PEACE)
@@ -10453,22 +10643,22 @@ DWORD CTMapSvrModule::OnMW_SKYGARDENENABLE_REQ(LPPACKETBUF pBUF)
 			bType = SM_SKYGARDEN_START_ALARM;
 		break;
 	case BS_BATTLE:
-		if(bCurStatus == BS_BATTLE)
+		if (bCurStatus == BS_BATTLE)
 			bType = SM_SKYGARDEN_END_ALARM;
-		else if(bCurStatus == BS_NORMAL)
+		else if (bCurStatus == BS_NORMAL)
 			bType = SM_SKYGARDEN_START;
 		break;
 	case BS_PEACE:
-		if(bCurStatus == BS_BATTLE)
+		if (bCurStatus == BS_BATTLE)
 		{
 			bType = SM_SKYGARDEN_PEACE;
 		}
 		break;
 	case BS_SKYGARDEN_START:
-		{
-			bType = SM_SKYGARDEN_NORMAL;
-		}
-		break;
+	{
+		bType = SM_SKYGARDEN_NORMAL;
+	}
+	break;
 	default:
 		break;
 	}
@@ -10483,6 +10673,7 @@ DWORD CTMapSvrModule::OnMW_SKYGARDENENABLE_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_MONTEMPT_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_MONTEMPT_REQ");
 	DWORD dwID;
 	DWORD dwKey;
 	WORD wMonID;
@@ -10493,50 +10684,51 @@ DWORD CTMapSvrModule::OnMW_MONTEMPT_REQ(LPPACKETBUF pBUF)
 		>> wMonID;
 
 	CTPlayer * pPlayer = FindPlayer(dwID, dwKey);
-	if(!pPlayer || !pPlayer->m_bMain)
+	if (!pPlayer || !pPlayer->m_bMain)
 		return EC_NOERROR;
 
 	pPlayer->m_wTemptedMon = wMonID;
 
 	/*CTSkill * pSkill = pPlayer->GetMonRecallSkill();
 	if(!pSkill)
-		return EC_NOERROR;
+	return EC_NOERROR;
 
 	pPlayer->Defend(
-		pSkill->m_pTSKILL,
-		pSkill->m_bLevel,
-		pPlayer->m_dwID,
-		pPlayer->m_dwID,
-		pPlayer->m_bType,
-		pPlayer->GetPartyID(),
-		pPlayer->m_bCountry,
-		pPlayer->m_bAidCountry,
-		pPlayer->m_bClass,
-		0,0,
-		pPlayer->GetMinAP(FALSE),
-		pPlayer->GetMaxAP(FALSE),
-		pPlayer->GetMinMagicAP(),
-		pPlayer->GetMaxMagicAP(),
-		0,0,0,0,
-		TRUE,
-		pPlayer->GetAttackLevel(),
-		pPlayer->m_bLevel,
-		0,
-		HT_NORMAL,
-		0,
-		pPlayer->m_fPosX,
-		pPlayer->m_fPosY,
-		pPlayer->m_fPosZ,
-		pPlayer->m_fPosX,
-		pPlayer->m_fPosY,
-		pPlayer->m_fPosZ,
-		FALSE);*/
+	pSkill->m_pTSKILL,
+	pSkill->m_bLevel,
+	pPlayer->m_dwID,
+	pPlayer->m_dwID,
+	pPlayer->m_bType,
+	pPlayer->GetPartyID(),
+	pPlayer->m_bCountry,
+	pPlayer->m_bAidCountry,
+	pPlayer->m_bClass,
+	0,0,
+	pPlayer->GetMinAP(FALSE),
+	pPlayer->GetMaxAP(FALSE),
+	pPlayer->GetMinMagicAP(),
+	pPlayer->GetMaxMagicAP(),
+	0,0,0,0,
+	TRUE,
+	pPlayer->GetAttackLevel(),
+	pPlayer->m_bLevel,
+	0,
+	HT_NORMAL,
+	0,
+	pPlayer->m_fPosX,
+	pPlayer->m_fPosY,
+	pPlayer->m_fPosZ,
+	pPlayer->m_fPosX,
+	pPlayer->m_fPosY,
+	pPlayer->m_fPosZ,
+	FALSE);*/
 
 	return EC_NOERROR;
 }
 
 DWORD CTMapSvrModule::OnMW_MONTEMPTEVO_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_MONTEMPTEVO_REQ");
 	DWORD dwID;
 	DWORD dwKey;
 	DWORD dwTargetID;
@@ -10549,11 +10741,11 @@ DWORD CTMapSvrModule::OnMW_MONTEMPTEVO_REQ(LPPACKETBUF pBUF)
 		>> bTargetType;
 
 	CTPlayer * pPlayer = FindPlayer(dwID, dwKey);
-	if(!pPlayer || !pPlayer->m_bMain)
+	if (!pPlayer || !pPlayer->m_bMain)
 		return EC_NOERROR;
 
 	CTSkill * pSkill = pPlayer->GetMonRecallSkill();
-	if(!pSkill)
+	if (!pSkill)
 		return EC_NOERROR;
 
 	pPlayer->Defend(
@@ -10566,12 +10758,12 @@ DWORD CTMapSvrModule::OnMW_MONTEMPTEVO_REQ(LPPACKETBUF pBUF)
 		pPlayer->m_bCountry,
 		pPlayer->m_bAidCountry,
 		pPlayer->m_bClass,
-		0,0,
+		0, 0,
 		pPlayer->GetMinAP(FALSE),
 		pPlayer->GetMaxAP(FALSE),
 		pPlayer->GetMinMagicAP(),
 		pPlayer->GetMaxMagicAP(),
-		0,0,0,0,
+		0, 0, 0, 0,
 		TRUE,
 		pPlayer->GetAttackLevel(),
 		pPlayer->m_bLevel,
@@ -10589,8 +10781,9 @@ DWORD CTMapSvrModule::OnMW_MONTEMPTEVO_REQ(LPPACKETBUF pBUF)
 	return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnMW_GETBLOOD_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnMW_GETBLOOD_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_GETBLOOD_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 
@@ -10607,8 +10800,8 @@ DWORD CTMapSvrModule::OnMW_GETBLOOD_REQ( LPPACKETBUF pBUF)
 		>> bBloodType
 		>> dwBlood;
 
-	CTPlayer *pPlayer = FindPlayer( dwCharID, dwKey);
-	if(!pPlayer ||
+	CTPlayer *pPlayer = FindPlayer(dwCharID, dwKey);
+	if (!pPlayer ||
 		!pPlayer->m_pMAP ||
 		!pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -10618,44 +10811,44 @@ DWORD CTMapSvrModule::OnMW_GETBLOOD_REQ( LPPACKETBUF pBUF)
 	DWORD dwMaxHP;
 	DWORD dwMaxMP;
 
-	switch(bAtkType)
+	switch (bAtkType)
 	{
-	case OT_MON		: pOBJ = pPlayer->m_pMAP->FindMonster(dwAtkID); break;
-	case OT_RECALL	: pOBJ = pPlayer->FindRecallMon(dwAtkID); break;
-	case OT_SELF	: pOBJ = pPlayer->FindSelfObj(dwAtkID); break;
-	case OT_PC		: pOBJ = pPlayer; break;
+	case OT_MON: pOBJ = pPlayer->m_pMAP->FindMonster(dwAtkID); break;
+	case OT_RECALL: pOBJ = pPlayer->FindRecallMon(dwAtkID); break;
+	case OT_SELF: pOBJ = pPlayer->FindSelfObj(dwAtkID); break;
+	case OT_PC: pOBJ = pPlayer; break;
 	}
 
-	if( !pOBJ || !pOBJ->m_pMAP)
+	if (!pOBJ || !pOBJ->m_pMAP)
 		return EC_NOERROR;
 
 	// Player Dead
-	if(!pOBJ->m_dwHP || pOBJ->m_bStatus == OS_DEAD)
+	if (!pOBJ->m_dwHP || pOBJ->m_bStatus == OS_DEAD)
 		return EC_NOERROR;
 
 	dwMaxHP = pOBJ->GetMaxHP();
 	dwMaxMP = pOBJ->GetMaxMP();
 
-	switch(bBloodType)
+	switch (bBloodType)
 	{
 	case MTYPE_HI:
 		pOBJ->m_dwHP += dwBlood;
 
-		if( pOBJ->m_dwHP > dwMaxHP )
+		if (pOBJ->m_dwHP > dwMaxHP)
 			pOBJ->m_dwHP = dwMaxHP;
 
 		break;
 	case MTYPE_MI:
 		pOBJ->m_dwMP += dwBlood;
 
-		if( pOBJ->m_dwMP > dwMaxMP )
+		if (pOBJ->m_dwMP > dwMaxMP)
 			pOBJ->m_dwMP = dwMaxMP;
 
 		break;
 
 	case MTYPE_DAMAGE:
 
-		if(pOBJ->m_dwHP > dwBlood)
+		if (pOBJ->m_dwHP > dwBlood)
 			pOBJ->m_dwHP -= dwBlood;
 		else
 			pOBJ->m_dwHP = 1;
@@ -10671,7 +10864,7 @@ DWORD CTMapSvrModule::OnMW_GETBLOOD_REQ( LPPACKETBUF pBUF)
 		pOBJ->m_fPosX,
 		pOBJ->m_fPosZ);
 
-	while(!vPLAYERS.empty())
+	while (!vPLAYERS.empty())
 	{
 		CTPlayer *pChar = vPLAYERS.back();
 
@@ -10692,8 +10885,9 @@ DWORD CTMapSvrModule::OnMW_GETBLOOD_REQ( LPPACKETBUF pBUF)
 	return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnCT_USERMOVE_ACK( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnCT_USERMOVE_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnCT_USERMOVE_ACK");
 	DWORD dwCharID;
 	DWORD dwKEY;
 
@@ -10715,25 +10909,26 @@ DWORD CTMapSvrModule::OnCT_USERMOVE_ACK( LPPACKETBUF pBUF)
 		>> fPosZ
 		>> wPartyID;
 
-	CTPlayer *pPlayer = FindPlayer( dwCharID, dwKEY);
-	if(!pPlayer ||
+	CTPlayer *pPlayer = FindPlayer(dwCharID, dwKEY);
+	if (!pPlayer ||
 		!pPlayer->m_pMAP ||
 		!pPlayer->m_bMain)
 		return EC_NOERROR;
 
-	if(wPartyID)
+	if (wPartyID)
 		pPlayer->m_wPartyID = wPartyID;
 
-	if( fPosX == 0.0f && fPosY == 0.0f && fPosZ == 0.0f )
-		Teleport( pPlayer, pPlayer->m_wSpawnID);
+	if (fPosX == 0.0f && fPosY == 0.0f && fPosZ == 0.0f)
+		Teleport(pPlayer, pPlayer->m_wSpawnID);
 	else
-		Teleport( pPlayer, bChannel, wMapID, fPosX, fPosY, fPosZ);
+		Teleport(pPlayer, bChannel, wMapID, fPosX, fPosY, fPosZ);
 
 	return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnMW_USERPOSITION_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnMW_USERPOSITION_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_USERPOSITION_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	CString strGMName;
@@ -10743,13 +10938,13 @@ DWORD CTMapSvrModule::OnMW_USERPOSITION_REQ( LPPACKETBUF pBUF)
 		>> dwCharID
 		>> dwKey
 		>> strGMName;
-	CTPlayer *pPlayer = FindPlayer( dwCharID, dwKey);
-	if(!pPlayer ||
+	CTPlayer *pPlayer = FindPlayer(dwCharID, dwKey);
+	if (!pPlayer ||
 		!pPlayer->m_pMAP ||
 		!pPlayer->m_bMain)
 		return EC_NOERROR;
-	
-	if(IsIndunMap(pPlayer->m_wMapID))
+
+	if (IsIndunMap(pPlayer->m_wMapID))
 		wPartyID = pPlayer->m_wPartyID;
 
 	SendCT_USERMOVE_ACK(
@@ -10766,12 +10961,13 @@ DWORD CTMapSvrModule::OnMW_USERPOSITION_REQ( LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_PROTECTEDADD_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_PROTECTEDADD_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	CString strName;
 	BYTE bResult = 1;
 	DWORD dwProtected = 0;
-	BYTE bOption=0;
+	BYTE bOption = 0;
 
 	pBUF->m_packet
 		>> dwCharID
@@ -10780,11 +10976,11 @@ DWORD CTMapSvrModule::OnDM_PROTECTEDADD_REQ(LPPACKETBUF pBUF)
 		>> bOption;
 
 	DEFINE_QUERY(&m_db, CSPProtectedInsert)
-	query->m_dwCharID = dwCharID;
+		query->m_dwCharID = dwCharID;
 	lstrcpy(query->m_szName, strName);
 	query->m_bOption = bOption;
 
-	if(query->Call())
+	if (query->Call())
 	{
 		bResult = query->m_nRET;
 		dwProtected = query->m_dwProtected;
@@ -10806,6 +11002,7 @@ DWORD CTMapSvrModule::OnDM_PROTECTEDADD_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnDM_PROTECTEDADD_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_PROTECTEDADD_ACK");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	BYTE bResult;
@@ -10822,10 +11019,10 @@ DWORD CTMapSvrModule::OnDM_PROTECTEDADD_ACK(LPPACKETBUF pBUF)
 		>> bOption;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKEY);
-	if(!pPlayer || !pPlayer->m_bMain)
+	if (!pPlayer || !pPlayer->m_bMain)
 		return EC_NOERROR;
 
-	if(!bResult)
+	if (!bResult)
 	{
 		LPTPROTECTED pPT = new TPROTECTED();
 		pPT->m_bChanged = FALSE;
@@ -10844,6 +11041,7 @@ DWORD CTMapSvrModule::OnDM_PROTECTEDADD_ACK(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnDM_PROTECTEDERASE_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_PROTECTEDERASE_REQ");
 	DWORD dwCharID;
 	DWORD dwProtected;
 
@@ -10852,7 +11050,7 @@ DWORD CTMapSvrModule::OnDM_PROTECTEDERASE_REQ(LPPACKETBUF pBUF)
 		>> dwProtected;
 
 	DEFINE_QUERY(&m_db, CSPProtectedDelete)
-	query->m_dwCharID = dwCharID;	
+		query->m_dwCharID = dwCharID;
 	query->m_dwProtected = dwProtected;
 	query->Call();
 	UNDEFINE_QUERY();
@@ -10862,6 +11060,7 @@ DWORD CTMapSvrModule::OnDM_PROTECTEDERASE_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_DEALITEMERROR_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_DEALITEMERROR_REQ");
 	CString strTarget;
 	CString strErrorChar;
 	BYTE bError;
@@ -10872,7 +11071,7 @@ DWORD CTMapSvrModule::OnMW_DEALITEMERROR_REQ(LPPACKETBUF pBUF)
 		>> bError;
 
 	CTPlayer * pPlayer = FindPlayer(strTarget);
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	pPlayer->ClearDealItem();
@@ -10881,8 +11080,9 @@ DWORD CTMapSvrModule::OnMW_DEALITEMERROR_REQ(LPPACKETBUF pBUF)
 	return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnMW_MAGICMIRROR_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnMW_MAGICMIRROR_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_MAGICMIRROR_REQ");
 	DWORD dwHostID;
 	DWORD dwAttackID;
 	DWORD dwTargetID;
@@ -10897,7 +11097,7 @@ DWORD CTMapSvrModule::OnMW_MAGICMIRROR_REQ( LPPACKETBUF pBUF)
 
 	DWORD dwActID;
 	DWORD dwAniID;
-	
+
 	DWORD dwPysMinPower;
 	DWORD dwPysMaxPower;
 	DWORD dwMgMinPower;
@@ -10969,23 +11169,23 @@ DWORD CTMapSvrModule::OnMW_MAGICMIRROR_REQ( LPPACKETBUF pBUF)
 		>> bAttackAidCountry
 		>> bAttackClass;
 
-	if(bAttackType == OT_MON)
+	if (bAttackType == OT_MON)
 		return EC_NOERROR;
 
 	CTObjBase *pDEFEND = NULL;
 
 	MAPPLAYER::iterator itTg = m_mapPLAYER.find(dwHostID);
-	if(itTg != m_mapPLAYER.end())
+	if (itTg != m_mapPLAYER.end())
 		pDEFEND = FindTarget((*itTg).second, bAttackType, dwAttackID);
 
 	dwAttackID = dwTargetID;
 	bAttackType = bTargetType;
 
-	if(!pDEFEND)
+	if (!pDEFEND)
 		return EC_NOERROR;
 
 	CTSkillTemp * pTemp = FindTSkill(wSkillID);
-	if(!pTemp)
+	if (!pTemp)
 		return EC_NOERROR;
 
 	pDEFEND->Defend(
@@ -11014,8 +11214,8 @@ DWORD CTMapSvrModule::OnMW_MAGICMIRROR_REQ( LPPACKETBUF pBUF)
 		bHit,
 		HT_NORMAL,
 		dwRemainTick,
-		fAtkPosX,fAtkPosY,fAtkPosZ,
-		fDefPosX,fDefPosY,fDefPosZ,
+		fAtkPosX, fAtkPosY, fAtkPosZ,
+		fDefPosX, fDefPosY, fDefPosZ,
 		m_bNation == NATION_US ? TRUE : FALSE);
 
 	return EC_NOERROR;
@@ -11023,6 +11223,7 @@ DWORD CTMapSvrModule::OnMW_MAGICMIRROR_REQ( LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_PETDEL_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_PETDEL_REQ");
 	DWORD dwUserID;
 	WORD wPetID;
 
@@ -11031,7 +11232,7 @@ DWORD CTMapSvrModule::OnDM_PETDEL_REQ(LPPACKETBUF pBUF)
 		>> wPetID;
 
 	DEFINE_QUERY(&m_db, CSPPetDelete)
-	query->m_dwUserID = dwUserID;
+		query->m_dwUserID = dwUserID;
 	query->m_wPetID = wPetID;
 	query->Call();
 	UNDEFINE_QUERY();
@@ -11041,6 +11242,7 @@ DWORD CTMapSvrModule::OnDM_PETDEL_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_PETRIDING_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_PETRIDING_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	DWORD dwRiding;
@@ -11050,9 +11252,9 @@ DWORD CTMapSvrModule::OnMW_PETRIDING_REQ(LPPACKETBUF pBUF)
 		>> dwKey
 		>> dwRiding;
 
-	CTPlayer *pPlayer = FindPlayer( dwCharID, dwKey);
+	CTPlayer *pPlayer = FindPlayer(dwCharID, dwKey);
 
-	if( !pPlayer )
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	pPlayer->m_dwRiding = dwRiding;
@@ -11060,8 +11262,9 @@ DWORD CTMapSvrModule::OnMW_PETRIDING_REQ(LPPACKETBUF pBUF)
 	return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnMW_STARTTELEPORT_REQ( LPPACKETBUF pBUF)
+DWORD CTMapSvrModule::OnMW_STARTTELEPORT_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_STARTTELEPORT_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 
@@ -11081,15 +11284,15 @@ DWORD CTMapSvrModule::OnMW_STARTTELEPORT_REQ( LPPACKETBUF pBUF)
 		>> fPosY
 		>> fPosZ;
 
-	CTPlayer *pPlayer = FindPlayer( dwCharID, dwKey);
+	CTPlayer *pPlayer = FindPlayer(dwCharID, dwKey);
 
-	if( !pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	ExitMAP(pPlayer, TRUE, wMapID);
 
 	BYTE bTutorialOut = pPlayer->IsTutorial() && wMapID != TUTORIAL_MAPID;
-	if(bTutorialOut)
+	if (bTutorialOut)
 		pPlayer->m_bStartAct = 2;
 
 	pPlayer->m_bChannel = bChannel;
@@ -11098,7 +11301,7 @@ DWORD CTMapSvrModule::OnMW_STARTTELEPORT_REQ( LPPACKETBUF pBUF)
 	pPlayer->m_fPosY = fPosY;
 	pPlayer->m_fPosZ = fPosZ;
 
-	if(pPlayer->m_bMain)
+	if (pPlayer->m_bMain)
 	{
 		SendDM_TELEPORT_REQ(
 			pPlayer->m_dwID,
@@ -11116,6 +11319,7 @@ DWORD CTMapSvrModule::OnMW_STARTTELEPORT_REQ( LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_EVENTQUARTER_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_EVENTQUARTER_REQ");
 	BYTE bDay;
 	BYTE bHour;
 	BYTE bMinute;
@@ -11130,9 +11334,9 @@ DWORD CTMapSvrModule::OnMW_EVENTQUARTER_REQ(LPPACKETBUF pBUF)
 		>> strPresent;
 
 	MAPPLAYER::iterator it;
-	for(it=m_mapPLAYER.begin(); it!=m_mapPLAYER.end(); it++)
+	for (it = m_mapPLAYER.begin(); it != m_mapPLAYER.end(); it++)
 	{
-		if((*it).second->m_bMain)
+		if ((*it).second->m_bMain)
 		{
 			(*it).second->SendCS_SYSTEMMSG_ACK(
 				SM_EVENT_QUARTER,
@@ -11145,7 +11349,7 @@ DWORD CTMapSvrModule::OnMW_EVENTQUARTER_REQ(LPPACKETBUF pBUF)
 				strPresent,
 				bSelect);
 
-			if((*it).second->m_bLuckyNumber == bSelect)
+			if ((*it).second->m_bLuckyNumber == bSelect)
 				SendDM_EVENTQUARTER_REQ((*it).second->m_strNAME, bDay, bHour, bMinute);
 		}
 	}
@@ -11155,6 +11359,7 @@ DWORD CTMapSvrModule::OnMW_EVENTQUARTER_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_SAVEEXP_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_SAVEEXP_REQ");
 	DWORD dwCharID;
 	DWORD dwEXP;
 
@@ -11163,16 +11368,17 @@ DWORD CTMapSvrModule::OnDM_SAVEEXP_REQ(LPPACKETBUF pBUF)
 		>> dwEXP;
 
 	DEFINE_QUERY(&m_db, CSPSaveEXP)
-	query->m_dwCharID = dwCharID;
+		query->m_dwCharID = dwCharID;
 	query->m_dwEXP = dwEXP;
 	query->Call();
 	UNDEFINE_QUERY()
 
-	return EC_NOERROR;
+		return EC_NOERROR;
 }
 
 DWORD CTMapSvrModule::OnDM_SAVEMONEY_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_SAVEMONEY_REQ");
 	DWORD dwCharID;
 	DWORD dwGold;
 	DWORD dwSilver;
@@ -11185,18 +11391,19 @@ DWORD CTMapSvrModule::OnDM_SAVEMONEY_REQ(LPPACKETBUF pBUF)
 		>> dwCooper;
 
 	DEFINE_QUERY(&m_db, CSPSaveMoney)
-	query->m_dwCharID = dwCharID;
+		query->m_dwCharID = dwCharID;
 	query->m_dwGold = dwGold;
 	query->m_dwSilver = dwSilver;
 	query->m_dwCooper = dwCooper;
 	query->Call();
 	UNDEFINE_QUERY()
 
-	return EC_NOERROR;
+		return EC_NOERROR;
 }
 
 DWORD CTMapSvrModule::OnMW_HELMETHIDE_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_HELMETHIDE_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	BYTE bHide;
@@ -11206,12 +11413,12 @@ DWORD CTMapSvrModule::OnMW_HELMETHIDE_REQ(LPPACKETBUF pBUF)
 		>> dwKEY
 		>> bHide;
 
-	CTPlayer *pPlayer = FindPlayer( dwCharID, dwKEY);
+	CTPlayer *pPlayer = FindPlayer(dwCharID, dwKEY);
 
-	if( !pPlayer || !pPlayer->m_pMAP )
+	if (!pPlayer || !pPlayer->m_pMAP)
 		return EC_NOERROR;
 
-	if(pPlayer->m_bHelmetHide != bHide)
+	if (pPlayer->m_bHelmetHide != bHide)
 	{
 		pPlayer->m_bHelmetHide = bHide;
 
@@ -11220,10 +11427,10 @@ DWORD CTMapSvrModule::OnMW_HELMETHIDE_REQ(LPPACKETBUF pBUF)
 
 		pPlayer->m_pMAP->GetNeighbor(&vPlayer, pPlayer->m_fPosX, pPlayer->m_fPosZ);
 
-		for(DWORD i=0; i<vPlayer.size(); i++)
+		for (DWORD i = 0; i<vPlayer.size(); i++)
 		{
 			vPlayer[i]->SendCS_HELMETHIDE_ACK(
-				dwCharID, 
+				dwCharID,
 				bHide);
 		}
 
@@ -11236,6 +11443,7 @@ DWORD CTMapSvrModule::OnMW_HELMETHIDE_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_PARTYMEMBERRECALLANS_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_PARTYMEMBERRECALLANS_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	CString strUser;
@@ -11252,7 +11460,7 @@ DWORD CTMapSvrModule::OnMW_PARTYMEMBERRECALLANS_REQ(LPPACKETBUF pBUF)
 		>> bItem;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(!pPlayer)
+	if (!pPlayer)
 	{
 		SendMW_PARTYMEMBERRECALLANS_ACK(
 			IU_NOTFOUND,
@@ -11265,7 +11473,7 @@ DWORD CTMapSvrModule::OnMW_PARTYMEMBERRECALLANS_REQ(LPPACKETBUF pBUF)
 		return EC_NOERROR;
 	}
 
-	if( !pPlayer->m_bMain ||
+	if (!pPlayer->m_bMain ||
 		!pPlayer->m_pMAP ||
 		pPlayer->m_bStatus == OS_DEAD ||
 		pPlayer->m_dealItem.m_bStatus >= DEAL_START ||
@@ -11282,7 +11490,7 @@ DWORD CTMapSvrModule::OnMW_PARTYMEMBERRECALLANS_REQ(LPPACKETBUF pBUF)
 		return EC_NOERROR;
 	}
 
-	switch(bType)
+	switch (bType)
 	{
 	case TP_RECALL:
 		pPlayer->SendCS_PARTYMEMBERRECALLANS_ACK(
@@ -11312,6 +11520,7 @@ DWORD CTMapSvrModule::OnMW_PARTYMEMBERRECALLANS_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_PARTYMEMBERRECALL_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_PARTYMEMBERRECALL_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	BYTE bResult;
@@ -11339,50 +11548,50 @@ DWORD CTMapSvrModule::OnMW_PARTYMEMBERRECALL_REQ(LPPACKETBUF pBUF)
 		>> fPosY
 		>> fPosZ;
 
-	CTPlayer *pPlayer = FindPlayer( dwCharID, dwKEY);
+	CTPlayer *pPlayer = FindPlayer(dwCharID, dwKEY);
 
-	if( !pPlayer || !pPlayer->m_pMAP )
+	if (!pPlayer || !pPlayer->m_pMAP)
 		return EC_NOERROR;
 
-	if(pPlayer->m_bStore || pPlayer->m_dealItem.m_bStatus >= DEAL_START)
+	if (pPlayer->m_bStore || pPlayer->m_dealItem.m_bStatus >= DEAL_START)
 		return EC_NOERROR;
 
-	if(bResult)
+	if (bResult)
 	{
 		pPlayer->SendCS_PARTYMEMBERRECALL_ACK(bResult, bType, strName);
 		return EC_NOERROR;
 	}
 
 	CTInven * pInven = pPlayer->FindTInven(bInvenID);
-	if(!pInven)
+	if (!pInven)
 	{
 		pPlayer->SendCS_PARTYMEMBERRECALL_ACK(IU_NOTFOUND, bType, strName);
 		return EC_NOERROR;
 	}
 
 	CTItem * pItem = pInven->FindTItem(bItemID);
-	if(!pItem)
+	if (!pItem)
 	{
 		pPlayer->SendCS_PARTYMEMBERRECALL_ACK(IU_NOTFOUND, bType, strName);
 		return EC_NOERROR;
 	}
 
-	if(pItem->m_pTITEM->m_bType != IT_USE)
+	if (pItem->m_pTITEM->m_bType != IT_USE)
 	{
 		pPlayer->SendCS_PARTYMEMBERRECALL_ACK(IU_NOTFOUND, bType, strName);
 		return EC_NOERROR;
 	}
 
-	if(pPlayer->m_wArenaID)
+	if (pPlayer->m_wArenaID)
 	{
 		pPlayer->SendCS_PARTYMEMBERRECALL_ACK(IU_NOTFOUND, bType, strName);
 		return EC_NOERROR;
 	}
 
-	switch(bType)
+	switch (bType)
 	{
 	case TP_RECALL:
-		if(pItem->m_pTITEM->m_bKind != IK_MEMBERRECALL)
+		if (pItem->m_pTITEM->m_bKind != IK_MEMBERRECALL)
 		{
 			pPlayer->SendCS_PARTYMEMBERRECALL_ACK(IU_NOTFOUND, bType, strName);
 			return EC_NOERROR;
@@ -11390,16 +11599,16 @@ DWORD CTMapSvrModule::OnMW_PARTYMEMBERRECALL_REQ(LPPACKETBUF pBUF)
 		else
 		{
 			SendCT_USERMOVE_ACK(
-				strName, 
-				pPlayer->m_bChannel, 
-				pPlayer->m_wMapID, 
-				pPlayer->m_fPosX, 
-				pPlayer->m_fPosY, 
+				strName,
+				pPlayer->m_bChannel,
+				pPlayer->m_wMapID,
+				pPlayer->m_fPosX,
+				pPlayer->m_fPosY,
 				pPlayer->m_fPosZ);
 		}
 		break;
 	case TP_MOVETO:
-		if(pItem->m_pTITEM->m_bKind != IK_MOVETOCHAR)
+		if (pItem->m_pTITEM->m_bKind != IK_MOVETOCHAR)
 		{
 			pPlayer->SendCS_PARTYMEMBERRECALL_ACK(IU_NOTFOUND, bType, strName);
 			return EC_NOERROR;
@@ -11407,16 +11616,16 @@ DWORD CTMapSvrModule::OnMW_PARTYMEMBERRECALL_REQ(LPPACKETBUF pBUF)
 		else
 		{
 			SendCT_USERMOVE_ACK(
-				pPlayer->m_strNAME, 
-				bChannel, 
-				wMapID, 
-				fPosX, 
-				fPosY, 
+				pPlayer->m_strNAME,
+				bChannel,
+				wMapID,
+				fPosX,
+				fPosY,
 				fPosZ);
 		}
 		break;
 	default:
-		if(pItem->m_pTITEM->m_bKind != IK_MOVETOCHAR)
+		if (pItem->m_pTITEM->m_bKind != IK_MOVETOCHAR)
 		{
 			pPlayer->SendCS_PARTYMEMBERRECALL_ACK(IU_NOTFOUND, TP_NONEDEF, strName);
 			return EC_NOERROR;
@@ -11432,6 +11641,7 @@ DWORD CTMapSvrModule::OnMW_PARTYMEMBERRECALL_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_CASHITEMCABINET_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_CASHITEMCABINET_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	DWORD dwUserID;
@@ -11452,11 +11662,11 @@ DWORD CTMapSvrModule::OnDM_CASHITEMCABINET_REQ(LPPACKETBUF pBUF)
 	DWORD dwBonus = 0;
 
 	DEFINE_QUERY(&m_db, CSPGetCashCabinetUseTime)
-	query->m_dwCharID = dwCharID;
+		query->m_dwCharID = dwCharID;
 	ldwTime = 0;
 	dwCash = 0;
 	dwBonus = 0;
-	if(query->Call() && !query->m_nRet)
+	if (query->Call() && !query->m_nRet)
 	{
 		ldwTime = __DBTOTIME(query->m_dateTime);
 		dwCash = query->m_dwCash;
@@ -11464,7 +11674,7 @@ DWORD CTMapSvrModule::OnDM_CASHITEMCABINET_REQ(LPPACKETBUF pBUF)
 	}
 	UNDEFINE_QUERY()
 
-	WORD wSize = pMSG->m_packet.GetSize();
+		WORD wSize = pMSG->m_packet.GetSize();
 
 	pMSG->m_packet
 		<< wCount
@@ -11473,11 +11683,11 @@ DWORD CTMapSvrModule::OnDM_CASHITEMCABINET_REQ(LPPACKETBUF pBUF)
 		<< dwBonus;
 
 	DEFINE_QUERY(&m_db, CTBLCashItemCabinet)
-	query->m_dwUserID = dwUserID;
+		query->m_dwUserID = dwUserID;
 
-	if(query->Open())
+	if (query->Open())
 	{
-		while(query->Fetch())
+		while (query->Fetch())
 		{
 			pMSG->m_packet
 				<< query->m_dwID;
@@ -11490,7 +11700,7 @@ DWORD CTMapSvrModule::OnDM_CASHITEMCABINET_REQ(LPPACKETBUF pBUF)
 	}
 	UNDEFINE_QUERY()
 
-	memcpy(pMSG->m_packet.GetBuffer()+wSize, &wCount, sizeof(wCount));
+		memcpy(pMSG->m_packet.GetBuffer() + wSize, &wCount, sizeof(wCount));
 
 	SayToBATCH(pMSG);
 
@@ -11499,6 +11709,7 @@ DWORD CTMapSvrModule::OnDM_CASHITEMCABINET_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_CASHITEMCABINET_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_CASHITEMCABINET_ACK");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	WORD wCount;
@@ -11515,7 +11726,7 @@ DWORD CTMapSvrModule::OnDM_CASHITEMCABINET_ACK(LPPACKETBUF pBUF)
 		>> dwBonus;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKEY);
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	DWORD dwID;
@@ -11534,13 +11745,13 @@ DWORD CTMapSvrModule::OnDM_CASHITEMCABINET_ACK(LPPACKETBUF pBUF)
 	(*pMsg)
 		<< wCashItemCnt;
 
-	for(WORD i=0; i<wCount; i++)
+	for (WORD i = 0; i<wCount; i++)
 	{
 		pBUF->m_packet
 			>> dwID;
-		
+
 		CTItem * pItem = CreateItem(&(pBUF->m_packet));
-		if(pItem)
+		if (pItem)
 		{
 			(*pMsg)
 				<< dwID;
@@ -11551,7 +11762,7 @@ DWORD CTMapSvrModule::OnDM_CASHITEMCABINET_ACK(LPPACKETBUF pBUF)
 		}
 	}
 
-	memcpy(pMsg->GetBuffer()+wSize, &wCashItemCnt, sizeof(wCount));
+	memcpy(pMsg->GetBuffer() + wSize, &wCashItemCnt, sizeof(wCount));
 
 	pPlayer->Say(pMsg);
 
@@ -11560,6 +11771,7 @@ DWORD CTMapSvrModule::OnDM_CASHITEMCABINET_ACK(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_CASHITEMGET_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_CASHITEMGET_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	CString strName;
@@ -11582,12 +11794,12 @@ DWORD CTMapSvrModule::OnDM_CASHITEMGET_REQ(LPPACKETBUF pBUF)
 	LPPACKETBUF pMSG = new PACKETBUF();
 
 	DEFINE_QUERY(&m_db, CSPCashItemGet)
-	query->m_dwUserID = dwUserID;
+		query->m_dwUserID = dwUserID;
 	query->m_dwCharID = dwCharID;
 	query->m_dwCashItemID = dwID;
 	query->m_bInven = bInven;
 	query->m_bSlot = bSlot;
-	if(query->Call())
+	if (query->Call())
 		bRet = BYTE(query->m_nRET);
 	else
 		bRet = CASHSHOP_INTERNAL;
@@ -11604,13 +11816,14 @@ DWORD CTMapSvrModule::OnDM_CASHITEMGET_REQ(LPPACKETBUF pBUF)
 	WrapItem(&(pMSG->m_packet), query->m_item);
 	UNDEFINE_QUERY()
 
-	SayToBATCH(pMSG);
+		SayToBATCH(pMSG);
 
 	return EC_NOERROR;
 }
 
 DWORD CTMapSvrModule::OnDM_CASHITEMGET_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_CASHITEMGET_ACK");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	CString strName;
@@ -11629,27 +11842,27 @@ DWORD CTMapSvrModule::OnDM_CASHITEMGET_ACK(LPPACKETBUF pBUF)
 		>> bSlot;
 
 	CTItem * pItem = CreateItem(&(pBUF->m_packet));
-	if(!pItem)
+	if (!pItem)
 		return EC_NOERROR;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKEY);
-	if(!pPlayer || !pPlayer->m_bMain)
+	if (!pPlayer || !pPlayer->m_bMain)
 	{
-		if(!bRet)
+		if (!bRet)
 		{
 			SendDM_POSTRECV_REQ(
 				0, dwCharID, GetSvrMsg(NAME_OPERATOR), strName,
 				BuildNetString(NAME_NULL, GetSvrMsg(MSG_ITEMERROR_TITLE)),
 				BuildNetString(NAME_NULL, GetSvrMsg(MSG_ITEMERROR_MESSAGE)),
 				POST_PACKATE,
-				0,0,0, pItem);
+				0, 0, 0, pItem);
 		}
 
 		delete pItem;
 		return EC_NOERROR;
 	}
 
-	if(bRet)
+	if (bRet)
 	{
 		pPlayer->SendCS_CASHITEMGET_ACK(bRet, dwCashItemID);
 		delete pItem;
@@ -11659,10 +11872,10 @@ DWORD CTMapSvrModule::OnDM_CASHITEMGET_ACK(LPPACKETBUF pBUF)
 
 
 #ifdef DEF_UDPLOG
-	m_pUdpSocket->LogCashItem(LOGMAP_CASHBANKOUT, pPlayer, 0, 0, pItem, dwCashItemID, 0, 0 );
+	m_pUdpSocket->LogCashItem(LOGMAP_CASHBANKOUT, pPlayer, 0, 0, pItem, dwCashItemID, 0, 0);
 #endif
 
-	if(pPlayer->CanPush(pItem, bInven, bSlot))
+	if (pPlayer->CanPush(pItem, bInven, bSlot))
 		pPlayer->PushTItem(pItem, bInven, bSlot);
 	else
 	{
@@ -11670,7 +11883,7 @@ DWORD CTMapSvrModule::OnDM_CASHITEMGET_ACK(LPPACKETBUF pBUF)
 		vItem.clear();
 		vItem.push_back(pItem);
 
-		if(pPlayer->CanPush(&vItem, 0))
+		if (pPlayer->CanPush(&vItem, 0))
 			pPlayer->PushTItem(&vItem);
 		else
 		{
@@ -11679,7 +11892,7 @@ DWORD CTMapSvrModule::OnDM_CASHITEMGET_ACK(LPPACKETBUF pBUF)
 				BuildNetString(NAME_NULL, GetSvrMsg(MSG_ITEMERROR_TITLE)),
 				BuildNetString(NAME_NULL, GetSvrMsg(MSG_ITEMERROR_MESSAGE)),
 				POST_PACKATE,
-				0,0,0, pItem);
+				0, 0, 0, pItem);
 
 			delete pItem;
 		}
@@ -11692,6 +11905,7 @@ DWORD CTMapSvrModule::OnDM_CASHITEMGET_ACK(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_CASHSHOPITEMLIST_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_CASHSHOPITEMLIST_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	DWORD dwUserID;
@@ -11707,17 +11921,17 @@ DWORD CTMapSvrModule::OnDM_CASHSHOPITEMLIST_REQ(LPPACKETBUF pBUF)
 	DWORD dwCashBonus = 0;
 
 	DEFINE_QUERY(&m_db, CSPGetCash)
-	query->m_dwUserID = dwUserID;
+		query->m_dwUserID = dwUserID;
 	query->m_dwCash = 0;
 	query->m_dwCashBonus = 0;
-	if(query->Call() )
+	if (query->Call())
 	{
 		dwCash = query->m_dwCash;
 		dwCashBonus = query->m_dwCashBonus;
 	}
 	UNDEFINE_QUERY()
 
-	LPPACKETBUF pMSG = new PACKETBUF();
+		LPPACKETBUF pMSG = new PACKETBUF();
 	pMSG->m_packet.SetID(DM_CASHSHOPITEMLIST_ACK)
 		<< dwCharID
 		<< dwKEY
@@ -11732,6 +11946,7 @@ DWORD CTMapSvrModule::OnDM_CASHSHOPITEMLIST_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_CASHSHOPITEMLIST_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_CASHSHOPITEMLIST_ACK");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	DWORD dwCash;
@@ -11746,7 +11961,7 @@ DWORD CTMapSvrModule::OnDM_CASHSHOPITEMLIST_ACK(LPPACKETBUF pBUF)
 		>> wItemID;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKEY);
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	pPlayer->SendCS_CASHSHOPITEMLIST_ACK(
@@ -11760,6 +11975,7 @@ DWORD CTMapSvrModule::OnDM_CASHSHOPITEMLIST_ACK(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_CASHITEMBUY_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_CASHITEMBUY_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	DWORD dwUserID;
@@ -11783,13 +11999,13 @@ DWORD CTMapSvrModule::OnDM_CASHITEMBUY_REQ(LPPACKETBUF pBUF)
 		>> strTarget;
 
 	DEFINE_QUERY(&m_db, CSPCashItemBuy)
-	query->m_dwUserID = dwUserID;
+		query->m_dwUserID = dwUserID;
 	query->m_dwCharID = dwCharID;
 	query->m_wCashItemID = wCashItemID;
 	query->m_bBuyType = bBuyType;
 	lstrcpy(query->m_szTarget, strTarget);
 
-	if(query->Call())
+	if (query->Call())
 	{
 		bRet = BYTE(query->m_nRET);
 		dwCash = query->m_dwCash;
@@ -11802,7 +12018,7 @@ DWORD CTMapSvrModule::OnDM_CASHITEMBUY_REQ(LPPACKETBUF pBUF)
 		bRet = CASHSHOP_INTERNAL;
 	UNDEFINE_QUERY()
 
-	LPPACKETBUF pMSG = new PACKETBUF();
+		LPPACKETBUF pMSG = new PACKETBUF();
 	pMSG->m_packet.SetID(DM_CASHITEMBUY_ACK)
 		<< dwCharID
 		<< dwKEY
@@ -11823,6 +12039,7 @@ DWORD CTMapSvrModule::OnDM_CASHITEMBUY_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_CASHITEMBUY_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_CASHITEMBUY_ACK");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	BYTE bRet;
@@ -11849,16 +12066,16 @@ DWORD CTMapSvrModule::OnDM_CASHITEMBUY_ACK(LPPACKETBUF pBUF)
 		>> strPresent;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKEY);
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
-	if(bRet)
+	if (bRet)
 	{
 		pPlayer->SendCS_CASHITEMBUY_ACK(bRet, 0, 0);
 		return EC_NOERROR;
 	}
 
-	if(bBuyType == CASHITEM_BUY)
+	if (bBuyType == CASHITEM_BUY)
 	{
 #ifdef DEF_UDPLOG
 		m_pUdpSocket->LogCashItem(LOGMAP_CASHITEMBUY, pPlayer, 0, NULL, NULL, wCashItemID, dwCash, dwCashBonus);
@@ -11874,7 +12091,7 @@ DWORD CTMapSvrModule::OnDM_CASHITEMBUY_ACK(LPPACKETBUF pBUF)
 			0, dwTargetID, GetSvrMsg(NAME_OPERATOR), strTarget,
 			BuildNetString(NAME_NULL, strTitle), BuildNetString(NAME_NULL, strMessage),
 			POST_NORMAL,
-			0,0,0,NULL);
+			0, 0, 0, NULL);
 
 #ifdef DEF_UDPLOG
 		m_pUdpSocket->LogCashItem(LOGMAP_CASHITEMPRESENT, pPlayer, dwTargetID, strTarget, NULL, wCashItemID, dwCash, dwCashBonus);
@@ -11888,6 +12105,7 @@ DWORD CTMapSvrModule::OnDM_CASHITEMBUY_ACK(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_SOULMATE_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_SOULMATE_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	DWORD dwSoulmate;
@@ -11901,14 +12119,14 @@ DWORD CTMapSvrModule::OnMW_SOULMATE_REQ(LPPACKETBUF pBUF)
 		>> strSoulmate
 		>> dwTime;
 
-	CTPlayer *pPlayer = FindPlayer( dwCharID, dwKEY);
+	CTPlayer *pPlayer = FindPlayer(dwCharID, dwKEY);
 
-	if( !pPlayer )
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	pPlayer->SetSoulmate(dwSoulmate, strSoulmate, dwTime);
 
-	if(dwSoulmate)
+	if (dwSoulmate)
 		pPlayer->SendCS_SOULMATE_ACK();
 
 	return EC_NOERROR;
@@ -11916,6 +12134,7 @@ DWORD CTMapSvrModule::OnMW_SOULMATE_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_SOULMATESEARCH_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_SOULMATESEARCH_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	BYTE bResult;
@@ -11936,48 +12155,48 @@ DWORD CTMapSvrModule::OnMW_SOULMATESEARCH_REQ(LPPACKETBUF pBUF)
 		>> bNpcInvenID
 		>> bNpcItemID;
 
-	CTPlayer *pPlayer = FindPlayer( dwCharID, dwKEY);
+	CTPlayer *pPlayer = FindPlayer(dwCharID, dwKEY);
 
-	if( !pPlayer || !pPlayer->m_pMAP )
+	if (!pPlayer || !pPlayer->m_pMAP)
 		return EC_NOERROR;
 
-	if(!pPlayer->UseMoney(pPlayer->m_pTLEVEL->m_dwSearchCost, FALSE))
+	if (!pPlayer->UseMoney(pPlayer->m_pTLEVEL->m_dwSearchCost, FALSE))
 	{
 		pPlayer->SendCS_SOULMATESEARCH_ACK(SOULMATE_NEEDMONEY);
 		return EC_NOERROR;
 	}
 
-	if(bNpcInvenID != INVEN_NULL && bNpcItemID != INVALID_SLOT)
+	if (bNpcInvenID != INVEN_NULL && bNpcItemID != INVALID_SLOT)
 	{
-		if(pPlayer->m_wMapID != 0 && pPlayer->m_wMapID != 8 )
+		if (pPlayer->m_wMapID != 0 && pPlayer->m_wMapID != 8)
 		{
 			pPlayer->SendCS_SOULMATESEARCH_ACK(SOULMATE_INVALIDPOS);
 			return EC_NOERROR;
-		}		
+		}
 
 		CTItem * pNpcItem = NULL;
 		CTInven * pNpcInven = NULL;
 
 		pNpcInven = pPlayer->FindTInven(bNpcInvenID);
-		if(!pNpcInven)
+		if (!pNpcInven)
 		{
 			pPlayer->SendCS_SOULMATESEARCH_ACK(SOULMATE_NPCCALLERROR);
 			return EC_NOERROR;
 		}
 		pNpcItem = pNpcInven->FindTItem(bNpcItemID);
-		if(!pNpcItem || pNpcItem->m_pTITEM->m_bKind != IK_NPCCALL)
+		if (!pNpcItem || pNpcItem->m_pTITEM->m_bKind != IK_NPCCALL)
 		{
 			pPlayer->SendCS_SOULMATESEARCH_ACK(SOULMATE_NPCCALLERROR);
 			return EC_NOERROR;
 		}
 
-		UseItem(pPlayer, pNpcInven, pNpcItem, 1);		
+		UseItem(pPlayer, pNpcInven, pNpcItem, 1);
 	}
 
 	pPlayer->UseMoney(pPlayer->m_pTLEVEL->m_dwSearchCost, TRUE);
 	pPlayer->SendCS_MONEY_ACK();
 
-	if(bResult == SOULMATE_SUCCESS)
+	if (bResult == SOULMATE_SUCCESS)
 		pPlayer->SetSoulmate(dwSoulID, strSoulmate, 0);
 
 	pPlayer->SendCS_SOULMATESEARCH_ACK(
@@ -11987,12 +12206,13 @@ DWORD CTMapSvrModule::OnMW_SOULMATESEARCH_REQ(LPPACKETBUF pBUF)
 		dwRegion);
 
 
-	
+
 	return EC_NOERROR;
 }
 
 DWORD CTMapSvrModule::OnMW_SOULMATEREG_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_SOULMATEREG_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	BYTE bResult;
@@ -12001,7 +12221,7 @@ DWORD CTMapSvrModule::OnMW_SOULMATEREG_REQ(LPPACKETBUF pBUF)
 	CString strSoulmate;
 	DWORD dwRegion;
 
-	BYTE bNpcInvenID;  
+	BYTE bNpcInvenID;
 	BYTE bNpcItemID;
 
 	pBUF->m_packet
@@ -12015,17 +12235,17 @@ DWORD CTMapSvrModule::OnMW_SOULMATEREG_REQ(LPPACKETBUF pBUF)
 		>> strSoulmate
 		>> dwRegion;
 
-	CTPlayer *pPlayer = FindPlayer( dwCharID, dwKEY);
+	CTPlayer *pPlayer = FindPlayer(dwCharID, dwKEY);
 
-	if( !pPlayer || !pPlayer->m_pMAP )
+	if (!pPlayer || !pPlayer->m_pMAP)
 		return EC_NOERROR;
 
-	if(bResult == SOULMATE_SUCCESS &&
+	if (bResult == SOULMATE_SUCCESS &&
 		bReg == TRUE)
 	{
-		if(bNpcInvenID != INVEN_NULL && bNpcItemID != INVALID_SLOT)
+		if (bNpcInvenID != INVEN_NULL && bNpcItemID != INVALID_SLOT)
 		{
-			if(pPlayer->m_wMapID != 0 && pPlayer->m_wMapID != 8 )
+			if (pPlayer->m_wMapID != 0 && pPlayer->m_wMapID != 8)
 			{
 				pPlayer->SendCS_SOULMATEREG_ACK(SOULMATE_INVALIDPOS);
 				return EC_NOERROR;
@@ -12035,14 +12255,14 @@ DWORD CTMapSvrModule::OnMW_SOULMATEREG_REQ(LPPACKETBUF pBUF)
 			CTInven * pNpcInven = NULL;
 
 			pNpcInven = pPlayer->FindTInven(bNpcInvenID);
-			if(!pNpcInven)
+			if (!pNpcInven)
 			{
 				pPlayer->SendCS_SOULMATEREG_ACK(SOULMATE_NPCCALLERROR);
 				return EC_NOERROR;
 			}
 
 			pNpcItem = pNpcInven->FindTItem(bNpcItemID);
-			if(!pNpcItem || pNpcItem->m_pTITEM->m_bKind != IK_NPCCALL)
+			if (!pNpcItem || pNpcItem->m_pTITEM->m_bKind != IK_NPCCALL)
 			{
 				pPlayer->SendCS_SOULMATEREG_ACK(SOULMATE_NPCCALLERROR);
 				return EC_NOERROR;
@@ -12056,16 +12276,17 @@ DWORD CTMapSvrModule::OnMW_SOULMATEREG_REQ(LPPACKETBUF pBUF)
 		pPlayer->SendCS_MONEY_ACK();
 	}
 
-	if(bReg)
+	if (bReg)
 		pPlayer->SendCS_SOULMATEREG_ACK(bResult, dwSoulmate, strSoulmate, dwRegion);
 	else
-		pPlayer->SendCS_SOULMATEREGREADY_ACK(bResult, strSoulmate,bNpcInvenID,bNpcItemID);
+		pPlayer->SendCS_SOULMATEREGREADY_ACK(bResult, strSoulmate, bNpcInvenID, bNpcItemID);
 
 	return EC_NOERROR;
 }
 
 DWORD CTMapSvrModule::OnMW_SOULMATEEND_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_SOULMATEEND_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	BYTE bResult;
@@ -12077,12 +12298,12 @@ DWORD CTMapSvrModule::OnMW_SOULMATEEND_REQ(LPPACKETBUF pBUF)
 		>> bResult
 		>> dwTime;
 
-	CTPlayer *pPlayer = FindPlayer( dwCharID, dwKEY);
+	CTPlayer *pPlayer = FindPlayer(dwCharID, dwKEY);
 
-	if( !pPlayer )
+	if (!pPlayer)
 		return EC_NOERROR;
 
-	if(bResult == SOULMATE_SUCCESS)
+	if (bResult == SOULMATE_SUCCESS)
 		pPlayer->SetSoulmate(0, NAME_NULL, dwTime);
 
 	pPlayer->SendCS_SOULMATEEND_ACK(bResult);
@@ -12092,13 +12313,14 @@ DWORD CTMapSvrModule::OnMW_SOULMATEEND_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_ENDWAR_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_ENDWAR_REQ");
 	WORD wCastle;
 
 	pBUF->m_packet
 		>> wCastle;
 
 	LPTLOCAL pCastle = FindCastleZone(wCastle);
-	if(!pCastle)
+	if (!pCastle)
 		return EC_NOERROR;
 
 	pCastle->m_bStatus = BS_NOBATTLE;
@@ -12108,6 +12330,7 @@ DWORD CTMapSvrModule::OnMW_ENDWAR_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_CASTLEWARINFO_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_CASTLEWARINFO_REQ");
 	WORD wCastle;
 	DWORD dwDefGuild;
 	BYTE bDefCountry;
@@ -12136,7 +12359,7 @@ DWORD CTMapSvrModule::OnMW_CASTLEWARINFO_REQ(LPPACKETBUF pBUF)
 		>> dwPCount;
 
 	LPTLOCAL pCastle = FindCastle(wCastle);
-	if(!pCastle)
+	if (!pCastle)
 		return EC_NOERROR;
 
 	pCastle->m_bDefCountry = bDefCountry;
@@ -12151,7 +12374,7 @@ DWORD CTMapSvrModule::OnMW_CASTLEWARINFO_REQ(LPPACKETBUF pBUF)
 	pCastle->m_vTop3[TCONTRY_D].clear();
 	pCastle->m_vTop3[TCONTRY_C].clear();
 
-	for(DWORD i=0; i<dwPCount; i++)
+	for (DWORD i = 0; i<dwPCount; i++)
 	{
 		pBUF->m_packet
 			>> dwGuildID
@@ -12164,7 +12387,7 @@ DWORD CTMapSvrModule::OnMW_CASTLEWARINFO_REQ(LPPACKETBUF pBUF)
 	pBUF->m_packet
 		>> bTop3Cnt;
 
-	for(BYTE t3=0; t3<bTop3Cnt; t3++)
+	for (BYTE t3 = 0; t3<bTop3Cnt; t3++)
 	{
 		TLOCALSUMPOINT lsp;
 
@@ -12181,6 +12404,7 @@ DWORD CTMapSvrModule::OnMW_CASTLEWARINFO_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_CASHCABINETBUY_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_CASHCABINETBUY_REQ");
 	BYTE bRet;
 	DWORD dwCharID;
 	DWORD dwKey;
@@ -12195,9 +12419,9 @@ DWORD CTMapSvrModule::OnDM_CASHCABINETBUY_REQ(LPPACKETBUF pBUF)
 		>> wShopItemID;
 
 	DEFINE_QUERY(&m_db, CSPCashCabinetBuy)
-	query->m_dwCharID = dwCharID;
+		query->m_dwCharID = dwCharID;
 	query->m_wCashItemID = wShopItemID;
-	if(query->Call())
+	if (query->Call())
 	{
 		bRet = (BYTE)query->m_nRet;
 		dwCash = query->m_dwCash;
@@ -12208,7 +12432,7 @@ DWORD CTMapSvrModule::OnDM_CASHCABINETBUY_REQ(LPPACKETBUF pBUF)
 		bRet = CASHSHOP_INTERNAL;
 	UNDEFINE_QUERY()
 
-	LPPACKETBUF pMSG = new PACKETBUF();
+		LPPACKETBUF pMSG = new PACKETBUF();
 	pMSG->m_packet.SetID(DM_CASHCABINETBUY_ACK)
 		<< bRet
 		<< dwCharID
@@ -12224,6 +12448,7 @@ DWORD CTMapSvrModule::OnDM_CASHCABINETBUY_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnDM_CASHCABINETBUY_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_CASHCABINETBUY_ACK");
 	BYTE bRet;
 	DWORD dwCharID;
 	DWORD dwKey;
@@ -12242,11 +12467,11 @@ DWORD CTMapSvrModule::OnDM_CASHCABINETBUY_ACK(LPPACKETBUF pBUF)
 		>> wShopItemID;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(!pPlayer || !pPlayer->m_bMain)
+	if (!pPlayer || !pPlayer->m_bMain)
 		return EC_NOERROR;
 
 #ifdef DEF_UDPLOG
-	if(!bRet)
+	if (!bRet)
 		m_pUdpSocket->LogCashCabinetBuy(LOGMAP_CASHCABINETBUY, pPlayer, wShopItemID, dlTime, dwCash, dwBonus, bRet);
 #endif
 
@@ -12261,6 +12486,7 @@ DWORD CTMapSvrModule::OnDM_CASHCABINETBUY_ACK(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_CASHITEMPUTIN_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_CASHITEMPUTIN_REQ");
 	BYTE bRet;
 	DWORD dwCharID;
 	DWORD dwKey;
@@ -12279,14 +12505,14 @@ DWORD CTMapSvrModule::OnDM_CASHITEMPUTIN_REQ(LPPACKETBUF pBUF)
 		>> bItemID;
 
 	CTItem * pItem = CreateItem(&(pBUF->m_packet));
-	if(!pItem)
+	if (!pItem)
 		return EC_NOERROR;
 
 	DEFINE_QUERY(&m_db, CSPCashItemPutin)
-	query->m_dwCharID = dwCharID;
+		query->m_dwCharID = dwCharID;
 	query->m_bInven = bInven;
 	query->m_bItemID = bItemID;
-	if(query->Call())
+	if (query->Call())
 	{
 		bRet = (BYTE)query->m_nRet;
 		dwNewID = query->m_dwNewID;
@@ -12297,7 +12523,7 @@ DWORD CTMapSvrModule::OnDM_CASHITEMPUTIN_REQ(LPPACKETBUF pBUF)
 		bRet = CASHSHOP_INTERNAL;
 	UNDEFINE_QUERY()
 
-	LPPACKETBUF pMSG = new PACKETBUF();
+		LPPACKETBUF pMSG = new PACKETBUF();
 	pMSG->m_packet.SetID(DM_CASHITEMPUTIN_ACK)
 		<< bRet
 		<< dwCharID
@@ -12319,6 +12545,7 @@ DWORD CTMapSvrModule::OnDM_CASHITEMPUTIN_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_CASHITEMPUTIN_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_CASHITEMPUTIN_ACK");
 	BYTE bRet;
 	DWORD dwCharID;
 	DWORD dwKey;
@@ -12341,44 +12568,44 @@ DWORD CTMapSvrModule::OnDM_CASHITEMPUTIN_ACK(LPPACKETBUF pBUF)
 		>> dwBonus;
 
 	CTItem * pItem = CreateItem(&(pBUF->m_packet));
-	if(!pItem)
+	if (!pItem)
 		return EC_NOERROR;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(!pPlayer || !pPlayer->m_bMain)
+	if (!pPlayer || !pPlayer->m_bMain)
 	{
-		if(bRet)
+		if (bRet)
 		{
 			SendDM_POSTRECV_REQ(
 				0, dwCharID, GetSvrMsg(NAME_OPERATOR), strName,
 				BuildNetString(NAME_NULL, GetSvrMsg(MSG_ITEMERROR_TITLE)),
 				BuildNetString(NAME_NULL, GetSvrMsg(MSG_ITEMERROR_MESSAGE)),
 				POST_PACKATE,
-				0,0,0, pItem);
+				0, 0, 0, pItem);
 		}
 
-		if(pPlayer)
+		if (pPlayer)
 			pPlayer->SendCS_CASHITEMPUTIN_ACK(bRet, 0, NULL);
 
 		delete pItem;
 		return EC_NOERROR;
 	}
 
-	if(bRet)
+	if (bRet)
 	{
 		CTInven *pInven = pPlayer->FindTInven(bInven);
-		if(!pInven)
+		if (!pInven)
 		{
 			VTITEM vItem;
 			vItem.clear();
 			vItem.push_back(pItem);
 
-			if(pPlayer->CanPush(&vItem, 0))
+			if (pPlayer->CanPush(&vItem, 0))
 				pPlayer->PushTItem(&vItem);
 		}
 		else
 		{
-			if(pPlayer->CanPush(pItem, bInven, bItemID))
+			if (pPlayer->CanPush(pItem, bInven, bItemID))
 				pPlayer->PushTItem(pItem, bInven, bItemID);
 			else
 			{
@@ -12386,7 +12613,7 @@ DWORD CTMapSvrModule::OnDM_CASHITEMPUTIN_ACK(LPPACKETBUF pBUF)
 				vItem.clear();
 				vItem.push_back(pItem);
 
-				if(pPlayer->CanPush(&vItem, 0))
+				if (pPlayer->CanPush(&vItem, 0))
 					pPlayer->PushTItem(&vItem);
 				else
 				{
@@ -12395,7 +12622,7 @@ DWORD CTMapSvrModule::OnDM_CASHITEMPUTIN_ACK(LPPACKETBUF pBUF)
 						BuildNetString(NAME_NULL, GetSvrMsg(MSG_ITEMERROR_TITLE)),
 						BuildNetString(NAME_NULL, GetSvrMsg(MSG_ITEMERROR_MESSAGE)),
 						POST_PACKATE,
-						0,0,0, pItem);
+						0, 0, 0, pItem);
 
 					delete pItem;
 				}
@@ -12415,7 +12642,7 @@ DWORD CTMapSvrModule::OnDM_CASHITEMPUTIN_ACK(LPPACKETBUF pBUF)
 			dwBonus);
 
 #ifdef DEF_UDPLOG
-		m_pUdpSocket->LogCashItem(LOGMAP_CASHBANKIN, pPlayer, 0, 0, pItem, 0, dwCash, dwBonus );
+		m_pUdpSocket->LogCashItem(LOGMAP_CASHBANKIN, pPlayer, 0, 0, pItem, 0, dwCash, dwBonus);
 #endif
 
 		delete pItem;
@@ -12426,14 +12653,15 @@ DWORD CTMapSvrModule::OnDM_CASHITEMPUTIN_ACK(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_DELETEDEALITEM_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_DELETEDEALITEM_REQ");
 	BYTE bCount;
 
 	DEFINE_QUERY(&m_db, CSPDeleteDealItem)
 
-	pBUF->m_packet
+		pBUF->m_packet
 		>> bCount;
 
-	for(BYTE is=0; is<bCount; is++)
+	for (BYTE is = 0; is<bCount; is++)
 	{
 		pBUF->m_packet
 			>> query->m_dlID;
@@ -12447,6 +12675,7 @@ DWORD CTMapSvrModule::OnDM_DELETEDEALITEM_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_RECALLMONDATA_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_RECALLMONDATA_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	DWORD dwID;
@@ -12464,23 +12693,23 @@ DWORD CTMapSvrModule::OnMW_RECALLMONDATA_REQ(LPPACKETBUF pBUF)
 		>> fPosZ;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	CTRecallMon * pRecall = pPlayer->FindRecallMon(dwID);
-	if(!pRecall || !pRecall->m_pMAP)
+	if (!pRecall || !pRecall->m_pMAP)
 		return EC_NOERROR;
 
 	WORD wNewX = WORD(fPosX) / CELL_SIZE;
 	WORD wNewZ = WORD(fPosZ) / CELL_SIZE;
-	DWORD dwNEW = MAKELONG( wNewX, wNewZ);
+	DWORD dwNEW = MAKELONG(wNewX, wNewZ);
 
 	MAPTCELL::iterator it = pRecall->m_pMAP->m_mapTCELL.find(dwNEW);
-	if(it==pRecall->m_pMAP->m_mapTCELL.end())
+	if (it == pRecall->m_pMAP->m_mapTCELL.end())
 		return EC_NOERROR;
 
 	pRecall->m_bMain = (*it).second->IsMainCell(bChannel);
-	if(!pRecall->m_bMain)
+	if (!pRecall->m_bMain)
 		return EC_NOERROR;
 
 	pBUF->m_packet
@@ -12491,7 +12720,7 @@ DWORD CTMapSvrModule::OnMW_RECALLMONDATA_REQ(LPPACKETBUF pBUF)
 		>> bSkillCnt;
 
 	WORD wSkillID;
-	for(BYTE i=0; i<bSkillCnt; i++)
+	for (BYTE i = 0; i<bSkillCnt; i++)
 	{
 		DWORD dwRemainTick;
 		pBUF->m_packet
@@ -12499,9 +12728,9 @@ DWORD CTMapSvrModule::OnMW_RECALLMONDATA_REQ(LPPACKETBUF pBUF)
 			>> dwRemainTick;
 
 		CTSkill * pSkill = pRecall->FindTSkill(wSkillID);
-		if(pSkill)
+		if (pSkill)
 		{
-			if(dwRemainTick)
+			if (dwRemainTick)
 			{
 				pSkill->m_dwUseTick = m_dwTick;
 				pSkill->m_dwDelayTick = dwRemainTick;
@@ -12520,7 +12749,7 @@ DWORD CTMapSvrModule::OnMW_RECALLMONDATA_REQ(LPPACKETBUF pBUF)
 	pBUF->m_packet
 		>> wMaintainCnt;
 
-	for(int i = 0; i<wMaintainCnt; i++)
+	for (int i = 0; i<wMaintainCnt; i++)
 	{
 		CTSkill * pMaintain = new CTSkill();
 		pBUF->m_packet
@@ -12534,16 +12763,16 @@ DWORD CTMapSvrModule::OnMW_RECALLMONDATA_REQ(LPPACKETBUF pBUF)
 			>> pMaintain->m_bAttackCountry;
 
 		CTSkillTemp *pTemp = FindTSkill(wSkillID);
-		if(pTemp && !pRecall->FindMaintainSkill(wSkillID))
+		if (pTemp && !pRecall->FindMaintainSkill(wSkillID))
 		{
 			pMaintain->m_pTSKILL = pTemp;
 			pMaintain->m_dwStartTick = pMaintain->m_dwMaintainTick ? m_dwTick : 0;
 
-			for( DWORD j=0; j<DWORD(pMaintain->m_pTSKILL->m_vData.size()); j++)
+			for (DWORD j = 0; j<DWORD(pMaintain->m_pTSKILL->m_vData.size()); j++)
 			{
 				LPTSKILLDATA pData = pMaintain->m_pTSKILL->m_vData[j];
 
-				if( pData->m_bType == SDT_TRANS )
+				if (pData->m_bType == SDT_TRANS)
 					pRecall->SetTransAttack(pData->m_wValue);
 			}
 			pRecall->PushMaintainSkill(pMaintain);
@@ -12557,6 +12786,7 @@ DWORD CTMapSvrModule::OnMW_RECALLMONDATA_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_POSTINVENITEM_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_POSTINVENITEM_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	CString strName;
@@ -12578,12 +12808,12 @@ DWORD CTMapSvrModule::OnDM_POSTINVENITEM_REQ(LPPACKETBUF pBUF)
 		<< bInven
 		<< bCount;
 
-	for(BYTE i=0; i<bCount; i++)
+	for (BYTE i = 0; i<bCount; i++)
 	{
-		if( i%3 == 0 )
+		if (i % 3 == 0)
 		{
 			DEFINE_QUERY(&m_db, CSPSavePost)
-			query->m_dwCharID = dwCharID;
+				query->m_dwCharID = dwCharID;
 			query->m_dwSendID = 0;
 			lstrcpy(query->m_szTarget, strName);
 			lstrcpy(query->m_szSender, GetSvrMsg(NAME_OPERATOR));
@@ -12596,19 +12826,19 @@ DWORD CTMapSvrModule::OnDM_POSTINVENITEM_REQ(LPPACKETBUF pBUF)
 			query->m_dwCooper = 0;
 			__TIMETODB(m_timeCurrent, query->m_timeRecv);
 
-			if(query->Call() && !query->m_nRet)
+			if (query->Call() && !query->m_nRet)
 				dwMakeID = query->m_dwMakeID;
 			else
 				dwMakeID = 0;
 
 			UNDEFINE_QUERY()
 
-			pMsg->m_packet
+				pMsg->m_packet
 				<< dwMakeID;
 		}
 
 		DEFINE_QUERY(&m_db, CSPSaveItemDirect)
-		query->m_bStorageType = STORAGE_POST;
+			query->m_bStorageType = STORAGE_POST;
 		query->m_dwStorageID = dwMakeID;
 		query->m_bOwnerType = TOWNER_CHAR;
 		query->m_dwOwnerID = dwCharID;
@@ -12616,7 +12846,7 @@ DWORD CTMapSvrModule::OnDM_POSTINVENITEM_REQ(LPPACKETBUF pBUF)
 
 		WrapItemQuery(&(pBUF->m_packet), query->m_item);
 
-		if(dwMakeID)
+		if (dwMakeID)
 			query->Call();
 
 		UNDEFINE_QUERY();
@@ -12629,6 +12859,7 @@ DWORD CTMapSvrModule::OnDM_POSTINVENITEM_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_POSTINVENITEM_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_POSTINVENITEM_ACK");
 	DWORD dwCharID;
 	DWORD dwKey;
 	BYTE bInven;
@@ -12642,14 +12873,14 @@ DWORD CTMapSvrModule::OnDM_POSTINVENITEM_ACK(LPPACKETBUF pBUF)
 		>> bCount;
 
 	CTPlayer * pRecver = FindPlayer(dwCharID, dwKey);
-	if(!pRecver || !pRecver->m_bMain)
+	if (!pRecver || !pRecver->m_bMain)
 		return EC_NOERROR;
 
 	LPTPOST pPost = NULL;
 
-	for(BYTE i=0; i<bCount; i++)
+	for (BYTE i = 0; i<bCount; i++)
 	{
-		if( i%3 == 0)
+		if (i % 3 == 0)
 		{
 			pBUF->m_packet
 				>> dwMakeID;
@@ -12669,6 +12900,7 @@ DWORD CTMapSvrModule::OnDM_POSTINVENITEM_ACK(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_SAVECHARBASE_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_SAVECHARBASE_REQ");
 	DWORD dwCharID;
 	BYTE bType;
 	BYTE bValue;
@@ -12681,7 +12913,7 @@ DWORD CTMapSvrModule::OnDM_SAVECHARBASE_REQ(LPPACKETBUF pBUF)
 		>> strName;
 
 	DEFINE_QUERY(&m_db, CSPSaveCharBase)
-	query->m_dwCharID = dwCharID;
+		query->m_dwCharID = dwCharID;
 	query->m_bType = bType;
 	query->m_bValue = bValue;
 	lstrcpy(query->m_szName, strName);
@@ -12693,6 +12925,7 @@ DWORD CTMapSvrModule::OnDM_SAVECHARBASE_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_CHECKCHANGENAME_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_CHECKCHANGENAME_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	BYTE bInven;
@@ -12708,15 +12941,15 @@ DWORD CTMapSvrModule::OnDM_CHECKCHANGENAME_REQ(LPPACKETBUF pBUF)
 
 	BYTE bRet;
 	DEFINE_QUERY(&m_db, CSPCheckDuplicateName)
-	query->m_dwCharID = dwCharID;
+		query->m_dwCharID = dwCharID;
 	lstrcpy(query->m_szName, strName);
-	if(query->Call())
+	if (query->Call())
 		bRet = BYTE(query->m_nRet);
 	else
 		bRet = CCB_FAIL;
 	UNDEFINE_QUERY()
 
-	LPPACKETBUF pMsg = new PACKETBUF();
+		LPPACKETBUF pMsg = new PACKETBUF();
 	pMsg->m_packet.SetID(DM_CHECKCHANGENAME_ACK)
 		<< bRet
 		<< dwCharID
@@ -12732,6 +12965,7 @@ DWORD CTMapSvrModule::OnDM_CHECKCHANGENAME_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_CHECKCHANGENAME_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_CHECKCHANGENAME_ACK");
 	BYTE bRet;
 	DWORD dwCharID;
 	DWORD dwKey;
@@ -12748,13 +12982,13 @@ DWORD CTMapSvrModule::OnDM_CHECKCHANGENAME_ACK(LPPACKETBUF pBUF)
 		>> strName;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(!pPlayer || !pPlayer->m_pMAP || !pPlayer->m_bMain)
+	if (!pPlayer || !pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
 
-	if(pPlayer->m_bStore || pPlayer->m_dealItem.m_bStatus >= DEAL_START)
+	if (pPlayer->m_bStore || pPlayer->m_dealItem.m_bStatus >= DEAL_START)
 		return EC_NOERROR;
 
-	if(bRet)
+	if (bRet)
 	{
 		pPlayer->SendCS_CHANGECHARBASE_ACK(
 			bRet,
@@ -12768,7 +13002,7 @@ DWORD CTMapSvrModule::OnDM_CHECKCHANGENAME_ACK(LPPACKETBUF pBUF)
 	}
 
 	CTInven * pInven = pPlayer->FindTInven(bInven);
-	if(!pInven)
+	if (!pInven)
 	{
 		pPlayer->SendCS_CHANGECHARBASE_ACK(
 			CCB_NOITEM,
@@ -12782,7 +13016,7 @@ DWORD CTMapSvrModule::OnDM_CHECKCHANGENAME_ACK(LPPACKETBUF pBUF)
 	}
 
 	CTItem * pItem = pInven->FindTItem(bItem);
-	if(!pItem)
+	if (!pItem)
 	{
 		pPlayer->SendCS_CHANGECHARBASE_ACK(
 			CCB_NOITEM,
@@ -12804,6 +13038,7 @@ DWORD CTMapSvrModule::OnDM_CHECKCHANGENAME_ACK(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_CHANGECHARBASE_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_CHANGECHARBASE_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	BYTE bType;
@@ -12820,12 +13055,12 @@ DWORD CTMapSvrModule::OnMW_CHANGECHARBASE_REQ(LPPACKETBUF pBUF)
 		>> strName;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(!pPlayer || !pPlayer->m_pMAP)
+	if (!pPlayer || !pPlayer->m_pMAP)
 		return EC_NOERROR;
-	
+
 	DWORD dwSecond = 0;
 
-	switch(bType)
+	switch (bType)
 	{
 	case IK_FACE:
 		pPlayer->m_bFace = bValue;
@@ -12835,23 +13070,23 @@ DWORD CTMapSvrModule::OnMW_CHANGECHARBASE_REQ(LPPACKETBUF pBUF)
 		break;
 	case IK_RACE:
 		pPlayer->m_bRace = bValue;
-		if(pPlayer->m_bMain)
+		if (pPlayer->m_bMain)
 		{
 			CTRecallMon * pRe = pPlayer->FindRecallPet();
-			if(pRe)
+			if (pRe)
 				SendMW_RECALLMONDEL_ACK(pPlayer->m_dwID, pPlayer->m_dwKEY, pRe->m_dwID);
 
 			MAPTPET::iterator itPET = pPlayer->m_mapTPET.begin();
-			while(itPET != pPlayer->m_mapTPET.end())
+			while (itPET != pPlayer->m_mapTPET.end())
 			{
 				LPTPET pPet = (*itPET).second;
 				itPET = pPlayer->m_mapTPET.erase(itPET);
 				pPet->m_wPetID = MAKEWORD(pPlayer->m_bRace, HIBYTE(pPet->m_wPetID));
 				MAPTPETTEMP::iterator find = m_mapTPET.find(pPet->m_wPetID);
-				if(find != m_mapTPET.end())
+				if (find != m_mapTPET.end())
 				{
 					pPet->m_pTPET = (*find).second;
-					pPlayer->m_mapTPET.insert(MAPTPET::value_type( pPet->m_wPetID, pPet));
+					pPlayer->m_mapTPET.insert(MAPTPET::value_type(pPet->m_wPetID, pPet));
 				}
 				else
 					delete pPet;
@@ -12873,46 +13108,46 @@ DWORD CTMapSvrModule::OnMW_CHANGECHARBASE_REQ(LPPACKETBUF pBUF)
 		pPlayer->m_bSex = bValue;
 		break;
 	case IK_TITLE:
-		{	
-			pPlayer->m_wTitleID = wTitleID;
+	{
+		pPlayer->m_wTitleID = wTitleID;
 
-			MAPTTITLE::iterator itTITLE;
-	
-			for(itTITLE = pPlayer->m_mapTTITLE.begin(); itTITLE != pPlayer->m_mapTTITLE.end(); itTITLE++)
-			{
-				(*itTITLE).second->m_bSelected = FALSE;
+		MAPTTITLE::iterator itTITLE;
 
-				if((*itTITLE).second->m_wTitleID == wTitleID)
-					(*itTITLE).second->m_bSelected = TRUE;
-			}
-		}
-		break;
-	case IK_NAME:
+		for (itTITLE = pPlayer->m_mapTTITLE.begin(); itTITLE != pPlayer->m_mapTTITLE.end(); itTITLE++)
 		{
-			for(DWORD ll=0; ll<m_vOccupation.size(); ll++)
-			{
-				LPTLOCAL pLocal = m_vOccupation[ll];
+			(*itTITLE).second->m_bSelected = FALSE;
 
-				if( pLocal->m_strHero == pPlayer->m_strNAME )
-					pLocal->m_strHero.Empty();
-			}
-
-			LPTOURNAMENTPLAYER pTnmt = FindTournamentPlayer(pPlayer->m_dwID);
-			if(pTnmt)
-				pTnmt->m_strName = strName;
-
-			CString strOriName = pPlayer->m_strNAME;
-			strOriName.MakeUpper();
-			MAPPLAYERNAME::iterator it = m_mapPLAYERNAME.find(strOriName);
-			if(it != m_mapPLAYERNAME.end())
-				m_mapPLAYERNAME.erase(it);
-
-			pPlayer->m_strNAME = strName;
-			CString strChgName = strName;
-			strChgName.MakeUpper();
-			m_mapPLAYERNAME.insert(MAPPLAYERNAME::value_type(strChgName, pPlayer));
+			if ((*itTITLE).second->m_wTitleID == wTitleID)
+				(*itTITLE).second->m_bSelected = TRUE;
 		}
-		break;
+	}
+	break;
+	case IK_NAME:
+	{
+		for (DWORD ll = 0; ll<m_vOccupation.size(); ll++)
+		{
+			LPTLOCAL pLocal = m_vOccupation[ll];
+
+			if (pLocal->m_strHero == pPlayer->m_strNAME)
+				pLocal->m_strHero.Empty();
+		}
+
+		LPTOURNAMENTPLAYER pTnmt = FindTournamentPlayer(pPlayer->m_dwID);
+		if (pTnmt)
+			pTnmt->m_strName = strName;
+
+		CString strOriName = pPlayer->m_strNAME;
+		strOriName.MakeUpper();
+		MAPPLAYERNAME::iterator it = m_mapPLAYERNAME.find(strOriName);
+		if (it != m_mapPLAYERNAME.end())
+			m_mapPLAYERNAME.erase(it);
+
+		pPlayer->m_strNAME = strName;
+		CString strChgName = strName;
+		strChgName.MakeUpper();
+		m_mapPLAYERNAME.insert(MAPPLAYERNAME::value_type(strChgName, pPlayer));
+	}
+	break;
 
 	case IK_COUNTRY:
 		pPlayer->m_bCountry = bValue;
@@ -12924,7 +13159,7 @@ DWORD CTMapSvrModule::OnMW_CHANGECHARBASE_REQ(LPPACKETBUF pBUF)
 		break;
 	}
 
-	if(!pPlayer->m_bMain)
+	if (!pPlayer->m_bMain)
 		return EC_NOERROR;
 
 	VPLAYER vPLAYERS;
@@ -12935,7 +13170,7 @@ DWORD CTMapSvrModule::OnMW_CHANGECHARBASE_REQ(LPPACKETBUF pBUF)
 		pPlayer->m_fPosX,
 		pPlayer->m_fPosZ);
 
-	while(!vPLAYERS.empty())
+	while (!vPLAYERS.empty())
 	{
 		CTPlayer *pChar = vPLAYERS.back();
 
@@ -12955,8 +13190,9 @@ DWORD CTMapSvrModule::OnMW_CHANGECHARBASE_REQ(LPPACKETBUF pBUF)
 	return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnMW_HEROSELECT_REQ(LPPACKETBUF pBUF)  
+DWORD CTMapSvrModule::OnMW_HEROSELECT_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_HEROSELECT_REQ");
 	WORD wBattleZoneID;
 	CString strHeroName;
 	__time64_t timeHero;
@@ -12967,10 +13203,10 @@ DWORD CTMapSvrModule::OnMW_HEROSELECT_REQ(LPPACKETBUF pBUF)
 		>> timeHero;
 
 	MAPTLOCAL::iterator itL = m_mapTLOCAL.find(wBattleZoneID);
-	if( itL != m_mapTLOCAL.end() )
+	if (itL != m_mapTLOCAL.end())
 	{
-		(*itL).second->m_strHero = strHeroName; 
-		if(!strHeroName.IsEmpty())
+		(*itL).second->m_strHero = strHeroName;
+		if (!strHeroName.IsEmpty())
 			(*itL).second->m_timeHero = timeHero;
 
 		return EC_NOERROR;
@@ -12981,6 +13217,7 @@ DWORD CTMapSvrModule::OnMW_HEROSELECT_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_STOPTHECLOCK_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_STOPTHECLOCK_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	BYTE bRet;
@@ -12996,15 +13233,15 @@ DWORD CTMapSvrModule::OnDM_STOPTHECLOCK_REQ(LPPACKETBUF pBUF)
 		>> wShopItemID;
 
 	DEFINE_QUERY(&m_db, CSPStopTheClock)
-	query->m_dwCharID = dwCharID;
+		query->m_dwCharID = dwCharID;
 	query->m_wShopItemID = wShopItemID;
-	if(query->Call())
+	if (query->Call())
 		bRet = query->m_nRet ? STC_NEEDCASH : 0;
 	else
 		bRet = STC_FAIL;
 	UNDEFINE_QUERY()
 
-	LPPACKETBUF pMsg = new PACKETBUF();
+		LPPACKETBUF pMsg = new PACKETBUF();
 	pMsg->m_packet.SetID(DM_STOPTHECLOCK_ACK)
 		<< dwCharID
 		<< dwKey
@@ -13020,6 +13257,7 @@ DWORD CTMapSvrModule::OnDM_STOPTHECLOCK_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_STOPTHECLOCK_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_STOPTHECLOCK_ACK");
 	DWORD dwCharID;
 	DWORD dwKey;
 	BYTE bRet;
@@ -13036,10 +13274,10 @@ DWORD CTMapSvrModule::OnDM_STOPTHECLOCK_ACK(LPPACKETBUF pBUF)
 		>> wShopItemID;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(!pPlayer || !pPlayer->m_pMAP || !pPlayer->m_bMain)
+	if (!pPlayer || !pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
 
-	if(bRet)
+	if (bRet)
 	{
 		pPlayer->SendCS_STOPTHECLOCK_ACK(
 			bRet,
@@ -13053,14 +13291,14 @@ DWORD CTMapSvrModule::OnDM_STOPTHECLOCK_ACK(LPPACKETBUF pBUF)
 	__time64_t dEndTime = 0;
 
 	CTInven * pInven = pPlayer->FindTInven(bInven);
-	if(!pInven)
+	if (!pInven)
 		return EC_NOERROR;
 
 	MAPTCASHITEM::iterator it = m_mapTCashItem.find(wShopItemID);
-	if(it == m_mapTCashItem.end())
+	if (it == m_mapTCashItem.end())
 		return EC_NOERROR;
 
-	if(bItem == INVALID_SLOT)
+	if (bItem == INVALID_SLOT)
 	{
 		pInven->m_dEndTime += DWORD((*it).second->m_wUseTime) * DAY_ONE;
 		dEndTime = pInven->m_dEndTime;
@@ -13068,7 +13306,7 @@ DWORD CTMapSvrModule::OnDM_STOPTHECLOCK_ACK(LPPACKETBUF pBUF)
 	else
 	{
 		CTItem * pItem = pInven->FindTItem(bItem);
-		if(pItem)
+		if (pItem)
 		{
 			pItem->m_dEndTime += DWORD((*it).second->m_wUseTime) * DAY_ONE;
 			dEndTime = pItem->m_dEndTime;
@@ -13086,13 +13324,14 @@ DWORD CTMapSvrModule::OnDM_STOPTHECLOCK_ACK(LPPACKETBUF pBUF)
 	return EC_NOERROR;
 }
 
-DWORD CTMapSvrModule::OnDM_HEROSELECT_REQ(LPPACKETBUF pBUF)  
+DWORD CTMapSvrModule::OnDM_HEROSELECT_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_HEROSELECT_REQ");
 	int nRet;
 	DWORD dwCharID;
 	DWORD dwKey;
 	DWORD dwGuildID;
-	WORD wBattleZoneID;	
+	WORD wBattleZoneID;
 	CString strHeroName;
 	__time64_t timeHero;
 
@@ -13104,14 +13343,14 @@ DWORD CTMapSvrModule::OnDM_HEROSELECT_REQ(LPPACKETBUF pBUF)
 		>> strHeroName
 		>> timeHero;
 
-	DEFINE_QUERY(&m_db,CSPHeroSelect)
-	query->m_dwCharID = dwCharID;
+	DEFINE_QUERY(&m_db, CSPHeroSelect)
+		query->m_dwCharID = dwCharID;
 	query->m_dwGuildID = dwGuildID;
 	query->m_wBattleZoneID = wBattleZoneID;
-	lstrcpy(query->m_szHero,strHeroName);
-	__TIMETODB(timeHero,query->m_timeHero);
-	if(!query->Call() )
-		nRet = HSR_INTERNAL;	
+	lstrcpy(query->m_szHero, strHeroName);
+	__TIMETODB(timeHero, query->m_timeHero);
+	if (!query->Call())
+		nRet = HSR_INTERNAL;
 	else
 		nRet = query->m_nRET;
 	UNDEFINE_QUERY();
@@ -13132,7 +13371,8 @@ DWORD CTMapSvrModule::OnDM_HEROSELECT_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_HEROSELECT_ACK(LPPACKETBUF pBUF)
 {
-	BYTE bRet;	
+	LogReceivedPacket("OnDM_HEROSELECT_ACK");
+	BYTE bRet;
 	DWORD dwCharID;
 	DWORD dwKey;
 	WORD wBattleZoneID;
@@ -13148,13 +13388,13 @@ DWORD CTMapSvrModule::OnDM_HEROSELECT_ACK(LPPACKETBUF pBUF)
 		>> timeHero;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
-	if(!strHeroName.IsEmpty())
+	if (!strHeroName.IsEmpty())
 		pPlayer->SendCS_HEROSELECT_ACK(bRet);
 
-	if(!bRet)
+	if (!bRet)
 		SendMW_HEROSELECT_ACK(wBattleZoneID, strHeroName, timeHero);
 
 	return EC_NOERROR;
@@ -13162,6 +13402,7 @@ DWORD CTMapSvrModule::OnDM_HEROSELECT_ACK(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_RELAYCONNECT_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_RELAYCONNECT_REQ");
 	DWORD dwCharID;
 	BYTE bRelayOn;
 
@@ -13171,22 +13412,22 @@ DWORD CTMapSvrModule::OnMW_RELAYCONNECT_REQ(LPPACKETBUF pBUF)
 
 	m_bRelayOn = bRelayOn;
 
-	if(!bRelayOn)
+	if (!bRelayOn)
 		return EC_NOERROR;
 
-	if(!dwCharID)
+	if (!dwCharID)
 	{
 		MAPPLAYER::iterator it;
-		for(it=m_mapPLAYER.begin(); it!=m_mapPLAYER.end(); it++)
+		for (it = m_mapPLAYER.begin(); it != m_mapPLAYER.end(); it++)
 		{
-			if((*it).second->m_bMain)
+			if ((*it).second->m_bMain)
 				(*it).second->SendCS_RELAYCONNECT_ACK(m_addrRelay.sin_addr.s_addr, m_addrRelay.sin_port);
 		}
 	}
 	else
 	{
 		MAPPLAYER::iterator it = m_mapPLAYER.find(dwCharID);
-		if(it != m_mapPLAYER.end())
+		if (it != m_mapPLAYER.end())
 			(*it).second->SendCS_RELAYCONNECT_ACK(m_addrRelay.sin_addr.s_addr, m_addrRelay.sin_port);
 	}
 
@@ -13195,6 +13436,7 @@ DWORD CTMapSvrModule::OnMW_RELAYCONNECT_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_CHARMSG_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_CHARMSG_REQ");
 	CString strName;
 	CString strMsg;
 
@@ -13204,10 +13446,10 @@ DWORD CTMapSvrModule::OnMW_CHARMSG_REQ(LPPACKETBUF pBUF)
 
 	CTPlayer* pPlayer = FindPlayer(strName);
 
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
-	pPlayer->SendCS_CHAT_ACK(CHAT_OPERATOR,0,GetSvrMsg(NAME_OPERATOR), BuildNetString(NAME_NULL, strMsg));
+	pPlayer->SendCS_CHAT_ACK(CHAT_OPERATOR, 0, GetSvrMsg(NAME_OPERATOR), BuildNetString(NAME_NULL, strMsg));
 	//LogEvent("7");
 
 	return EC_NOERROR;
@@ -13215,6 +13457,7 @@ DWORD CTMapSvrModule::OnMW_CHARMSG_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_QUESTSENDPOST_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_QUESTSENDPOST_REQ");
 	DWORD dwQuestID;
 	DWORD dwCharID;
 	BYTE bItemCount;
@@ -13223,25 +13466,26 @@ DWORD CTMapSvrModule::OnDM_QUESTSENDPOST_REQ(LPPACKETBUF pBUF)
 		>> dwQuestID
 		>> dwCharID
 		>> bItemCount;
-	
-	DEFINE_QUERY(&m_db, CSPQuestSendPost )
-	query->m_dwQuestID = dwQuestID;
-	query->m_dwCharID = dwCharID;
-	for(BYTE i = 0 ; i < bItemCount; i++)
-	{
-		WrapItemQuery(&(pBUF->m_packet), query->m_item);	
 
-		if(!query->Call())
+	DEFINE_QUERY(&m_db, CSPQuestSendPost)
+		query->m_dwQuestID = dwQuestID;
+	query->m_dwCharID = dwCharID;
+	for (BYTE i = 0; i < bItemCount; i++)
+	{
+		WrapItemQuery(&(pBUF->m_packet), query->m_item);
+
+		if (!query->Call())
 			return EC_NOERROR;
 	}
 
 	UNDEFINE_QUERY()
 
-	return EC_NOERROR;
+		return EC_NOERROR;
 }
 
 DWORD CTMapSvrModule::OnMW_ITEMSTATE_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_ITEMSTATE_REQ");
 	WORD wCount;
 	WORD wItemID;
 	DWORD dwID;
@@ -13251,14 +13495,14 @@ DWORD CTMapSvrModule::OnMW_ITEMSTATE_REQ(LPPACKETBUF pBUF)
 		>> dwID
 		>> wCount;
 
-	for(WORD i = 0; i < wCount; i++)
+	for (WORD i = 0; i < wCount; i++)
 	{
 		pBUF->m_packet
 			>> wItemID
 			>> bInitState;
 
 		LPTITEM pTITEM = FindTItem(wItemID);
-		if(pTITEM)
+		if (pTITEM)
 		{
 			pTITEM->m_bInitState = bInitState;
 			pTITEM->m_wWeight = bInitState;
@@ -13270,6 +13514,7 @@ DWORD CTMapSvrModule::OnMW_ITEMSTATE_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_GAINPVPPOINT_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_GAINPVPPOINT_REQ");
 	DWORD dwOwnerID;
 	DWORD dwPoint;
 	BYTE bEvent;
@@ -13291,12 +13536,12 @@ DWORD CTMapSvrModule::OnMW_GAINPVPPOINT_REQ(LPPACKETBUF pBUF)
 		>> bLevel;
 
 	MAPPLAYER::iterator it = m_mapPLAYER.find(dwOwnerID);
-	if(it==m_mapPLAYER.end())
+	if (it == m_mapPLAYER.end())
 		return EC_NOERROR;
 
 	TRECORDSET set;
 	BYTE bSet = FALSE;
-	if(strName != NAME_NULL)
+	if (strName != NAME_NULL)
 	{
 		set.m_strName = strName;
 		set.m_bClass = bClass;
@@ -13304,7 +13549,7 @@ DWORD CTMapSvrModule::OnMW_GAINPVPPOINT_REQ(LPPACKETBUF pBUF)
 		bSet = TRUE;
 	}
 
-	if(bGain)
+	if (bGain)
 		(*it).second->GainPvPoint(dwPoint, bEvent, bType, bSet ? &set : NULL);
 	else
 		(*it).second->UsePvPoint(dwPoint, bEvent, bType, bSet ? &set : NULL);
@@ -13314,6 +13559,7 @@ DWORD CTMapSvrModule::OnMW_GAINPVPPOINT_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_GUILDPOINTLOG_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_GUILDPOINTLOG_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 
@@ -13322,7 +13568,7 @@ DWORD CTMapSvrModule::OnMW_GUILDPOINTLOG_REQ(LPPACKETBUF pBUF)
 		>> dwKey;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	pPlayer->SendCS_GUILDPOINTLOG_ACK(pBUF);
@@ -13332,6 +13578,7 @@ DWORD CTMapSvrModule::OnMW_GUILDPOINTLOG_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_GUILDPOINTREWARD_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_GUILDPOINTREWARD_REQ");
 	BYTE bRet;
 	DWORD dwCharID;
 	DWORD dwKey;
@@ -13348,10 +13595,10 @@ DWORD CTMapSvrModule::OnMW_GUILDPOINTREWARD_REQ(LPPACKETBUF pBUF)
 		>> dwRemainPoint;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
-	if(!bRet)
+	if (!bRet)
 	{
 		pBUF->m_packet
 			>> dwPoint
@@ -13365,7 +13612,7 @@ DWORD CTMapSvrModule::OnMW_GUILDPOINTREWARD_REQ(LPPACKETBUF pBUF)
 		SendDM_POSTRECV_REQ(
 			dwCharID, dwTargetID, pPlayer->m_strNAME, strTarget,
 			BuildNetString(NAME_NULL, strTitle), BuildNetString(NAME_NULL, strMessage), POST_NORMAL,
-			0,0,0, NULL);
+			0, 0, 0, NULL);
 	}
 
 	pPlayer->SendCS_GUILDPOINTREWARD_ACK(
@@ -13377,6 +13624,7 @@ DWORD CTMapSvrModule::OnMW_GUILDPOINTREWARD_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_GUILDPVPRECORD_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_GUILDPVPRECORD_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 
@@ -13385,7 +13633,7 @@ DWORD CTMapSvrModule::OnMW_GUILDPVPRECORD_REQ(LPPACKETBUF pBUF)
 		>> dwKey;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	pPlayer->SendCS_GUILDPVPRECORD_ACK(pBUF);
@@ -13395,6 +13643,7 @@ DWORD CTMapSvrModule::OnMW_GUILDPVPRECORD_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_MONSTERBUY_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_MONSTERBUY_REQ");
 	BYTE bRet;
 	DWORD dwCharID;
 	DWORD dwKey;
@@ -13413,7 +13662,7 @@ DWORD CTMapSvrModule::OnMW_MONSTERBUY_REQ(LPPACKETBUF pBUF)
 		>> dwPrice;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(!pPlayer)
+	if (!pPlayer)
 	{
 		SendMW_GUILDMONEYRECOVER_ACK(
 			dwGuildID,
@@ -13422,14 +13671,14 @@ DWORD CTMapSvrModule::OnMW_MONSTERBUY_REQ(LPPACKETBUF pBUF)
 		return EC_NOERROR;
 	}
 
-	if(bRet)
+	if (bRet)
 	{
 		pPlayer->SendCS_MONSTERBUY_ACK(bRet);
-		return EC_NOERROR;		
+		return EC_NOERROR;
 	}
 
 	CTNpc * pNpc = FindTNpc(wNpcID);
-	if(!pNpc)
+	if (!pNpc)
 	{
 		SendMW_GUILDMONEYRECOVER_ACK(
 			dwGuildID,
@@ -13440,7 +13689,7 @@ DWORD CTMapSvrModule::OnMW_MONSTERBUY_REQ(LPPACKETBUF pBUF)
 		return EC_NOERROR;
 	}
 
-	if( !pNpc->CanTalk(pPlayer->m_bCountry, pPlayer->m_bAidCountry, pPlayer->HaveDisguiseBuff()))
+	if (!pNpc->CanTalk(pPlayer->m_bCountry, pPlayer->m_bAidCountry, pPlayer->HaveDisguiseBuff()))
 	{
 		SendMW_GUILDMONEYRECOVER_ACK(
 			dwGuildID,
@@ -13452,7 +13701,7 @@ DWORD CTMapSvrModule::OnMW_MONSTERBUY_REQ(LPPACKETBUF pBUF)
 	}
 
 	LPTMONSTERSHOP pMon = pNpc->GetMon(wID);
-	if(!pMon)
+	if (!pMon)
 	{
 		SendMW_GUILDMONEYRECOVER_ACK(
 			dwGuildID,
@@ -13462,8 +13711,8 @@ DWORD CTMapSvrModule::OnMW_MONSTERBUY_REQ(LPPACKETBUF pBUF)
 	}
 
 	MAPTMONSPAWN::iterator finder = pPlayer->m_pMAP->m_mapTMONSPAWN.find(pMon->m_pSpawn->m_wID);
-	if(finder != pPlayer->m_pMAP->m_mapTMONSPAWN.end() &&
-        !(*finder).second->m_vTMON.empty())
+	if (finder != pPlayer->m_pMAP->m_mapTMONSPAWN.end() &&
+		!(*finder).second->m_vTMON.empty())
 	{
 		SendMW_GUILDMONEYRECOVER_ACK(
 			dwGuildID,
@@ -13474,10 +13723,10 @@ DWORD CTMapSvrModule::OnMW_MONSTERBUY_REQ(LPPACKETBUF pBUF)
 		return EC_NOERROR;
 	}
 
-	if(pMon->m_wTowerID)
+	if (pMon->m_wTowerID)
 	{
 		LPTGODTOWER pTower = pPlayer->m_pMAP->FindGodTower(pMon->m_wTowerID);
-		if(!pTower ||
+		if (!pTower ||
 			!pTower->m_pGodBall ||
 			pTower->m_pGodBall->m_bCamp != pPlayer->m_bCamp)
 		{
@@ -13499,9 +13748,10 @@ DWORD CTMapSvrModule::OnMW_MONSTERBUY_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_CASTLEGUILDCHG_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_CASTLEGUILDCHG_REQ");
 	WORD wCastleID;
 	DWORD dwDefGuildID;
-	DWORD dwAtkGuildID;	
+	DWORD dwAtkGuildID;
 	__time64_t tTime;
 	CString strDefGuild = NAME_NULL;
 	CString strAtkGuild = NAME_NULL;
@@ -13515,7 +13765,7 @@ DWORD CTMapSvrModule::OnMW_CASTLEGUILDCHG_REQ(LPPACKETBUF pBUF)
 		>> tTime;
 
 	LPTLOCAL pCastle = FindCastle(wCastleID);
-	if(!pCastle)
+	if (!pCastle)
 		return EC_NOERROR;
 
 	pCastle->m_timeNextDefend = tTime;
@@ -13526,9 +13776,10 @@ DWORD CTMapSvrModule::OnMW_CASTLEGUILDCHG_REQ(LPPACKETBUF pBUF)
 
 	return EC_NOERROR;
 }
- 
+
 DWORD CTMapSvrModule::OnMW_EVENTUPDATE_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_EVENTUPDATE_REQ");
 	BYTE bEventID;
 	WORD wValue;
 
@@ -13536,79 +13787,79 @@ DWORD CTMapSvrModule::OnMW_EVENTUPDATE_REQ(LPPACKETBUF pBUF)
 		>> bEventID
 		>> wValue;
 
-	if(bEventID > EVENT_COUNT)
+	if (bEventID > EVENT_COUNT)
 		return EC_NOERROR;
-	
+
 	m_wEventValue[bEventID] = wValue;
-	
+
 	EVENTINFO stEVENT;
 	stEVENT.WrapPacketOut(&pBUF->m_packet);
 
-	
 
-	if(stEVENT.m_bID == EVENT_MONSPAWN)
+
+	if (stEVENT.m_bID == EVENT_MONSPAWN)
 	{
 		WORD wSpawnID;
 		BYTE bAction = wValue ? stEVENT.m_stMONEVENT.m_bStartAction : stEVENT.m_stMONEVENT.m_bEndAction;
 
-		for(WORD i = 0; i < (WORD)stEVENT.m_stMONEVENT.m_vSpawnID.size();i++)
+		for (WORD i = 0; i < (WORD)stEVENT.m_stMONEVENT.m_vSpawnID.size();i++)
 		{
 			wSpawnID = stEVENT.m_stMONEVENT.m_vSpawnID[i];
 			LPTMONSPAWN pTemp = FindTMonSpawn(wSpawnID);
-			if(!pTemp)
+			if (!pTemp)
 				continue;
 
 			MAPTCHANNEL::iterator itC;
-			for(itC = m_mapTCHANNEL.begin(); itC != m_mapTCHANNEL.end(); itC++ )
+			for (itC = m_mapTCHANNEL.begin(); itC != m_mapTCHANNEL.end(); itC++)
 			{
 				BYTE bChannel = (BYTE)(*itC).first;
-				CTMap *pMap = FindTMap( bChannel, 0, pTemp->m_wMapID);
-				if(!pMap)
+				CTMap *pMap = FindTMap(bChannel, 0, pTemp->m_wMapID);
+				if (!pMap)
 					continue;
 
-				if( !bAction )
-				{				
+				if (!bAction)
+				{
 					pMap->AddTimelimitedMon(pTemp, bChannel, TCONTRY_N, RT_ETERNAL);
 					continue;
 				}
 
 				CTMonSpawn* pSpawn = pMap->FindMonSpawn(wSpawnID);
-				if(!pSpawn)
+				if (!pSpawn)
 					continue;
 
-				for(WORD j = 0; j < (WORD)pSpawn->m_vTMON.size(); j++)
+				for (WORD j = 0; j < (WORD)pSpawn->m_vTMON.size(); j++)
 				{
 					CTMonster* pMon = pMap->FindMonster(pSpawn->m_vTMON[j]->m_dwID);
-					if(!pMon)
+					if (!pMon)
 						continue;
 
-					if((enum AI_TRIGGER)bAction == AT_DEAD)
+					if ((enum AI_TRIGGER)bAction == AT_DEAD)
 					{
-						CTObjBase * bOBJ = (CTObjBase*) pMon;
-						bOBJ->OnDie(0,OT_NONE,0); 
+						CTObjBase * bOBJ = (CTObjBase*)pMon;
+						bOBJ->OnDie(0, OT_NONE, 0);
 					}
 					else
 						pMon->OnEvent((enum AI_TRIGGER)bAction, 0, 0, 0, 0);
 				}
 			}
-		}		
+		}
 	}
-	 
-	if(stEVENT.m_bID == EVENT_MONREGEN)
+
+	if (stEVENT.m_bID == EVENT_MONREGEN)
 	{
 		LPEVENTINFO pEVENTINFO = NULL;
 		WORD wNewSpawnID;
 		BYTE bAction = wValue ? AT_AICOMPLETE : AT_DEAD;
 
-		if(wValue)
+		if (wValue)
 		{
-			if(!m_mapExtraSpawnID.size())
+			if (!m_mapExtraSpawnID.size())
 			{
 				cout << "ExtraSpawnID is Empty" << endl;
 				return EC_NOERROR;
 			}
-			
-			for(WORD i = 0; i < (WORD)stEVENT.m_vMONREGEN.size(); i++)
+
+			for (WORD i = 0; i < (WORD)stEVENT.m_vMONREGEN.size(); i++)
 			{
 				wNewSpawnID = RegenDynamicMonster(
 					stEVENT.m_vMONREGEN[i].m_wMapID,
@@ -13619,10 +13870,10 @@ DWORD CTMapSvrModule::OnMW_EVENTUPDATE_REQ(LPPACKETBUF pBUF)
 					stEVENT.m_vMONREGEN[i].m_dwDelay,
 					1);
 
-				if(!wNewSpawnID)
+				if (!wNewSpawnID)
 					continue;
 
-				stEVENT.m_stMONEVENT.m_vSpawnID.push_back(wNewSpawnID);				
+				stEVENT.m_stMONEVENT.m_vSpawnID.push_back(wNewSpawnID);
 			}
 			pEVENTINFO = &stEVENT;
 		}
@@ -13632,65 +13883,65 @@ DWORD CTMapSvrModule::OnMW_EVENTUPDATE_REQ(LPPACKETBUF pBUF)
 		}
 
 		WORD wSpawnID = 0;
-		for(WORD i = 0; i < (WORD)pEVENTINFO->m_stMONEVENT.m_vSpawnID.size();i++)
+		for (WORD i = 0; i < (WORD)pEVENTINFO->m_stMONEVENT.m_vSpawnID.size();i++)
 		{
 			wSpawnID = pEVENTINFO->m_stMONEVENT.m_vSpawnID[i];
 			LPTMONSPAWN pTemp = FindTMonSpawn(wSpawnID);
-			if(!pTemp)
+			if (!pTemp)
 				continue;
 
 			MAPTCHANNEL::iterator itC;
-			for(itC = m_mapTCHANNEL.begin(); itC != m_mapTCHANNEL.end(); itC++ )
+			for (itC = m_mapTCHANNEL.begin(); itC != m_mapTCHANNEL.end(); itC++)
 			{
 				BYTE bChannel = (BYTE)(*itC).first;
-				CTMap *pMap = FindTMap( bChannel, 0, pTemp->m_wMapID);
-				if(!pMap)
+				CTMap *pMap = FindTMap(bChannel, 0, pTemp->m_wMapID);
+				if (!pMap)
 					continue;
 
-				if(!bAction )
-				{				
+				if (!bAction)
+				{
 					pMap->AddTimelimitedMon(pTemp, bChannel, TCONTRY_N, RT_ETERNAL);
 					continue;
 				}
 
 				CTMonSpawn* pSpawn = pMap->FindMonSpawn(wSpawnID);
-				if(!pSpawn)
+				if (!pSpawn)
 					continue;
 
-				for(WORD j = 0; j < (WORD)pSpawn->m_vTMON.size(); j++)
+				for (WORD j = 0; j < (WORD)pSpawn->m_vTMON.size(); j++)
 				{
 					CTMonster* pMon = pMap->FindMonster(pSpawn->m_vTMON[j]->m_dwID);
-					if(!pMon)
+					if (!pMon)
 						continue;
 
-					if((enum AI_TRIGGER)bAction == AT_DEAD)
+					if ((enum AI_TRIGGER)bAction == AT_DEAD)
 					{
-						CTObjBase * bOBJ = (CTObjBase*) pMon;
-						bOBJ->OnDie(0,OT_NONE,0);						
+						CTObjBase * bOBJ = (CTObjBase*)pMon;
+						bOBJ->OnDie(0, OT_NONE, 0);
 
 						LPTMONSPAWN pDelSpawn = FindTMonSpawn(wSpawnID);
-						if(pDelSpawn)
+						if (pDelSpawn)
 						{
 							pMap->DelMonSpawn(pDelSpawn);
 
 							MAPTMONSPAWNTEMP::iterator finder = m_mapTMONSPAWN.find(pDelSpawn->m_wID);
-							if( finder != m_mapTMONSPAWN.end() )
+							if (finder != m_mapTMONSPAWN.end())
 								m_mapTMONSPAWN.erase(finder);
-							m_mapExtraSpawnID.insert(MAPWORD::value_type(pDelSpawn->m_wID,pDelSpawn->m_wID));
+							m_mapExtraSpawnID.insert(MAPWORD::value_type(pDelSpawn->m_wID, pDelSpawn->m_wID));
 						}
 					}
 					else
 						pMon->OnEvent((enum AI_TRIGGER)bAction, 0, 0, 0, 0);
 				}
-			}			
+			}
 		}
 	}
 
-	 
-	if(!wValue)
+
+	if (!wValue)
 		DelEvent(stEVENT.m_dwIndex);
 	else
-        AddEvent(stEVENT);
+		AddEvent(stEVENT);
 
 
 	return EC_NOERROR;
@@ -13698,6 +13949,7 @@ DWORD CTMapSvrModule::OnMW_EVENTUPDATE_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_EVENTMSG_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_EVENTMSG_REQ");
 	BYTE bEventID;
 	BYTE bEventMsgType;
 	CString strMsg;
@@ -13706,34 +13958,36 @@ DWORD CTMapSvrModule::OnMW_EVENTMSG_REQ(LPPACKETBUF pBUF)
 		>> bEventID
 		>> bEventMsgType
 		>> strMsg;
-	
+
 	strMsg.Left(ONE_KBYTE);
 
 	MAPPLAYER::iterator it;
-	for( it = m_mapPLAYER.begin(); it != m_mapPLAYER.end(); it++)
+	for (it = m_mapPLAYER.begin(); it != m_mapPLAYER.end(); it++)
 	{
-		if((*it).second->m_bMain)
-			(*it).second->SendCS_CHAT_ACK( CHAT_WORLD, 0, GetSvrMsg(NAME_OPERATOR), BuildNetString(NAME_NULL, strMsg));		
+		if ((*it).second->m_bMain)
+			(*it).second->SendCS_CHAT_ACK(CHAT_WORLD, 0, GetSvrMsg(NAME_OPERATOR), BuildNetString(NAME_NULL, strMsg));
 	}
 	//LogEvent("8");
-	
+
 	return EC_NOERROR;
 }
 
 DWORD CTMapSvrModule::OnMW_EVENTMSGLOTTERY_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_EVENTMSGLOTTERY_REQ");
 	MAPPLAYER::iterator it;
-	for( it = m_mapPLAYER.begin(); it != m_mapPLAYER.end(); it++)
+	for (it = m_mapPLAYER.begin(); it != m_mapPLAYER.end(); it++)
 	{
-		if((*it).second->m_bMain)
+		if ((*it).second->m_bMain)
 			(*it).second->SendCS_SYSTEMMSG_ACK(SM_EVENT_LOTTERY, &(pBUF->m_packet));
 	}
-	
+
 	return EC_NOERROR;
 }
 
 DWORD CTMapSvrModule::OnMW_CASHSHOPSTOP_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_CASHSHOPSTOP_REQ");
 	BYTE bStop;
 	BYTE bSendPlayer;
 
@@ -13742,71 +13996,73 @@ DWORD CTMapSvrModule::OnMW_CASHSHOPSTOP_REQ(LPPACKETBUF pBUF)
 		>> bSendPlayer;
 
 	m_bCashShopStop = bStop;
-	
-	if(bSendPlayer)
+
+	if (bSendPlayer)
 	{
 		MAPPLAYER::iterator it;
-		for(it = m_mapPLAYER.begin(); it != m_mapPLAYER.end(); it++)
+		for (it = m_mapPLAYER.begin(); it != m_mapPLAYER.end(); it++)
 			(*it).second->SendCS_CASHSHOPSTOP_ACK(TRUE);
 	}
-	
+
 	return EC_NOERROR;
 }
 
 DWORD CTMapSvrModule::OnMW_CASHITEMSALE_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_CASHITEMSALE_REQ");
 	DWORD dwIndex;
 	WORD wValue;
 	WORD wCount;
 	WORD wID;
 	BYTE bSaleValue;
-	
+
 
 	pBUF->m_packet
 		>> dwIndex
 		>> wValue
 		>> wCount;
 
-	
+
 	MAPTCASHITEM::iterator it;
-	for(WORD i = 0; i < wCount; i++)
+	for (WORD i = 0; i < wCount; i++)
 	{
 		pBUF->m_packet
 			>> wID
-			>> bSaleValue;		
+			>> bSaleValue;
 
-		if(wID == 0 )
-		{			
-			for(it = m_mapTCashItem.begin(); it != m_mapTCashItem.end(); it++)
-			{					
-				(*it).second->m_dwMoney = (*it).second->m_dwOriMoney * (100 - bSaleValue) / 100 ;
+		if (wID == 0)
+		{
+			for (it = m_mapTCashItem.begin(); it != m_mapTCashItem.end(); it++)
+			{
+				(*it).second->m_dwMoney = (*it).second->m_dwOriMoney * (100 - bSaleValue) / 100;
 				(*it).second->m_bSaleValue = bSaleValue;
 			}
 
 		}
 		else
-		{		
+		{
 			it = m_mapTCashItem.find(wID);
-			if( it != m_mapTCashItem.end() )
-			{			
-				(*it).second->m_dwMoney = (*it).second->m_dwOriMoney * (100 - bSaleValue) / 100 ;
+			if (it != m_mapTCashItem.end())
+			{
+				(*it).second->m_dwMoney = (*it).second->m_dwOriMoney * (100 - bSaleValue) / 100;
 				(*it).second->m_bSaleValue = bSaleValue;
 			}
-		}		
+		}
 	}
 
 
 	m_bCashShopStop = TRUE;
 
 
-	SendMW_CASHITEMSALE_ACK(dwIndex,wValue,TRUE);
-	
+	SendMW_CASHITEMSALE_ACK(dwIndex, wValue, TRUE);
+
 	return EC_NOERROR;
 }
 
 //Apex
 DWORD CTMapSvrModule::OnMW_APEXDATA_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_APEXDATA_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	int nLen;
@@ -13820,7 +14076,7 @@ DWORD CTMapSvrModule::OnMW_APEXDATA_REQ(LPPACKETBUF pBUF)
 	pBUF->m_packet.DetachBinary((LPVOID)BufRecv);
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(pPlayer)
+	if (pPlayer)
 		pPlayer->SendCS_APEXDATA_ACK(BufRecv, nLen);
 
 	return EC_NOERROR;
@@ -13828,6 +14084,7 @@ DWORD CTMapSvrModule::OnMW_APEXDATA_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_AUCTIONREG_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_AUCTIONREG_REQ");
 	DWORD dwSeller;
 	DWORD dwKEY;
 	CString strSeller;
@@ -13835,7 +14092,7 @@ DWORD CTMapSvrModule::OnDM_AUCTIONREG_REQ(LPPACKETBUF pBUF)
 	WORD wHour;
 	BYTE bInvenID;;
 	__int64 ldwDirectPrice;
-	__int64 ldwStartPrice;	
+	__int64 ldwStartPrice;
 	DWORD dwAuctionID = 0;
 	DWORD dwCode;
 	BYTE bResult;
@@ -13863,59 +14120,59 @@ DWORD CTMapSvrModule::OnDM_AUCTIONREG_REQ(LPPACKETBUF pBUF)
 		<< ldwDirectPrice
 		<< ldwStartPrice
 		<< dwCode;
-	
+
 	DEFINE_QUERY(&m_db, CSPSaveItemDirect)
-	query->m_bStorageType = STORAGE_INVEN;
+		query->m_bStorageType = STORAGE_INVEN;
 	query->m_dwStorageID = bInvenID;
 	query->m_bOwnerType = TOWNER_CHAR;
 	query->m_dwOwnerID = dwSeller;
 	WrapItemQuery(&(pBUF->m_packet), query->m_item);
-	
+
 	pItem = CreateItem(query->m_item);
-	if(pItem)
+	if (pItem)
 		pItem->m_dlID = query->m_item.m_dlID;
 
-	if(!pItem || !query->Call())
+	if (!pItem || !query->Call())
 		bResult = AR_FAIL;
 	else
 		bResult = AR_SUCCESS;
 
 	UNDEFINE_QUERY()
-	
 
-	if(bResult)
-	{
-		pMsg->m_packet
-			<< bResult
-			<< DWORD(0)
-			<< __int64(0)
-			<< __int64(0);
-		
-		if(pItem)
-			pItem->WrapPacket( &(pMsg->m_packet));
-		
-		SayToBATCH(pMsg);
 
-		if(pItem)
-			delete pItem;
+		if (bResult)
+		{
+			pMsg->m_packet
+				<< bResult
+				<< DWORD(0)
+				<< __int64(0)
+				<< __int64(0);
 
-		return EC_NOERROR;
-	}
-	
-	DEFINE_QUERY( &m_db,CSPAuctionReg)	
-	query->m_wNpcID = wNpcID;
+			if (pItem)
+				pItem->WrapPacket(&(pMsg->m_packet));
+
+			SayToBATCH(pMsg);
+
+			if (pItem)
+				delete pItem;
+
+			return EC_NOERROR;
+		}
+
+	DEFINE_QUERY(&m_db, CSPAuctionReg)
+		query->m_wNpcID = wNpcID;
 	query->m_wHour = wHour;
 	query->m_dwSeller = dwSeller;
 	query->m_dlDirectPrice = ldwDirectPrice;
-	query->m_dlStartPrice = ldwStartPrice;	
+	query->m_dlStartPrice = ldwStartPrice;
 	query->m_dlID = pItem->m_dlID;
 
-	if(!query->Call() )
+	if (!query->Call())
 		bResult = AR_FAIL;
 	else
 	{
 		bResult = query->m_nRET;
-		dwAuctionID = query->m_dwAuctionID;		
+		dwAuctionID = query->m_dwAuctionID;
 	}
 
 	__time64_t dStart = __DBTOTIME(query->m_DateStart);
@@ -13923,18 +14180,18 @@ DWORD CTMapSvrModule::OnDM_AUCTIONREG_REQ(LPPACKETBUF pBUF)
 
 	pMsg->m_packet
 		<< bResult
-		<< dwAuctionID	
+		<< dwAuctionID
 		<< dStart
 		<< dEnd;
 
-	if(pItem)
-		pItem->WrapPacket( &(pMsg->m_packet));
+	if (pItem)
+		pItem->WrapPacket(&(pMsg->m_packet));
 
 	UNDEFINE_QUERY()
 
-	SayToBATCH(pMsg);
+		SayToBATCH(pMsg);
 
-	if(pItem)
+	if (pItem)
 		delete pItem;
 
 	return EC_NOERROR;
@@ -13942,6 +14199,7 @@ DWORD CTMapSvrModule::OnDM_AUCTIONREG_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_AUCTIONREG_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_AUCTIONREG_ACK");
 	BYTE bResult;
 	DWORD dwSeller;
 	DWORD dwKEY;
@@ -13970,15 +14228,15 @@ DWORD CTMapSvrModule::OnDM_AUCTIONREG_ACK(LPPACKETBUF pBUF)
 		>> bResult
 		>> dwAuctionID
 		>> dStart
-		>> dEnd;	
+		>> dEnd;
 
 	CTItem* pAuctionItem = CreateItem(&(pBUF->m_packet));
-	CTPlayer* pPlayer = FindPlayer(dwSeller,dwKEY);
+	CTPlayer* pPlayer = FindPlayer(dwSeller, dwKEY);
 
 	//돌려주기
-	if(bResult)
+	if (bResult)
 	{
-		DWORD dwGold,dwSilver,dwCooper;
+		DWORD dwGold, dwSilver, dwCooper;
 		__int64 ldwRegFee = __int64(ldwDirectPrice * AUCTIONREGFEE);
 		CalcMoney(ldwRegFee, dwGold, dwSilver, dwCooper);
 
@@ -13992,36 +14250,36 @@ DWORD CTMapSvrModule::OnDM_AUCTIONREG_ACK(LPPACKETBUF pBUF)
 		vItemID.push_back(dwID);
 
 		CString strMSG;
-		strMSG = GetSvrMsg(MSG_AUCTION_REGCANCEL_BODY);		
-		strMSG = pTextLinker->MakeItemNetText(strMSG, vItemID);		
+		strMSG = GetSvrMsg(MSG_AUCTION_REGCANCEL_BODY);
+		strMSG = pTextLinker->MakeItemNetText(strMSG, vItemID);
 
-		SendDM_POSTRECV_REQ(0,dwSeller,GetSvrMsg(MSG_AUCTION_OPERATOR),strName,
-			BuildNetString(NAME_NULL, GetSvrMsg(MSG_AUCTION_REGCANCEL)),strMSG,POST_PACKATE,
-			dwGold,dwSilver,dwCooper,pAuctionItem);
+		SendDM_POSTRECV_REQ(0, dwSeller, GetSvrMsg(MSG_AUCTION_OPERATOR), strName,
+			BuildNetString(NAME_NULL, GetSvrMsg(MSG_AUCTION_REGCANCEL)), strMSG, POST_PACKATE,
+			dwGold, dwSilver, dwCooper, pAuctionItem);
 
-		if(pPlayer)
+		if (pPlayer)
 		{
-			pPlayer->SendCS_AUCTIONREG_ACK(bResult,dwAuctionID);
-			pPlayer->AuctionRegListSave(!bResult,dwAuctionID);
+			pPlayer->SendCS_AUCTIONREG_ACK(bResult, dwAuctionID);
+			pPlayer->AuctionRegListSave(!bResult, dwAuctionID);
 		}
 
-		if(pAuctionItem)
+		if (pAuctionItem)
 			delete pAuctionItem;
 
 		return EC_NOERROR;
 	}
 
-	if(pPlayer)
+	if (pPlayer)
 	{
-		pPlayer->SendCS_AUCTIONREG_ACK(AR_SUCCESS,dwAuctionID);	
-		pPlayer->AuctionRegListSave(!bResult,dwAuctionID);
-	}	
+		pPlayer->SendCS_AUCTIONREG_ACK(AR_SUCCESS, dwAuctionID);
+		pPlayer->AuctionRegListSave(!bResult, dwAuctionID);
+	}
 
-	if(!pAuctionItem)
+	if (!pAuctionItem)
 		return EC_NOERROR;
 
 	CTNpc* pNpc = FindTNpc(wNpcID);
-	if(pNpc)
+	if (pNpc)
 	{
 		LPTAUCTION pAuction = new TAUCTION();
 		pAuction->m_bBidCount = 0;
@@ -14035,22 +14293,23 @@ DWORD CTMapSvrModule::OnDM_AUCTIONREG_ACK(LPPACKETBUF pBUF)
 		pAuction->m_pItem = pAuctionItem;
 		pAuction->m_dStart = dStart;
 		pAuction->m_dEnd = dEnd;
-		pAuction->m_dwCode = dwCode;		
-		
-		if(pNpc->AddAuction(dwAuctionID,pAuction))
-            SendSM_AUCTIONCMD_REQ(wNpcID,dwAuctionID,dEnd);
+		pAuction->m_dwCode = dwCode;
+
+		if (pNpc->AddAuction(dwAuctionID, pAuction))
+			SendSM_AUCTIONCMD_REQ(wNpcID, dwAuctionID, dEnd);
 
 #ifdef DEF_UDPLOG
-		m_pUdpSocket->LogAuctionReg(LOGMAP_AUCTIONREG,pPlayer,dwAuctionID,ldwStartPrice,ldwDirectPrice,pAuctionItem,dwSeller,strName);
+		m_pUdpSocket->LogAuctionReg(LOGMAP_AUCTIONREG, pPlayer, dwAuctionID, ldwStartPrice, ldwDirectPrice, pAuctionItem, dwSeller, strName);
 #endif
 	}
-	
+
 	return EC_NOERROR;
 }
 
 
 DWORD CTMapSvrModule::OnDM_AUCTIONEND_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_AUCTIONEND_REQ");
 	WORD wNpcID;
 	DWORD dwAuctionID;
 	__time64_t dEndTime;
@@ -14065,10 +14324,10 @@ DWORD CTMapSvrModule::OnDM_AUCTIONEND_REQ(LPPACKETBUF pBUF)
 	pMsg->m_packet.SetID(DM_AUCTIONEND_ACK);
 
 	DEFINE_QUERY(&m_db, CSPAuctionEnd)
-	query->m_wNpcID = wNpcID;
+		query->m_wNpcID = wNpcID;
 	query->m_dwAuctionID = dwAuctionID;
 
-	if(!query->Call() )
+	if (!query->Call())
 		bResult = 1;
 	else
 		bResult = query->m_nRET;
@@ -14082,16 +14341,17 @@ DWORD CTMapSvrModule::OnDM_AUCTIONEND_REQ(LPPACKETBUF pBUF)
 		<< query->m_szSeller
 		<< query->m_szBuyer
 		<< query->m_ldwPrice;
-	
+
 	UNDEFINE_QUERY()
 
-	SayToBATCH(pMsg);
+		SayToBATCH(pMsg);
 
 	return EC_NOERROR;
 }
 
 DWORD CTMapSvrModule::OnDM_AUCTIONEND_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_AUCTIONEND_ACK");
 	BYTE bResult;
 	WORD wNpcID;
 	DWORD dwAuctionID;
@@ -14113,21 +14373,21 @@ DWORD CTMapSvrModule::OnDM_AUCTIONEND_ACK(LPPACKETBUF pBUF)
 		>> strBuyer
 		>> ldwPrice;
 
-	if(bResult)
+	if (bResult)
 		return EC_NOERROR;
 
 	CTNpc* pNpc = _AtlModule.FindTNpc(wNpcID);
-	if(!pNpc)
+	if (!pNpc)
 		return EC_NOERROR;
 
 	MAPTAUCTION::iterator itA = pNpc->m_mapTAuction.find(dwAuctionID);
-	if( itA != pNpc->m_mapTAuction.end())
+	if (itA != pNpc->m_mapTAuction.end())
 	{
 		pItem = (*itA).second->m_pItem;
 		dwCode = (*itA).second->m_dwCode;
 	}
-	
-	if(!dwBuyer) //유찰
+
+	if (!dwBuyer) //유찰
 	{
 		CTTextLinker* pTextLinker = CTTextLinker::GetInstance();
 		CTTextLinkData* pData;
@@ -14139,19 +14399,19 @@ DWORD CTMapSvrModule::OnDM_AUCTIONEND_ACK(LPPACKETBUF pBUF)
 		vItemID.push_back(dwID);
 
 		CString strMSG;
-		strMSG = GetSvrMsg(MSG_AUCTION_FAIL_BODY);		
-		strMSG = pTextLinker->MakeItemNetText(strMSG, vItemID);	
+		strMSG = GetSvrMsg(MSG_AUCTION_FAIL_BODY);
+		strMSG = pTextLinker->MakeItemNetText(strMSG, vItemID);
 
-		SendDM_POSTRECV_REQ(0,dwSeller,GetSvrMsg(MSG_AUCTION_OPERATOR),strSeller,
+		SendDM_POSTRECV_REQ(0, dwSeller, GetSvrMsg(MSG_AUCTION_OPERATOR), strSeller,
 			BuildNetString(NAME_NULL, GetSvrMsg(MSG_AUCTION_FAIL)), strMSG, POST_PACKATE,
-			0,0,0, pItem);
+			0, 0, 0, pItem);
 
 #ifdef DEF_UDPLOG
-		m_pUdpSocket->LogAuctionBid(LOGMAP_AUCTIONBIDFAIL,NULL,dwAuctionID,0,pItem,pItem->m_bCount,dwSeller,strSeller);
+		m_pUdpSocket->LogAuctionBid(LOGMAP_AUCTIONBIDFAIL, NULL, dwAuctionID, 0, pItem, pItem->m_bCount, dwSeller, strSeller);
 #endif
 	}
 	else //낙찰
-	{		
+	{
 		CTTextLinker* pTextLinker = CTTextLinker::GetInstance();
 		CTTextLinkData* pData;
 
@@ -14164,37 +14424,38 @@ DWORD CTMapSvrModule::OnDM_AUCTIONEND_ACK(LPPACKETBUF pBUF)
 		CString strMSG;
 		CString strMSGPrice;
 		strMSG = GetSvrMsg(MSG_AUCTION_BIDSUCCESS_BODY);
-		strMSG = pTextLinker->MakeItemNetText(strMSG, vItemID);		
-		
-		strMSGPrice = GetSvrMsg(MSG_AUCTION_PRICE_BODY);
-		strMSGPrice = pTextLinker->MakeItemNetText(strMSGPrice, vItemID);	
+		strMSG = pTextLinker->MakeItemNetText(strMSG, vItemID);
 
-		DWORD dwGold,dwSilver,dwCooper;
+		strMSGPrice = GetSvrMsg(MSG_AUCTION_PRICE_BODY);
+		strMSGPrice = pTextLinker->MakeItemNetText(strMSGPrice, vItemID);
+
+		DWORD dwGold, dwSilver, dwCooper;
 		CalcMoney(ldwPrice, dwGold, dwSilver, dwCooper);
 
 		// 등록자에게 돈보내기
-		SendDM_POSTRECV_REQ(0,dwSeller,GetSvrMsg(MSG_AUCTION_OPERATOR),strSeller,
+		SendDM_POSTRECV_REQ(0, dwSeller, GetSvrMsg(MSG_AUCTION_OPERATOR), strSeller,
 			BuildNetString(NAME_NULL, GetSvrMsg(MSG_AUCTION_PRICE)), strMSGPrice, POST_NORMAL,
-			dwGold,dwSilver,dwCooper, NULL);
+			dwGold, dwSilver, dwCooper, NULL);
 
 		// 낙찰자에게 아이템 보내기
-		SendDM_POSTRECV_REQ(0,dwBuyer,GetSvrMsg(MSG_AUCTION_OPERATOR),strBuyer,
+		SendDM_POSTRECV_REQ(0, dwBuyer, GetSvrMsg(MSG_AUCTION_OPERATOR), strBuyer,
 			BuildNetString(NAME_NULL, GetSvrMsg(MSG_AUCTION_BIDSUCCESS)), strMSG, POST_PACKATE,
-			0,0,0, pItem);
+			0, 0, 0, pItem);
 
 #ifdef DEF_UDPLOG
-		m_pUdpSocket->LogAuctionBid(LOGMAP_AUCTIONSUCCESSMONEY,NULL,dwAuctionID,ldwPrice,pItem,pItem->m_bCount,dwSeller,strSeller);
-		m_pUdpSocket->LogAuctionBid(LOGMAP_AUCTIONBIDSUCCESS,NULL,dwAuctionID,ldwPrice,pItem,pItem->m_bCount,dwBuyer,strBuyer);
+		m_pUdpSocket->LogAuctionBid(LOGMAP_AUCTIONSUCCESSMONEY, NULL, dwAuctionID, ldwPrice, pItem, pItem->m_bCount, dwSeller, strSeller);
+		m_pUdpSocket->LogAuctionBid(LOGMAP_AUCTIONBIDSUCCESS, NULL, dwAuctionID, ldwPrice, pItem, pItem->m_bCount, dwBuyer, strBuyer);
 #endif
 	}
 
-	pNpc->DelAuction(dwAuctionID,dwCode);
+	pNpc->DelAuction(dwAuctionID, dwCode);
 
 	return EC_NOERROR;
 }
 
 DWORD CTMapSvrModule::OnDM_AUCTIONREGCANCEL_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_AUCTIONREGCANCEL_REQ");
 	BYTE bResult;
 	WORD wNpcID;
 	DWORD dwAuctionID;
@@ -14205,21 +14466,21 @@ DWORD CTMapSvrModule::OnDM_AUCTIONREGCANCEL_REQ(LPPACKETBUF pBUF)
 		>> dwCharID
 		>> dwKEY
 		>> wNpcID
-		>> dwAuctionID;		
+		>> dwAuctionID;
 
 	LPPACKETBUF pMsg = new PACKETBUF();
 	pMsg->m_packet.SetID(DM_AUCTIONREGCANCEL_ACK);
 
-	DEFINE_QUERY( &m_db, CSPAuctionRegCancel)
-	query->m_wNpcID = wNpcID;
+	DEFINE_QUERY(&m_db, CSPAuctionRegCancel)
+		query->m_wNpcID = wNpcID;
 	query->m_dwAuctionID = dwAuctionID;
 
-	if(!query->Call() )
+	if (!query->Call())
 		bResult = AR_FAIL;
 	else
 		bResult = query->m_nRET;
-		
-	pMsg->m_packet	
+
+	pMsg->m_packet
 		<< bResult
 		<< dwCharID
 		<< dwKEY
@@ -14232,13 +14493,14 @@ DWORD CTMapSvrModule::OnDM_AUCTIONREGCANCEL_REQ(LPPACKETBUF pBUF)
 
 	UNDEFINE_QUERY()
 
-	SayToBATCH(pMsg);	
+		SayToBATCH(pMsg);
 
 	return EC_NOERROR;
 }
 
 DWORD CTMapSvrModule::OnDM_AUCTIONREGCANCEL_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_AUCTIONREGCANCEL_ACK");
 	BYTE bResult;
 	DWORD dwCharID;
 	DWORD dwKEY;
@@ -14262,22 +14524,22 @@ DWORD CTMapSvrModule::OnDM_AUCTIONREGCANCEL_ACK(LPPACKETBUF pBUF)
 		>> strSeller
 		>> strBidder
 		>> dwBidder
-		>> ldwBidPrice;	
+		>> ldwBidPrice;
 
-	CTPlayer* pChar = FindPlayer(dwCharID,dwKEY);
-	if(pChar)
+	CTPlayer* pChar = FindPlayer(dwCharID, dwKEY);
+	if (pChar)
 		pChar->SendCS_AUCTIONREGCANCEL_ACK(bResult);
 
 	CTNpc* pNpc = FindTNpc(wNpcID);
-	if(pNpc && !bResult)
+	if (pNpc && !bResult)
 	{
-		MAPTAUCTION::iterator itA =  pNpc->m_mapTAuction.find(dwAuctionID);
-		if(itA != pNpc->m_mapTAuction.end())
+		MAPTAUCTION::iterator itA = pNpc->m_mapTAuction.find(dwAuctionID);
+		if (itA != pNpc->m_mapTAuction.end())
 		{
 			ldwStartPrice = (*itA).second->m_ldwStartPrice;
 			ldwDirectPrice = (*itA).second->m_ldwDirectPrice;
 			pItem = (*itA).second->m_pItem;
-			dwCode = (*itA).second->m_dwCode;			
+			dwCode = (*itA).second->m_dwCode;
 		}
 	}
 	else
@@ -14294,22 +14556,22 @@ DWORD CTMapSvrModule::OnDM_AUCTIONREGCANCEL_ACK(LPPACKETBUF pBUF)
 
 	CString strMSG;
 	CString strMSG2;
-	strMSG = GetSvrMsg(MSG_AUCTION_REGCANCEL_BODY);	
+	strMSG = GetSvrMsg(MSG_AUCTION_REGCANCEL_BODY);
 	strMSG = pTextLinker->MakeItemNetText(strMSG, vItemID);
 
-	strMSG2 = GetSvrMsg(MSG_AUCTION_DROP_BODY);	
-	strMSG2 = pTextLinker->MakeItemNetText(strMSG2, vItemID);	
+	strMSG2 = GetSvrMsg(MSG_AUCTION_DROP_BODY);
+	strMSG2 = pTextLinker->MakeItemNetText(strMSG2, vItemID);
 
 	// 등록자에게 아이템 보내기
-	SendDM_POSTRECV_REQ(0,dwCharID,GetSvrMsg(MSG_AUCTION_OPERATOR), strSeller,
+	SendDM_POSTRECV_REQ(0, dwCharID, GetSvrMsg(MSG_AUCTION_OPERATOR), strSeller,
 		BuildNetString(NAME_NULL, GetSvrMsg(MSG_AUCTION_REGCANCEL)), strMSG, POST_PACKATE,
-        0,0,0, pItem);	
+		0, 0, 0, pItem);
 
 #ifdef DEF_UDPLOG
-		m_pUdpSocket->LogAuctionReg(LOGMAP_AUCTIONREGCANCEL,pChar,dwAuctionID,ldwStartPrice,ldwDirectPrice,pItem,dwCharID,strSeller);
+	m_pUdpSocket->LogAuctionReg(LOGMAP_AUCTIONREGCANCEL, pChar, dwAuctionID, ldwStartPrice, ldwDirectPrice, pItem, dwCharID, strSeller);
 #endif
 
-	pNpc->DelAuction(dwAuctionID,dwCode);
+	pNpc->DelAuction(dwAuctionID, dwCode);
 
 	LPPACKETBUF pMsg = new PACKETBUF();
 	pMsg->m_packet.SetID(SM_AUCTIONCMDDEL_REQ)
@@ -14318,20 +14580,20 @@ DWORD CTMapSvrModule::OnDM_AUCTIONREGCANCEL_ACK(LPPACKETBUF pBUF)
 
 	SayToLOG(pMsg);
 
-	if(!dwBidder)
+	if (!dwBidder)
 		return EC_NOERROR;
-	
-	
+
+
 	// 입찰자에게 돈 보내기
-	DWORD dwGold,dwSilver,dwCooper;
+	DWORD dwGold, dwSilver, dwCooper;
 	CalcMoney(ldwBidPrice, dwGold, dwSilver, dwCooper);
 
-	SendDM_POSTRECV_REQ(0,dwBidder,GetSvrMsg(MSG_AUCTION_OPERATOR),strBidder,
+	SendDM_POSTRECV_REQ(0, dwBidder, GetSvrMsg(MSG_AUCTION_OPERATOR), strBidder,
 		BuildNetString(NAME_NULL, GetSvrMsg(MSG_AUCTION_REGCANCEL_DROP)), strMSG2, POST_NORMAL,
-		dwGold,dwSilver,dwCooper, NULL);
+		dwGold, dwSilver, dwCooper, NULL);
 
 #ifdef DEF_UDPLOG
-		m_pUdpSocket->LogAuctionBid(LOGMAP_AUCTIONBIDDROP,NULL,dwAuctionID,ldwBidPrice,NULL,0,dwBidder,strBidder);
+	m_pUdpSocket->LogAuctionBid(LOGMAP_AUCTIONBIDDROP, NULL, dwAuctionID, ldwBidPrice, NULL, 0, dwBidder, strBidder);
 #endif
 
 	return EC_NOERROR;
@@ -14339,12 +14601,13 @@ DWORD CTMapSvrModule::OnDM_AUCTIONREGCANCEL_ACK(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_AUCTIONBID_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_AUCTIONBID_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 	CString strName;
 	DWORD dwUserID;
 	WORD wNpcID;
-	DWORD dwAuctionID;	
+	DWORD dwAuctionID;
 	__int64 ldwBidPrice;
 	BYTE	bResult;
 
@@ -14361,12 +14624,12 @@ DWORD CTMapSvrModule::OnDM_AUCTIONBID_REQ(LPPACKETBUF pBUF)
 	pMsg->m_packet.SetID(DM_AUCTIONBID_ACK);
 
 	DEFINE_QUERY(&m_db, CSPAuctionBid)
-	query->m_wNpcID = wNpcID;
-	query->m_dwAuctionID =dwAuctionID;
+		query->m_wNpcID = wNpcID;
+	query->m_dwAuctionID = dwAuctionID;
 	query->m_dwCharID = dwCharID;
 	query->m_ldwBidPrice = ldwBidPrice;
 
-	if(!query->Call())
+	if (!query->Call())
 		bResult = ABR_FAIL;
 	else
 		bResult = query->m_nRET;
@@ -14387,13 +14650,14 @@ DWORD CTMapSvrModule::OnDM_AUCTIONBID_REQ(LPPACKETBUF pBUF)
 
 	UNDEFINE_QUERY()
 
-	SayToBATCH(pMsg);
-		
+		SayToBATCH(pMsg);
+
 	return EC_NOERROR;
 }
 
 DWORD CTMapSvrModule::OnDM_AUCTIONBID_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_AUCTIONBID_ACK");
 	BYTE bResult;
 	DWORD dwCharID;
 	DWORD dwKEY;
@@ -14421,20 +14685,20 @@ DWORD CTMapSvrModule::OnDM_AUCTIONBID_ACK(LPPACKETBUF pBUF)
 		>> szDropBidder
 		>> dBidTime;
 
-	CTPlayer* pPlayer = FindPlayer(dwCharID,dwKEY);
-	if(pPlayer)
-		pPlayer->SendCS_AUCTIONBID_ACK(bResult);	
-	
+	CTPlayer* pPlayer = FindPlayer(dwCharID, dwKEY);
+	if (pPlayer)
+		pPlayer->SendCS_AUCTIONBID_ACK(bResult);
+
 	CTItem* pItem = NULL;
 	CTNpc* pNpc = FindTNpc(wNpcID);
-	if(pNpc)
+	if (pNpc)
 	{
 		MAPTAUCTION::iterator it = pNpc->m_mapTAuction.find(dwAuctionID);
-		if( it != pNpc->m_mapTAuction.end())
+		if (it != pNpc->m_mapTAuction.end())
 		{
 			pItem = (*it).second->m_pItem;
 
-			if(!bResult)
+			if (!bResult)
 			{
 				(*it).second->m_dBid = dBidTime;
 				(*it).second->m_ldwBidPrice = ldwBidPrice;
@@ -14444,9 +14708,9 @@ DWORD CTMapSvrModule::OnDM_AUCTIONBID_ACK(LPPACKETBUF pBUF)
 		}
 	}
 
-	if(bResult) //입찰 실패
+	if (bResult) //입찰 실패
 	{
-		DWORD dwGold,dwSilver,dwCooper;
+		DWORD dwGold, dwSilver, dwCooper;
 		CalcMoney(ldwBidPrice, dwGold, dwSilver, dwCooper);
 
 		CTTextLinker* pTextLinker = CTTextLinker::GetInstance();
@@ -14459,31 +14723,31 @@ DWORD CTMapSvrModule::OnDM_AUCTIONBID_ACK(LPPACKETBUF pBUF)
 		vItemID.push_back(dwID);
 
 		CString strMSG;
-		strMSG = GetSvrMsg(MSG_AUCTION_BIDFAIL_BODY);		
-		strMSG = pTextLinker->MakeItemNetText(strMSG, vItemID);	
+		strMSG = GetSvrMsg(MSG_AUCTION_BIDFAIL_BODY);
+		strMSG = pTextLinker->MakeItemNetText(strMSG, vItemID);
 
-		SendDM_POSTRECV_REQ(0,dwCharID,GetSvrMsg(MSG_AUCTION_OPERATOR),strName,
+		SendDM_POSTRECV_REQ(0, dwCharID, GetSvrMsg(MSG_AUCTION_OPERATOR), strName,
 			BuildNetString(NAME_NULL, GetSvrMsg(MSG_AUCTION_BIDFAIL)), strMSG, POST_NORMAL,
-			dwGold,dwSilver,dwCooper, NULL);
+			dwGold, dwSilver, dwCooper, NULL);
 
 		return EC_NOERROR;
 	}
 
-	if(pPlayer)
+	if (pPlayer)
 	{
-		pPlayer->AuctionBidListSave(TRUE,dwAuctionID);
-		pPlayer->AuctionInterestSave(TRUE,dwAuctionID);
+		pPlayer->AuctionBidListSave(TRUE, dwAuctionID);
+		pPlayer->AuctionInterestSave(TRUE, dwAuctionID);
 	}
-		
+
 	CTPlayer* pDropbidder = FindPlayer(szDropBidder);
-	if(pDropbidder)
-		pDropbidder->AuctionBidListSave(FALSE,dwAuctionID);
+	if (pDropbidder)
+		pDropbidder->AuctionBidListSave(FALSE, dwAuctionID);
 
 #ifdef DEF_UDPLOG
-		m_pUdpSocket->LogAuctionBid(LOGMAP_AUCTIONBID,pPlayer,dwAuctionID,ldwBidPrice,pItem,pItem->m_bCount,dwCharID,strName);	 	
+	m_pUdpSocket->LogAuctionBid(LOGMAP_AUCTIONBID, pPlayer, dwAuctionID, ldwBidPrice, pItem, pItem->m_bCount, dwCharID, strName);
 #endif
-	
-	if(!dwDropBidder)
+
+	if (!dwDropBidder)
 		return EC_NOERROR;
 
 	CTTextLinker* pTextLinker = CTTextLinker::GetInstance();
@@ -14497,18 +14761,18 @@ DWORD CTMapSvrModule::OnDM_AUCTIONBID_ACK(LPPACKETBUF pBUF)
 
 	CString strOtherBidderMsg;
 	strOtherBidderMsg = GetSvrMsg(MSG_AUCTION_OTHERBIDDER_BODY);
-	strOtherBidderMsg = pTextLinker->MakeItemNetText(strOtherBidderMsg, vItemID);	
-	
+	strOtherBidderMsg = pTextLinker->MakeItemNetText(strOtherBidderMsg, vItemID);
+
 	//입찰성공.이전 입찰자에게 돈 돌려주기
-	DWORD dwGold,dwSilver,dwCooper;
+	DWORD dwGold, dwSilver, dwCooper;
 	CalcMoney(ldwDropBidPrice, dwGold, dwSilver, dwCooper);
 
-	SendDM_POSTRECV_REQ(0,dwDropBidder,GetSvrMsg(MSG_AUCTION_OPERATOR),szDropBidder,
+	SendDM_POSTRECV_REQ(0, dwDropBidder, GetSvrMsg(MSG_AUCTION_OPERATOR), szDropBidder,
 		BuildNetString(NAME_NULL, GetSvrMsg(MSG_AUCTION_OTHERBIDDER)), strOtherBidderMsg, POST_NORMAL,
-		dwGold,dwSilver,dwCooper, NULL);
+		dwGold, dwSilver, dwCooper, NULL);
 
 #ifdef DEF_UDPLOG
-	m_pUdpSocket->LogAuctionBid(LOGMAP_AUCTIONBIDDROP,pDropbidder,dwAuctionID,ldwDropBidPrice,pItem,pItem->m_bCount,dwDropBidder,szDropBidder);  
+	m_pUdpSocket->LogAuctionBid(LOGMAP_AUCTIONBIDDROP, pDropbidder, dwAuctionID, ldwDropBidPrice, pItem, pItem->m_bCount, dwDropBidder, szDropBidder);
 #endif
 
 	return EC_NOERROR;
@@ -14516,6 +14780,7 @@ DWORD CTMapSvrModule::OnDM_AUCTIONBID_ACK(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_AUCTIONBUYDIRECT_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_AUCTIONBUYDIRECT_REQ");
 	BYTE bResult;
 	DWORD dwCharID;
 	DWORD dwKEY;
@@ -14524,7 +14789,7 @@ DWORD CTMapSvrModule::OnDM_AUCTIONBUYDIRECT_REQ(LPPACKETBUF pBUF)
 	DWORD dwAuctionID;
 	BYTE bCount;
 	__int64 ldwBidPrice;
-	
+
 
 	pBUF->m_packet
 		>> dwCharID
@@ -14539,20 +14804,20 @@ DWORD CTMapSvrModule::OnDM_AUCTIONBUYDIRECT_REQ(LPPACKETBUF pBUF)
 	pMsg->m_packet.SetID(DM_AUCTIONBUYDIRECT_ACK);
 
 
-	DEFINE_QUERY(&m_db,CSPAuctionBuyDirect)
-	query->m_dwCharID = dwCharID;
+	DEFINE_QUERY(&m_db, CSPAuctionBuyDirect)
+		query->m_dwCharID = dwCharID;
 	query->m_wNpcID = wNpcID;
-	query->m_dwAuctionID = dwAuctionID;	
+	query->m_dwAuctionID = dwAuctionID;
 	query->m_bBuyCount = bCount;
 	query->m_ldwBidPrice = ldwBidPrice;
 
-	if(!query->Call() )
+	if (!query->Call())
 		bResult = ABR_FAIL;
 	else
 		bResult = query->m_nRET;
 
 	pMsg->m_packet
-		<< bResult		
+		<< bResult
 		<< dwCharID
 		<< dwKEY
 		<< strBuyer
@@ -14563,18 +14828,19 @@ DWORD CTMapSvrModule::OnDM_AUCTIONBUYDIRECT_REQ(LPPACKETBUF pBUF)
 		<< query->m_dwSeller
 		<< query->m_szSeller
 		<< query->m_dwDropBidder
-		<< query->m_szDropBidder	
+		<< query->m_szDropBidder
 		<< query->m_ldwDropBidPrice;
 
-    UNDEFINE_QUERY()
+	UNDEFINE_QUERY()
 
-	SayToBATCH(pMsg);
+		SayToBATCH(pMsg);
 
 	return EC_NOERROR;
 }
 
 DWORD CTMapSvrModule::OnDM_AUCTIONBUYDIRECT_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_AUCTIONBUYDIRECT_ACK");
 	BYTE bResult;
 	DWORD dwCharID;
 	DWORD dwKEY;
@@ -14582,14 +14848,14 @@ DWORD CTMapSvrModule::OnDM_AUCTIONBUYDIRECT_ACK(LPPACKETBUF pBUF)
 	WORD wNpcID;
 	DWORD dwAuctionID;
 	BYTE bCount;
-	__int64 ldwBidPrice;	
+	__int64 ldwBidPrice;
 	DWORD dwSeller;
 	CString strSeller;
 	DWORD dwDropBidder;
 	CString strDropBidder;
 	__int64 ldwDropBidPrice;
 	CTItem * pItem = NULL;
-	DWORD dwGold,dwSilver,dwCooper;
+	DWORD dwGold, dwSilver, dwCooper;
 	__int64 ldwTotalBidPrice;
 	BYTE bDelAuctionBuf = FALSE;
 
@@ -14602,24 +14868,24 @@ DWORD CTMapSvrModule::OnDM_AUCTIONBUYDIRECT_ACK(LPPACKETBUF pBUF)
 		>> dwAuctionID
 		>> bCount
 		>> ldwBidPrice
-		>> dwSeller		
+		>> dwSeller
 		>> strSeller
 		>> dwDropBidder
-		>> strDropBidder		
+		>> strDropBidder
 		>> ldwDropBidPrice;
 
-	CTPlayer* pPlayer = FindPlayer(dwCharID,dwKEY);
-	if(pPlayer)
+	CTPlayer* pPlayer = FindPlayer(dwCharID, dwKEY);
+	if (pPlayer)
 		pPlayer->SendCS_AUCTIONBUYDIRECT_ACK(bResult);
 
-	if(bResult) // 실패.돌려주기
+	if (bResult) // 실패.돌려주기
 	{
 		ldwTotalBidPrice = ldwBidPrice * bCount;
 		CalcMoney(ldwTotalBidPrice, dwGold, dwSilver, dwCooper);
 
-		SendDM_POSTRECV_REQ(0,dwCharID,GetSvrMsg(MSG_AUCTION_OPERATOR),strBuyer,
+		SendDM_POSTRECV_REQ(0, dwCharID, GetSvrMsg(MSG_AUCTION_OPERATOR), strBuyer,
 			BuildNetString(NAME_NULL, GetSvrMsg(MSG_AUCTION_BIDFAIL)), NAME_NULL, POST_NORMAL,
-			dwGold,dwSilver,dwCooper, NULL);
+			dwGold, dwSilver, dwCooper, NULL);
 
 		return EC_NOERROR;
 	}
@@ -14627,17 +14893,17 @@ DWORD CTMapSvrModule::OnDM_AUCTIONBUYDIRECT_ACK(LPPACKETBUF pBUF)
 	pItem = new CTItem();
 
 	CTNpc* pNpc = FindTNpc(wNpcID);
-	if(pNpc)
+	if (pNpc)
 	{
 		MAPTAUCTION::iterator itA = pNpc->m_mapTAuction.find(dwAuctionID);
-		if(itA != pNpc->m_mapTAuction.end())
+		if (itA != pNpc->m_mapTAuction.end())
 		{
-			pItem->Copy( (*itA).second->m_pItem,(*itA).second->m_pItem->m_bCount - bCount );
+			pItem->Copy((*itA).second->m_pItem, (*itA).second->m_pItem->m_bCount - bCount);
 			pItem->m_bCount = bCount;
 
-			if((*itA).second->m_pItem->m_bCount == bCount)
+			if ((*itA).second->m_pItem->m_bCount == bCount)
 			{
-				pNpc->DelAuction(dwAuctionID,(*itA).second->m_dwCode);
+				pNpc->DelAuction(dwAuctionID, (*itA).second->m_dwCode);
 				bDelAuctionBuf = TRUE;
 			}
 			else
@@ -14647,7 +14913,7 @@ DWORD CTMapSvrModule::OnDM_AUCTIONBUYDIRECT_ACK(LPPACKETBUF pBUF)
 			}
 		}
 	}
-	
+
 	CTTextLinker* pTextLinker = CTTextLinker::GetInstance();
 	CTTextLinkData* pData;
 
@@ -14658,56 +14924,56 @@ DWORD CTMapSvrModule::OnDM_AUCTIONBUYDIRECT_ACK(LPPACKETBUF pBUF)
 	vItemID.push_back(dwID);
 
 	CString strPriceMSG;
-	CString strSuccessMSG;	
+	CString strSuccessMSG;
 	CString strOtherBuyMsg;
 
-	strPriceMSG = GetSvrMsg(MSG_AUCTION_PRICE_BODY);	
-	strSuccessMSG = GetSvrMsg(MSG_AUCTION_BIDSUCCESS_BODY);	
-	strOtherBuyMsg = GetSvrMsg(MSG_AUCTION_OTHERBUY_BODY);	
+	strPriceMSG = GetSvrMsg(MSG_AUCTION_PRICE_BODY);
+	strSuccessMSG = GetSvrMsg(MSG_AUCTION_BIDSUCCESS_BODY);
+	strOtherBuyMsg = GetSvrMsg(MSG_AUCTION_OTHERBUY_BODY);
 
 	strPriceMSG = pTextLinker->MakeItemNetText(strPriceMSG, vItemID);
 	strSuccessMSG = pTextLinker->MakeItemNetText(strSuccessMSG, vItemID);
 	strOtherBuyMsg = pTextLinker->MakeItemNetText(strOtherBuyMsg, vItemID);
-	
-	
+
+
 	ldwTotalBidPrice = ldwBidPrice * bCount - __int64(ldwBidPrice * bCount * AUCTIONSUCCESSFEE);
 	CalcMoney(ldwTotalBidPrice, dwGold, dwSilver, dwCooper);
 
 	// 등록자에게 돈 보내기
-	SendDM_POSTRECV_REQ(0,dwSeller,GetSvrMsg(MSG_AUCTION_OPERATOR),strSeller,
+	SendDM_POSTRECV_REQ(0, dwSeller, GetSvrMsg(MSG_AUCTION_OPERATOR), strSeller,
 		BuildNetString(NAME_NULL, GetSvrMsg(MSG_AUCTION_PRICE)), strPriceMSG, POST_NORMAL,
-		dwGold,dwSilver,dwCooper, NULL);
+		dwGold, dwSilver, dwCooper, NULL);
 
 	// 낙찰자에게 물픔 보내기
-	SendDM_POSTRECV_REQ(0,dwCharID,GetSvrMsg(MSG_AUCTION_OPERATOR),strBuyer,
+	SendDM_POSTRECV_REQ(0, dwCharID, GetSvrMsg(MSG_AUCTION_OPERATOR), strBuyer,
 		BuildNetString(NAME_NULL, GetSvrMsg(MSG_AUCTION_BIDSUCCESS)), strSuccessMSG, POST_PACKATE,
-		0,0,0, pItem);
+		0, 0, 0, pItem);
 
 #ifdef DEF_UDPLOG
-	m_pUdpSocket->LogAuctionBid(LOGMAP_AUCTIONBUYDIRECT,NULL,dwAuctionID,ldwBidPrice,pItem,bCount,dwCharID,strBuyer);
-	m_pUdpSocket->LogAuctionBid(LOGMAP_AUCTIONSUCCESSMONEY,NULL,dwAuctionID,ldwBidPrice,pItem,bCount,dwSeller,strSeller);	
+	m_pUdpSocket->LogAuctionBid(LOGMAP_AUCTIONBUYDIRECT, NULL, dwAuctionID, ldwBidPrice, pItem, bCount, dwCharID, strBuyer);
+	m_pUdpSocket->LogAuctionBid(LOGMAP_AUCTIONSUCCESSMONEY, NULL, dwAuctionID, ldwBidPrice, pItem, bCount, dwSeller, strSeller);
 #endif
 
 	// 탈락한 입찰자에게 돈 보내기
-	if(strDropBidder != NAME_NULL)
+	if (strDropBidder != NAME_NULL)
 	{
 		CTPlayer* pDropBidder = FindPlayer(strDropBidder);
 
 		CalcMoney(ldwDropBidPrice, dwGold, dwSilver, dwCooper);
 
-		SendDM_POSTRECV_REQ(0,dwDropBidder,GetSvrMsg(MSG_AUCTION_OPERATOR),strDropBidder,
+		SendDM_POSTRECV_REQ(0, dwDropBidder, GetSvrMsg(MSG_AUCTION_OPERATOR), strDropBidder,
 			BuildNetString(NAME_NULL, GetSvrMsg(MSG_AUCTION_OTHERWIN)), strOtherBuyMsg, POST_NORMAL,
-			dwGold,dwSilver,dwCooper, NULL);
-		
+			dwGold, dwSilver, dwCooper, NULL);
+
 #ifdef DEF_UDPLOG
-		m_pUdpSocket->LogAuctionBid(LOGMAP_AUCTIONBIDDROP,pDropBidder,dwAuctionID,ldwDropBidPrice,pItem,pItem->m_bCount,dwDropBidder,strDropBidder);  
+		m_pUdpSocket->LogAuctionBid(LOGMAP_AUCTIONBIDDROP, pDropBidder, dwAuctionID, ldwDropBidPrice, pItem, pItem->m_bCount, dwDropBidder, strDropBidder);
 #endif
 	}
 
-	if(pItem)
+	if (pItem)
 		delete pItem;
 
-	if(bDelAuctionBuf)
+	if (bDelAuctionBuf)
 	{
 		LPPACKETBUF pMsg = new PACKETBUF();
 		pMsg->m_packet.SetID(SM_AUCTIONCMDDEL_REQ)
@@ -14722,106 +14988,107 @@ DWORD CTMapSvrModule::OnDM_AUCTIONBUYDIRECT_ACK(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_WORLDPOSTSEND_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_WORLDPOSTSEND_REQ");
 	BYTE bType;
 
 	pBUF->m_packet
 		>> bType;
 
-	switch(bType)
+	switch (bType)
 	{
 	case WPT_TACTICSKICK:
 	case WPT_TACTICSEND:
+	{
+		DWORD dwValue;
+		DWORD dwSenderID;
+		CString strSender;
+		DWORD dwRecvID;
+		CString strRecver;
+		INT64 dlMoney;
+
+		pBUF->m_packet
+			>> dwValue
+			>> dwSenderID
+			>> strSender
+			>> dwRecvID
+			>> strRecver
+			>> dlMoney;
+
+		CString strTitle;
+		CString strMessage;
+
+		if (bType == WPT_TACTICSKICK)
 		{
-			DWORD dwValue;
-			DWORD dwSenderID;
-			CString strSender;
-			DWORD dwRecvID;
-			CString strRecver;
-			INT64 dlMoney;
-
-			pBUF->m_packet
-				>> dwValue
-				>> dwSenderID
-				>> strSender
-				>> dwRecvID
-				>> strRecver
-				>> dlMoney;
-
-			CString strTitle;
-			CString strMessage;
-
-			if(bType == WPT_TACTICSKICK)
-			{
-				strTitle = GetSvrMsg(MSG_TACTICSKICK_TITLE);
-				strMessage.Format(GetSvrMsg(MSG_TACTICSKICK_MESSAGE), dwValue);
-			}
-			else
-			{
-				strTitle = GetSvrMsg(MSG_TACTICSEND_TITLE);
-				strMessage.Format(GetSvrMsg(MSG_TACTICSEND_MESSAGE), dwValue);		
-			}
-
-			DWORD dwGold, dwSilver, dwCooper;
-			CalcMoney(dlMoney, dwGold, dwSilver, dwCooper);
-
-			SendDM_POSTRECV_REQ(
-				dwSenderID,
-				dwRecvID,
-				strSender,
-				strRecver,
-				BuildNetString(NAME_NULL, strTitle),
-				BuildNetString(NAME_NULL, strMessage),
-				POST_NORMAL,
-				dwGold, dwSilver, dwCooper, NULL);
-			break;
+			strTitle = GetSvrMsg(MSG_TACTICSKICK_TITLE);
+			strMessage.Format(GetSvrMsg(MSG_TACTICSKICK_MESSAGE), dwValue);
 		}
+		else
+		{
+			strTitle = GetSvrMsg(MSG_TACTICSEND_TITLE);
+			strMessage.Format(GetSvrMsg(MSG_TACTICSEND_MESSAGE), dwValue);
+		}
+
+		DWORD dwGold, dwSilver, dwCooper;
+		CalcMoney(dlMoney, dwGold, dwSilver, dwCooper);
+
+		SendDM_POSTRECV_REQ(
+			dwSenderID,
+			dwRecvID,
+			strSender,
+			strRecver,
+			BuildNetString(NAME_NULL, strTitle),
+			BuildNetString(NAME_NULL, strMessage),
+			POST_NORMAL,
+			dwGold, dwSilver, dwCooper, NULL);
+		break;
+	}
 	case WPT_LOTITEM:
+	{
+		DWORD	dwRecvID;
+		CString	strRecver;
+		CString	strTitle;
+		CString	strMessage;
+		WORD	wItemID;
+		BYTE	bItemNum;
+		WORD	wUseTime;
+
+		pBUF->m_packet
+			>> dwRecvID
+			>> strRecver
+			>> strTitle
+			>> strMessage
+			>> wItemID
+			>> bItemNum
+			>> wUseTime;
+
+		//	아이템 생성
+		LPTITEM pTITEM = FindTItem(wItemID);
+		if (!pTITEM)
+			return EC_NOERROR;
+
+		CTItem * pNew = new CTItem();
+		pNew->m_dlID = GenItemID();
+		pNew->m_bCount = bItemNum;
+		pNew->m_wItemID = wItemID;
+		pNew->m_pTITEM = pTITEM;
+		pNew->SetDuration(FALSE);
+		if (wUseTime)
 		{
-			DWORD	dwRecvID;
-			CString	strRecver;
-			CString	strTitle;
-			CString	strMessage;
-			WORD	wItemID;
-			BYTE	bItemNum;
-			WORD	wUseTime;
-
-			pBUF->m_packet
-				>> dwRecvID
-				>> strRecver
-				>> strTitle
-				>> strMessage
-				>> wItemID
-				>> bItemNum
-				>> wUseTime;
-
-			//	아이템 생성
-			LPTITEM pTITEM = FindTItem(wItemID);
-			if(!pTITEM)
-				return EC_NOERROR;
-
-			CTItem * pNew = new CTItem();
-			pNew->m_dlID = GenItemID();
-			pNew->m_bCount = bItemNum;
-			pNew->m_wItemID = wItemID;
-			pNew->m_pTITEM = pTITEM;
-			pNew->SetDuration(FALSE);
-			if(wUseTime)
-			{
-				CTime time(_AtlModule.m_timeCurrent);
-				time += CTimeSpan(0,wUseTime,0,0);
-				pNew->m_dEndTime = time.GetTime();
-			}
-				//pNew->SetEndTime((DWORD)wUseTime);
-
-			SetItemAttr(pNew, 0);
-
-			SendDM_POSTRECV_REQ(
-				0, dwRecvID, GetSvrMsg(NAME_OPERATOR), strRecver,
-				BuildNetString(NAME_NULL, strTitle),
-				BuildNetString(NAME_NULL, strMessage),
-				POST_PACKATE, 0, 0, 0, pNew);
-			break;
+			CTime time(_AtlModule.m_timeCurrent);
+			time += CTimeSpan(0, wUseTime, 0, 0);
+			pNew->m_dEndTime = time.GetTime();
 		}
+		//pNew->SetEndTime((DWORD)wUseTime);
+
+		SetItemAttr(pNew, 0);
+
+		SendDM_POSTRECV_REQ(
+			0, dwRecvID, GetSvrMsg(NAME_OPERATOR), strRecver,
+			BuildNetString(NAME_NULL, strTitle),
+			BuildNetString(NAME_NULL, strMessage),
+			POST_PACKATE, 0, 0, 0, pNew);
+		break;
+	}
 
 	}
 	return EC_NOERROR;
@@ -14829,6 +15096,7 @@ DWORD CTMapSvrModule::OnMW_WORLDPOSTSEND_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_CASTLEAPPLICANTCOUNT_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_CASTLEAPPLICANTCOUNT_REQ");
 	WORD wCastle;
 	DWORD dwGuildID;
 	BYTE bCamp;
@@ -14841,9 +15109,9 @@ DWORD CTMapSvrModule::OnMW_CASTLEAPPLICANTCOUNT_REQ(LPPACKETBUF pBUF)
 		>> bCount;
 
 	LPTLOCAL pCastle = FindCastle(wCastle);
-	if(pCastle)
+	if (pCastle)
 	{
-		if(bCamp == CAMP_ATTACK)
+		if (bCamp == CAMP_ATTACK)
 			pCastle->m_bAtkCount = bCount;
 		else
 			pCastle->m_bDefCount = bCount;
@@ -14854,6 +15122,7 @@ DWORD CTMapSvrModule::OnMW_CASTLEAPPLICANTCOUNT_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_GAINCASHBONUS_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_GAINCASHBONUS_REQ");
 	INT nRet;
 	DWORD dwCharID;
 	DWORD dwKey;
@@ -14873,17 +15142,17 @@ DWORD CTMapSvrModule::OnDM_GAINCASHBONUS_REQ(LPPACKETBUF pBUF)
 		>> dwBonus;
 
 	DEFINE_QUERY(&m_db, CSPGainCashBonus)
-	query->m_dwCharID = dwCharID;
+		query->m_dwCharID = dwCharID;
 	query->m_bInven = bInven;
 	query->m_bItem = bItem;
 	query->m_dwBonus = dwBonus;
-	if(query->Call())
+	if (query->Call())
 		nRet = query->m_nRet;
 	else
 		nRet = CASHSHOP_INTERNAL;
 	UNDEFINE_QUERY()
 
-	LPPACKETBUF pMSG = new PACKETBUF();
+		LPPACKETBUF pMSG = new PACKETBUF();
 	pMSG->m_packet.SetID(DM_GAINCASHBONUS_ACK)
 		<< nRet
 		<< dwCharID
@@ -14901,6 +15170,7 @@ DWORD CTMapSvrModule::OnDM_GAINCASHBONUS_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_GAINCASHBONUS_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_GAINCASHBONUS_ACK");
 	INT nRet;
 	DWORD dwCharID;
 	DWORD dwKey;
@@ -14920,10 +15190,10 @@ DWORD CTMapSvrModule::OnDM_GAINCASHBONUS_ACK(LPPACKETBUF pBUF)
 		>> wItemID
 		>> dwBonus;
 
-	if(nRet)
+	if (nRet)
 	{
 		LPTITEM pTITEM = FindTItem(wItemID);
-		if(!pTITEM)
+		if (!pTITEM)
 			return EC_NOERROR;
 
 		CTItem * pNew = new CTItem();
@@ -14935,11 +15205,11 @@ DWORD CTMapSvrModule::OnDM_GAINCASHBONUS_ACK(LPPACKETBUF pBUF)
 		SetItemAttr(pNew, 0);
 
 		/*SendDM_POSTRECV_REQ(
-			0, dwCharID, GetSvrMsg(NAME_OPERATOR), strName,
-			BuildNetString(NAME_NULL, GetSvrMsg(MSG_ITEMERROR_TITLE)),
-			BuildNetString(NAME_NULL, GetSvrMsg(MSG_ITEMERROR_MESSAGE)),
-			POST_PACKATE,
-			0,0,0, pNew);*/
+		0, dwCharID, GetSvrMsg(NAME_OPERATOR), strName,
+		BuildNetString(NAME_NULL, GetSvrMsg(MSG_ITEMERROR_TITLE)),
+		BuildNetString(NAME_NULL, GetSvrMsg(MSG_ITEMERROR_MESSAGE)),
+		POST_PACKATE,
+		0,0,0, pNew);*/
 
 		delete pNew;
 	}
@@ -14947,20 +15217,21 @@ DWORD CTMapSvrModule::OnDM_GAINCASHBONUS_ACK(LPPACKETBUF pBUF)
 	return EC_NOERROR;
 }
 
- 
+
 DWORD CTMapSvrModule::OnMW_MONTHRANKLIST_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_MONTHRANKLIST_REQ");
 	BYTE bCount;
 
 	pBUF->m_packet
 		>> m_bRankMonth
-		>> bCount;		
+		>> bCount;
 
-	if(bCount > MONTHRANKCOUNT)
+	if (bCount > MONTHRANKCOUNT)
 		return EC_NOERROR;
 
-	for(BYTE i = 0; i < COUNTRY_COUNT; i++)
-		for(BYTE j = 0; j < bCount; j++)
+	for (BYTE i = 0; i < COUNTRY_COUNT; i++)
+		for (BYTE j = 0; j < bCount; j++)
 		{
 			m_arMonthRank[i][j].WrapPacketOut(&(pBUF->m_packet));
 			m_arMonthRank[i][j].m_dwMonthRank = j;
@@ -14971,18 +15242,19 @@ DWORD CTMapSvrModule::OnMW_MONTHRANKLIST_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_FIRSTGRADEGROUP_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_FIRSTGRADEGROUP_REQ");
 	BYTE bCount;
 	BYTE bRankMonth;
 
 	pBUF->m_packet
 		>> bRankMonth
-		>> bCount;		
+		>> bCount;
 
-	if(bCount > FIRSTGRADEGROUPCOUNT)
+	if (bCount > FIRSTGRADEGROUPCOUNT)
 		return EC_NOERROR;
 
-	for(BYTE i = 0; i < COUNTRY_COUNT; i++)
-		for(BYTE j = 0; j < bCount; j++)
+	for (BYTE i = 0; i < COUNTRY_COUNT; i++)
+		for (BYTE j = 0; j < bCount; j++)
 		{
 			m_arFirstGradeGroup[i][j].WrapPacketOut(&(pBUF->m_packet));
 			m_arFirstGradeGroup[i][j].m_dwMonthRank = j;
@@ -14992,6 +15264,7 @@ DWORD CTMapSvrModule::OnMW_FIRSTGRADEGROUP_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnMW_MONTHRANKRESET_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_MONTHRANKRESET_REQ");
 	BYTE bRankMonth;
 	BYTE bCount;
 
@@ -14999,13 +15272,13 @@ DWORD CTMapSvrModule::OnMW_MONTHRANKRESET_REQ(LPPACKETBUF pBUF)
 		>> bRankMonth
 		>> bCount;
 
-	if(bRankMonth == 0)
+	if (bRankMonth == 0)
 		bRankMonth = 12;
 
-	if(bCount > FAMERANKCOUNT)
+	if (bCount > FAMERANKCOUNT)
 		return EC_NOERROR;
 
-	for(BYTE i = 0; i < bCount; i++)
+	for (BYTE i = 0; i < bCount; i++)
 	{
 		m_arFameRank[FRT_HERO][bRankMonth][i].WrapPacketOut(&(pBUF->m_packet));
 		m_arFameRank[FRT_HERO][bRankMonth][i].m_dwMonthRank = i;
@@ -15013,45 +15286,45 @@ DWORD CTMapSvrModule::OnMW_MONTHRANKRESET_REQ(LPPACKETBUF pBUF)
 
 	MAPDWORD mapPlayer;
 	MAPPLAYER::iterator it;
-	for( it = m_mapPLAYER.begin(); it != m_mapPLAYER.end(); it++)
+	for (it = m_mapPLAYER.begin(); it != m_mapPLAYER.end(); it++)
 	{
 		(*it).second->MonthRankRest();
-		(*it).second->SendCS_UPDATEFAMERANKLIST_ACK(m_arFameRank,bRankMonth);
-		(*it).second->SendCS_PVPPOINT_ACK( (*it).second->m_dwPvPTotalPoint, (*it).second->m_dwPvPUseablePoint, 0,0);
+		(*it).second->SendCS_UPDATEFAMERANKLIST_ACK(m_arFameRank, bRankMonth);
+		(*it).second->SendCS_PVPPOINT_ACK((*it).second->m_dwPvPTotalPoint, (*it).second->m_dwPvPUseablePoint, 0, 0);
 
-		if(!(*it).second->m_pMAP)
+		if (!(*it).second->m_pMAP)
 		{
 			mapPlayer.insert(MAPDWORD::value_type((*it).second->m_dwID, (*it).second->m_bCountry));
 		}
 	}
 
-	for(BYTE i = 0; i < bCount; i++)
+	for (BYTE i = 0; i < bCount; i++)
 	{
-		if(m_arFameRank[FRT_HERO][bRankMonth][i].m_dwCharID != 0)
+		if (m_arFameRank[FRT_HERO][bRankMonth][i].m_dwCharID != 0)
 		{
 			MAPPLAYER::iterator it_char = m_mapPLAYER.find(m_arFameRank[FRT_HERO][bRankMonth][i].m_dwCharID);
-			if(it_char!=m_mapPLAYER.end())
+			if (it_char != m_mapPLAYER.end())
 				it_char->second->GetTitle(HONOUR_MONTH_TITLE, bRankMonth, TRUE);
 		}
 	}
 
-	if( !mapPlayer.empty())
+	if (!mapPlayer.empty())
 	{
 		LPPACKETBUF pMSG = new PACKETBUF();
 		pMSG->m_packet.SetID(DM_MONTHPVPOINTRESET_REQ);
-        SayToDB(pMSG);
+		SayToDB(pMSG);
 
 		MAPDWORD::iterator itD;
-		for(itD=mapPlayer.begin(); itD!=mapPlayer.end(); itD++)
+		for (itD = mapPlayer.begin(); itD != mapPlayer.end(); itD++)
 			SendMW_MONTHRANKRESETCHAR_ACK((*itD).first);
 	}
 
 	m_bRankMonth = bRankMonth + 1;
-	if(m_bRankMonth > 12 )
+	if (m_bRankMonth > 12)
 		m_bRankMonth -= 12;
 
-	for(BYTE m = 0; m < COUNTRY_COUNT; m++)
-		for(BYTE n = 1; n < MONTHRANKCOUNT; n++)
+	for (BYTE m = 0; m < COUNTRY_COUNT; m++)
+		for (BYTE n = 1; n < MONTHRANKCOUNT; n++)
 			m_arMonthRank[m][n].Reset();
 
 	return EC_NOERROR;
@@ -15059,12 +15332,13 @@ DWORD CTMapSvrModule::OnMW_MONTHRANKRESET_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_MONTHRANKRESETCHAR_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_MONTHRANKRESETCHAR_REQ");
 	DWORD dwCharID;
 	pBUF->m_packet
 		>> dwCharID;
 
 	MAPPLAYER::iterator it = m_mapPLAYER.find(dwCharID);
-	if(it!=m_mapPLAYER.end())
+	if (it != m_mapPLAYER.end())
 		it->second->MonthRankRest();
 
 	return EC_NOERROR;
@@ -15072,6 +15346,7 @@ DWORD CTMapSvrModule::OnMW_MONTHRANKRESETCHAR_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_FAMERANKUPDATE_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_FAMERANKUPDATE_REQ");
 	BYTE bMonth;
 	BYTE bType;
 	BYTE bOrder;
@@ -15081,29 +15356,30 @@ DWORD CTMapSvrModule::OnMW_FAMERANKUPDATE_REQ(LPPACKETBUF pBUF)
 		>> bMonth
 		>> bOrder;
 
-	if(bType >= FRT_COUNT || bMonth >= MONTHCOUNT || bOrder >= FAMERANKCOUNT)
+	if (bType >= FRT_COUNT || bMonth >= MONTHCOUNT || bOrder >= FAMERANKCOUNT)
 		return EC_NOERROR;
 
 	m_arFameRank[bType][bMonth][bOrder].WrapPacketOut(&pBUF->m_packet);
 
 	MAPPLAYER::iterator it_char = m_mapPLAYER.find(m_arFameRank[bType][bMonth][bOrder].m_dwCharID);
-	if(it_char!=m_mapPLAYER.end())
+	if (it_char != m_mapPLAYER.end())
 		it_char->second->GetTitle(TOURNAMENT_TITLE, bMonth, TRUE);
 
 	MAPPLAYER::iterator it;
-	for( it = m_mapPLAYER.begin(); it != m_mapPLAYER.end(); it++)
-		(*it).second->SendCS_UPDATEFAMERANKLIST_ACK(m_arFameRank,bMonth);
+	for (it = m_mapPLAYER.begin(); it != m_mapPLAYER.end(); it++)
+		(*it).second->SendCS_UPDATEFAMERANKLIST_ACK(m_arFameRank, bMonth);
 
 	return EC_NOERROR;
 }
 
 DWORD CTMapSvrModule::OnMW_MONTHRANKUPDATE_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_MONTHRANKUPDATE_REQ");
 	BYTE bMonth;
 	BYTE bCountry;
 	BYTE bStartRank;
 	BYTE bEndRank;
-	BYTE bNewWarlord;	
+	BYTE bNewWarlord;
 	MONTHRANKER stWARLORD;
 
 	pBUF->m_packet
@@ -15112,11 +15388,11 @@ DWORD CTMapSvrModule::OnMW_MONTHRANKUPDATE_REQ(LPPACKETBUF pBUF)
 		>> bStartRank
 		>> bEndRank;
 
-	if(bStartRank > bEndRank || bEndRank >= MONTHRANKCOUNT || bMonth >= MONTHCOUNT)
+	if (bStartRank > bEndRank || bEndRank >= MONTHRANKCOUNT || bMonth >= MONTHCOUNT)
 		return EC_NOERROR;
 
-	if(bStartRank && bEndRank)
-		for(BYTE i = bStartRank; i <= bEndRank; i++)
+	if (bStartRank && bEndRank)
+		for (BYTE i = bStartRank; i <= bEndRank; i++)
 		{
 			m_arMonthRank[bCountry][i].WrapPacketOut(&(pBUF->m_packet));
 			m_arMonthRank[bCountry][i].m_dwMonthRank = i;
@@ -15125,9 +15401,9 @@ DWORD CTMapSvrModule::OnMW_MONTHRANKUPDATE_REQ(LPPACKETBUF pBUF)
 	pBUF->m_packet
 		>> bNewWarlord;
 
-	if(bNewWarlord)
+	if (bNewWarlord)
 	{
-		m_arMonthRank[bCountry][0].WrapPacketOut( &(pBUF->m_packet));
+		m_arMonthRank[bCountry][0].WrapPacketOut(&(pBUF->m_packet));
 		m_arMonthRank[bCountry][0].m_dwMonthRank = 0;
 	}
 
@@ -15138,6 +15414,7 @@ DWORD CTMapSvrModule::OnMW_MONTHRANKUPDATE_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_WARLORDSAY_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_WARLORDSAY_REQ");
 	BYTE bType;
 	BYTE bRankMonth;
 	DWORD dwCharID;
@@ -15149,7 +15426,7 @@ DWORD CTMapSvrModule::OnMW_WARLORDSAY_REQ(LPPACKETBUF pBUF)
 		>> dwCharID
 		>> strSay;
 
-	if(bType >= FRT_COUNT || bRankMonth >= MONTHCOUNT)
+	if (bType >= FRT_COUNT || bRankMonth >= MONTHCOUNT)
 		return EC_NOERROR;
 
 	m_arFameRank[bType][bRankMonth][0].m_strSay = strSay;
@@ -15159,6 +15436,7 @@ DWORD CTMapSvrModule::OnMW_WARLORDSAY_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_WARLORDSAY_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_WARLORDSAY_REQ");
 	BYTE bRet;
 	BYTE bRankMonth;
 	DWORD dwCharID;
@@ -15171,20 +15449,20 @@ DWORD CTMapSvrModule::OnDM_WARLORDSAY_REQ(LPPACKETBUF pBUF)
 		>> dwCharID
 		>> strSay;
 
-	DEFINE_QUERY(&m_db,CSPSaveWarlordSay)
-	query->m_bType = bType;
+	DEFINE_QUERY(&m_db, CSPSaveWarlordSay)
+		query->m_bType = bType;
 	query->m_bRankMonth = bRankMonth;
 	query->m_dwCharID = dwCharID;
-	lstrcpy(query->m_szSay,strSay);
+	lstrcpy(query->m_szSay, strSay);
 
-	if(!query->Call())
+	if (!query->Call())
 		bRet = TRUE;
 	else
 		bRet = query->m_nRET;
-	
+
 	UNDEFINE_QUERY()
 
-	LPPACKETBUF pMsg = new PACKETBUF();
+		LPPACKETBUF pMsg = new PACKETBUF();
 	pMsg->m_packet.SetID(DM_WARLORDSAY_ACK)
 		<< bRet
 		<< bType
@@ -15199,6 +15477,7 @@ DWORD CTMapSvrModule::OnDM_WARLORDSAY_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_WARLORDSAY_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_WARLORDSAY_ACK");
 	BYTE bRet;
 	BYTE bRankMonth;
 	DWORD dwCharID;
@@ -15212,28 +15491,30 @@ DWORD CTMapSvrModule::OnDM_WARLORDSAY_ACK(LPPACKETBUF pBUF)
 		>> dwCharID
 		>> strSay;
 
-	if(!bRet)
-		SendMW_WARLORDSAY_ACK(bType, bRankMonth,dwCharID,strSay);
+	if (!bRet)
+		SendMW_WARLORDSAY_ACK(bType, bRankMonth, dwCharID, strSay);
 
 	return EC_NOERROR;
 }
 
 DWORD CTMapSvrModule::OnDM_MONTHPVPOINTRESET_REQ(LPPACKETBUF pBUF)
-{	
-	DEFINE_QUERY(&m_db,CSPMonthPvPointClear)
-	query->Call();
+{
+	LogReceivedPacket("OnDM_MONTHPVPOINTRESET_REQ");
+	DEFINE_QUERY(&m_db, CSPMonthPvPointClear)
+		query->Call();
 	UNDEFINE_QUERY()
 
-	return EC_NOERROR;
+		return EC_NOERROR;
 }
 
 DWORD CTMapSvrModule::OnMW_TERMINATE_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_TERMINATE_REQ");
 	DWORD dwKey;
 	pBUF->m_packet
 		>> dwKey;
 
-	if(dwKey != 720809425)
+	if (dwKey != 720809425)
 		return EC_NOERROR;
 
 
@@ -15243,6 +15524,7 @@ DWORD CTMapSvrModule::OnMW_TERMINATE_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_POSTVIEW_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_POSTVIEW_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	DWORD dwPostID;
@@ -15265,9 +15547,9 @@ DWORD CTMapSvrModule::OnDM_POSTVIEW_REQ(LPPACKETBUF pBUF)
 
 	BYTE bItemCnt = 0;
 	DEFINE_QUERY(&m_db, CSPPostView)
-	query->m_dwCharID = dwCharID;
+		query->m_dwCharID = dwCharID;
 	query->m_dwPostID = dwPostID;
-	if(query->Call() && !query->m_nRet)
+	if (query->Call() && !query->m_nRet)
 	{
 		pMSG->m_packet
 			<< query->m_dwSendID
@@ -15290,21 +15572,21 @@ DWORD CTMapSvrModule::OnDM_POSTVIEW_REQ(LPPACKETBUF pBUF)
 
 	UNDEFINE_QUERY()
 
-	pMSG->m_packet
+		pMSG->m_packet
 		<< bItemCnt;
 
-	if(bItemCnt)
+	if (bItemCnt)
 	{
 		BYTE bCnt = 0;
 
 		DEFINE_QUERY(&m_db, CTBLPostItem)
-		query->m_dwOwnerID = dwCharID;
+			query->m_dwOwnerID = dwCharID;
 		query->m_bOwnerType = TOWNER_CHAR;
 		query->m_bStorageType = STORAGE_POST;
 		query->m_dwStorageID = dwPostID;
-		if(query->Open())
+		if (query->Open())
 		{
-			while(query->Fetch())
+			while (query->Fetch())
 			{
 				WrapItem(
 					&(pMSG->m_packet),
@@ -15316,12 +15598,12 @@ DWORD CTMapSvrModule::OnDM_POSTVIEW_REQ(LPPACKETBUF pBUF)
 		}
 		UNDEFINE_QUERY()
 
-		if(bCnt != bItemCnt)
-			bRet = BYTE(POST_NOTFOUND);
+			if (bCnt != bItemCnt)
+				bRet = BYTE(POST_NOTFOUND);
 	}
 
-	if(bRet != POST_SUCCESS)
-		memcpy( pMSG->m_packet.GetBuffer() + wSize, &bRet, sizeof(bRet));
+	if (bRet != POST_SUCCESS)
+		memcpy(pMSG->m_packet.GetBuffer() + wSize, &bRet, sizeof(bRet));
 
 	SayToBATCH(pMSG);
 
@@ -15330,6 +15612,7 @@ DWORD CTMapSvrModule::OnDM_POSTVIEW_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_POSTVIEW_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_POSTVIEW_ACK");
 	DWORD dwCharID;
 	DWORD dwKey;
 	DWORD dwPostID;
@@ -15342,10 +15625,10 @@ DWORD CTMapSvrModule::OnDM_POSTVIEW_ACK(LPPACKETBUF pBUF)
 		>> bRet;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(!pPlayer || !pPlayer->m_bMain)
+	if (!pPlayer || !pPlayer->m_bMain)
 		return EC_NOERROR;
 
-	if(bRet != POST_SUCCESS ||
+	if (bRet != POST_SUCCESS ||
 		pPlayer->m_dwPostID != dwPostID)
 	{
 		pPlayer->m_dwPostID = 0;
@@ -15387,10 +15670,10 @@ DWORD CTMapSvrModule::OnDM_POSTVIEW_ACK(LPPACKETBUF pBUF)
 		dwSilver,
 		dwCooper);
 
-	for(BYTE i=0; i<bItemCnt; i++)
+	for (BYTE i = 0; i<bItemCnt; i++)
 	{
 		CTItem *pTITEM = CreateItem(&(pBUF->m_packet));
-		if(pTITEM)
+		if (pTITEM)
 			pPost->m_vItem.push_back(pTITEM);
 	}
 
@@ -15403,6 +15686,7 @@ DWORD CTMapSvrModule::OnDM_POSTVIEW_ACK(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_TOURNAMENT_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_TOURNAMENT_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	WORD wProtocol;
@@ -15413,86 +15697,86 @@ DWORD CTMapSvrModule::OnMW_TOURNAMENT_REQ(LPPACKETBUF pBUF)
 		>> wProtocol;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
-	switch(wProtocol)
+	switch (wProtocol)
 	{
 	case MW_TOURNAMENTAPPLY_REQ:
+	{
+		BYTE bResult;
+		BYTE bEntryID;
+
+		pBUF->m_packet
+			>> bResult
+			>> bEntryID;
+
+		LPTOURNAMENT pTour = FindTournament(bEntryID);
+		if (pTour)
 		{
-			BYTE bResult;
-			BYTE bEntryID;
-
-			pBUF->m_packet
-				>> bResult
-				>> bEntryID;
-
-			LPTOURNAMENT pTour = FindTournament(bEntryID);
-			if(pTour)
+			if (bResult)
 			{
-				if(bResult)
+				pPlayer->EarnMoney(pTour->m_dwFee);
+				if (pTour->m_wPermitItem && pTour->m_bPermitCount)
 				{
-					pPlayer->EarnMoney(pTour->m_dwFee);
-					if(pTour->m_wPermitItem && pTour->m_bPermitCount)
+					LPTITEM pTITEM = FindTItem(pTour->m_wPermitItem);
+					if (pTITEM)
 					{
-						LPTITEM pTITEM = FindTItem(pTour->m_wPermitItem);
-						if(pTITEM)
+						VTITEM vItem;
+						vItem.clear();
+						CTItem * pNew = new CTItem();
+						pNew->m_dlID = GenItemID();
+						pNew->m_bCount = pTour->m_bPermitCount;
+						pNew->m_wItemID = pTour->m_wPermitItem;
+						pNew->m_pTITEM = pTITEM;
+						pNew->SetDuration(FALSE);
+						SetItemAttr(pNew, 0);
+						vItem.push_back(pNew);
+						if (pPlayer->CanPush(&vItem, 0))
 						{
-							VTITEM vItem;
-							vItem.clear();
-							CTItem * pNew = new CTItem();
-							pNew->m_dlID = GenItemID();
-							pNew->m_bCount = pTour->m_bPermitCount;
-							pNew->m_wItemID = pTour->m_wPermitItem;
-							pNew->m_pTITEM = pTITEM;
-							pNew->SetDuration(FALSE);
-							SetItemAttr(pNew, 0);
-							vItem.push_back(pNew);
-							if(pPlayer->CanPush(&vItem, 0))
-							{
-								pPlayer->PushTItem(&vItem);
-								pPlayer->SendCS_MOVEITEM_ACK(MI_SUCCESS);
-							}
+							pPlayer->PushTItem(&vItem);
+							pPlayer->SendCS_MOVEITEM_ACK(MI_SUCCESS);
 						}
 					}
 				}
-				else
-				{
-#ifdef DEF_UDPLOG
-					m_pUdpSocket->LogTournamentApply(LOGMAP_TOURNAMENTAPPLY, pPlayer, pTour->m_strName, pTour->m_bType);
-#endif	//	DEF_UDPLOG
-				}
-
-				if(pTour->m_dwFee)
-					pPlayer->SendCS_MONEY_ACK();
 			}
-		}
-		break;
-	case MW_TOURNAMENTPARTYADD_REQ:
-		{
-			BYTE bResult;
-			CString strTarget;
-			DWORD dwTargetID;
-
-			pBUF->m_packet
-				>> bResult
-				>> strTarget
-				>> dwTargetID;
-
-			if(TOURNAMENT_SUCCESS == bResult && dwTargetID)
+			else
 			{
-				SendDM_POSTRECVFROMSVR_REQ(
-					dwTargetID, strTarget,
-					BuildNetString(NAME_NULL, GetSvrMsg(TNMT_PARTYADD_TITLE)),
-					BuildNetString(NAME_NULL, GetSvrMsg(TNMT_PARTYADD_MESSAGE)),
-					POST_NORMAL,0,0,0,NULL);
+#ifdef DEF_UDPLOG
+				m_pUdpSocket->LogTournamentApply(LOGMAP_TOURNAMENTAPPLY, pPlayer, pTour->m_strName, pTour->m_bType);
+#endif	//	DEF_UDPLOG
 			}
 
-#ifdef DEF_UDPLOG
-					m_pUdpSocket->LogTournamentApply(LOGMAP_TOURNAMENTAPPLY, pPlayer, NAME_NULL, ENTRY_PARTY, strTarget);
-#endif	//	DEF_UDPLOG
+			if (pTour->m_dwFee)
+				pPlayer->SendCS_MONEY_ACK();
 		}
-		break;
+	}
+	break;
+	case MW_TOURNAMENTPARTYADD_REQ:
+	{
+		BYTE bResult;
+		CString strTarget;
+		DWORD dwTargetID;
+
+		pBUF->m_packet
+			>> bResult
+			>> strTarget
+			>> dwTargetID;
+
+		if (TOURNAMENT_SUCCESS == bResult && dwTargetID)
+		{
+			SendDM_POSTRECVFROMSVR_REQ(
+				dwTargetID, strTarget,
+				BuildNetString(NAME_NULL, GetSvrMsg(TNMT_PARTYADD_TITLE)),
+				BuildNetString(NAME_NULL, GetSvrMsg(TNMT_PARTYADD_MESSAGE)),
+				POST_NORMAL, 0, 0, 0, NULL);
+		}
+
+#ifdef DEF_UDPLOG
+		m_pUdpSocket->LogTournamentApply(LOGMAP_TOURNAMENTAPPLY, pPlayer, NAME_NULL, ENTRY_PARTY, strTarget);
+#endif	//	DEF_UDPLOG
+	}
+	break;
 	default:
 		break;
 	}
@@ -15504,6 +15788,7 @@ DWORD CTMapSvrModule::OnMW_TOURNAMENT_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_TOURNAMENTENABLE_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_TOURNAMENTENABLE_REQ");
 	BYTE bGroup;
 	BYTE bStep;
 	DWORD dwPeriod;
@@ -15518,11 +15803,11 @@ DWORD CTMapSvrModule::OnMW_TOURNAMENTENABLE_REQ(LPPACKETBUF pBUF)
 	BYTE bCurStep = m_tournament.m_bStep;
 
 	MAPPLAYER::iterator it;
-	for(it=m_mapPLAYER.begin();it!=m_mapPLAYER.end(); it++)
-		if((*it).second->m_bMain)
+	for (it = m_mapPLAYER.begin();it != m_mapPLAYER.end(); it++)
+		if ((*it).second->m_bMain)
 			(*it).second->SendCS_SYSTEMMSG_ACK(SM_TOURNAMENT_STEP, bStep, dwPeriod, NAME_NULL, NAME_NULL, bGroup, 0, NAME_NULL, 0, dlNextStep);
 
-	if(bStep == TNMTSTEP_QFINAL ||
+	if (bStep == TNMTSTEP_QFINAL ||
 		bStep == TNMTSTEP_SFINAL ||
 		bStep == TNMTSTEP_FINAL)
 	{
@@ -15532,24 +15817,24 @@ DWORD CTMapSvrModule::OnMW_TOURNAMENTENABLE_REQ(LPPACKETBUF pBUF)
 
 		VTMAP vMAP;
 		GetTournamentMapList(&vMAP);
-		for(DWORD i=0; i<vMAP.size(); i++)
+		for (DWORD i = 0; i<vMAP.size(); i++)
 		{
 			CTMap * pMap = vMAP[i];
 			pMap->m_dwEndTick = m_dwTick + dwPeriod * 1000;
 
 			MAPTOURNAMENTPLAYER::iterator itTP;
-			for(itTP=pMap->m_mapTNMTPlayer.begin(); itTP!=pMap->m_mapTNMTPlayer.end(); itTP++)
+			for (itTP = pMap->m_mapTNMTPlayer.begin(); itTP != pMap->m_mapTNMTPlayer.end(); itTP++)
 			{
-				if((*itTP).second->m_wMapID == pMap->m_wMapID)
+				if ((*itTP).second->m_wMapID == pMap->m_wMapID)
 				{
 					CTPlayer * pTP = FindPlayer((*itTP).second->m_strName);
-					if(pTP)
+					if (pTP)
 					{
-						for(DWORD i=0; i<pTP->m_vMaintainSkill.size();i++)
+						for (DWORD i = 0; i<pTP->m_vMaintainSkill.size();i++)
 						{
-							if(pTP->m_vMaintainSkill[i]->m_pTSKILL->IsHideBuff())
+							if (pTP->m_vMaintainSkill[i]->m_pTSKILL->IsHideBuff())
 							{
-								if(pTP->m_vMaintainSkill[i]->m_dwMaintainTick)
+								if (pTP->m_vMaintainSkill[i]->m_dwMaintainTick)
 									pTP->m_vMaintainSkill[i]->SetLoopEndTick(m_dwTick, pTP->m_vMaintainSkill[i]->GetRemainTick(m_dwTick));
 								else
 									pTP->m_vMaintainSkill[i]->m_dwChargeTick = m_dwTick;
@@ -15559,13 +15844,13 @@ DWORD CTMapSvrModule::OnMW_TOURNAMENTENABLE_REQ(LPPACKETBUF pBUF)
 				}
 			}
 
-			if(!pMap->CanDoTournament(bStep))
+			if (!pMap->CanDoTournament(bStep))
 			{
 				BYTE bRet = 0;
 				DWORD dwWinner = 0;
 				DWORD dwLoser = 0;
 
-				if(pMap->EndTournament(bRet, dwWinner, dwLoser, bStep))
+				if (pMap->EndTournament(bRet, dwWinner, dwLoser, bStep))
 				{
 					SendMW_TOURNAMENTRESULT_ACK(
 						m_tournament.m_bStep,
@@ -15579,7 +15864,7 @@ DWORD CTMapSvrModule::OnMW_TOURNAMENTENABLE_REQ(LPPACKETBUF pBUF)
 		}
 		vMAP.clear();
 	}
-	else if(bStep == TNMTSTEP_QFEND ||
+	else if (bStep == TNMTSTEP_QFEND ||
 		bStep == TNMTSTEP_SFEND ||
 		bStep == TNMTSTEP_END)
 	{
@@ -15590,23 +15875,23 @@ DWORD CTMapSvrModule::OnMW_TOURNAMENTENABLE_REQ(LPPACKETBUF pBUF)
 		m_tournament.m_bResult = m_tournament.m_bStep;
 		m_vTNMTRESULTMAP.clear();
 
-		for(DWORD i=0; i<vMAP.size(); i++)
+		for (DWORD i = 0; i<vMAP.size(); i++)
 		{
 			CTMap * pMap = vMAP[i];
-			if(!pMap->m_dwEndTick)
+			if (!pMap->m_dwEndTick)
 				continue;
 
 			MAPTOURNAMENTPLAYER::iterator itTP;
-			for(itTP=pMap->m_mapTNMTPlayer.begin(); itTP!=pMap->m_mapTNMTPlayer.end(); itTP++)
+			for (itTP = pMap->m_mapTNMTPlayer.begin(); itTP != pMap->m_mapTNMTPlayer.end(); itTP++)
 			{
-				if((*itTP).second->m_wMapID == pMap->m_wMapID)
+				if ((*itTP).second->m_wMapID == pMap->m_wMapID)
 				{
 					CTPlayer * pTP = FindPlayer((*itTP).second->m_strName);
-					if(pTP)
+					if (pTP)
 					{
-						for(DWORD i=0; i<pTP->m_vMaintainSkill.size();i++)
+						for (DWORD i = 0; i<pTP->m_vMaintainSkill.size();i++)
 						{
-							if(pTP->m_vMaintainSkill[i]->m_pTSKILL->IsHideBuff())
+							if (pTP->m_vMaintainSkill[i]->m_pTSKILL->IsHideBuff())
 							{
 								pMap->SetHideTick(pTP->m_dwID, m_dwTick - pTP->m_vMaintainSkill[i]->m_dwChargeTick);
 							}
@@ -15615,7 +15900,7 @@ DWORD CTMapSvrModule::OnMW_TOURNAMENTENABLE_REQ(LPPACKETBUF pBUF)
 				}
 			}
 
-			if(pMap->m_wAtkKillPoint == pMap->m_wDefKillPoint &&
+			if (pMap->m_wAtkKillPoint == pMap->m_wDefKillPoint &&
 				pMap->m_dwBlueHideTick == pMap->m_dwRedHideTick)
 			{
 				m_vTNMTRESULTMAP.push_back(pMap);
@@ -15625,7 +15910,7 @@ DWORD CTMapSvrModule::OnMW_TOURNAMENTENABLE_REQ(LPPACKETBUF pBUF)
 				VPLAYER vPlayer;
 				vPlayer.clear();
 				pMap->GetMapPlayers(&vPlayer);
-				while(!vPlayer.empty())
+				while (!vPlayer.empty())
 				{
 					CTPlayer * pChar = vPlayer.back();
 					pChar->SendCS_TOURNAMENTSELECTWINNER_ACK(pMap->m_wDefKillPoint, pMap->m_wAtkKillPoint);
@@ -15640,7 +15925,7 @@ DWORD CTMapSvrModule::OnMW_TOURNAMENTENABLE_REQ(LPPACKETBUF pBUF)
 				DWORD dwBlueHideTick = 0;
 				DWORD dwRedHideTick = 0;
 
-				if(pMap->m_wAtkKillPoint == pMap->m_wDefKillPoint)
+				if (pMap->m_wAtkKillPoint == pMap->m_wDefKillPoint)
 				{
 					dwBlueHideTick = pMap->m_dwBlueHideTick;
 					dwRedHideTick = pMap->m_dwRedHideTick;
@@ -15658,7 +15943,7 @@ DWORD CTMapSvrModule::OnMW_TOURNAMENTENABLE_REQ(LPPACKETBUF pBUF)
 			}
 		}
 	}
-	else if(bStep == TNMTSTEP_SFENTER ||
+	else if (bStep == TNMTSTEP_SFENTER ||
 		bStep == TNMTSTEP_FENTER)
 	{
 		m_tournament.m_bGroup = bGroup;
@@ -15666,20 +15951,20 @@ DWORD CTMapSvrModule::OnMW_TOURNAMENTENABLE_REQ(LPPACKETBUF pBUF)
 		m_tournament.m_dlEndTime = m_timeCurrent + dwPeriod;
 
 		MAPTOURNAMENTPLAYER::iterator itTP;
-		for(itTP=m_mapTNMTPlayer.begin(); itTP!=m_mapTNMTPlayer.end(); itTP++)
+		for (itTP = m_mapTNMTPlayer.begin(); itTP != m_mapTNMTPlayer.end(); itTP++)
 		{
 			WORD wMapID = GetTournamentMap((*itTP).second->m_dwCharID, bGroup);
-			if(wMapID)
+			if (wMapID)
 			{
 				CTMap * pMap = FindTMap(DEFAULT_CHANNEL, 0, wMapID);
-				if(pMap)
+				if (pMap)
 					pMap->AddTNMTPlayer((*itTP).second);
 			}
 
-			if(itTP->second->m_wMapID)
+			if (itTP->second->m_wMapID)
 			{
 				CTPlayer * pChar = FindPlayer(itTP->second->m_strName);
-				if(pChar)
+				if (pChar)
 					Teleport(pChar, GetTNMTPlayerLounge(pChar));
 			}
 		}
@@ -15687,7 +15972,7 @@ DWORD CTMapSvrModule::OnMW_TOURNAMENTENABLE_REQ(LPPACKETBUF pBUF)
 		VTMAP vMAP;
 		vMAP.clear();
 		GetTournamentMapList(&vMAP);
-		for(DWORD i=0; i<vMAP.size(); i++)
+		for (DWORD i = 0; i<vMAP.size(); i++)
 		{
 			CTMap * pMap = vMAP[i];
 			LPTSPAWNPOS pPos = NULL;
@@ -15695,7 +15980,7 @@ DWORD CTMapSvrModule::OnMW_TOURNAMENTENABLE_REQ(LPPACKETBUF pBUF)
 			VPLAYER vPlayer;
 			vPlayer.clear();
 			pMap->GetMapPlayers(&vPlayer);
-			while(!vPlayer.empty())
+			while (!vPlayer.empty())
 			{
 				CTPlayer * pChar = vPlayer.back();
 				pChar->SendCS_TOURNAMENTENTER_ACK(pMap);
@@ -15708,13 +15993,13 @@ DWORD CTMapSvrModule::OnMW_TOURNAMENTENABLE_REQ(LPPACKETBUF pBUF)
 	m_tournament.m_bStep = bStep;
 	m_tournament.m_dlEndTime = m_timeCurrent + dwPeriod;
 
-	if(bCurStep > bStep)
+	if (bCurStep > bStep)
 	{
 		MAPPLAYER::iterator it;
-		for(it=m_mapPLAYER.begin();it!=m_mapPLAYER.end(); it++)
-			if((*it).second->m_bMain)
+		for (it = m_mapPLAYER.begin();it != m_mapPLAYER.end(); it++)
+			if ((*it).second->m_bMain)
 			{
-				if(IsTournamentMap((*it).second->m_wMapID) ||
+				if (IsTournamentMap((*it).second->m_wMapID) ||
 					(*it).second->m_wMapID == GetLoungeMapID())
 				{
 					Teleport((*it).second, (*it).second->m_wLastSpawnID ? (*it).second->m_wLastSpawnID : (*it).second->m_wSpawnID);
@@ -15727,6 +16012,7 @@ DWORD CTMapSvrModule::OnMW_TOURNAMENTENABLE_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_TOURNAMENTINFO_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_TOURNAMENTINFO_REQ");
 	ClearTournamentPlayer();
 	m_mapTournament.clear();
 
@@ -15741,7 +16027,7 @@ DWORD CTMapSvrModule::OnMW_TOURNAMENTINFO_REQ(LPPACKETBUF pBUF)
 		>> bStep
 		>> bTCount;
 
-	for(BYTE i=0; i<bTCount; i++)
+	for (BYTE i = 0; i<bTCount; i++)
 	{
 		TOURNAMENT tour;
 		pBUF->m_packet
@@ -15758,7 +16044,7 @@ DWORD CTMapSvrModule::OnMW_TOURNAMENTINFO_REQ(LPPACKETBUF pBUF)
 			>> tour.m_bMaxLevel
 			>> bRCount;
 
-		for(BYTE j=0; j<bRCount; j++)
+		for (BYTE j = 0; j<bRCount; j++)
 		{
 			TNMTREWARD reward;
 
@@ -15779,12 +16065,12 @@ DWORD CTMapSvrModule::OnMW_TOURNAMENTINFO_REQ(LPPACKETBUF pBUF)
 	m_vTNMTRESULTMAP.clear();
 
 	MAPPLAYER::iterator it;
-	for(it=m_mapPLAYER.begin();it!=m_mapPLAYER.end(); it++)
-		if((*it).second->m_bMain)
+	for (it = m_mapPLAYER.begin();it != m_mapPLAYER.end(); it++)
+		if ((*it).second->m_bMain)
 		{
 			(*it).second->SendCS_SYSTEMMSG_ACK(SM_TOURNAMENT_STEP, bStep, 0, NAME_NULL, NAME_NULL, bGroup);
 
-			if(IsTournamentMap((*it).second->m_wMapID) ||
+			if (IsTournamentMap((*it).second->m_wMapID) ||
 				(*it).second->m_wMapID == GetLoungeMapID())
 			{
 				Teleport((*it).second, (*it).second->m_wLastSpawnID ? (*it).second->m_wLastSpawnID : (*it).second->m_wSpawnID);
@@ -15796,6 +16082,7 @@ DWORD CTMapSvrModule::OnMW_TOURNAMENTINFO_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_TOURNAMENTMATCH_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_TOURNAMENTMATCH_REQ");
 	ClearTournamentPlayer();
 
 	BYTE bMCount;
@@ -15814,7 +16101,7 @@ DWORD CTMapSvrModule::OnMW_TOURNAMENTMATCH_REQ(LPPACKETBUF pBUF)
 	pBUF->m_packet
 		>> bMCount;
 
-	for(BYTE i=0; i<bMCount; i++)
+	for (BYTE i = 0; i<bMCount; i++)
 	{
 		pBUF->m_packet
 			>> bEntryID
@@ -15830,7 +16117,7 @@ DWORD CTMapSvrModule::OnMW_TOURNAMENTMATCH_REQ(LPPACKETBUF pBUF)
 			>> bFWin;
 
 		LPTOURNAMENT pTour = FindTournament(bEntryID);
-		if(pTour)
+		if (pTour)
 		{
 			LPTOURNAMENTPLAYER pPlayer = new TOURNAMENTPLAYER();
 			pPlayer->m_bEntryID = bEntryID;
@@ -15848,10 +16135,10 @@ DWORD CTMapSvrModule::OnMW_TOURNAMENTMATCH_REQ(LPPACKETBUF pBUF)
 			m_mapTNMTPlayer.insert(MAPTOURNAMENTPLAYER::value_type(dwCharID, pPlayer));
 
 			WORD wMapID = GetTournamentMap(dwCharID, 0);
-			if(wMapID)
+			if (wMapID)
 			{
 				CTMap * pMap = FindTMap(DEFAULT_CHANNEL, 0, wMapID);
-				if(pMap)
+				if (pMap)
 					pMap->AddTNMTPlayer(pPlayer);
 			}
 		}
@@ -15862,6 +16149,7 @@ DWORD CTMapSvrModule::OnMW_TOURNAMENTMATCH_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_TOURNAMENTRESULT_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_TOURNAMENTRESULT_REQ");
 	WORD wTournamentID;
 	BYTE bStep;
 	BYTE bRet;
@@ -15881,36 +16169,36 @@ DWORD CTMapSvrModule::OnMW_TOURNAMENTRESULT_REQ(LPPACKETBUF pBUF)
 		>> dwRedHideTick
 		>> bCount;
 
-	if(bStep != TNMTSTEP_QFINAL &&
+	if (bStep != TNMTSTEP_QFINAL &&
 		bStep != TNMTSTEP_SFINAL &&
 		bStep != TNMTSTEP_FINAL)
-		return EC_NOERROR; 
+		return EC_NOERROR;
 
 	MAPTOURNAMENTPLAYER mapWin;
 	mapWin.clear();
 
 	LPTOURNAMENTPLAYER pWin = FindTournamentPlayer(dwWinner);
-	if(pWin)
+	if (pWin)
 	{
 		SetTournamentResult(bStep, pWin, bRet ? TNMTWIN_WIN : TNMTWIN_LOSE);
 		mapWin.insert(MAPTOURNAMENTPLAYER::value_type(pWin->m_dwCharID, pWin));
 	}
 
 	LPTOURNAMENTPLAYER pLos = FindTournamentPlayer(dwLoser);
-	if(pLos)
+	if (pLos)
 		SetTournamentResult(bStep, pLos, TNMTWIN_LOSE);
 
 
-	for(BYTE i=0; i<bCount; i++)
+	for (BYTE i = 0; i<bCount; i++)
 	{
 		DWORD dwParty;
 		pBUF->m_packet
 			>> dwParty;
 
 		LPTOURNAMENTPLAYER pParty = FindTournamentPlayer(dwParty);
-		if(pParty)
+		if (pParty)
 		{
-			if(pWin &&
+			if (pWin &&
 				pWin->m_bEntryID == pParty->m_bEntryID &&
 				pWin->m_bSlot == pParty->m_bSlot)
 			{
@@ -15918,7 +16206,7 @@ DWORD CTMapSvrModule::OnMW_TOURNAMENTRESULT_REQ(LPPACKETBUF pBUF)
 				mapWin.insert(MAPTOURNAMENTPLAYER::value_type(pParty->m_dwCharID, pParty));
 			}
 
-			if(pLos &&
+			if (pLos &&
 				pLos->m_bEntryID == pParty->m_bEntryID &&
 				pLos->m_bSlot == pParty->m_bSlot)
 				SetTournamentResult(bStep, pParty, TNMTWIN_LOSE);
@@ -15926,9 +16214,9 @@ DWORD CTMapSvrModule::OnMW_TOURNAMENTRESULT_REQ(LPPACKETBUF pBUF)
 	}
 
 	MAPPLAYER::iterator it;
-	for(it=m_mapPLAYER.begin(); it!=m_mapPLAYER.end(); it++)
+	for (it = m_mapPLAYER.begin(); it != m_mapPLAYER.end(); it++)
 	{
-		if((*it).second->m_pMAP &&
+		if ((*it).second->m_pMAP &&
 			(*it).second->m_bMain &&
 			IsTournamentMap((*it).second->m_wMapID))
 		{
@@ -15936,18 +16224,18 @@ DWORD CTMapSvrModule::OnMW_TOURNAMENTRESULT_REQ(LPPACKETBUF pBUF)
 		}
 	}
 
-	if(bStep == TNMTSTEP_FINAL && bRet && pWin)
+	if (bStep == TNMTSTEP_FINAL && bRet && pWin)
 	{
 		MAPTOURNAMENTPLAYER::iterator itTW;
-		for(itTW=mapWin.begin(); itTW!=mapWin.end(); itTW++)
+		for (itTW = mapWin.begin(); itTW != mapWin.end(); itTW++)
 		{
 			CTPlayer * pPlayer = FindPlayer((*itTW).second->m_strName);
-			if(pPlayer && pPlayer->m_bMain)
+			if (pPlayer && pPlayer->m_bMain)
 			{
-				SendDM_TOURNAMENTREWARD_REQ(m_bRankMonth-1 ? m_bRankMonth-1 : 12, wTournamentID, (*itTW).second->m_bEntryID, (*itTW).second->m_dwChiefID, pPlayer->m_dwID, pPlayer->IsEquipShield());
+				SendDM_TOURNAMENTREWARD_REQ(m_bRankMonth - 1 ? m_bRankMonth - 1 : 12, wTournamentID, (*itTW).second->m_bEntryID, (*itTW).second->m_dwChiefID, pPlayer->m_dwID, pPlayer->IsEquipShield());
 #ifdef DEF_UDPLOG
 				LPTOURNAMENT pEntry = FindTournament((*itTW).second->m_bEntryID);
-				if(pEntry)
+				if (pEntry)
 					TournamentResultLog(pPlayer->m_dwID, dwLoser, pEntry->m_bType);
 #endif
 			}
@@ -15959,6 +16247,7 @@ DWORD CTMapSvrModule::OnMW_TOURNAMENTRESULT_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_TOURNAMENTREWARD_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_TOURNAMENTREWARD_REQ");
 	BYTE bMonth;
 	WORD wTournamentID;
 	BYTE bEntryID;
@@ -15975,7 +16264,7 @@ DWORD CTMapSvrModule::OnDM_TOURNAMENTREWARD_REQ(LPPACKETBUF pBUF)
 		>> bIsEquipShield;
 
 	DEFINE_QUERY(&m_db, CSPTournamentReward)
-	query->m_wTournamentID = wTournamentID;
+		query->m_wTournamentID = wTournamentID;
 	query->m_bEntryID = bEntryID;
 	query->m_dwChiefID = dwChiefID;
 	query->m_dwWinner = dwWinner;
@@ -15983,7 +16272,7 @@ DWORD CTMapSvrModule::OnDM_TOURNAMENTREWARD_REQ(LPPACKETBUF pBUF)
 	query->m_bMonth = bMonth;
 	query->Call();
 
-	if(wTournamentID == 1)
+	if (wTournamentID == 1)
 	{
 		LPPACKETBUF pMSG = new PACKETBUF();
 		pMSG->m_packet.SetID(DM_TOURNAMENTREWARD_ACK)
@@ -16015,11 +16304,12 @@ DWORD CTMapSvrModule::OnDM_TOURNAMENTREWARD_REQ(LPPACKETBUF pBUF)
 
 	UNDEFINE_QUERY()
 
-	return EC_NOERROR;
+		return EC_NOERROR;
 }
 
 DWORD CTMapSvrModule::OnDM_TOURNAMENTREWARD_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_TOURNAMENTREWARD_ACK");
 	WORD wTournamentID;
 	BYTE bMonth;
 	BYTE bType;
@@ -16031,7 +16321,7 @@ DWORD CTMapSvrModule::OnDM_TOURNAMENTREWARD_ACK(LPPACKETBUF pBUF)
 		>> bType
 		>> bOrder;
 
-	if(bType >= FRT_COUNT || bMonth >= MONTHCOUNT || bOrder >= FAMERANKCOUNT)
+	if (bType >= FRT_COUNT || bMonth >= MONTHCOUNT || bOrder >= FAMERANKCOUNT)
 		return EC_NOERROR;
 
 	MONTHRANKER rank;
@@ -16063,6 +16353,7 @@ DWORD CTMapSvrModule::OnDM_TOURNAMENTREWARD_ACK(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_TOURNAMENTBATPOINT_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_TOURNAMENTBATPOINT_REQ");
 	DWORD dwCharID;
 	CString strName;
 	DWORD dwAmount;
@@ -16078,25 +16369,26 @@ DWORD CTMapSvrModule::OnMW_TOURNAMENTBATPOINT_REQ(LPPACKETBUF pBUF)
 	CalcMoney(dwAmount, dwGold, dwSilver, dwCooper);
 
 	SendDM_POSTRECV_REQ(
-		0,dwCharID,GetSvrMsg(NAME_OPERATOR),strName,
+		0, dwCharID, GetSvrMsg(NAME_OPERATOR), strName,
 		BuildNetString(NAME_NULL, GetSvrMsg(TNMT_BATTING_TITLE)),
 		BuildNetString(NAME_NULL, GetSvrMsg(TNMT_BATTING_MESSAGE)),
 		POST_PACKATE,
-		dwGold,dwSilver,dwCooper,NULL);
+		dwGold, dwSilver, dwCooper, NULL);
 
 	return EC_NOERROR;
 }
 
 DWORD CTMapSvrModule::OnDM_SAVECHARPOSITION_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_SAVECHARPOSITION_REQ");
 	DWORD dwCharID;
 	DWORD dwKEY;
 
 	WORD wACKMsg;
 
-	DEFINE_QUERY( &m_db, CSPSaveCharPosition)
+	DEFINE_QUERY(&m_db, CSPSaveCharPosition)
 
-	pBUF->m_packet
+		pBUF->m_packet
 		>> dwCharID
 		>> dwKEY
 		>> query->m_wMapID
@@ -16107,30 +16399,31 @@ DWORD CTMapSvrModule::OnDM_SAVECHARPOSITION_REQ(LPPACKETBUF pBUF)
 		>> wACKMsg;
 
 	query->m_dwCharID = dwCharID;
-	if(!query->Call())
+	if (!query->Call())
 		return EC_NOERROR;
 
-	if(query->m_nRet)
+	if (query->m_nRet)
 		return EC_NOERROR;
 
 	UNDEFINE_QUERY()
 
-	if(wACKMsg)
-	{
-		LPPACKETBUF pMSG = new PACKETBUF();
+		if (wACKMsg)
+		{
+			LPPACKETBUF pMSG = new PACKETBUF();
 
-		pMSG->m_packet.SetID(wACKMsg)
-			<< dwCharID
-			<< dwKEY;
+			pMSG->m_packet.SetID(wACKMsg)
+				<< dwCharID
+				<< dwKEY;
 
-		SayToBATCH(pMSG);
-	}
+			SayToBATCH(pMSG);
+		}
 
 	return EC_NOERROR;
 }
 
 DWORD CTMapSvrModule::OnMW_HELPMESSAGE_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_HELPMESSAGE_REQ");
 	BYTE bID;
 	INT64 dlStart;
 	INT64 dlEnd;
@@ -16144,12 +16437,12 @@ DWORD CTMapSvrModule::OnMW_HELPMESSAGE_REQ(LPPACKETBUF pBUF)
 
 	INT64 timecur = m_timeCurrent;
 	MAPHELPMESSAGE::iterator it = m_mapHelpMessage.find(bID);
-	if(it!=m_mapHelpMessage.end())
+	if (it != m_mapHelpMessage.end())
 	{
 		(*it).second.m_dlStartTime = dlStart;
 		(*it).second.m_dlEndTime = dlEnd;
 		(*it).second.m_strMessage = strMessage;
-		if(dlEnd && dlStart <= timecur)
+		if (dlEnd && dlStart <= timecur)
 			(*it).second.m_bNotice = TRUE;
 		else
 			(*it).second.m_bNotice = FALSE;
@@ -16162,7 +16455,7 @@ DWORD CTMapSvrModule::OnMW_HELPMESSAGE_REQ(LPPACKETBUF pBUF)
 		help.m_dlEndTime = dlEnd;
 		help.m_strMessage = strMessage;
 
-		if(dlEnd && dlStart <= timecur)
+		if (dlEnd && dlStart <= timecur)
 			help.m_bNotice = TRUE;
 		else
 			help.m_bNotice = FALSE;
@@ -16170,15 +16463,15 @@ DWORD CTMapSvrModule::OnMW_HELPMESSAGE_REQ(LPPACKETBUF pBUF)
 		m_mapHelpMessage.insert(MAPHELPMESSAGE::value_type(help.m_bID, help));
 	}
 
-	if(!dlEnd || dlStart <= timecur)
+	if (!dlEnd || dlStart <= timecur)
 	{
 		MAPPLAYER::iterator itPlayer;
-		for(itPlayer=m_mapPLAYER.begin(); itPlayer!=m_mapPLAYER.end(); itPlayer++)
-			if((*itPlayer).second->m_bMain)
+		for (itPlayer = m_mapPLAYER.begin(); itPlayer != m_mapPLAYER.end(); itPlayer++)
+			if ((*itPlayer).second->m_bMain)
 			{
 				CString strHelpMessage;
 				BYTE bHelpID = _AtlModule.GetHelpMessage((*itPlayer).second, strHelpMessage);
-				if(bHelpID == bID || (bHelpID != HELPMESSAGE_TUTORIAL && bHelpID < bID))
+				if (bHelpID == bID || (bHelpID != HELPMESSAGE_TUTORIAL && bHelpID < bID))
 					(*itPlayer).second->SendCS_HELPMESSAGE_ACK(bHelpID, strHelpMessage);
 			}
 	}
@@ -16188,6 +16481,7 @@ DWORD CTMapSvrModule::OnMW_HELPMESSAGE_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_MISSIONENABLE_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_MISSIONENABLE_REQ");
 	static int bCurStatus = BS_NORMAL;
 	static int dwCurStart = 0;
 
@@ -16199,119 +16493,124 @@ DWORD CTMapSvrModule::OnMW_MISSIONENABLE_REQ(LPPACKETBUF pBUF)
 		>> dwStart
 		>> dwSecond;
 
-	if(!dwCurStart)
+	if (!dwCurStart)
 		dwCurStart = dwStart;
 
-	for(DWORD ll=0; ll<m_vMission.size(); ll++)
+	for (DWORD ll = 0; ll<m_vMission.size(); ll++)
 	{
 		LPTLOCAL pMission = m_vMission[ll];
 
-		if(!pMission->m_timeNextDefend || (bCurStatus != BS_NORMAL && bStatus == BS_NORMAL))
+		if (!pMission->m_timeNextDefend || (bCurStatus != BS_NORMAL && bStatus == BS_NORMAL))
 		{
 			CTime now = CTime(m_timeCurrent);
-			DWORD dwAdd = (dwStart/HOUR_ONE)%2 == pMission->m_pZone->m_bLine ? dwStart : dwStart + HOUR_ONE;
-			CTime next = CTime(now.GetYear(), now.GetMonth(), now.GetDay(), 0, 0, dwAdd);
+			DWORD dwAdd = (dwStart / HOUR_ONE) % 2 == pMission->m_pZone->m_bLine ? dwStart : dwStart + HOUR_ONE;
+
+			CTimeSpan dwAddSpanTime(dwAdd);
+
+			CTime next = CTime(now.GetYear(), now.GetMonth(), now.GetDay(), 0, 0, 0);
+			next += dwAddSpanTime;
+
 			pMission->m_timeNextDefend = next.GetTime();
 
 			MAPTLOCAL::iterator itLocal = m_mapTLOCAL.begin();
-			if(itLocal != m_mapTLOCAL.end())
+			if (itLocal != m_mapTLOCAL.end())
 			{
 				CTime tLT = CTime((*itLocal).second->m_timeNextDefend);
-				if(tLT.GetHour() == next.GetHour())
+				if (tLT.GetHour() == next.GetHour())
 					pMission->m_timeNextDefend += HOUR_ONE * 2;
 			}
 		}
 
-		if((dwCurStart/HOUR_ONE)%2 != pMission->m_pZone->m_bLine)
+		if ((dwCurStart / HOUR_ONE) % 2 != pMission->m_pZone->m_bLine)
 			continue;
 
-		if(pMission->m_bStatus == BS_PEACE && bStatus != BS_NORMAL)
+		if (pMission->m_bStatus == BS_PEACE && bStatus != BS_NORMAL)
 			continue;
 
-		if(pMission->m_bStatus == bStatus)
+		if (pMission->m_bStatus == bStatus)
 			continue;
 
 		pMission->m_bStatus = bStatus;
 
-		if(!pMission->m_pZone ||
+		if (!pMission->m_pZone ||
 			!pMission->m_bValid)
 			continue;
 
-		switch(bStatus)
+		switch (bStatus)
 		{
 		case BS_NORMAL:
+		{
+			CTMap * pMap = FindTMap(DEFAULT_CHANNEL, 0, pMission->m_pZone->m_wMapID);
+			if (pMap)
 			{
-				CTMap * pMap = FindTMap(DEFAULT_CHANNEL, 0, pMission->m_pZone->m_wMapID);
-				if(pMap)
-				{
-					pMission->m_bOccupied = FALSE;
+				pMission->m_bOccupied = FALSE;
 
-					for( DWORD i=0; i<pMission->m_pZone->m_vSpawnID.size(); i++)
-						DelMonSpawn(pMap, pMission->m_pZone->m_vSpawnID[i]);
-				}
+				for (DWORD i = 0; i<pMission->m_pZone->m_vSpawnID.size(); i++)
+					DelMonSpawn(pMap, pMission->m_pZone->m_vSpawnID[i]);
 			}
-			break;
+		}
+		break;
 		case BS_BATTLE:
+		{
+			CTMap * pMap = FindTMap(DEFAULT_CHANNEL, 0, pMission->m_pZone->m_wMapID);
+			if (pMap)
 			{
-				CTMap * pMap = FindTMap(DEFAULT_CHANNEL, 0, pMission->m_pZone->m_wMapID);
-				if(pMap)
-				{
-					for( DWORD i=0; i<pMission->m_pZone->m_vSpawnID.size(); i++)
-						AddMonSpawn(pMap, pMission->m_pZone->m_vSpawnID[i], MONSPAWN_SUSPEND);
-				}
+				for (DWORD i = 0; i<pMission->m_pZone->m_vSpawnID.size(); i++)
+					AddMonSpawn(pMap, pMission->m_pZone->m_vSpawnID[i], MONSPAWN_SUSPEND);
 			}
-			break;
+		}
+		break;
 		case BS_PEACE:
+		{
+			CTMap * pMap = FindTMap(DEFAULT_CHANNEL, 0, pMission->m_pZone->m_wMapID);
+
+			if (pMap)
 			{
-				CTMap * pMap = FindTMap(DEFAULT_CHANNEL, 0, pMission->m_pZone->m_wMapID);
+				if (!pMission->m_bOccupied)
+					SendDM_MISSIONOCCUPY_REQ(
+						pMission->m_wLocal,
+						OCCUPY_DEFEND,
+						TCONTRY_N,
+						0);
 
-				if(pMap)
+				for (DWORD i = 0; i<pMission->m_pZone->m_vSpawnID.size(); i++)
 				{
-					if(!pMission->m_bOccupied)
-						SendDM_MISSIONOCCUPY_REQ(
-							pMission->m_wLocal,
-							OCCUPY_DEFEND,
-							TCONTRY_N,
-							0);
+					MAPTMONSPAWN::iterator it = pMap->m_mapTMONSPAWN.find(pMission->m_pZone->m_vSpawnID[i]);
 
-					for(DWORD i=0; i<pMission->m_pZone->m_vSpawnID.size(); i++)
+					if (it != pMap->m_mapTMONSPAWN.end())
 					{
-						MAPTMONSPAWN::iterator it = pMap->m_mapTMONSPAWN.find(pMission->m_pZone->m_vSpawnID[i]);
-
-						if(it!=pMap->m_mapTMONSPAWN.end())
+						(*it).second->m_bStatus = MONSPAWN_READY;
+						for (DWORD j = 0; j<(*it).second->m_vTMON.size(); j++)
 						{
-							(*it).second->m_bStatus = MONSPAWN_READY;
-							for(DWORD j=0; j<(*it).second->m_vTMON.size(); j++)
-							{
-								(*it).second->m_vTMON[j]->OnEvent( AT_DEAD, 0, 0, 0, 0);
-							}
+							(*it).second->m_vTMON[j]->OnEvent(AT_DEAD, 0, 0, 0, 0);
 						}
 					}
 				}
-
-				pMission->m_bOccupied = FALSE;
 			}
-			break;
+
+			pMission->m_bOccupied = FALSE;
+		}
+		break;
 		}
 	}
 
 	BYTE bType = SM_NONE;
-	switch(bStatus)
+	switch (bStatus)
 	{
 	case BS_NORMAL:
-		if(bCurStatus == BS_NORMAL)
+		if (bCurStatus == BS_NORMAL)
 			bType = SM_MISSION_START_ALARM;
-//		else if (bCurStatus == BS_PEACE)
-//			bType = SM_MISSION_NORMAL;
+		//		else if (bCurStatus == BS_PEACE)
+		//			bType = SM_MISSION_NORMAL;
 		break;
 	case BS_BATTLE:
-		if(bCurStatus == BS_BATTLE)
+		if (bCurStatus == BS_BATTLE)
 			bType = SM_MISSION_END_ALARM;
-		else if(bCurStatus == BS_NORMAL)
+		else if (bCurStatus == BS_NORMAL)
 			bType = SM_MISSION_START;
 		break;
 	case BS_PEACE:
-		if(bCurStatus == BS_BATTLE)
+		if (bCurStatus == BS_BATTLE)
 		{
 			bType = SM_MISSION_PEACE;
 		}
@@ -16320,7 +16619,7 @@ DWORD CTMapSvrModule::OnMW_MISSIONENABLE_REQ(LPPACKETBUF pBUF)
 		break;
 	}
 
-	NotifyLocalInfo(bType, BYTE(dwCurStart/HOUR_ONE), dwSecond);
+	NotifyLocalInfo(bType, BYTE(dwCurStart / HOUR_ONE), dwSecond);
 
 	bCurStatus = bStatus;
 	dwCurStart = dwStart;
@@ -16330,6 +16629,7 @@ DWORD CTMapSvrModule::OnMW_MISSIONENABLE_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_RPSGAME_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_RPSGAME_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	BYTE bResult;
@@ -16342,12 +16642,12 @@ DWORD CTMapSvrModule::OnMW_RPSGAME_REQ(LPPACKETBUF pBUF)
 		>> bPlayerRPS;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(!pPlayer || !pPlayer->m_bRPSType)
+	if (!pPlayer || !pPlayer->m_bRPSType)
 		return EC_NOERROR;
 
 	BYTE bNpcRPS = bPlayerRPS;
 
-	if(bResult)
+	if (bResult)
 	{
 		pPlayer->m_bRPSWin++;
 		bNpcRPS = SelectNpcRPS(TNMTWIN_WIN, bPlayerRPS);
@@ -16361,7 +16661,7 @@ DWORD CTMapSvrModule::OnMW_RPSGAME_REQ(LPPACKETBUF pBUF)
 	pPlayer->SendCS_RPSGAME_ACK(pPlayer->m_bRPSWin, bPlayerRPS, bNpcRPS);
 
 	MAPRPSGAME::iterator itF = m_mapRPSGame.find(MAKEWORD(pPlayer->m_bRPSType, pPlayer->m_bRPSWin + 1));
-	if(itF == m_mapRPSGame.end())
+	if (itF == m_mapRPSGame.end())
 		RPSReward(pPlayer, FALSE);
 
 	return EC_NOERROR;
@@ -16369,6 +16669,7 @@ DWORD CTMapSvrModule::OnMW_RPSGAME_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_RPSGAMECHANGE_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_RPSGAMECHANGE_REQ");
 	BYTE bGroup;
 	WORD wCount;
 	BYTE bType;
@@ -16383,7 +16684,7 @@ DWORD CTMapSvrModule::OnMW_RPSGAMECHANGE_REQ(LPPACKETBUF pBUF)
 		>> bGroup
 		>> wCount;
 
-	for(WORD i=0; i<wCount; i++)
+	for (WORD i = 0; i<wCount; i++)
 	{
 		pBUF->m_packet
 			>> bType
@@ -16395,7 +16696,7 @@ DWORD CTMapSvrModule::OnMW_RPSGAMECHANGE_REQ(LPPACKETBUF pBUF)
 			>> wWinPeriod;
 
 		MAPRPSGAME::iterator it = m_mapRPSGame.find(MAKEWORD(bType, bWinCount));
-		if(it == m_mapRPSGame.end())
+		if (it == m_mapRPSGame.end())
 			continue;
 
 		(*it).second.m_bProb[0] = bWinProb;
@@ -16410,6 +16711,7 @@ DWORD CTMapSvrModule::OnMW_RPSGAMECHANGE_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_WARCOUNTRYBALANCE_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_WARCOUNTRYBALANCE_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	DWORD dwCountD;
@@ -16424,7 +16726,7 @@ DWORD CTMapSvrModule::OnMW_WARCOUNTRYBALANCE_REQ(LPPACKETBUF pBUF)
 		>> bGap;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(pPlayer)
+	if (pPlayer)
 	{
 		pPlayer->SendCS_WARCOUNTRYBALANCE_ACK(dwCountD, dwCountC);
 		m_dwWarCountryBalance[TCONTRY_D][bGap] = dwCountD;
@@ -16436,6 +16738,7 @@ DWORD CTMapSvrModule::OnMW_WARCOUNTRYBALANCE_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_MEETINGROOM_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_MEETINGROOM_REQ");
 	DWORD dwCharID;
 	DWORD dwKey;
 	BYTE bType;
@@ -16450,21 +16753,21 @@ DWORD CTMapSvrModule::OnMW_MEETINGROOM_REQ(LPPACKETBUF pBUF)
 		>> strName;
 
 	CTPlayer * pPlayer = FindPlayer(dwCharID, dwKey);
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
-	if(bResult)
+	if (bResult)
 	{
 		pPlayer->SendCS_MEETINGROOM_ACK(bType, bResult, strName);
 		return EC_NOERROR;
 	}
 
-	if(!bType &&
+	if (!bType &&
 		(pPlayer->IsActionBlock() ||
-		pPlayer->ProtectTutorial() ||
-		pPlayer->m_dwDuelID ||
-		pPlayer->m_bStore || 
-		pPlayer->m_dealItem.m_bStatus >= DEAL_START))
+			pPlayer->ProtectTutorial() ||
+			pPlayer->m_dwDuelID ||
+			pPlayer->m_bStore ||
+			pPlayer->m_dealItem.m_bStatus >= DEAL_START))
 	{
 		SendMW_MEETINGROOM_ACK(dwCharID, dwKey, !bType, MTR_BUSY, strName);
 		return EC_NOERROR;
@@ -16477,6 +16780,7 @@ DWORD CTMapSvrModule::OnMW_MEETINGROOM_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnSM_MEETINGROOM_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnSM_MEETINGROOM_REQ");
 	BYTE bType;
 	DWORD dwCharID;
 	DWORD dwTick;
@@ -16486,8 +16790,8 @@ DWORD CTMapSvrModule::OnSM_MEETINGROOM_REQ(LPPACKETBUF pBUF)
 		>> dwCharID
 		>> dwTick;
 
-	if(bType)
-		m_mapMeetingRoomTime.insert(MAPDWORD::value_type(dwCharID, dwTick));		
+	if (bType)
+		m_mapMeetingRoomTime.insert(MAPDWORD::value_type(dwCharID, dwTick));
 	else
 		m_mapMeetingRoomTime.erase(dwCharID);
 
@@ -16496,13 +16800,14 @@ DWORD CTMapSvrModule::OnSM_MEETINGROOM_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnSM_MEETINGROOM_ACK(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnSM_MEETINGROOM_ACK");
 	DWORD dwCharID;
 
 	pBUF->m_packet
 		>> dwCharID;
 
 	MAPPLAYER::iterator it = m_mapPLAYER.find(dwCharID);
-	if(it != m_mapPLAYER.end())
+	if (it != m_mapPLAYER.end())
 		CheckMeetingRoom(it->second, FALSE);
 
 	return EC_NOERROR;
@@ -16510,6 +16815,7 @@ DWORD CTMapSvrModule::OnSM_MEETINGROOM_ACK(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnMW_CMGIFT_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_CMGIFT_REQ");
 	DWORD dwTargetID;
 	BYTE bGiftType;
 	DWORD dwValue;
@@ -16535,7 +16841,7 @@ DWORD CTMapSvrModule::OnMW_CMGIFT_REQ(LPPACKETBUF pBUF)
 		>> bRet;
 
 	CTPlayer* pTarget = FindChar(dwTargetID);
-	if(!pTarget)
+	if (!pTarget)
 	{
 		bRet = CMGIFT_TARGET;
 		return EC_NOERROR;
@@ -16543,52 +16849,52 @@ DWORD CTMapSvrModule::OnMW_CMGIFT_REQ(LPPACKETBUF pBUF)
 	CTItem * pNew = NULL;
 	DWORD dwGold = 0, dwSilver = 0, dwCooper = 0;
 	BYTE bPostType = POST_NORMAL;
-    
-	switch(bGiftType)
+
+	switch (bGiftType)
 	{
 	case CGT_NONE:
 		break;
 	case CGT_ITEM:
+	{
+		LPTITEM pTITEM = FindTItem((WORD)dwValue);
+		if (!pTITEM)
 		{
-			LPTITEM pTITEM = FindTItem((WORD)dwValue);
-			if(!pTITEM)
-			{
-				bRet = CMGIFT_ID;
-				break;
-			}
-
-			pNew = new CTItem();
-			pNew->m_dlID = GenItemID();
-			pNew->m_bCount = bCount;
-			pNew->m_wItemID = (WORD)dwValue;
-			pNew->m_pTITEM = pTITEM;
-			pNew->SetDuration(FALSE);
-			bPostType = POST_PACKATE;
+			bRet = CMGIFT_ID;
+			break;
 		}
-		break;
+
+		pNew = new CTItem();
+		pNew->m_dlID = GenItemID();
+		pNew->m_bCount = bCount;
+		pNew->m_wItemID = (WORD)dwValue;
+		pNew->m_pTITEM = pTITEM;
+		pNew->SetDuration(FALSE);
+		bPostType = POST_PACKATE;
+	}
+	break;
 	case CGT_MAGICITEM:
+	{
+		CTItem * pTITEM = FindTQusetItem(dwValue);
+		if (!pTITEM)
 		{
-			CTItem * pTITEM = FindTQusetItem(dwValue);
-			if(!pTITEM)
-			{
-				bRet = CMGIFT_ID;
-				break;
-			}
-
-			pNew = new CTItem();
-			pNew->Copy(pTITEM, TRUE);
-			pNew->m_bCount = bCount;
-
-			if(pNew->m_dEndTime)
-			{
-				CTime time(_AtlModule.m_timeCurrent);
-				time += CTimeSpan(LONG(pNew->m_dEndTime),0,0,0);
-				pNew->m_dEndTime = time.GetTime();
-				SetItemAttr(pNew, 0);
-			}
-			bPostType = POST_PACKATE;
+			bRet = CMGIFT_ID;
+			break;
 		}
-		break;
+
+		pNew = new CTItem();
+		pNew->Copy(pTITEM, TRUE);
+		pNew->m_bCount = bCount;
+
+		if (pNew->m_dEndTime)
+		{
+			CTime time(_AtlModule.m_timeCurrent);
+			time += CTimeSpan(LONG(pNew->m_dEndTime), 0, 0, 0);
+			pNew->m_dEndTime = time.GetTime();
+			SetItemAttr(pNew, 0);
+		}
+		bPostType = POST_PACKATE;
+	}
+	break;
 	case CGT_MONEY:
 		CalcMoney(dwValue, dwGold, dwSilver, dwCooper);
 		break;
@@ -16602,33 +16908,33 @@ DWORD CTMapSvrModule::OnMW_CMGIFT_REQ(LPPACKETBUF pBUF)
 		bRet = CMGIFT_FAIL;
 	}
 
-	if(CMGIFT_SUCCESS == bRet)
+	if (CMGIFT_SUCCESS == bRet)
 	{
 		SendDM_POSTRECV_REQ(0, pTarget->m_dwID, GetSvrMsg(NAME_OPERATOR), pTarget->m_strNAME,
 			BuildNetString(NAME_NULL, strTitle),
 			BuildNetString(NAME_NULL, strMsg),
 			bPostType, dwGold, dwSilver, dwCooper, pNew);
-		
-		SendDM_CMGIFTLOG_REQ(pTarget->m_dwUserID, pTarget->m_dwID, wGiftID, bTool?0:dwGMID, 0);
+
+		SendDM_CMGIFTLOG_REQ(pTarget->m_dwUserID, pTarget->m_dwID, wGiftID, bTool ? 0 : dwGMID, 0);
 #ifdef DEF_UDPLOG
-	if(CMGIFT_SUCCESS == bRet)
-		m_pUdpSocket->LogCMGift(LOGMAP_CMGIFT, pTarget, (CMGIFT_SUCCESS==bRet)?0:wErrID, dwGMID, bGiftType, dwValue, bCount);
+		if (CMGIFT_SUCCESS == bRet)
+			m_pUdpSocket->LogCMGift(LOGMAP_CMGIFT, pTarget, (CMGIFT_SUCCESS == bRet) ? 0 : wErrID, dwGMID, bGiftType, dwValue, bCount);
 #endif
-	}	
-	else if(CMGIFT_ERRPOST == bRet)
+	}
+	else if (CMGIFT_ERRPOST == bRet)
 	{
 		SendDM_POSTRECV_REQ(0, pTarget->m_dwID, GetSvrMsg(NAME_OPERATOR), pTarget->m_strNAME,
 			BuildNetString(NAME_NULL, strTitle),
 			BuildNetString(NAME_NULL, strMsg),
 			bPostType, dwGold, dwSilver, dwCooper, pNew);
-		
-		SendDM_CMGIFTLOG_REQ(pTarget->m_dwUserID, pTarget->m_dwID, wErrID, bTool?0:dwGMID, wGiftID);
+
+		SendDM_CMGIFTLOG_REQ(pTarget->m_dwUserID, pTarget->m_dwID, wErrID, bTool ? 0 : dwGMID, wGiftID);
 	}
 
-	if(!bTool)
+	if (!bTool)
 	{
 		CTPlayer* pGM = FindChar(dwGMID);
-		if(pGM)
+		if (pGM)
 		{
 			pGM->SendCS_CMGIFT_ACK(bRet);
 			return EC_NOERROR;
@@ -16641,6 +16947,7 @@ DWORD CTMapSvrModule::OnMW_CMGIFT_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnDM_CMGIFTLOG_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnDM_CMGIFTLOG_REQ");
 	DWORD dwUserID;
 	DWORD dwCharID;
 	WORD wGiftID;
@@ -16653,10 +16960,10 @@ DWORD CTMapSvrModule::OnDM_CMGIFTLOG_REQ(LPPACKETBUF pBUF)
 		>> wGiftID
 		>> dwGMCharID
 		>> wErrID;
-    
-	DEFINE_QUERY( &m_db, CSPTCMGiftLog)
 
-	query->m_dwUserID = dwUserID;
+	DEFINE_QUERY(&m_db, CSPTCMGiftLog)
+
+		query->m_dwUserID = dwUserID;
 	query->m_dwCharID = dwCharID;
 	query->m_wGiftID = wGiftID;
 	query->m_dwGMCharID = dwGMCharID;
@@ -16665,11 +16972,12 @@ DWORD CTMapSvrModule::OnDM_CMGIFTLOG_REQ(LPPACKETBUF pBUF)
 	query->Call();
 	UNDEFINE_QUERY()
 
-	return EC_NOERROR;
+		return EC_NOERROR;
 }
 
 DWORD CTMapSvrModule::OnMW_CMGIFTRESULT_REQ(LPPACKETBUF pBUF)
 {
+	LogReceivedPacket("OnMW_CMGIFTRESULT_REQ");
 	BYTE bRet;
 	DWORD dwGMID;
 
@@ -16678,7 +16986,7 @@ DWORD CTMapSvrModule::OnMW_CMGIFTRESULT_REQ(LPPACKETBUF pBUF)
 		>> dwGMID;
 
 	CTPlayer* pGM = FindChar(dwGMID);
-	if(pGM)
+	if (pGM)
 		pGM->SendCS_CMGIFT_ACK(bRet);
 
 	return EC_NOERROR;
