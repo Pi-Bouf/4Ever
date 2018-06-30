@@ -4,10 +4,10 @@
 
 
 
-void CTPlayer::SendCT_SERVICEMONITOR_REQ( DWORD dwTick,
-										  DWORD dwSession,
-										  DWORD dwUser,
-										  DWORD dwActiveUser)
+void CTPlayer::SendCT_SERVICEMONITOR_REQ(DWORD dwTick,
+	DWORD dwSession,
+	DWORD dwUser,
+	DWORD dwActiveUser)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -21,9 +21,9 @@ void CTPlayer::SendCT_SERVICEMONITOR_REQ( DWORD dwTick,
 }
 
 void CTPlayer::SendCT_MONSPAWNFIND_ACK(DWORD dwManager,
-									   WORD wMapID,
-									   WORD wSpawnID,
-									   CTMonSpawn * pSPAWN)
+	WORD wMapID,
+	WORD wSpawnID,
+	CTMonSpawn * pSPAWN)
 {
 	CPacket * pMSG = new CPacket();
 
@@ -33,7 +33,7 @@ void CTPlayer::SendCT_MONSPAWNFIND_ACK(DWORD dwManager,
 		<< wSpawnID
 		<< (BYTE)pSPAWN->m_vTMON.size();
 
-	for(DWORD i=0; i<pSPAWN->m_vTMON.size(); i++)
+	for (DWORD i = 0; i < pSPAWN->m_vTMON.size(); i++)
 	{
 		(*pMSG)
 			<< pSPAWN->m_vTMON[i]->m_dwID
@@ -55,7 +55,7 @@ void CTPlayer::SendCT_CASTLEINFO_ACK(DWORD dwManagerID)
 		<< dwManagerID
 		<< WORD(_AtlModule.m_vCastle.size());
 
-	for(DWORD ll=0; ll<_AtlModule.m_vCastle.size(); ll++)
+	for (DWORD ll = 0; ll < _AtlModule.m_vCastle.size(); ll++)
 	{
 		LPTLOCAL pLocal = _AtlModule.m_vCastle[ll];
 
@@ -65,29 +65,29 @@ void CTPlayer::SendCT_CASTLEINFO_ACK(DWORD dwManagerID)
 			<< pLocal->m_bStatus
 			<< pLocal->m_dwDefGuildID
 			<< pLocal->m_strDefName
-			<< pLocal->m_bCountry						
+			<< pLocal->m_bCountry
 			<< pLocal->m_dwAtkGuildID
-			<< pLocal->m_strAtkName			
+			<< pLocal->m_strAtkName
 			<< pLocal->m_timeNextDefend;
 	}
 
 	Say(pMSG);
 }
 
-void CTPlayer::SendCS_CONNECT_ACK( BYTE bResult,
-								  LPVBYTE vServerID)
+void CTPlayer::SendCS_CONNECT_ACK(BYTE bResult,
+	LPVBYTE vServerID)
 {
 	CPacket *pMSG = new CPacket();
 
 	pMSG->SetID(CS_CONNECT_ACK)
 		<< bResult;
 
-	if(vServerID)
+	if (vServerID)
 	{
 		(*pMSG)
 			<< BYTE(vServerID->size());
 
-		for(DWORD i=0; i<vServerID->size(); i++)
+		for (DWORD i = 0; i < vServerID->size(); i++)
 		{
 			(*pMSG)
 				<< (*vServerID)[i];
@@ -95,7 +95,7 @@ void CTPlayer::SendCS_CONNECT_ACK( BYTE bResult,
 	}
 	else
 		(*pMSG)
-			<< BYTE(0);
+		<< BYTE(0);
 
 	Say(pMSG);
 }
@@ -118,8 +118,8 @@ void CTPlayer::SendCS_INVALIDCHAR_ACK()
 }
 
 void CTPlayer::SendCS_CHARINFO_ACK(DWORD dwTick,
-								   DWORD dwPrevExp,
-								   DWORD dwNextExp)
+	DWORD dwPrevExp,
+	DWORD dwNextExp)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -184,7 +184,7 @@ void CTPlayer::SendCS_CHARINFO_ACK(DWORD dwTick,
 
 	MAPTINVEN::iterator itTINVEN;
 
-	for( itTINVEN = m_mapTINVEN.begin(); itTINVEN != m_mapTINVEN.end(); itTINVEN++)
+	for (itTINVEN = m_mapTINVEN.begin(); itTINVEN != m_mapTINVEN.end(); itTINVEN++)
 	{
 		CTInven *pTINVEN = (*itTINVEN).second;
 		MAPTITEM::iterator itTITEM;
@@ -195,16 +195,16 @@ void CTPlayer::SendCS_CHARINFO_ACK(DWORD dwTick,
 			<< pTINVEN->m_dEndTime
 			<< BYTE(pTINVEN->m_mapTITEM.size());
 
-		for( itTITEM = pTINVEN->m_mapTITEM.begin(); itTITEM != pTINVEN->m_mapTITEM.end(); itTITEM++)
+		for (itTITEM = pTINVEN->m_mapTITEM.begin(); itTITEM != pTINVEN->m_mapTITEM.end(); itTITEM++)
 		{
 			CTItem *pTITEM = (*itTITEM).second;
 			pTITEM->WrapPacketClient(pMSG, m_dwID);
 		}
 	}
 
-	(*pMSG)	<< (BYTE)m_mapTSKILL.size();
+	(*pMSG) << (BYTE)m_mapTSKILL.size();
 	MAPTSKILL::iterator it;
-	for(it=m_mapTSKILL.begin(); it!=m_mapTSKILL.end(); it++)
+	for (it = m_mapTSKILL.begin(); it != m_mapTSKILL.end(); it++)
 	{
 		CTSkill * pSkill = (*it).second;
 		(*pMSG) << pSkill->m_pTSKILL->m_wID
@@ -213,7 +213,7 @@ void CTPlayer::SendCS_CHARINFO_ACK(DWORD dwTick,
 	}
 
 	(*pMSG) << (BYTE)m_vMaintainSkill.size();
-	for(BYTE is = 0; is<(BYTE)m_vMaintainSkill.size(); is++)
+	for (BYTE is = 0; is < (BYTE)m_vMaintainSkill.size(); is++)
 	{
 		(*pMSG)
 			<< m_vMaintainSkill[is]->GetID()
@@ -239,10 +239,10 @@ void CTPlayer::SendCS_CHARINFO_ACK(DWORD dwTick,
 
 	(*pMSG) << BYTE(m_mapHotkeyInven.size());
 	MAPTHOTKEYINVEN::iterator itHotkey;
-	for(itHotkey=m_mapHotkeyInven.begin(); itHotkey!=m_mapHotkeyInven.end(); itHotkey++)
+	for (itHotkey = m_mapHotkeyInven.begin(); itHotkey != m_mapHotkeyInven.end(); itHotkey++)
 	{
 		(*pMSG) << BYTE((*itHotkey).first);
-		for(BYTE i=0; i<MAX_HOTKEY_POS; i++)
+		for (BYTE i = 0; i < MAX_HOTKEY_POS; i++)
 		{
 			(*pMSG)
 				<< (*itHotkey).second->m_hotkey[i].m_bType
@@ -252,11 +252,11 @@ void CTPlayer::SendCS_CHARINFO_ACK(DWORD dwTick,
 
 	(*pMSG) << BYTE(m_mapItemCoolTime.size());
 	MAPDWORD::iterator itIU;
-	for(itIU=m_mapItemCoolTime.begin(); itIU!=m_mapItemCoolTime.end(); itIU++)
+	for (itIU = m_mapItemCoolTime.begin(); itIU != m_mapItemCoolTime.end(); itIU++)
 	{
 		(*pMSG)
 			<< WORD((*itIU).first)
-			<< ((*itIU).second > _AtlModule.m_dwTick ? (*itIU).second-_AtlModule.m_dwTick : 0);
+			<< ((*itIU).second > _AtlModule.m_dwTick ? (*itIU).second - _AtlModule.m_dwTick : 0);
 	}
 
 	(*pMSG)
@@ -268,15 +268,15 @@ void CTPlayer::SendCS_CHARINFO_ACK(DWORD dwTick,
 	CString strTime;
 	DWORD dwHour = curtime.GetHour();
 	DWORD dwMinute = curtime.GetMinute();
-	
-	if(dwHour < 10)
+
+	if (dwHour < 10)
 		strTime.Format("0%d:%d", dwHour, dwMinute);
-	else if(dwMinute < 10)
+	else if (dwMinute < 10)
 		strTime.Format("%d:0%d", dwHour, dwMinute);
 	else
 		strTime.Format("%d:%d", dwHour, dwMinute);
 
-	if(dwHour < 10 && dwMinute < 10)
+	if (dwHour < 10 && dwMinute < 10)
 		strTime.Format("0%d:0%d", dwHour, dwMinute);
 
 	(*pMSG)
@@ -285,9 +285,9 @@ void CTPlayer::SendCS_CHARINFO_ACK(DWORD dwTick,
 	Say(pMSG);
 }
 
-void CTPlayer::SendCS_ENTER_ACK( CTPlayer *pPlayer,
-								 BYTE bNewMember,
-								 DWORD dwTick)
+void CTPlayer::SendCS_ENTER_ACK(CTPlayer *pPlayer,
+	BYTE bNewMember,
+	DWORD dwTick)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -342,12 +342,12 @@ void CTPlayer::SendCS_ENTER_ACK( CTPlayer *pPlayer,
 		<< pPlayer->m_dwRegion
 		<< pPlayer->m_bInPcBang
 		<< pPlayer->m_aftermath.m_bStep
-		<< WORD((pPlayer->IsInCastle() || pPlayer->IsInSkyGarden()) ? m_wCastle : 0 )
+		<< WORD((pPlayer->IsInCastle() || pPlayer->IsInSkyGarden()) ? m_wCastle : 0)
 		<< BYTE((pPlayer->IsInCastle() || pPlayer->IsInSkyGarden()) ? pPlayer->m_bCamp : 0)
 		<< WORD(pPlayer->IsInCastle() ? pPlayer->m_wGodBall : 0);
 
 	(*pMSG) << (BYTE)pPlayer->m_vMaintainSkill.size();
-	for(BYTE is = 0; is<(BYTE)pPlayer->m_vMaintainSkill.size(); is++)
+	for (BYTE is = 0; is < (BYTE)pPlayer->m_vMaintainSkill.size(); is++)
 	{
 		(*pMSG)
 			<< pPlayer->m_vMaintainSkill[is]->GetID()
@@ -372,14 +372,14 @@ void CTPlayer::SendCS_ENTER_ACK( CTPlayer *pPlayer,
 	}
 
 	CTInven *pTINVEN = pPlayer->FindTInven(INVEN_EQUIP);
-	if(pTINVEN)
+	if (pTINVEN)
 	{
 		MAPTITEM::iterator itTITEM;
 
 		(*pMSG)
 			<< BYTE(pTINVEN->m_mapTITEM.size());
 
-		for( itTITEM = pTINVEN->m_mapTITEM.begin(); itTITEM != pTINVEN->m_mapTITEM.end(); itTITEM++)
+		for (itTITEM = pTINVEN->m_mapTITEM.begin(); itTITEM != pTINVEN->m_mapTITEM.end(); itTITEM++)
 		{
 			CTItem *pTITEM = (*itTITEM).second;
 			pTITEM->WrapPacketClient(pMSG, pPlayer->m_dwID);
@@ -400,9 +400,9 @@ void CTPlayer::SendCS_ENTER_ACK( CTPlayer *pPlayer,
 }
 
 void CTPlayer::SendCS_OTHERSELF_ACK(CTPlayer * pPlayer,
-									CTRecallMon * pMon,
-									DWORD dwTick,
-									BYTE bNewMember)
+	CTRecallMon * pMon,
+	DWORD dwTick,
+	BYTE bNewMember)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -437,14 +437,14 @@ void CTPlayer::SendCS_OTHERSELF_ACK(CTPlayer * pPlayer,
 		<< pPlayer->GetCommanderID();
 
 	CTInven *pTINVEN = pPlayer->FindTInven(INVEN_EQUIP);
-	if(pTINVEN)
+	if (pTINVEN)
 	{
 		MAPTITEM::iterator itTITEM;
 
 		(*pMSG)
 			<< BYTE(pTINVEN->m_mapTITEM.size());
 
-		for( itTITEM = pTINVEN->m_mapTITEM.begin(); itTITEM != pTINVEN->m_mapTITEM.end(); itTITEM++)
+		for (itTITEM = pTINVEN->m_mapTITEM.begin(); itTITEM != pTINVEN->m_mapTITEM.end(); itTITEM++)
 		{
 			CTItem *pTITEM = (*itTITEM).second;
 			pTITEM->WrapPacketClient(pMSG, pPlayer->m_dwID);
@@ -459,7 +459,7 @@ void CTPlayer::SendCS_OTHERSELF_ACK(CTPlayer * pPlayer,
 	Say(pMSG);
 }
 
-void CTPlayer::SendCS_LEAVE_ACK( DWORD dwCharID, BYTE bExitMap)
+void CTPlayer::SendCS_LEAVE_ACK(DWORD dwCharID, BYTE bExitMap)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -470,15 +470,15 @@ void CTPlayer::SendCS_LEAVE_ACK( DWORD dwCharID, BYTE bExitMap)
 	Say(pMSG);
 }
 
-void CTPlayer::SendCS_MOVE_ACK( DWORD dwCharID,
-							    FLOAT fPosX,
-								FLOAT fPosY,
-								FLOAT fPosZ,
-								WORD wPitch,
-								WORD wDIR,
-								BYTE bMouseDIR,
-								BYTE bKeyDIR,
-								BYTE bAction)
+void CTPlayer::SendCS_MOVE_ACK(DWORD dwCharID,
+	FLOAT fPosX,
+	FLOAT fPosY,
+	FLOAT fPosZ,
+	WORD wPitch,
+	WORD wDIR,
+	BYTE bMouseDIR,
+	BYTE bKeyDIR,
+	BYTE bAction)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -496,14 +496,14 @@ void CTPlayer::SendCS_MOVE_ACK( DWORD dwCharID,
 	Say(pMSG);
 }
 
-void CTPlayer::SendCS_JUMP_ACK( DWORD dwObjID,
-							    BYTE bObjType,
-							    FLOAT fPosX,
-								FLOAT fPosY,
-								FLOAT fPosZ,
-								WORD wPitch,
-								WORD wDIR,
-								BYTE bAction)
+void CTPlayer::SendCS_JUMP_ACK(DWORD dwObjID,
+	BYTE bObjType,
+	FLOAT fPosX,
+	FLOAT fPosY,
+	FLOAT fPosZ,
+	WORD wPitch,
+	WORD wDIR,
+	BYTE bAction)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -520,15 +520,15 @@ void CTPlayer::SendCS_JUMP_ACK( DWORD dwObjID,
 	Say(pMSG);
 }
 
-void CTPlayer::SendCS_BLOCK_ACK( DWORD dwObjID,
-								 BYTE bObjType,
-								 FLOAT fPosX,
-								 FLOAT fPosY,
-								 FLOAT fPosZ,
-								 WORD wPitch,
-								 WORD wDIR,
-								 BYTE bAction,
-								 BYTE bBlock)
+void CTPlayer::SendCS_BLOCK_ACK(DWORD dwObjID,
+	BYTE bObjType,
+	FLOAT fPosX,
+	FLOAT fPosY,
+	FLOAT fPosZ,
+	WORD wPitch,
+	WORD wDIR,
+	BYTE bAction,
+	BYTE bBlock)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -546,8 +546,8 @@ void CTPlayer::SendCS_BLOCK_ACK( DWORD dwObjID,
 	Say(pMSG);
 }
 
-void CTPlayer::SendCS_MONHOST_ACK( DWORD dwMonID,
-								   BYTE bSet)
+void CTPlayer::SendCS_MONHOST_ACK(DWORD dwMonID,
+	BYTE bSet)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -568,7 +568,7 @@ void CTPlayer::SendCS_ADDSELFOBJ_ACK(CTSelfObj * pSelf, BYTE bNewMember, DWORD d
 		<< pSelf->m_pMON->m_wID
 		<< pSelf->m_bCountry
 		<< pSelf->m_bAidCountry
-		<< pSelf->GetColor( m_dwID, GetPartyID(), GetWarCountry())
+		<< pSelf->GetColor(m_dwID, GetPartyID(), GetWarCountry())
 		<< pSelf->m_bLevel
 		<< pSelf->GetMaxHP()
 		<< pSelf->m_dwHP
@@ -595,7 +595,7 @@ void CTPlayer::SendCS_ADDSELFOBJ_ACK(CTSelfObj * pSelf, BYTE bNewMember, DWORD d
 		<< pSelf->GetLifeTick(_AtlModule.m_dwTick);
 
 	(*pMSG) << (BYTE)pSelf->m_vMaintainSkill.size();
-	for(int is = 0; is<(BYTE)pSelf->m_vMaintainSkill.size(); is++)
+	for (int is = 0; is < (BYTE)pSelf->m_vMaintainSkill.size(); is++)
 	{
 		(*pMSG)
 			<< pSelf->m_vMaintainSkill[is]->GetID()
@@ -623,8 +623,8 @@ void CTPlayer::SendCS_ADDSELFOBJ_ACK(CTSelfObj * pSelf, BYTE bNewMember, DWORD d
 }
 
 void CTPlayer::SendCS_ADDRECALLMON_ACK(CTRecallMon *pMON,
-                                       BYTE bNewMember,
-                                       DWORD dwTick)
+	BYTE bNewMember,
+	DWORD dwTick)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -636,7 +636,7 @@ void CTPlayer::SendCS_ADDRECALLMON_ACK(CTRecallMon *pMON,
 		<< pMON->m_strName
 		<< pMON->m_bCountry
 		<< pMON->m_bAidCountry
-		<< pMON->GetColor( m_dwID, GetPartyID(), GetWarCountry())
+		<< pMON->GetColor(m_dwID, GetPartyID(), GetWarCountry())
 		<< pMON->m_bLevel
 		<< pMON->GetMaxHP()
 		<< pMON->m_dwHP
@@ -667,7 +667,7 @@ void CTPlayer::SendCS_ADDRECALLMON_ACK(CTRecallMon *pMON,
 		<< pMON->m_bTargetType;
 
 	(*pMSG) << (BYTE)pMON->m_vMaintainSkill.size();
-	for(int is = 0; is<(BYTE)pMON->m_vMaintainSkill.size(); is++)
+	for (int is = 0; is < (BYTE)pMON->m_vMaintainSkill.size(); is++)
 	{
 		(*pMSG)
 			<< pMON->m_vMaintainSkill[is]->GetID()
@@ -694,9 +694,9 @@ void CTPlayer::SendCS_ADDRECALLMON_ACK(CTRecallMon *pMON,
 	Say(pMSG);
 }
 
-void CTPlayer::SendCS_ADDMON_ACK( CTMonster *pMON,
-								  BYTE bNewMember,
-								  DWORD dwTick)
+void CTPlayer::SendCS_ADDMON_ACK(CTMonster *pMON,
+	BYTE bNewMember,
+	DWORD dwTick)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -719,11 +719,11 @@ void CTPlayer::SendCS_ADDMON_ACK( CTMonster *pMON,
 		<< pMON->m_bMode
 		<< bNewMember
 		<< pMON->m_bCountry
-		<< pMON->GetColor( m_dwID, GetPartyID(), GetWarCountry())
+		<< pMON->GetColor(m_dwID, GetPartyID(), GetWarCountry())
 		<< pMON->m_dwRegion;
 
 	(*pMSG) << (BYTE)pMON->m_vMaintainSkill.size();
-	for(int is = 0; is<(BYTE)pMON->m_vMaintainSkill.size(); is++)
+	for (int is = 0; is < (BYTE)pMON->m_vMaintainSkill.size(); is++)
 	{
 		(*pMSG)
 			<< pMON->m_vMaintainSkill[is]->GetID()
@@ -750,9 +750,9 @@ void CTPlayer::SendCS_ADDMON_ACK( CTMonster *pMON,
 	Say(pMSG);
 }
 void CTPlayer::SendCS_CHANGECOLOR_ACK(DWORD dwID,
-									   BYTE bType,
-									   BYTE bColor,
-									   BYTE bCountry)
+	BYTE bType,
+	BYTE bColor,
+	BYTE bCountry)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -765,8 +765,8 @@ void CTPlayer::SendCS_CHANGECOLOR_ACK(DWORD dwID,
 	Say(pMSG);
 }
 
-void CTPlayer::SendCS_DELMON_ACK( DWORD dwMonID,
-								  BYTE bExitMap)
+void CTPlayer::SendCS_DELMON_ACK(DWORD dwMonID,
+	BYTE bExitMap)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -776,7 +776,7 @@ void CTPlayer::SendCS_DELMON_ACK( DWORD dwMonID,
 
 	Say(pMSG);
 }
-void CTPlayer::SendCS_DELSELFOBJ_ACK( DWORD dwObjID, BYTE bExitMap )
+void CTPlayer::SendCS_DELSELFOBJ_ACK(DWORD dwObjID, BYTE bExitMap)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -787,9 +787,9 @@ void CTPlayer::SendCS_DELSELFOBJ_ACK( DWORD dwObjID, BYTE bExitMap )
 	Say(pMSG);
 }
 
-void CTPlayer::SendCS_DELRECALLMON_ACK( DWORD dwHostID,
-									   DWORD dwMonID,
-										BYTE bExitMap)
+void CTPlayer::SendCS_DELRECALLMON_ACK(DWORD dwHostID,
+	DWORD dwMonID,
+	BYTE bExitMap)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -801,13 +801,13 @@ void CTPlayer::SendCS_DELRECALLMON_ACK( DWORD dwHostID,
 	Say(pMSG);
 }
 
-void CTPlayer::SendCS_MONACTION_ACK( DWORD dwMonID,
-									 BYTE bAction,
-									 FLOAT fPosX,
-									 FLOAT fPosY,
-									 FLOAT fPosZ,
-									 DWORD dwTargetID,
-									 BYTE bTargetType)
+void CTPlayer::SendCS_MONACTION_ACK(DWORD dwMonID,
+	BYTE bAction,
+	FLOAT fPosX,
+	FLOAT fPosY,
+	FLOAT fPosZ,
+	DWORD dwTargetID,
+	BYTE bTargetType)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -823,16 +823,16 @@ void CTPlayer::SendCS_MONACTION_ACK( DWORD dwMonID,
 	Say(pMSG);
 }
 
-void CTPlayer::SendCS_MONMOVE_ACK( DWORD dwMonID,
-								   BYTE bType,
-								   FLOAT fPosX,
-								   FLOAT fPosY,
-								   FLOAT fPosZ,
-								   WORD wPitch,
-								   WORD wDIR,
-								   BYTE bMouseDIR,
-								   BYTE bKeyDIR,
-								   BYTE bAction)
+void CTPlayer::SendCS_MONMOVE_ACK(DWORD dwMonID,
+	BYTE bType,
+	FLOAT fPosX,
+	FLOAT fPosY,
+	FLOAT fPosZ,
+	WORD wPitch,
+	WORD wDIR,
+	BYTE bMouseDIR,
+	BYTE bKeyDIR,
+	BYTE bAction)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -854,7 +854,7 @@ void CTPlayer::SendCS_MONMOVE_ACK( DWORD dwMonID,
 
 void CTPlayer::SendCS_MONMOVE_ACK(LPMAPTMONSTER pMapMon)
 {
-	if(pMapMon->empty())
+	if (pMapMon->empty())
 		return;
 
 	CPacket *pMSG = new CPacket();
@@ -863,7 +863,7 @@ void CTPlayer::SendCS_MONMOVE_ACK(LPMAPTMONSTER pMapMon)
 		<< WORD(pMapMon->size());
 
 	MAPTMONSTER::iterator it;
-	for(it=pMapMon->begin(); it!=pMapMon->end(); it++)
+	for (it = pMapMon->begin(); it != pMapMon->end(); it++)
 	{
 		CTMonster * pMon = (*it).second;
 		(*pMSG)
@@ -879,12 +879,12 @@ void CTPlayer::SendCS_MONMOVE_ACK(LPMAPTMONSTER pMapMon)
 			<< pMon->m_bAction;
 	}
 
-	Say(pMSG);	
+	Say(pMSG);
 }
 
-void CTPlayer::SendCS_CHGMODE_ACK( DWORD dwID,
-								   BYTE bType,
-								   BYTE bMode)
+void CTPlayer::SendCS_CHGMODE_ACK(DWORD dwID,
+	BYTE bType,
+	BYTE bMode)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -896,13 +896,13 @@ void CTPlayer::SendCS_CHGMODE_ACK( DWORD dwID,
 	Say(pMSG);
 }
 
-void CTPlayer::SendCS_ACTION_ACK( BYTE bResult,
-								  DWORD dwObjID,
-								  BYTE bObjType,
-								  BYTE bActionID,
-								  DWORD dwActID,
-								  DWORD dwAniID,
-								  WORD wSkillID)
+void CTPlayer::SendCS_ACTION_ACK(BYTE bResult,
+	DWORD dwObjID,
+	BYTE bObjType,
+	BYTE bActionID,
+	DWORD dwActID,
+	DWORD dwAniID,
+	WORD wSkillID)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -918,11 +918,11 @@ void CTPlayer::SendCS_ACTION_ACK( BYTE bResult,
 	Say(pMSG);
 }
 
-void CTPlayer::SendCS_MONATTACK_ACK( DWORD dwAttackID,
-									 DWORD dwTargetID,
-									 BYTE bAttackType,
-									 BYTE bTargetType,
-									 WORD wSkillID)
+void CTPlayer::SendCS_MONATTACK_ACK(DWORD dwAttackID,
+	DWORD dwTargetID,
+	BYTE bAttackType,
+	BYTE bTargetType,
+	WORD wSkillID)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -936,39 +936,39 @@ void CTPlayer::SendCS_MONATTACK_ACK( DWORD dwAttackID,
 	Say(pMSG);
 }
 
-void CTPlayer::SendCS_DEFEND_ACK( DWORD dwAttackID,
-								  DWORD dwTargetID,
-								  BYTE bAttackType,
-								  BYTE bTargetType,
-								  DWORD dwHostID,
-								  BYTE bHostType,
-								  DWORD dwActID,
-								  DWORD dwAniID,
-								  BYTE bIsMaintain,
-								  DWORD dwMaintainTick,
-								  BYTE bHit,
-								  BYTE bAtkHit,
-                                  WORD wAttackLevel,
-								  BYTE bAttackerLevel,
-                                  DWORD dwPysMinPower,
-                                  DWORD dwPysMaxPower,
-								  DWORD dwMgMinPower,
-								  DWORD dwMgMaxPower,
-								  BYTE bCanSelect,
-								  BYTE bCancelCharge,
-								  BYTE bAttackCountry,
-								  BYTE bAttackAidCountry,
-								  WORD wSkillID,
-								  BYTE bSkillLevel,
-								  WORD wBackSkillID,
-								  BYTE bPerform,
-                                  FLOAT fAtkPosX,
-								  FLOAT fAtkPosY,
-								  FLOAT fAtkPosZ,
-                                  FLOAT fDefPosX,
-								  FLOAT fDefPosY,
-								  FLOAT fDefPosZ,
-								  MAPWORD* mapSkillDamage)
+void CTPlayer::SendCS_DEFEND_ACK(DWORD dwAttackID,
+	DWORD dwTargetID,
+	BYTE bAttackType,
+	BYTE bTargetType,
+	DWORD dwHostID,
+	BYTE bHostType,
+	DWORD dwActID,
+	DWORD dwAniID,
+	BYTE bIsMaintain,
+	DWORD dwMaintainTick,
+	BYTE bHit,
+	BYTE bAtkHit,
+	WORD wAttackLevel,
+	BYTE bAttackerLevel,
+	DWORD dwPysMinPower,
+	DWORD dwPysMaxPower,
+	DWORD dwMgMinPower,
+	DWORD dwMgMaxPower,
+	BYTE bCanSelect,
+	BYTE bCancelCharge,
+	BYTE bAttackCountry,
+	BYTE bAttackAidCountry,
+	WORD wSkillID,
+	BYTE bSkillLevel,
+	WORD wBackSkillID,
+	BYTE bPerform,
+	FLOAT fAtkPosX,
+	FLOAT fAtkPosY,
+	FLOAT fAtkPosZ,
+	FLOAT fDefPosX,
+	FLOAT fDefPosY,
+	FLOAT fDefPosZ,
+	MAPWORD* mapSkillDamage)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -1006,13 +1006,13 @@ void CTPlayer::SendCS_DEFEND_ACK( DWORD dwAttackID,
 		<< fDefPosY
 		<< fDefPosZ;
 
-	if(mapSkillDamage)
+	if (mapSkillDamage)
 	{
 		(*pMSG)
 			<< BYTE(mapSkillDamage->size());
 
 		MAPWORD::iterator it;
-		for(it=mapSkillDamage->begin(); it!=mapSkillDamage->end(); it++)
+		for (it = mapSkillDamage->begin(); it != mapSkillDamage->end(); it++)
 		{
 			(*pMSG)
 				<< BYTE((*it).first)
@@ -1020,18 +1020,18 @@ void CTPlayer::SendCS_DEFEND_ACK( DWORD dwAttackID,
 		}
 	}
 	else
-		(*pMSG)	<< BYTE(0);
+		(*pMSG) << BYTE(0);
 
 	Say(pMSG);
 }
 
-void CTPlayer::SendCS_HPMP_ACK( DWORD dwID,
-							    BYTE bType,
-								BYTE bLevel,
-								DWORD dwMaxHP,
-							    DWORD dwHP,
-								DWORD dwMaxMP,
-								DWORD dwMP)
+void CTPlayer::SendCS_HPMP_ACK(DWORD dwID,
+	BYTE bType,
+	BYTE bLevel,
+	DWORD dwMaxHP,
+	DWORD dwHP,
+	DWORD dwMaxMP,
+	DWORD dwMP)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -1044,12 +1044,12 @@ void CTPlayer::SendCS_HPMP_ACK( DWORD dwID,
 		<< dwMP;
 	Say(pMSG);
 
-	if( GetPartyID() && dwID == m_dwID )
-		_AtlModule.SendMW_PARTYMANSTAT_ACK( GetPartyID(), dwID, bType, bLevel, dwMaxHP, dwHP, dwMaxMP, dwMP);
+	if (GetPartyID() && dwID == m_dwID)
+		_AtlModule.SendMW_PARTYMANSTAT_ACK(GetPartyID(), dwID, bType, bLevel, dwMaxHP, dwHP, dwMaxMP, dwMP);
 }
 
-void CTPlayer::SendCS_LEVEL_ACK( DWORD dwCharID,
-								 BYTE bLevel)
+void CTPlayer::SendCS_LEVEL_ACK(DWORD dwCharID,
+	BYTE bLevel)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -1060,7 +1060,7 @@ void CTPlayer::SendCS_LEVEL_ACK( DWORD dwCharID,
 	Say(pMSG);
 }
 
-void CTPlayer::SendCS_SOULUP_ACK( DWORD dwCharID)
+void CTPlayer::SendCS_SOULUP_ACK(DWORD dwCharID)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -1070,8 +1070,8 @@ void CTPlayer::SendCS_SOULUP_ACK( DWORD dwCharID)
 	Say(pMSG);
 }
 
-void CTPlayer::SendCS_WHIP_ACK( DWORD dwSpeedFactor,
-								 DWORD dwTimeInUse)
+void CTPlayer::SendCS_WHIP_ACK(DWORD dwSpeedFactor,
+	DWORD dwTimeInUse)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -1095,8 +1095,8 @@ void CTPlayer::SendCS_EXP_ACK()
 	Say(pMSG);
 }
 
-void CTPlayer::SendCS_DIE_ACK( DWORD dwID,
-							   BYTE bType)
+void CTPlayer::SendCS_DIE_ACK(DWORD dwID,
+	BYTE bType)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -1107,10 +1107,10 @@ void CTPlayer::SendCS_DIE_ACK( DWORD dwID,
 	Say(pMSG);
 }
 
-void CTPlayer::SendCS_REVIVAL_ACK( DWORD dwCharID,
-								   FLOAT fPosX,
-								   FLOAT fPosY,
-								   FLOAT fPosZ)
+void CTPlayer::SendCS_REVIVAL_ACK(DWORD dwCharID,
+	FLOAT fPosX,
+	FLOAT fPosY,
+	FLOAT fPosZ)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -1123,7 +1123,7 @@ void CTPlayer::SendCS_REVIVAL_ACK( DWORD dwCharID,
 	Say(pMSG);
 }
 
-void CTPlayer::SendCS_MOVEITEM_ACK( BYTE bResult)
+void CTPlayer::SendCS_MOVEITEM_ACK(BYTE bResult)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -1133,8 +1133,8 @@ void CTPlayer::SendCS_MOVEITEM_ACK( BYTE bResult)
 	Say(pMSG);
 }
 
-void CTPlayer::SendCS_UPDATEITEM_ACK( CTItem *pTITEM,
-									  BYTE bInvenID)
+void CTPlayer::SendCS_UPDATEITEM_ACK(CTItem *pTITEM,
+	BYTE bInvenID)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -1146,8 +1146,8 @@ void CTPlayer::SendCS_UPDATEITEM_ACK( CTItem *pTITEM,
 	Say(pMSG);
 }
 
-void CTPlayer::SendCS_ADDITEM_ACK( CTItem *pTITEM,
-								   BYTE bInvenID)
+void CTPlayer::SendCS_ADDITEM_ACK(CTItem *pTITEM,
+	BYTE bInvenID)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -1159,8 +1159,8 @@ void CTPlayer::SendCS_ADDITEM_ACK( CTItem *pTITEM,
 	Say(pMSG);
 }
 
-void CTPlayer::SendCS_DELITEM_ACK( BYTE bInvenID,
-								   BYTE bItemID)
+void CTPlayer::SendCS_DELITEM_ACK(BYTE bInvenID,
+	BYTE bItemID)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -1171,7 +1171,7 @@ void CTPlayer::SendCS_DELITEM_ACK( BYTE bInvenID,
 	Say(pMSG);
 }
 
-void CTPlayer::SendCS_EQUIP_ACK( CTPlayer *pPlayer)
+void CTPlayer::SendCS_EQUIP_ACK(CTPlayer *pPlayer)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -1179,14 +1179,14 @@ void CTPlayer::SendCS_EQUIP_ACK( CTPlayer *pPlayer)
 		<< pPlayer->m_dwID;
 
 	CTInven *pTINVEN = pPlayer->FindTInven(INVEN_EQUIP);
-	if(pTINVEN)
+	if (pTINVEN)
 	{
 		MAPTITEM::iterator itTITEM;
 
 		(*pMSG)
 			<< BYTE(pTINVEN->m_mapTITEM.size());
 
-		for( itTITEM = pTINVEN->m_mapTITEM.begin(); itTITEM != pTINVEN->m_mapTITEM.end(); itTITEM++)
+		for (itTITEM = pTINVEN->m_mapTITEM.begin(); itTITEM != pTINVEN->m_mapTITEM.end(); itTITEM++)
 		{
 			CTItem *pTITEM = (*itTITEM).second;
 			pTITEM->WrapPacketClient(pMSG, pPlayer->m_dwID);
@@ -1221,33 +1221,33 @@ void CTPlayer::SendCS_SKILLBUY_ACK(BYTE bRet, WORD wSkillID, BYTE bLevel)
 }
 
 void CTPlayer::SendCS_SKILLUSE_ACK(BYTE bResult,
-								   DWORD dwAttackID,
-								   BYTE bAttackType,
-								   WORD wSkillID,
-								   BYTE bActionID,
-								   DWORD dwActID,
-								   DWORD dwAniID,
-								   BYTE bSkillLevel,
-								   WORD wBackSkill,
-								   WORD	wAttackLevel,
-								   BYTE bAttackerLevel,
-                                   DWORD dwPysMinPower,
-                                   DWORD dwPysMaxPower,
-                                   DWORD dwMgMinPower,
-                                   DWORD dwMgMaxPower,
-								   WORD wTransHP,
-								   WORD wTransMP,
-								   BYTE bCurseProb,
-                                   BYTE bEquipSpecial,
-                                   BYTE bCanSelect,
-								   BYTE bAttackCountry,
-								   BYTE bAttackAidCountry,
-								   BYTE bCP,
-								   FLOAT fGndPosX,
-								   FLOAT fGndPosY,
-								   FLOAT fGndPosZ,
-								   LPVDWORD vTarget,
-								   LPVBYTE vTargetType)
+	DWORD dwAttackID,
+	BYTE bAttackType,
+	WORD wSkillID,
+	BYTE bActionID,
+	DWORD dwActID,
+	DWORD dwAniID,
+	BYTE bSkillLevel,
+	WORD wBackSkill,
+	WORD	wAttackLevel,
+	BYTE bAttackerLevel,
+	DWORD dwPysMinPower,
+	DWORD dwPysMaxPower,
+	DWORD dwMgMinPower,
+	DWORD dwMgMaxPower,
+	WORD wTransHP,
+	WORD wTransMP,
+	BYTE bCurseProb,
+	BYTE bEquipSpecial,
+	BYTE bCanSelect,
+	BYTE bAttackCountry,
+	BYTE bAttackAidCountry,
+	BYTE bCP,
+	FLOAT fGndPosX,
+	FLOAT fGndPosY,
+	FLOAT fGndPosZ,
+	LPVDWORD vTarget,
+	LPVBYTE vTargetType)
 {
 	CPacket *pMsg = new CPacket();
 	pMsg->SetID(CS_SKILLUSE_ACK)
@@ -1278,12 +1278,12 @@ void CTPlayer::SendCS_SKILLUSE_ACK(BYTE bResult,
 		<< fGndPosY
 		<< fGndPosZ;
 
-	if(vTarget)
+	if (vTarget)
 	{
 		(*pMsg)
 			<< (BYTE)vTarget->size();
 
-		for(int i=0; i<(int)vTarget->size(); i++)
+		for (int i = 0; i < (int)vTarget->size(); i++)
 		{
 			(*pMsg)
 				<< (*vTarget)[i]
@@ -1300,25 +1300,25 @@ void CTPlayer::SendCS_SKILLUSE_ACK(BYTE bResult,
 }
 
 void CTPlayer::SendCS_LOOPSKILL_ACK(BYTE bResult,
-								   DWORD dwAttackID,
-								   BYTE bAttackType,
-								   WORD wSkillID,
-								   BYTE bSkillLevel,
-                                   WORD	wAttackLevel,
-								   BYTE bAttackerLevel,
-                                   DWORD dwPysMinPower,
-                                   DWORD dwPysMaxPower,
-                                   DWORD dwMgMinPower,
-                                   DWORD dwMgMaxPower,
-                                   BYTE bCanSelect,
-								   BYTE bAttackCountry,
-								   BYTE bAttackAidCountry,
-								   BYTE bHit,
-								   FLOAT fGndPosX,
-								   FLOAT fGndPosY,
-								   FLOAT fGndPosZ,
-								   LPVDWORD vTarget,
-								   LPVBYTE vTargetType)
+	DWORD dwAttackID,
+	BYTE bAttackType,
+	WORD wSkillID,
+	BYTE bSkillLevel,
+	WORD	wAttackLevel,
+	BYTE bAttackerLevel,
+	DWORD dwPysMinPower,
+	DWORD dwPysMaxPower,
+	DWORD dwMgMinPower,
+	DWORD dwMgMaxPower,
+	BYTE bCanSelect,
+	BYTE bAttackCountry,
+	BYTE bAttackAidCountry,
+	BYTE bHit,
+	FLOAT fGndPosX,
+	FLOAT fGndPosY,
+	FLOAT fGndPosZ,
+	LPVDWORD vTarget,
+	LPVBYTE vTargetType)
 {
 	CPacket *pMsg = new CPacket();
 	pMsg->SetID(CS_LOOPSKILL_ACK)
@@ -1341,12 +1341,12 @@ void CTPlayer::SendCS_LOOPSKILL_ACK(BYTE bResult,
 		<< fGndPosY
 		<< fGndPosZ;
 
-	if(vTarget)
+	if (vTarget)
 	{
 		(*pMsg)
 			<< (BYTE)vTarget->size();
 
-		for(int i=0; i<(int)vTarget->size(); i++)
+		for (int i = 0; i < (int)vTarget->size(); i++)
 		{
 			(*pMsg)
 				<< (*vTarget)[i]
@@ -1363,8 +1363,8 @@ void CTPlayer::SendCS_LOOPSKILL_ACK(BYTE bResult,
 }
 
 void CTPlayer::SendCS_SKILLEND_ACK(DWORD dwObjID,
-								   BYTE bObjType,
-								   WORD wSkillID)
+	BYTE bObjType,
+	WORD wSkillID)
 {
 	CPacket *pMsg = new CPacket();
 	pMsg->SetID(CS_SKILLEND_ACK)
@@ -1375,7 +1375,7 @@ void CTPlayer::SendCS_SKILLEND_ACK(DWORD dwObjID,
 	Say(pMsg);
 }
 void CTPlayer::SendCS_CHGPARTYTYPE_ACK(BYTE bRet,
-									   BYTE bPartyType)
+	BYTE bPartyType)
 {
 	CPacket *pMsg = new CPacket();
 	pMsg->SetID(CS_CHGPARTYTYPE_ACK)
@@ -1384,9 +1384,9 @@ void CTPlayer::SendCS_CHGPARTYTYPE_ACK(BYTE bRet,
 
 	Say(pMsg);
 }
-void CTPlayer::SendCS_PARTYADD_ACK( CString strRequestID,
-								   CString strTargetID,
-								   BYTE bReply)
+void CTPlayer::SendCS_PARTYADD_ACK(CString strRequestID,
+	CString strTargetID,
+	BYTE bReply)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -1398,7 +1398,7 @@ void CTPlayer::SendCS_PARTYADD_ACK( CString strRequestID,
 	Say(pMSG);
 }
 void CTPlayer::SendCS_PARTYJOINASK_ACK(CString strRequestID,
-									   BYTE bObtainType)
+	BYTE bObtainType)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -1409,22 +1409,22 @@ void CTPlayer::SendCS_PARTYJOINASK_ACK(CString strRequestID,
 	Say(pMSG);
 }
 void CTPlayer::SendCS_PARTYJOIN_ACK(WORD wPartyID,
-									CString strMemberID,
-									DWORD dwMemberID,
-									DWORD dwChiefID,
-									WORD wCommanderID,
-									CString strGuildName,
-									BYTE bLevel,
-									DWORD dwMaxHP,
-									DWORD dwHP,
-									DWORD dwMaxMP,
-									DWORD dwMP,
-									BYTE bRace,
-									BYTE bSex,
-									BYTE bFace,
-									BYTE bHair,
-									BYTE bPartyType,
-									BYTE bClass)
+	CString strMemberID,
+	DWORD dwMemberID,
+	DWORD dwChiefID,
+	WORD wCommanderID,
+	CString strGuildName,
+	BYTE bLevel,
+	DWORD dwMaxHP,
+	DWORD dwHP,
+	DWORD dwMaxMP,
+	DWORD dwMP,
+	BYTE bRace,
+	BYTE bSex,
+	BYTE bFace,
+	BYTE bHair,
+	BYTE bPartyType,
+	BYTE bClass)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -1450,11 +1450,11 @@ void CTPlayer::SendCS_PARTYJOIN_ACK(WORD wPartyID,
 	Say(pMSG);
 }
 
-void CTPlayer::SendCS_PARTYDEL_ACK( DWORD dwMemberID,
-									DWORD dwChiefID,
-									WORD wCommanderID,
-									WORD wPartyID,
-									BYTE bKicked)
+void CTPlayer::SendCS_PARTYDEL_ACK(DWORD dwMemberID,
+	DWORD dwChiefID,
+	WORD wCommanderID,
+	WORD wPartyID,
+	BYTE bKicked)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -1468,13 +1468,13 @@ void CTPlayer::SendCS_PARTYDEL_ACK( DWORD dwMemberID,
 	Say(pMSG);
 }
 
-void CTPlayer::SendCS_PARTYMANSTAT_ACK( DWORD dwID,
-										BYTE bType,
-										BYTE bLevel,
-										DWORD dwMaxHP,
-										DWORD dwCurHP,
-										DWORD dwMaxMP,
-										DWORD dwCurMP)
+void CTPlayer::SendCS_PARTYMANSTAT_ACK(DWORD dwID,
+	BYTE bType,
+	BYTE bLevel,
+	DWORD dwMaxHP,
+	DWORD dwCurHP,
+	DWORD dwMaxMP,
+	DWORD dwCurMP)
 {
 	CPacket * pMsg = new CPacket();
 
@@ -1488,8 +1488,8 @@ void CTPlayer::SendCS_PARTYMANSTAT_ACK( DWORD dwID,
 		<< dwCurMP;
 	Say(pMsg);
 }
-void CTPlayer::SendCS_QUESTADD_ACK( DWORD dwQuestID,
-								   BYTE bType)
+void CTPlayer::SendCS_QUESTADD_ACK(DWORD dwQuestID,
+	BYTE bType)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -1504,11 +1504,11 @@ void CTPlayer::SendCS_QUESTADD_ACK( DWORD dwQuestID,
 	Say(pMSG);
 }
 
-void CTPlayer::SendCS_QUESTUPDATE_ACK( DWORD dwQuestID,
-									  DWORD dwTermID,
-									  BYTE bType,
-									  BYTE bCount,
-									  BYTE bStatus)
+void CTPlayer::SendCS_QUESTUPDATE_ACK(DWORD dwQuestID,
+	DWORD dwTermID,
+	BYTE bType,
+	BYTE bCount,
+	BYTE bStatus)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -1522,11 +1522,11 @@ void CTPlayer::SendCS_QUESTUPDATE_ACK( DWORD dwQuestID,
 	Say(pMSG);
 }
 
-void CTPlayer::SendCS_QUESTCOMPLETE_ACK( BYTE bResult,
-									    DWORD dwQuestID,
-										DWORD dwTermID,
-										BYTE bType,
-										DWORD dwDropID)
+void CTPlayer::SendCS_QUESTCOMPLETE_ACK(BYTE bResult,
+	DWORD dwQuestID,
+	DWORD dwTermID,
+	BYTE bType,
+	DWORD dwDropID)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -1540,34 +1540,34 @@ void CTPlayer::SendCS_QUESTCOMPLETE_ACK( BYTE bResult,
 	Say(pMSG);
 }
 
-void CTPlayer::SendCS_QUESTLIST_ACK( DWORD dwTick)
+void CTPlayer::SendCS_QUESTLIST_ACK(DWORD dwTick)
 {
 	MAPQUEST::iterator it;
 	VQUEST vQUEST;
 	vQUEST.clear();
 
-	for( it = m_mapQUEST.begin(); it != m_mapQUEST.end(); it++)
+	for (it = m_mapQUEST.begin(); it != m_mapQUEST.end(); it++)
 	{
-		if( (*it).second->m_bCompleteCount < (*it).second->m_bTriggerCount )
+		if ((*it).second->m_bCompleteCount < (*it).second->m_bTriggerCount)
 			vQUEST.push_back((*it).second);
 	}
 
-	BYTE bCount = (BYTE) vQUEST.size();
+	BYTE bCount = (BYTE)vQUEST.size();
 	CPacket *pMSG = new CPacket();
 
 	pMSG->SetID(CS_QUESTLIST_ACK)
 		<< bCount;
 
-	for( int i=0; i<bCount; i++)
+	for (int i = 0; i < bCount; i++)
 	{
-		BYTE bTermCount = (BYTE) vQUEST[i]->m_pQUEST->m_vTerm.size();
+		BYTE bTermCount = (BYTE)vQUEST[i]->m_pQUEST->m_vTerm.size();
 
 		(*pMSG)
 			<< vQUEST[i]->m_pQUEST->m_dwQuestID
 			<< vQUEST[i]->m_pQUEST->m_bType
 			<< bTermCount;
 
-		for( int j=0; j<bTermCount; j++)
+		for (int j = 0; j < bTermCount; j++)
 		{
 			LPQUESTTERM pTERM = vQUEST[i]->FindRunningTerm(
 				vQUEST[i]->m_pQUEST->m_vTerm[j]->m_dwTermID,
@@ -1582,7 +1582,7 @@ void CTPlayer::SendCS_QUESTLIST_ACK( DWORD dwTick)
 				<< vQUEST[i]->m_pQUEST->m_vTerm[j]->m_dwTermID
 				<< vQUEST[i]->m_pQUEST->m_vTerm[j]->m_bTermType
 				<< vQUEST[i]->m_pQUEST->m_vTerm[j]->m_bCount
-				<< (BYTE) (pTERM ? pTERM->m_bCount : GetTermCount(vQUEST[i]->m_pQUEST->m_vTerm[j]->m_dwTermID, vQUEST[i]->m_pQUEST->m_vTerm[j]->m_bTermType))
+				<< (BYTE)(pTERM ? pTERM->m_bCount : GetTermCount(vQUEST[i]->m_pQUEST->m_vTerm[j]->m_dwTermID, vQUEST[i]->m_pQUEST->m_vTerm[j]->m_bTermType))
 				<< bStatus;
 		}
 	}
@@ -1596,23 +1596,23 @@ void CTPlayer::SendCS_QUESTLIST_COMPLETE_ACK()
 	MAPQUEST::iterator it;
 	VDWORD vQuestID;
 
-	for( it = m_mapQUEST.begin(); it != m_mapQUEST.end(); ++it )
+	for (it = m_mapQUEST.begin(); it != m_mapQUEST.end(); ++it)
 	{
-		if( (*it).second->m_pQUEST->m_dwParentID == 0 )
+		if ((*it).second->m_pQUEST->m_dwParentID == 0)
 		{
-			DWORD dwQuestID = GetCompleteQuestID( (*it).second, (*it).second->m_pQUEST->m_dwQuestID );
-			if( dwQuestID != 0 )
-				vQuestID.push_back( dwQuestID );
+			DWORD dwQuestID = GetCompleteQuestID((*it).second, (*it).second->m_pQUEST->m_dwQuestID);
+			if (dwQuestID != 0)
+				vQuestID.push_back(dwQuestID);
 		}
 	}
 
-	BYTE bCount = (BYTE) vQuestID.size();
+	BYTE bCount = (BYTE)vQuestID.size();
 	CPacket *pMSG = new CPacket();
 
 	pMSG->SetID(CS_QUESTLIST_COMPLETE_ACK)
 		<< bCount;
 
-	for( int i=0; i<bCount; ++i )
+	for (int i = 0; i < bCount; ++i)
 		(*pMSG) << vQuestID[i];
 
 	vQuestID.clear();
@@ -1620,7 +1620,7 @@ void CTPlayer::SendCS_QUESTLIST_COMPLETE_ACK()
 	Say(pMSG);
 }
 void CTPlayer::SendCS_QUESTSTARTTIMER_ACK(DWORD dwQuestID,
-                                          DWORD dwTick)
+	DWORD dwTick)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -1638,10 +1638,10 @@ void CTPlayer::SendCS_QUESTLIST_POSSIBLE_ACK(LPMAPMAPDWORD mapNpcQuest)
 
 	MAPMAPDWORD::iterator itN;
 	MAPDWORD::iterator itQ;
-	for(itN=mapNpcQuest->begin(); itN!=mapNpcQuest->end(); itN++)
+	for (itN = mapNpcQuest->begin(); itN != mapNpcQuest->end(); itN++)
 	{
 		CTNpc * pNpc = _AtlModule.FindTNpc((*itN).first);
-		if(!pNpc)
+		if (!pNpc)
 			continue;
 
 		(*pMSG)
@@ -1649,16 +1649,16 @@ void CTPlayer::SendCS_QUESTLIST_POSSIBLE_ACK(LPMAPMAPDWORD mapNpcQuest)
 			<< BYTE(pNpc->m_pLocal ? pNpc->m_pLocal->m_bCountry : pNpc->m_bCountry)
 			<< BYTE((*itN).second.size());
 
-//		ATLTRACE2("NPC ID : %d, size %d",(*itN).first, (*itN).second.size());
+		//		ATLTRACE2("NPC ID : %d, size %d",(*itN).first, (*itN).second.size());
 		LPMAPDWORD mapQuest = &((*itN).second);
-		for(itQ = mapQuest->begin(); itQ != mapQuest->end(); itQ++)
+		for (itQ = mapQuest->begin(); itQ != mapQuest->end(); itQ++)
 		{
 			(*pMSG)
 				<< (*itQ).first
 				<< BYTE((*itQ).second);
-//			ATLTRACE2(" QUEST ID %d, Type %d",(*itQ).first, (*itQ).second);
+			//			ATLTRACE2(" QUEST ID %d, Type %d",(*itQ).first, (*itQ).second);
 		}
-//		ATLTRACE2("\n");
+		//		ATLTRACE2("\n");
 	}
 
 	Say(pMSG);
@@ -1687,9 +1687,9 @@ void CTPlayer::SendCS_GUILDDISORGANIZATION_ACK(BYTE bResult)
 	Say(pMSG);
 }
 void CTPlayer::SendCS_GUILDINVITE_ACK(BYTE bResult,
-									  CString strName,
-                                      DWORD dwInviter,
-                                      CString strInviterName)
+	CString strName,
+	DWORD dwInviter,
+	CString strInviterName)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -1702,11 +1702,11 @@ void CTPlayer::SendCS_GUILDINVITE_ACK(BYTE bResult,
 	Say(pMSG);
 }
 void CTPlayer::SendCS_GUILDJOIN_ACK(BYTE bRet,
-									DWORD dwGuildID,
-                                    CString strGuildName,
-									DWORD dwNewMemberID,
-                                    CString strNewMemberName,
-									BYTE bMaxGuildMember)
+	DWORD dwGuildID,
+	CString strGuildName,
+	DWORD dwNewMemberID,
+	CString strNewMemberName,
+	BYTE bMaxGuildMember)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -1721,8 +1721,8 @@ void CTPlayer::SendCS_GUILDJOIN_ACK(BYTE bRet,
 	Say(pMSG);
 }
 void CTPlayer::SendCS_GUILDDUTY_ACK(BYTE bResult,
-									CString strTarget,
-									BYTE bDuty)
+	CString strTarget,
+	BYTE bDuty)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -1734,9 +1734,9 @@ void CTPlayer::SendCS_GUILDDUTY_ACK(BYTE bResult,
 	Say(pMSG);
 }
 void CTPlayer::SendCS_GUILDPEER_ACK(BYTE bResult,
-									CString strTarget,
-									BYTE bPeer,
-									BYTE bOldPeer)
+	CString strTarget,
+	BYTE bPeer,
+	BYTE bOldPeer)
 {
 	CPacket * pMSG = new CPacket();
 
@@ -1749,8 +1749,8 @@ void CTPlayer::SendCS_GUILDPEER_ACK(BYTE bResult,
 	Say(pMSG);
 }
 void CTPlayer::SendCS_GUILDLEAVE_ACK(BYTE bResult,
-									 CString strTarget, 
-									 BYTE bReason)
+	CString strTarget,
+	BYTE bReason)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -1765,7 +1765,7 @@ void CTPlayer::SendCS_GUILDMEMBERLIST_ACK(LPPACKETBUF pBUF)
 {
 	CPacket *pMSG = new CPacket();
 
-	pMSG->CopyData(&pBUF->m_packet, sizeof(DWORD)*2);
+	pMSG->CopyData(&pBUF->m_packet, sizeof(DWORD) * 2);
 	pMSG->SetID(CS_GUILDMEMBERLIST_ACK);
 
 	Say(pMSG);
@@ -1774,7 +1774,7 @@ void CTPlayer::SendCS_GUILDINFO_ACK(LPPACKETBUF pBUF)
 {
 	CPacket *pMSG = new CPacket();
 
-	pMSG->CopyData(&pBUF->m_packet, sizeof(DWORD)*2);
+	pMSG->CopyData(&pBUF->m_packet, sizeof(DWORD) * 2);
 	pMSG->SetID(CS_GUILDINFO_ACK);
 
 	Say(pMSG);
@@ -1787,7 +1787,7 @@ void CTPlayer::SendCS_GUILDLOCALLIST_ACK()
 	pMSG->SetID(CS_GUILDLOCALLIST_ACK)
 		<< WORD(_AtlModule.m_vCastle.size());
 
-	for(DWORD ll=0; ll<_AtlModule.m_vCastle.size(); ll++)
+	for (DWORD ll = 0; ll < _AtlModule.m_vCastle.size(); ll++)
 	{
 		LPTLOCAL pCastle = _AtlModule.m_vCastle[ll];
 		WORD wDefGuildPoint = 0;
@@ -1795,15 +1795,15 @@ void CTPlayer::SendCS_GUILDLOCALLIST_ACK()
 		WORD wMyGuildPoint = 0;
 
 		MAPDWORD::iterator itGP = pCastle->m_mapTPoint.find(pCastle->m_dwDefGuildID);
-		if(itGP != pCastle->m_mapTPoint.end())
+		if (itGP != pCastle->m_mapTPoint.end())
 			wDefGuildPoint = WORD((*itGP).second);
 
 		itGP = pCastle->m_mapTPoint.find(pCastle->m_dwAtkGuildID);
-		if(itGP != pCastle->m_mapTPoint.end())
+		if (itGP != pCastle->m_mapTPoint.end())
 			wAtkGuildPoint = WORD((*itGP).second);
 
 		itGP = pCastle->m_mapTPoint.find(GetGuild());
-		if(itGP != pCastle->m_mapTPoint.end())
+		if (itGP != pCastle->m_mapTPoint.end())
 			wMyGuildPoint = WORD((*itGP).second);
 
 		(*pMSG)
@@ -1826,7 +1826,7 @@ void CTPlayer::SendCS_GUILDLOCALLIST_ACK()
 			<< wMyGuildPoint
 			<< BYTE(pCastle->m_vTop3[TCONTRY_D].size());
 
-		for(BYTE t3=0; t3<pCastle->m_vTop3[TCONTRY_D].size(); t3++)
+		for (BYTE t3 = 0; t3 < pCastle->m_vTop3[TCONTRY_D].size(); t3++)
 		{
 			(*pMSG)
 				<< pCastle->m_vTop3[TCONTRY_D][t3].m_strName
@@ -1836,7 +1836,7 @@ void CTPlayer::SendCS_GUILDLOCALLIST_ACK()
 		(*pMSG)
 			<< BYTE(pCastle->m_vTop3[TCONTRY_C].size());
 
-		for(BYTE t3=0; t3<pCastle->m_vTop3[TCONTRY_C].size(); t3++)
+		for (BYTE t3 = 0; t3 < pCastle->m_vTop3[TCONTRY_C].size(); t3++)
 		{
 			(*pMSG)
 				<< pCastle->m_vTop3[TCONTRY_C][t3].m_strName
@@ -1847,7 +1847,7 @@ void CTPlayer::SendCS_GUILDLOCALLIST_ACK()
 			<< WORD(pCastle->m_mapLocal.size());
 
 		MAPTLOCAL::iterator itLOCAL;
-		for(itLOCAL=pCastle->m_mapLocal.begin(); itLOCAL!=pCastle->m_mapLocal.end(); itLOCAL++)
+		for (itLOCAL = pCastle->m_mapLocal.begin(); itLOCAL != pCastle->m_mapLocal.end(); itLOCAL++)
 		{
 			(*pMSG)
 				<< (*itLOCAL).second->m_wLocal
@@ -1863,7 +1863,7 @@ void CTPlayer::SendCS_GUILDLOCALLIST_ACK()
 	(*pMSG)
 		<< BYTE(_AtlModule.m_vMission.size());
 
-	for(DWORD ms=0; ms<_AtlModule.m_vMission.size(); ms++)
+	for (DWORD ms = 0; ms < _AtlModule.m_vMission.size(); ms++)
 	{
 		LPTLOCAL pMission = _AtlModule.m_vMission[ms];
 		(*pMSG)
@@ -1878,17 +1878,17 @@ void CTPlayer::SendCS_GUILDLOCALLIST_ACK()
 	(*pMSG)
 		<< BYTE(_AtlModule.m_vSkygarden.size());
 
-		for(DWORD jk = 0; jk < _AtlModule.m_vSkygarden.size(); jk++)
-		{
-			LPTLOCAL pSkyGarden = _AtlModule.m_vSkygarden[jk];
+	for (DWORD jk = 0; jk < _AtlModule.m_vSkygarden.size(); jk++)
+	{
+		LPTLOCAL pSkyGarden = _AtlModule.m_vSkygarden[jk];
 
-			(*pMSG)
-				<< pSkyGarden->m_wLocal
-				<< pSkyGarden->m_pZone->m_strName
-				<< pSkyGarden->m_bCountry
-				<< pSkyGarden->m_bStatus
-				<< pSkyGarden->m_timeNextDefend;
-		}
+		(*pMSG)
+			<< pSkyGarden->m_wLocal
+			<< pSkyGarden->m_pZone->m_strName
+			<< pSkyGarden->m_bCountry
+			<< pSkyGarden->m_bStatus
+			<< pSkyGarden->m_timeNextDefend;
+	}
 #endif
 
 	Say(pMSG);
@@ -1910,7 +1910,7 @@ void CTPlayer::SendCS_GUILDCABINETLIST_ACK(BYTE bMaxCabinet, VTITEM vItem)
 		<< bMaxCabinet
 		<< BYTE(vItem.size());
 
-	while(!vItem.empty())
+	while (!vItem.empty())
 	{
 		CTItem * pItem = vItem.back();
 		vItem.pop_back();
@@ -1955,7 +1955,7 @@ void CTPlayer::SendCS_GUILDARTICLELIST_ACK(LPPACKETBUF pBUF)
 {
 	CPacket *pMSG = new CPacket();
 
-	pMSG->CopyData(&pBUF->m_packet, sizeof(DWORD)*2);
+	pMSG->CopyData(&pBUF->m_packet, sizeof(DWORD) * 2);
 	pMSG->SetID(CS_GUILDARTICLELIST_ACK);
 
 	Say(pMSG);
@@ -2019,7 +2019,7 @@ void CTPlayer::SendCS_GUILDWANTEDDEL_ACK(BYTE bResult)
 void CTPlayer::SendCS_GUILDWANTEDLIST_ACK(CPacket * pPacket)
 {
 	CPacket * pMsg = new CPacket();
-	pMsg->CopyData(pPacket, sizeof(DWORD)*2);
+	pMsg->CopyData(pPacket, sizeof(DWORD) * 2);
 
 	pMsg->SetID(CS_GUILDWANTEDLIST_ACK);
 	Say(pMsg);
@@ -2045,7 +2045,7 @@ void CTPlayer::SendCS_GUILDVOLUNTEERINGDEL_ACK(BYTE bResult)
 void CTPlayer::SendCS_GUILDVOLUNTEERLIST_ACK(CPacket * pPacket)
 {
 	CPacket * pMsg = new CPacket();
-	pMsg->CopyData(pPacket, sizeof(DWORD)*2);
+	pMsg->CopyData(pPacket, sizeof(DWORD) * 2);
 
 	pMsg->SetID(CS_GUILDVOLUNTEERLIST_ACK);
 	Say(pMsg);
@@ -2080,7 +2080,7 @@ void CTPlayer::SendCS_GUILDTACTICSWANTEDDEL_ACK(BYTE bResult)
 void CTPlayer::SendCS_GUILDTACTICSWANTEDLIST_ACK(CPacket * pPacket)
 {
 	CPacket * pMsg = new CPacket();
-	pMsg->CopyData(pPacket, sizeof(DWORD)*2);
+	pMsg->CopyData(pPacket, sizeof(DWORD) * 2);
 
 	pMsg->SetID(CS_GUILDTACTICSWANTEDLIST_ACK);
 	Say(pMsg);
@@ -2106,7 +2106,7 @@ void CTPlayer::SendCS_GUILDTACTICSVOLUNTEERINGDEL_ACK(BYTE bResult)
 void CTPlayer::SendCS_GUILDTACTICSVOLUNTEERLIST_ACK(CPacket * pPacket)
 {
 	CPacket * pMsg = new CPacket();
-	pMsg->CopyData(pPacket, sizeof(DWORD)*2);
+	pMsg->CopyData(pPacket, sizeof(DWORD) * 2);
 
 	pMsg->SetID(CS_GUILDTACTICSVOLUNTEERLIST_ACK);
 	Say(pMsg);
@@ -2132,12 +2132,12 @@ void CTPlayer::SendCS_GUILDTACTICSKICKOUT_ACK(BYTE bResult, DWORD dwTarget)
 	Say(pMSG);
 }
 void CTPlayer::SendCS_GUILDTACTICSINVITE_ACK(CString strGuildName,
-											 CString strName,
-                                             BYTE bDay,
-                                             DWORD dwPoint,
-                                             DWORD dwGold,
-                                             DWORD dwSilver,
-                                             DWORD dwCooper)
+	CString strName,
+	BYTE bDay,
+	DWORD dwPoint,
+	DWORD dwGold,
+	DWORD dwSilver,
+	DWORD dwCooper)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -2153,7 +2153,7 @@ void CTPlayer::SendCS_GUILDTACTICSINVITE_ACK(CString strGuildName,
 	Say(pMSG);
 }
 void CTPlayer::SendCS_GUILDTACTICSANSWER_ACK(BYTE bResult,
-											 DWORD dwMemberID)
+	DWORD dwMemberID)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -2167,7 +2167,7 @@ void CTPlayer::SendCS_GUILDTACTICSLIST_ACK(LPPACKETBUF pBUF)
 {
 	CPacket *pMSG = new CPacket();
 
-	pMSG->CopyData(&pBUF->m_packet, sizeof(DWORD)*2);
+	pMSG->CopyData(&pBUF->m_packet, sizeof(DWORD) * 2);
 	pMSG->SetID(CS_GUILDTACTICSLIST_ACK);
 
 	Say(pMSG);
@@ -2176,13 +2176,13 @@ void CTPlayer::SendCS_GUILDTACTICSLIST_ACK(LPPACKETBUF pBUF)
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void CTPlayer::SendCS_CHAT_ACK(BYTE bGroup,
-							   DWORD dwSenderID,
-							   CString strName,
-							   CString strTalk)
+	DWORD dwSenderID,
+	CString strName,
+	CString strTalk)
 {
 	// Â÷´Ü¸ñ·Ï °Ë»ç
-	if(!CheckProtected(dwSenderID, PROTECTED_CHAT))
-			return;
+	if (!CheckProtected(dwSenderID, PROTECTED_CHAT))
+		return;
 
 	CPacket * pMSG = new CPacket();
 
@@ -2202,7 +2202,7 @@ void CTPlayer::SendCS_CABINETLIST_ACK()
 		<< BYTE(m_mapCabinet.size());
 
 	MAPTCABINET::iterator it;
-	for(it=m_mapCabinet.begin(); it!=m_mapCabinet.end(); it++)
+	for (it = m_mapCabinet.begin(); it != m_mapCabinet.end(); it++)
 	{
 		(*pMSG)
 			<< (*it).second->m_bCabinetID
@@ -2218,7 +2218,7 @@ void CTPlayer::SendCS_CABINETITEMLIST_ACK(BYTE bResult, LPTCABINET pTCABINET)
 	pMSG->SetID(CS_CABINETITEMLIST_ACK)
 		<< bResult;
 
-	if(pTCABINET)
+	if (pTCABINET)
 	{
 		(*pMSG)
 			<< pTCABINET->m_bCabinetID
@@ -2226,7 +2226,7 @@ void CTPlayer::SendCS_CABINETITEMLIST_ACK(BYTE bResult, LPTCABINET pTCABINET)
 
 		MAPTSTORAGEITEM::iterator itITEM;
 
-		for(itITEM=pTCABINET->m_mapCabinetItem.begin(); itITEM!=pTCABINET->m_mapCabinetItem.end(); itITEM++)
+		for (itITEM = pTCABINET->m_mapCabinetItem.begin(); itITEM != pTCABINET->m_mapCabinetItem.end(); itITEM++)
 		{
 			CTItem * pTITEM = (*itITEM).second;
 			(*pMSG)
@@ -2258,186 +2258,186 @@ void CTPlayer::SendCS_NPCITEMLIST_ACK(CTNpc * pNpc)
 		<< pNpc->m_wID
 		<< pNpc->m_bType;
 
-	BYTE bDiscountRate = _AtlModule.GetDiscountRate(this,pNpc);	
+	BYTE bDiscountRate = _AtlModule.GetDiscountRate(this, pNpc);
 
 	(*pMSG) << bDiscountRate;
 
-	switch(pNpc->m_bType)
+	switch (pNpc->m_bType)
 	{
 	case TNPC_SKILL_RENT:
 	case TNPC_SKILL_MASTER:
+	{
+		MAPTSKILLTEMP::iterator it;
+		MAPTSKILLTEMP mapSKILL;
+		mapSKILL.clear();
+		for (it = pNpc->m_mapSkill.begin(); it != pNpc->m_mapSkill.end(); it++)
 		{
-			MAPTSKILLTEMP::iterator it;
-			MAPTSKILLTEMP mapSKILL;
-			mapSKILL.clear();
-			for(it=pNpc->m_mapSkill.begin(); it!=pNpc->m_mapSkill.end(); it++)
+			CTSkillTemp * pTemp = (*it).second;
+			CTSkill * pSkill = FindTSkill(pTemp->m_wID);
+			if (!pSkill)
 			{
-				CTSkillTemp * pTemp = (*it).second;
-				CTSkill * pSkill = FindTSkill(pTemp->m_wID);
-				if(!pSkill)
-				{
-					if(pTemp->m_dwClassID & BITSHIFTID(m_bClass) &&
-						IsEnoughSkillPoint(pTemp) &&
-						(!pTemp->m_wParentSkillID ||
-						(pTemp->m_wParentSkillID && FindTSkill(pTemp->m_wParentSkillID))))
-						mapSKILL.insert(MAPTSKILLTEMP::value_type(pTemp->m_wID, pTemp));
-				}
-				else
-				{
-					if(pSkill->m_pTSKILL->m_bMaxLevel > pSkill->m_bLevel &&
-						m_bLevel >= pSkill->GetNextLevel() &&
-						IsEnoughSkillPoint(pSkill->m_pTSKILL))
-						mapSKILL.insert(MAPTSKILLTEMP::value_type(pTemp->m_wID, pTemp)); 
-				}
+				if (pTemp->m_dwClassID & BITSHIFTID(m_bClass) &&
+					IsEnoughSkillPoint(pTemp) &&
+					(!pTemp->m_wParentSkillID ||
+					(pTemp->m_wParentSkillID && FindTSkill(pTemp->m_wParentSkillID))))
+					mapSKILL.insert(MAPTSKILLTEMP::value_type(pTemp->m_wID, pTemp));
 			}
-			(*pMSG)
-				<< BYTE(mapSKILL.size());
-
-			for(it=mapSKILL.begin(); it!=mapSKILL.end(); it++)
+			else
 			{
-				(*pMSG)
-					<< (*it).second->m_wID;			
-
-				CTSkill * pSkill = FindTSkill((*it).second->m_wID);
-				if(pSkill)
-					(*pMSG) << (*it).second->GetPrice(_AtlModule.FindTLevel(pSkill->GetNextLevel())->m_dwMoney);		
-				else
-					(*pMSG) << (*it).second->GetPrice(_AtlModule.FindTLevel((*it).second->m_bStartLevel)->m_dwMoney);			
+				if (pSkill->m_pTSKILL->m_bMaxLevel > pSkill->m_bLevel &&
+					m_bLevel >= pSkill->GetNextLevel() &&
+					IsEnoughSkillPoint(pSkill->m_pTSKILL))
+					mapSKILL.insert(MAPTSKILLTEMP::value_type(pTemp->m_wID, pTemp));
 			}
-			mapSKILL.clear();
 		}
-		break;
+		(*pMSG)
+			<< BYTE(mapSKILL.size());
+
+		for (it = mapSKILL.begin(); it != mapSKILL.end(); it++)
+		{
+			(*pMSG)
+				<< (*it).second->m_wID;
+
+			CTSkill * pSkill = FindTSkill((*it).second->m_wID);
+			if (pSkill)
+				(*pMSG) << (*it).second->GetPrice(_AtlModule.FindTLevel(pSkill->GetNextLevel())->m_dwMoney);
+			else
+				(*pMSG) << (*it).second->GetPrice(_AtlModule.FindTLevel((*it).second->m_bStartLevel)->m_dwMoney);
+		}
+		mapSKILL.clear();
+	}
+	break;
 	case TNPC_PVPOINT:
 	case TNPC_ITEM:
+	{
+		MAPTITEMTEMP::iterator it;
+		MAPTITEMTEMP mapITEM;
+		mapITEM.clear();
+		for (it = pNpc->m_mapItem.begin(); it != pNpc->m_mapItem.end(); it++)
 		{
-			MAPTITEMTEMP::iterator it;
-			MAPTITEMTEMP mapITEM;
-			mapITEM.clear();
-			for(it=pNpc->m_mapItem.begin(); it!=pNpc->m_mapItem.end(); it++)
-			{
-				if((*it).second->m_dwClassID & BITSHIFTID(m_bClass) &&
-					((*it).second->m_bItemCountry == TCONTRY_N ||
+			if ((*it).second->m_dwClassID & BITSHIFTID(m_bClass) &&
+				((*it).second->m_bItemCountry == TCONTRY_N ||
 					pNpc->m_bDiscountCondition == DCC_ALLCOUNTRY ||
 					(*it).second->m_bItemCountry == m_bCountry))
-					mapITEM.insert(MAPTITEMTEMP::value_type((*it).first, (*it).second));
-			}
-
-			(*pMSG)
-				<< BYTE(mapITEM.size());
-
-			for(it=mapITEM.begin(); it!=mapITEM.end(); it++)
-			{
-				WORD wItemID = (*it).first;
-				DWORD dwPrice = 0;
-				//BYTE bGem = 0;
-				if(pNpc->m_bType == TNPC_PVPOINT)
-					dwPrice = _AtlModule.GetItemPvPrice((*it).second);
-				else
-					dwPrice = _AtlModule.GetItemPrice((*it).second);				
-
-				(*pMSG) << wItemID
-						<< dwPrice;
-						//<< bGem;
-			}
-
-			mapITEM.clear();
+				mapITEM.insert(MAPTITEMTEMP::value_type((*it).first, (*it).second));
 		}
-		break;
+
+		(*pMSG)
+			<< BYTE(mapITEM.size());
+
+		for (it = mapITEM.begin(); it != mapITEM.end(); it++)
+		{
+			WORD wItemID = (*it).first;
+			DWORD dwPrice = 0;
+			//BYTE bGem = 0;
+			if (pNpc->m_bType == TNPC_PVPOINT)
+				dwPrice = _AtlModule.GetItemPvPrice((*it).second);
+			else
+				dwPrice = _AtlModule.GetItemPrice((*it).second);
+
+			(*pMSG) << wItemID
+				<< dwPrice;
+			//<< bGem;
+		}
+
+		mapITEM.clear();
+	}
+	break;
 	case TNPC_PORTAL:
-		{
-			MAPTDESTINATION::iterator itDest;
-			MAPTDESTINATION mapDest;
-			mapDest.clear();
-			LPTPORTAL pPortal = pNpc->GetPortal();
+	{
+		MAPTDESTINATION::iterator itDest;
+		MAPTDESTINATION mapDest;
+		mapDest.clear();
+		LPTPORTAL pPortal = pNpc->GetPortal();
 
-			if( pPortal && CheckPortalCondition(pPortal, pPortal->m_bCondition, pPortal->m_dwConditionID))
+		if (pPortal && CheckPortalCondition(pPortal, pPortal->m_bCondition, pPortal->m_dwConditionID))
+		{
+			for (itDest = pPortal->m_mapDestination.begin(); itDest != pPortal->m_mapDestination.end(); itDest++)
 			{
-				for(itDest=pPortal->m_mapDestination.begin(); itDest!=pPortal->m_mapDestination.end(); itDest++)
+				BYTE bSuccess = TRUE;
+				for (BYTE i = 0; i < PORTALCONDITION_COUNT; i++)
 				{
-					BYTE bSuccess = TRUE;
-					for(BYTE i = 0; i < PORTALCONDITION_COUNT; i++)
+					if (!CheckPortalCondition((*itDest).second->m_pPortal, (*itDest).second->m_bCondition[i], (*itDest).second->m_dwConditionID[i]))
 					{
-						if(!CheckPortalCondition((*itDest).second->m_pPortal, (*itDest).second->m_bCondition[i], (*itDest).second->m_dwConditionID[i]))
-						{
-							bSuccess = FALSE;
-							break;
-						}						
+						bSuccess = FALSE;
+						break;
 					}
-					if(bSuccess)
-                        mapDest.insert(MAPTDESTINATION::value_type((*itDest).first, (*itDest).second));
 				}
+				if (bSuccess)
+					mapDest.insert(MAPTDESTINATION::value_type((*itDest).first, (*itDest).second));
 			}
-
-			(*pMSG)
-				<< BYTE(mapDest.size());
-
-			for(itDest=mapDest.begin(); itDest!=mapDest.end(); itDest++)
-			{
-				(*pMSG) << (*itDest).first
-						<< (*itDest).second->m_dwPrice;
-			}
-
-			mapDest.clear();
 		}
-		break;
+
+		(*pMSG)
+			<< BYTE(mapDest.size());
+
+		for (itDest = mapDest.begin(); itDest != mapDest.end(); itDest++)
+		{
+			(*pMSG) << (*itDest).first
+				<< (*itDest).second->m_dwPrice;
+		}
+
+		mapDest.clear();
+	}
+	break;
 	case TNPC_MONSTER:
-		{
-			(*pMSG)
-                << BYTE(pNpc->m_mapMon.size());
+	{
+		(*pMSG)
+			<< BYTE(pNpc->m_mapMon.size());
 
-			MAPTMONSTERSHOP::iterator it;
-			for(it=pNpc->m_mapMon.begin(); it!=pNpc->m_mapMon.end(); it++)
-			{
-				LPTMONSTERSHOP pMon = (*it).second;
-				(*pMSG)
-					<< pMon->m_wID
-					<< pMon->m_dwPrice;
-			}
-		}
-		break;
-	case TNPC_MAGICITEM:
+		MAPTMONSTERSHOP::iterator it;
+		for (it = pNpc->m_mapMon.begin(); it != pNpc->m_mapMon.end(); it++)
 		{
-			MAPTSTORAGEITEM::iterator it;
-			MAPTSTORAGEITEM mapMagicITEM;
-			mapMagicITEM.clear();
-			for(it=pNpc->m_mapMagicItem.begin(); it!=pNpc->m_mapMagicItem.end(); it++)
-			{
-				if((*it).second->m_pTITEM->m_dwClassID & BITSHIFTID(m_bClass) &&
-					((*it).second->m_pTITEM->m_bItemCountry == TCONTRY_N ||
+			LPTMONSTERSHOP pMon = (*it).second;
+			(*pMSG)
+				<< pMon->m_wID
+				<< pMon->m_dwPrice;
+		}
+	}
+	break;
+	case TNPC_MAGICITEM:
+	{
+		MAPTSTORAGEITEM::iterator it;
+		MAPTSTORAGEITEM mapMagicITEM;
+		mapMagicITEM.clear();
+		for (it = pNpc->m_mapMagicItem.begin(); it != pNpc->m_mapMagicItem.end(); it++)
+		{
+			if ((*it).second->m_pTITEM->m_dwClassID & BITSHIFTID(m_bClass) &&
+				((*it).second->m_pTITEM->m_bItemCountry == TCONTRY_N ||
 					pNpc->m_bDiscountCondition == DCC_ALLCOUNTRY ||
 					(*it).second->m_pTITEM->m_bItemCountry == m_bCountry))
-					mapMagicITEM.insert(MAPTSTORAGEITEM::value_type((*it).first, (*it).second));
-			}
-
-			(*pMSG)
-				<< BYTE(mapMagicITEM.size());
-
-			for(it=mapMagicITEM.begin(); it!=mapMagicITEM.end(); it++)
-			{
-				DWORD dwQItemID = (*it).first;
-				DWORD dwPrice = (*it).second->m_dwMoney;
-				__int64 dUseTime = (*it).second->m_dEndTime;
-
-				(*pMSG) << dwQItemID
-						<< dwPrice;
-
-				CTime time(_AtlModule.m_timeCurrent);
-				time += CTimeSpan(LONG((*it).second->m_dEndTime),0,59,0);
-				(*it).second->m_dEndTime = time.GetTime();
-				//(*it).second->SetEndTime(DWORD((*it).second->m_dEndTime) * DAY_ONE);
-				(*it).second->WrapPacketClient(pMSG, m_dwID, FALSE);
-				(*it).second->m_dEndTime = dUseTime;
-			}
-
-			mapMagicITEM.clear();
+				mapMagicITEM.insert(MAPTSTORAGEITEM::value_type((*it).first, (*it).second));
 		}
-		break;
+
+		(*pMSG)
+			<< BYTE(mapMagicITEM.size());
+
+		for (it = mapMagicITEM.begin(); it != mapMagicITEM.end(); it++)
+		{
+			DWORD dwQItemID = (*it).first;
+			DWORD dwPrice = (*it).second->m_dwMoney;
+			__int64 dUseTime = (*it).second->m_dEndTime;
+
+			(*pMSG) << dwQItemID
+				<< dwPrice;
+
+			CTime time(_AtlModule.m_timeCurrent);
+			time += CTimeSpan(LONG((*it).second->m_dEndTime), 0, 59, 0);
+			(*it).second->m_dEndTime = time.GetTime();
+			//(*it).second->SetEndTime(DWORD((*it).second->m_dEndTime) * DAY_ONE);
+			(*it).second->WrapPacketClient(pMSG, m_dwID, FALSE);
+			(*it).second->m_dEndTime = dUseTime;
+		}
+
+		mapMagicITEM.clear();
+	}
+	break;
 	}
 
 	Say(pMSG);
 }
 void CTPlayer::SendCS_ITEMBUY_ACK(BYTE bRet,
-								  WORD wItemID)
+	WORD wItemID)
 {
 	CPacket * pMSG = new CPacket();
 
@@ -2486,10 +2486,10 @@ void CTPlayer::SendCS_MONITEMTAKE_ACK(BYTE bResult)
 	Say(pMSG);
 }
 void CTPlayer::SendCS_MONITEMLIST_ACK(BYTE bRet,
-									  DWORD dwMonID,
-									  DWORD dwMoney,
-									  CTInven * pInven,
-									  BYTE bUpdate)
+	DWORD dwMonID,
+	DWORD dwMoney,
+	CTInven * pInven,
+	BYTE bUpdate)
 {
 	CPacket * pMSG = new CPacket();
 
@@ -2504,7 +2504,7 @@ void CTPlayer::SendCS_MONITEMLIST_ACK(BYTE bRet,
 		<< dwSilver
 		<< dwCooper;
 
-	if(!bRet)
+	if (!bRet)
 	{
 		WORD wSize = pMSG->GetSize();
 		BYTE bCount = 0;
@@ -2513,19 +2513,19 @@ void CTPlayer::SendCS_MONITEMLIST_ACK(BYTE bRet,
 			<< bCount;
 
 		MAPTITEM::iterator it;
-		for(it=pInven->m_mapTITEM.begin(); it != pInven->m_mapTITEM.end();it++)
+		for (it = pInven->m_mapTITEM.begin(); it != pInven->m_mapTITEM.end();it++)
 		{
-			if((*it).second->m_bMaxRouting)
+			if ((*it).second->m_bMaxRouting)
 				continue;
 
-			if((*it).second->m_dwOwnerID == 0 || (*it).second->m_dwOwnerID == m_dwID)
+			if ((*it).second->m_dwOwnerID == 0 || (*it).second->m_dwOwnerID == m_dwID)
 			{
 				CTItem * pTITEM = (*it).second;
 				pTITEM->WrapPacketClient(pMSG, m_dwID);
 				bCount++;
 			}
 		}
-		memcpy(pMSG->GetBuffer()+wSize, &bCount, sizeof(bCount));
+		memcpy(pMSG->GetBuffer() + wSize, &bCount, sizeof(bCount));
 	}
 
 	Say(pMSG);
@@ -2549,12 +2549,12 @@ void CTPlayer::SendCS_FRIENDASK_ACK(CString strInviter)
 	Say(pMsg);
 }
 void CTPlayer::SendCS_FRIENDADD_ACK(BYTE bResult,
-									DWORD dwFriendID,
-									CString strName,
-									BYTE bLevel,
-									BYTE bGroup,
-									BYTE bClass,
-									DWORD dwRegion)
+	DWORD dwFriendID,
+	CString strName,
+	BYTE bLevel,
+	BYTE bGroup,
+	BYTE bClass,
+	DWORD dwRegion)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_FRIENDADD_ACK)
@@ -2569,7 +2569,7 @@ void CTPlayer::SendCS_FRIENDADD_ACK(BYTE bResult,
 	Say(pMsg);
 }
 void CTPlayer::SendCS_FRIENDERASE_ACK(BYTE bResult,
-                                      DWORD dwFriendID)
+	DWORD dwFriendID)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_FRIENDERASE_ACK)
@@ -2583,9 +2583,9 @@ void CTPlayer::SendCS_FRIENDLIST_ACK(CPacket * pMsg)
 	pMsg->SetID(CS_FRIENDLIST_ACK);
 	Say(pMsg);
 }
-void CTPlayer::SendCS_FRIENDCONNECTION_ACK(BYTE bResult, 
-										   CString strName, 
-										   DWORD dwRegion)
+void CTPlayer::SendCS_FRIENDCONNECTION_ACK(BYTE bResult,
+	CString strName,
+	DWORD dwRegion)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_FRIENDCONNECTION_ACK)
@@ -2595,8 +2595,8 @@ void CTPlayer::SendCS_FRIENDCONNECTION_ACK(BYTE bResult,
 
 	Say(pMsg);
 }
-void CTPlayer::SendCS_FRIENDREGION_ACK(CString strName, 
-									   DWORD dwRegion)
+void CTPlayer::SendCS_FRIENDREGION_ACK(CString strName,
+	DWORD dwRegion)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_FRIENDREGION_ACK)
@@ -2613,8 +2613,8 @@ void CTPlayer::SendCS_CHGPARTYCHIEF_ACK(BYTE bRET)
 
 	Say(pMsg);
 }
-void CTPlayer::SendCS_CHGSQUADCHIEF_ACK(WORD wSquadID, 
-										DWORD dwChiefID)
+void CTPlayer::SendCS_CHGSQUADCHIEF_ACK(WORD wSquadID,
+	DWORD dwChiefID)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_CHGSQUADCHIEF_ACK)
@@ -2624,9 +2624,9 @@ void CTPlayer::SendCS_CHGSQUADCHIEF_ACK(WORD wSquadID,
 	Say(pMsg);
 }
 void CTPlayer::SendCS_PARTYATTR_ACK(DWORD dwCharID,
-									WORD wPartyID,
-									DWORD dwChiefID,
-									WORD wCommander)
+	WORD wPartyID,
+	DWORD dwChiefID,
+	WORD wCommander)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_PARTYATTR_ACK)
@@ -2638,13 +2638,13 @@ void CTPlayer::SendCS_PARTYATTR_ACK(DWORD dwCharID,
 	Say(pMsg);
 }
 void CTPlayer::SendCS_GUILDATTR_ACK(DWORD dwCharID,
-									DWORD dwGuildID,
-									DWORD dwFame,
-									DWORD dwFameColor,
-									CString strName,
-									BYTE bPeer,
-									DWORD dwTacticsID, 
-									CString strTacticsName)
+	DWORD dwGuildID,
+	DWORD dwFame,
+	DWORD dwFameColor,
+	CString strName,
+	BYTE bPeer,
+	DWORD dwTacticsID,
+	CString strTacticsName)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_GUILDATTR_ACK)
@@ -2667,7 +2667,7 @@ void CTPlayer::SendCS_HOTKEYCHANGE_ACK(BYTE bInven, THOTKEY hotkey[], BYTE bCoun
 		<< bInven
 		<< bCount;
 
-	for(BYTE i=0; i<bCount; i++)
+	for (BYTE i = 0; i < bCount; i++)
 	{
 		(*pMsg)
 			<< hotkey[i].m_bPos
@@ -2696,7 +2696,7 @@ void CTPlayer::SendCS_TITLEGAIN_ACK(WORD wTitleID, BYTE bStart)
 		<< BYTE(m_mapTTITLE.size());
 
 	MAPTTITLE::iterator itTITLE;
-	for(itTITLE=m_mapTTITLE.begin(); itTITLE!=m_mapTTITLE.end(); itTITLE++)
+	for (itTITLE = m_mapTTITLE.begin(); itTITLE != m_mapTTITLE.end(); itTITLE++)
 	{
 		(*pMsg)
 			<< (*itTITLE).second->m_wTitleID
@@ -2713,18 +2713,18 @@ void CTPlayer::SendCS_TITLEGAIN_ACK(WORD wTitleID, BYTE bStart)
 void CTPlayer::SendCS_NPCITEMLIST_ACK(WORD wID, LPVWORD pvItem)
 {
 	CPacket * pMsg = new CPacket();
-	
-	 	
+
+
 	CTNpc* pNpc = _AtlModule.FindTNpc(wID);
-	BYTE bDiscountRate = _AtlModule.GetDiscountRate(this,pNpc);
+	BYTE bDiscountRate = _AtlModule.GetDiscountRate(this, pNpc);
 
 	pMsg->SetID(CS_NPCITEMLIST_ACK)
 		<< wID
 		<< BYTE(TNPC_BOX)
-		<< bDiscountRate				
+		<< bDiscountRate
 		<< BYTE(pvItem->size());
 
-	for(DWORD i=0; i<pvItem->size(); i++)
+	for (DWORD i = 0; i < pvItem->size(); i++)
 	{
 		(*pMsg) << (*pvItem)[i];
 	}
@@ -2860,10 +2860,10 @@ void CTPlayer::SendCS_ITEMMAGICGRADE_ACK(BYTE bResult, BYTE bTargetInven, CTItem
 		<< BYTE(pTITEM ? pTITEM->m_bItemID : 0)
 		<< BYTE(pTITEM ? pTITEM->m_mapTMAGIC.size() : 0);
 
-	if(pTITEM)
+	if (pTITEM)
 	{
 		MAPTMAGIC::iterator itTMAGIC;
-		for( itTMAGIC = pTITEM->m_mapTMAGIC.begin(); itTMAGIC != pTITEM->m_mapTMAGIC.end(); itTMAGIC++)
+		for (itTMAGIC = pTITEM->m_mapTMAGIC.begin(); itTMAGIC != pTITEM->m_mapTMAGIC.end(); itTMAGIC++)
 		{
 			(*pMsg)
 				<< (*itTMAGIC).first
@@ -2892,7 +2892,7 @@ void CTPlayer::SendCS_CORPSASK_ACK(CString strAskName)
 	Say(pMsg);
 }
 void CTPlayer::SendCS_CORPSREPLY_ACK(BYTE bResult,
-									 CString strAskName)
+	CString strAskName)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_CORPSREPLY_ACK)
@@ -2902,7 +2902,7 @@ void CTPlayer::SendCS_CORPSREPLY_ACK(BYTE bResult,
 	Say(pMsg);
 }
 void CTPlayer::SendCS_CORPSJOIN_ACK(WORD wCorpsID,
-									WORD wCommanderID)
+	WORD wCommanderID)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_CORPSJOIN_ACK)
@@ -2914,7 +2914,7 @@ void CTPlayer::SendCS_CORPSJOIN_ACK(WORD wCorpsID,
 void CTPlayer::SendCS_ADDSQUAD_ACK(CPacket * pPacket)
 {
 	CPacket * pMsg = new CPacket();
-	pMsg->CopyData(pPacket, sizeof(DWORD)*2);
+	pMsg->CopyData(pPacket, sizeof(DWORD) * 2);
 	pMsg->SetID(CS_ADDSQUAD_ACK);
 
 	Say(pMsg);
@@ -2939,20 +2939,20 @@ void CTPlayer::SendCS_DELCORPSUNIT_ACK(WORD wSquad, DWORD dwTarget)
 void CTPlayer::SendCS_ADDCORPSUNIT_ACK(CPacket * pPacket)
 {
 	CPacket * pMsg = new CPacket();
-	pMsg->CopyData(pPacket, sizeof(DWORD)*2);
+	pMsg->CopyData(pPacket, sizeof(DWORD) * 2);
 	pMsg->SetID(CS_ADDCORPSUNIT_ACK);
 
 	Say(pMsg);
 }
 
 void CTPlayer::SendCS_CORPSCMD_ACK(WORD wSquadID,
-								   DWORD dwCharID,
-								   WORD wMapID,
-								   BYTE bCMD,
-								   DWORD dwTargetID,
-								   BYTE bTargetType,
-								   WORD wPosX,
-								   WORD wPosZ)
+	DWORD dwCharID,
+	WORD wMapID,
+	BYTE bCMD,
+	DWORD dwTargetID,
+	BYTE bTargetType,
+	WORD wPosX,
+	WORD wPosZ)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_CORPSCMD_ACK)
@@ -2971,7 +2971,7 @@ void CTPlayer::SendCS_CORPSCMD_ACK(WORD wSquadID,
 void CTPlayer::SendCS_CORPSENEMYLIST_ACK(CPacket * pPacket)
 {
 	CPacket * pMsg = new CPacket();
-	pMsg->CopyData(pPacket, sizeof(DWORD)*2);
+	pMsg->CopyData(pPacket, sizeof(DWORD) * 2);
 	pMsg->SetID(CS_CORPSENEMYLIST_ACK);
 
 	Say(pMsg);
@@ -2980,7 +2980,7 @@ void CTPlayer::SendCS_CORPSENEMYLIST_ACK(CPacket * pPacket)
 void CTPlayer::SendCS_MOVECORPSENEMY_ACK(CPacket * pPacket)
 {
 	CPacket * pMsg = new CPacket();
-	pMsg->CopyData(pPacket, sizeof(DWORD)*2);
+	pMsg->CopyData(pPacket, sizeof(DWORD) * 2);
 	pMsg->SetID(CS_MOVECORPSENEMY_ACK);
 
 	Say(pMsg);
@@ -2989,7 +2989,7 @@ void CTPlayer::SendCS_MOVECORPSENEMY_ACK(CPacket * pPacket)
 void CTPlayer::SendCS_MOVECORPSUNIT_ACK(CPacket * pPacket)
 {
 	CPacket * pMsg = new CPacket();
-	pMsg->CopyData(pPacket, sizeof(DWORD)*2);
+	pMsg->CopyData(pPacket, sizeof(DWORD) * 2);
 	pMsg->SetID(CS_MOVECORPSUNIT_ACK);
 
 	Say(pMsg);
@@ -2998,7 +2998,7 @@ void CTPlayer::SendCS_MOVECORPSUNIT_ACK(CPacket * pPacket)
 void CTPlayer::SendCS_ADDCORPSENEMY_ACK(CPacket * pPacket)
 {
 	CPacket * pMsg = new CPacket();
-	pMsg->CopyData(pPacket, sizeof(DWORD)*2);
+	pMsg->CopyData(pPacket, sizeof(DWORD) * 2);
 	pMsg->SetID(CS_ADDCORPSENEMY_ACK);
 
 	Say(pMsg);
@@ -3007,7 +3007,7 @@ void CTPlayer::SendCS_ADDCORPSENEMY_ACK(CPacket * pPacket)
 void CTPlayer::SendCS_DELCORPSENEMY_ACK(CPacket * pPacket)
 {
 	CPacket * pMsg = new CPacket();
-	pMsg->CopyData(pPacket, sizeof(DWORD)*2);
+	pMsg->CopyData(pPacket, sizeof(DWORD) * 2);
 	pMsg->SetID(CS_DELCORPSENEMY_ACK);
 
 	Say(pMsg);
@@ -3016,7 +3016,7 @@ void CTPlayer::SendCS_DELCORPSENEMY_ACK(CPacket * pPacket)
 void CTPlayer::SendCS_CORPSHP_ACK(CPacket * pPacket)
 {
 	CPacket * pMsg = new CPacket();
-	pMsg->CopyData(pPacket, sizeof(DWORD)*2);
+	pMsg->CopyData(pPacket, sizeof(DWORD) * 2);
 	pMsg->SetID(CS_CORPSHP_ACK);
 
 	Say(pMsg);
@@ -3048,7 +3048,7 @@ void CTPlayer::SendCS_PROTECTEDLIST_ACK()
 		<< BYTE(m_mapTPROTECTED.size());
 
 	MAPTPROTECTED::iterator it;
-	for(it=m_mapTPROTECTED.begin(); it!=m_mapTPROTECTED.end(); it++)
+	for (it = m_mapTPROTECTED.begin(); it != m_mapTPROTECTED.end(); it++)
 	{
 		(*pMsg)
 			<< (*it).first
@@ -3060,9 +3060,9 @@ void CTPlayer::SendCS_PROTECTEDLIST_ACK()
 }
 
 void CTPlayer::SendCS_PROTECTEDADD_ACK(BYTE bResult,
-									   DWORD dwCharID,
-									   CString strProtected,
-									   BYTE bOption)
+	DWORD dwCharID,
+	CString strProtected,
+	BYTE bOption)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_PROTECTEDADD_ACK)
@@ -3073,8 +3073,8 @@ void CTPlayer::SendCS_PROTECTEDADD_ACK(BYTE bResult,
 
 	Say(pMsg);
 }
-void CTPlayer::SendCS_PROTECTEDERASE_ACK(BYTE bResult, 
-										 CString strProtected)
+void CTPlayer::SendCS_PROTECTEDERASE_ACK(BYTE bResult,
+	CString strProtected)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_PROTECTEDERASE_ACK)
@@ -3084,8 +3084,8 @@ void CTPlayer::SendCS_PROTECTEDERASE_ACK(BYTE bResult,
 	Say(pMsg);
 }
 void CTPlayer::SendCS_FRIENDGROUPMAKE_ACK(BYTE bRet,
-										  BYTE bGroup,
-										  CString strName)
+	BYTE bGroup,
+	CString strName)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_FRIENDGROUPMAKE_ACK)
@@ -3096,7 +3096,7 @@ void CTPlayer::SendCS_FRIENDGROUPMAKE_ACK(BYTE bRet,
 	Say(pMsg);
 }
 void CTPlayer::SendCS_FRIENDGROUPDELETE_ACK(BYTE bRet,
-											BYTE bGroup)
+	BYTE bGroup)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_FRIENDGROUPDELETE_ACK)
@@ -3106,8 +3106,8 @@ void CTPlayer::SendCS_FRIENDGROUPDELETE_ACK(BYTE bRet,
 	Say(pMsg);
 }
 void CTPlayer::SendCS_FRIENDGROUPCHANGE_ACK(BYTE bRet,
-											BYTE bGroup,
-											DWORD dwFriend)
+	BYTE bGroup,
+	DWORD dwFriend)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_FRIENDGROUPCHANGE_ACK)
@@ -3118,8 +3118,8 @@ void CTPlayer::SendCS_FRIENDGROUPCHANGE_ACK(BYTE bRet,
 	Say(pMsg);
 }
 void CTPlayer::SendCS_FRIENDGROUPNAME_ACK(BYTE bRet,
-										  BYTE bGroup,
-										  CString strName)
+	BYTE bGroup,
+	CString strName)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_FRIENDGROUPNAME_ACK)
@@ -3142,7 +3142,7 @@ void CTPlayer::SendCS_TMSRECV_ACK(DWORD dwTMS, CString strSender, CString strMes
 void CTPlayer::SendCS_TMSINVITE_ACK(CPacket * pPacket)
 {
 	CPacket * pMsg = new CPacket();
-	pMsg->CopyData(pPacket, sizeof(DWORD)*2);
+	pMsg->CopyData(pPacket, sizeof(DWORD) * 2);
 	pMsg->SetID(CS_TMSINVITE_ACK);
 
 	Say(pMsg);
@@ -3165,13 +3165,13 @@ void CTPlayer::SendCS_POSTSEND_ACK(BYTE bResult)
 	Say(pMsg);
 }
 void CTPlayer::SendCS_POSTRECV_ACK(DWORD dwPostID,
-								   BYTE bRead,
-								   CString strSender,
-								   CString strTitle,
-								   BYTE bType,
-								   __int64 ldwTime)
+	BYTE bRead,
+	CString strSender,
+	CString strTitle,
+	BYTE bType,
+	__int64 ldwTime)
 {
-	if(IsTutorial())
+	if (IsTutorial())
 		return;
 
 	CPacket * pMsg = new CPacket();
@@ -3194,7 +3194,7 @@ void CTPlayer::SendCS_POSTVIEW_ACK(DWORD dwPostID)
 	pMsg->SetID(CS_POSTVIEW_ACK)
 		<< dwPostID;
 
-	if(!m_pPost || m_pPost->m_dwPostID != dwPostID)
+	if (!m_pPost || m_pPost->m_dwPostID != dwPostID)
 	{
 		(*pMsg)
 			<< BYTE(0)
@@ -3217,7 +3217,7 @@ void CTPlayer::SendCS_POSTVIEW_ACK(DWORD dwPostID)
 			<< BYTE(pPost->m_vItem.size());
 
 		CTItem * pItem;
-		for(DWORD i=0; i<pPost->m_vItem.size(); i++)
+		for (DWORD i = 0; i < pPost->m_vItem.size(); i++)
 		{
 			pItem = pPost->m_vItem[i];
 			pItem->WrapPacketClient(pMsg, m_dwID, FALSE);
@@ -3257,7 +3257,7 @@ void CTPlayer::SendCS_POSTLIST_ACK(CPacket * pMsg)
 }
 
 void CTPlayer::SendCS_CASTLEENABLE_ACK(WORD wCastle,
-									   BYTE bStatus)
+	BYTE bStatus)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_CASTLEENABLE_ACK)
@@ -3267,9 +3267,9 @@ void CTPlayer::SendCS_CASTLEENABLE_ACK(WORD wCastle,
 	Say(pMsg);
 }
 void CTPlayer::SendCS_CASTLEAPPLY_ACK(BYTE bResult,
-									  WORD wCastle,
-									  DWORD dwTarget,
-									  BYTE bCamp)
+	WORD wCastle,
+	DWORD dwTarget,
+	BYTE bCamp)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_CASTLEAPPLY_ACK)
@@ -3281,9 +3281,9 @@ void CTPlayer::SendCS_CASTLEAPPLY_ACK(BYTE bResult,
 	Say(pMsg);
 }
 void CTPlayer::SendCS_ITEMUSE_ACK(BYTE bResult,
-								  WORD wDelayGroupID,
-								  BYTE bKind,
-								  DWORD dwTick)
+	WORD wDelayGroupID,
+	BYTE bKind,
+	DWORD dwTick)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_ITEMUSE_ACK)
@@ -3295,8 +3295,8 @@ void CTPlayer::SendCS_ITEMUSE_ACK(BYTE bResult,
 	Say(pMsg);
 }
 void CTPlayer::SendCS_MONSETSKILL_ACK(DWORD dwMonID,
-									  WORD wSkillID,
-									  WORD wAtkRange)
+	WORD wSkillID,
+	WORD wAtkRange)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_MONSETSKILL_ACK)
@@ -3306,8 +3306,8 @@ void CTPlayer::SendCS_MONSETSKILL_ACK(DWORD dwMonID,
 
 	Say(pMsg);
 }
-void CTPlayer::SendCS_NPCTALK_ACK( DWORD dwQuestID,
-								   WORD wNpcID)
+void CTPlayer::SendCS_NPCTALK_ACK(DWORD dwQuestID,
+	WORD wNpcID)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_NPCTALK_ACK)
@@ -3316,7 +3316,7 @@ void CTPlayer::SendCS_NPCTALK_ACK( DWORD dwQuestID,
 
 	Say(pMsg);
 }
-void CTPlayer::SendCS_CHAPTERMSG_ACK( DWORD dwQuestID )
+void CTPlayer::SendCS_CHAPTERMSG_ACK(DWORD dwQuestID)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_CHAPTERMSG_ACK)
@@ -3328,16 +3328,16 @@ void CTPlayer::SendCS_CHAPTERMSG_ACK( DWORD dwQuestID )
 // Çö½Â·æ °øÁö»çÇ×
 void CTPlayer::SendCS_ANNOUNCEMENTCHAT_ACK(CString strAnnounce)
 {
-    CPacket *pMsg = new CPacket();
+	CPacket *pMsg = new CPacket();
 	pMsg->SetID(CS_ANNOUNCEMENTCHAT_ACK)
 		<< strAnnounce;
 
 	Say(pMsg);
 }
 
-void CTPlayer::SendCS_BEGINTELEPORT_ACK( BYTE bChannel, WORD wMapID)
+void CTPlayer::SendCS_BEGINTELEPORT_ACK(BYTE bChannel, WORD wMapID)
 {
-    CPacket *pMsg = new CPacket();
+	CPacket *pMsg = new CPacket();
 
 	pMsg->SetID(CS_BEGINTELEPORT_ACK)
 		<< bChannel
@@ -3346,16 +3346,16 @@ void CTPlayer::SendCS_BEGINTELEPORT_ACK( BYTE bChannel, WORD wMapID)
 	Say(pMsg);
 }
 
-void CTPlayer::SendCS_TELEPORT_ACK( BYTE bResult,
-								    DWORD dwRange,
-								    DWORD dwID,
-									BYTE bType,
-									WORD wMapID,
-									FLOAT fPosX,
-									FLOAT fPosY,
-									FLOAT fPosZ)
+void CTPlayer::SendCS_TELEPORT_ACK(BYTE bResult,
+	DWORD dwRange,
+	DWORD dwID,
+	BYTE bType,
+	WORD wMapID,
+	FLOAT fPosX,
+	FLOAT fPosY,
+	FLOAT fPosZ)
 {
-    CPacket *pMsg = new CPacket();
+	CPacket *pMsg = new CPacket();
 
 	pMsg->SetID(CS_TELEPORT_ACK)
 		<< bResult
@@ -3370,10 +3370,10 @@ void CTPlayer::SendCS_TELEPORT_ACK( BYTE bResult,
 	Say(pMsg);
 }
 
-void CTPlayer::SendCS_INVENADD_ACK( BYTE bResult,
-								    BYTE bInvenID,
-									WORD wItemID,
-									__time64_t dEndTime)
+void CTPlayer::SendCS_INVENADD_ACK(BYTE bResult,
+	BYTE bInvenID,
+	WORD wItemID,
+	__time64_t dEndTime)
 {
 	CPacket * pMsg = new CPacket();
 
@@ -3386,8 +3386,8 @@ void CTPlayer::SendCS_INVENADD_ACK( BYTE bResult,
 	Say(pMsg);
 }
 
-void CTPlayer::SendCS_INVENDEL_ACK( BYTE bResult,
-								    BYTE bInvenID)
+void CTPlayer::SendCS_INVENDEL_ACK(BYTE bResult,
+	BYTE bInvenID)
 {
 	CPacket * pMsg = new CPacket();
 
@@ -3398,9 +3398,9 @@ void CTPlayer::SendCS_INVENDEL_ACK( BYTE bResult,
 	Say(pMsg);
 }
 
-void CTPlayer::SendCS_INVENMOVE_ACK( BYTE bResult,
-									 BYTE bSRCInvenID,
-									 BYTE bDESTInvenID)
+void CTPlayer::SendCS_INVENMOVE_ACK(BYTE bResult,
+	BYTE bSRCInvenID,
+	BYTE bDESTInvenID)
 {
 	CPacket * pMsg = new CPacket();
 
@@ -3472,9 +3472,9 @@ void CTPlayer::SendCS_SWITCHCHANGE_ACK(BYTE bResult, DWORD dwSwitchID, BYTE bOpe
 }
 
 void CTPlayer::SendCS_REVIVALASK_ACK(DWORD dwID,
-									 BYTE bType,
-									 WORD wSkillID,
-									 BYTE bLevel)
+	BYTE bType,
+	WORD wSkillID,
+	BYTE bLevel)
 {
 	CPacket * pMsg = new CPacket();
 
@@ -3488,7 +3488,7 @@ void CTPlayer::SendCS_REVIVALASK_ACK(DWORD dwID,
 }
 
 void CTPlayer::SendCS_REVIVALREPLY_ACK(BYTE bReply,
-									   DWORD dwDefender)
+	DWORD dwDefender)
 {
 	CPacket * pMsg = new CPacket();
 
@@ -3500,8 +3500,8 @@ void CTPlayer::SendCS_REVIVALREPLY_ACK(BYTE bReply,
 }
 
 void CTPlayer::SendCS_DROPDAMAGE_ACK(DWORD dwID,
-									 BYTE bType,
-									 DWORD dwDamage)
+	BYTE bType,
+	DWORD dwDamage)
 {
 	CPacket * pMsg = new CPacket();
 
@@ -3555,9 +3555,9 @@ void CTPlayer::SendCS_DEALITEMSTART_ACK(CString strTarget)
 }
 
 void CTPlayer::SendCS_DEALITEMADD_ACK(DWORD dwGold,
-									  DWORD dwSilver,
-									  DWORD dwCooper,
-									  LPVTITEM pvItem)
+	DWORD dwSilver,
+	DWORD dwCooper,
+	LPVTITEM pvItem)
 {
 	CPacket * pMsg = new CPacket();
 
@@ -3567,7 +3567,7 @@ void CTPlayer::SendCS_DEALITEMADD_ACK(DWORD dwGold,
 		<< dwCooper
 		<< BYTE(pvItem->size());
 
-	for(DWORD i=0; i<pvItem->size(); i++)
+	for (DWORD i = 0; i < pvItem->size(); i++)
 	{
 		CTItem * pItem = (*pvItem)[i];
 		pItem->WrapPacketClient(pMsg, m_dwID, FALSE);
@@ -3614,14 +3614,14 @@ void CTPlayer::SendCS_STOREITEMLIST_ACK(DWORD dwID, CString strName, CTPlayer * 
 		<< bCount;
 
 	MAPTSTOREITEM::iterator itSTORE;
-	
-	for(itSTORE=pTarget->m_mapStoreItem.begin(); itSTORE!=pTarget->m_mapStoreItem.end(); itSTORE++)
+
+	for (itSTORE = pTarget->m_mapStoreItem.begin(); itSTORE != pTarget->m_mapStoreItem.end(); itSTORE++)
 	{
 		CTInven * pInven = pTarget->FindTInven((*itSTORE).second->m_bInvenID);
-		if(pInven)
+		if (pInven)
 		{
 			CTItem * pItem = pInven->FindTItem((*itSTORE).second->m_bItemID);
-			if(pItem)
+			if (pItem)
 			{
 				(*pMsg)
 					<< (*itSTORE).first
@@ -3632,12 +3632,12 @@ void CTPlayer::SendCS_STOREITEMLIST_ACK(DWORD dwID, CString strName, CTPlayer * 
 				pItem->WrapPacketClient(pMsg, m_dwID, FALSE);
 				bCount++;
 
-				if(bCount == 0xFF)
+				if (bCount == 0xFF)
 					break;
 			}
 		}
 	}
-	memcpy(pMsg->GetBuffer()+wSize, &bCount, sizeof(bCount));
+	memcpy(pMsg->GetBuffer() + wSize, &bCount, sizeof(bCount));
 
 	Say(pMsg);
 }
@@ -3697,7 +3697,7 @@ void CTPlayer::SendCS_PETLIST_ACK()
 		<< BYTE(m_mapTPET.size());
 
 	MAPTPET::iterator it;
-	for(it=m_mapTPET.begin(); it!=m_mapTPET.end(); it++)
+	for (it = m_mapTPET.begin(); it != m_mapTPET.end(); it++)
 	{
 		(*pMsg)
 			<< (*it).second->m_wPetID
@@ -3825,7 +3825,7 @@ void CTPlayer::SendCS_GETTARGETANS_ACK(DWORD dwCharID)
 	Say(pMsg);
 }
 void CTPlayer::SendCS_GETTARGET_ACK(DWORD dwTargetID,
-									BYTE bTargetType)
+	BYTE bTargetType)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_GETTARGET_ACK)
@@ -3835,8 +3835,8 @@ void CTPlayer::SendCS_GETTARGET_ACK(DWORD dwTargetID,
 	Say(pMsg);
 }
 void CTPlayer::SendCS_SMSSEND_ACK(BYTE bResult,
-                                  BYTE bType,
-								  CString strTarget)
+	BYTE bType,
+	CString strTarget)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_SMSSEND_ACK)
@@ -3846,8 +3846,8 @@ void CTPlayer::SendCS_SMSSEND_ACK(BYTE bResult,
 
 	Say(pMsg);
 }
-void CTPlayer::SendCS_SKILLINIT_ACK(BYTE bResult, 
-									WORD wSkillID)
+void CTPlayer::SendCS_SKILLINIT_ACK(BYTE bResult,
+	WORD wSkillID)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_SKILLINIT_ACK)
@@ -3871,7 +3871,7 @@ void CTPlayer::SendCS_SKILLLIST_ACK(DWORD dwTick)
 		<< BYTE(m_mapTSKILL.size());
 
 	MAPTSKILL::iterator it;
-	for(it=m_mapTSKILL.begin(); it!=m_mapTSKILL.end(); it++)
+	for (it = m_mapTSKILL.begin(); it != m_mapTSKILL.end(); it++)
 	{
 		(*pMsg)
 			<< (*it).second->m_pTSKILL->m_wID
@@ -3887,7 +3887,7 @@ void CTPlayer::SendCS_SKILLINITPOSSIBLE_ACK(VWORD vSkill)
 	pMsg->SetID(CS_SKILLINITPOSSIBLE_ACK)
 		<< BYTE(vSkill.size());
 
-	for(BYTE i=0; i<vSkill.size(); i++)
+	for (BYTE i = 0; i < vSkill.size(); i++)
 	{
 		(*pMsg)
 			<< vSkill[i];
@@ -3915,8 +3915,8 @@ void CTPlayer::SendCS_PARTYMEMBERRECALL_ACK(BYTE bResult, BYTE bType, CString st
 	Say(pMsg);
 }
 void CTPlayer::SendCS_PARTYMEMBERRECALLANS_ACK(CString strName,
-											   BYTE bInven,
-											   BYTE bItem)
+	BYTE bInven,
+	BYTE bItem)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_PARTYMEMBERRECALLANS_ACK)
@@ -3928,7 +3928,7 @@ void CTPlayer::SendCS_PARTYMEMBERRECALLANS_ACK(CString strName,
 }
 
 void CTPlayer::SendCS_CASHITEMGET_ACK(BYTE bResult,
-									  DWORD dwCashItemID)
+	DWORD dwCashItemID)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_CASHITEMGET_ACK)
@@ -3938,9 +3938,9 @@ void CTPlayer::SendCS_CASHITEMGET_ACK(BYTE bResult,
 	Say(pMsg);
 }
 void CTPlayer::SendCS_CASHSHOPITEMLIST_ACK(DWORD dwCash,
-										   DWORD dwCashBonus,
-										   WORD wItemID,
-										   VTCASHCATEGORY & cash)
+	DWORD dwCashBonus,
+	WORD wItemID,
+	VTCASHCATEGORY & cash)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_CASHSHOPITEMLIST_ACK)
@@ -3948,7 +3948,7 @@ void CTPlayer::SendCS_CASHSHOPITEMLIST_ACK(DWORD dwCash,
 		<< dwCashBonus
 		<< BYTE(cash.size());
 
-	for(BYTE cc=0; cc<cash.size(); cc++)
+	for (BYTE cc = 0; cc < cash.size(); cc++)
 	{
 		(*pMsg)
 			<< cash[cc]->m_strName;
@@ -3959,14 +3959,14 @@ void CTPlayer::SendCS_CASHSHOPITEMLIST_ACK(DWORD dwCash,
 		(*pMsg)
 			<< wCount;
 
-		for(WORD ci=0; ci<cash[cc]->m_vCashItem.size(); ci++)
+		for (WORD ci = 0; ci < cash[cc]->m_vCashItem.size(); ci++)
 		{
 			LPTCASHITEM pCashItem = cash[cc]->m_vCashItem[ci];
-			if(!pCashItem->m_pItem ||
+			if (!pCashItem->m_pItem ||
 				(!wItemID && !pCashItem->m_bCanSell) ||
 				(pCashItem->m_pItem->m_pTITEM->m_bItemCountry != m_bCountry &&
-				pCashItem->m_pItem->m_pTITEM->m_bItemCountry != TCONTRY_N) ||
-				(wItemID && wItemID != pCashItem->m_pItem->m_wItemID))
+					pCashItem->m_pItem->m_pTITEM->m_bItemCountry != TCONTRY_N) ||
+					(wItemID && wItemID != pCashItem->m_pItem->m_wItemID))
 				continue;
 
 			(*pMsg)
@@ -3979,7 +3979,7 @@ void CTPlayer::SendCS_CASHSHOPITEMLIST_ACK(DWORD dwCash,
 			wCount++;
 		}
 
-		memcpy(pMsg->GetBuffer()+wSize, &wCount, sizeof(wCount));
+		memcpy(pMsg->GetBuffer() + wSize, &wCount, sizeof(wCount));
 	}
 
 	Say(pMsg);
@@ -3992,7 +3992,7 @@ void CTPlayer::SendCS_TITLELIST_ACK()
 		<< BYTE(m_mapTTITLE.size());
 
 	MAPTTITLE::iterator itTITLE;
-	for(itTITLE=m_mapTTITLE.begin(); itTITLE!=m_mapTTITLE.end(); itTITLE++)
+	for (itTITLE = m_mapTTITLE.begin(); itTITLE != m_mapTTITLE.end(); itTITLE++)
 	{
 		(*pMsg)
 			<< (*itTITLE).second->m_wTitleID
@@ -4033,7 +4033,7 @@ void CTPlayer::SendCS_CASHITEMPRESENT_ACK(BYTE bResult, DWORD dwCash, DWORD dwCa
 }
 
 void CTPlayer::SendCS_RESETPCBANG_ACK(DWORD dwCharID,
-									  BYTE bInPcBang)
+	BYTE bInPcBang)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_RESETPCBANG_ACK)
@@ -4054,9 +4054,9 @@ void CTPlayer::SendCS_SOULMATE_ACK()
 }
 
 void CTPlayer::SendCS_SOULMATESEARCH_ACK(BYTE bResult,
-										 DWORD dwTargetID,
-										 CString strName,
-										 DWORD dwRegion)
+	DWORD dwTargetID,
+	CString strName,
+	DWORD dwRegion)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_SOULMATESEARCH_ACK)
@@ -4071,12 +4071,12 @@ void CTPlayer::SendCS_SOULMATESEARCH_ACK(BYTE bResult,
 	Say(pMsg);
 }
 
-void CTPlayer::SendCS_SOULMATEREGREADY_ACK(BYTE bResult, CString strName, BYTE bNpcInven, BYTE bNpcItem )
+void CTPlayer::SendCS_SOULMATEREGREADY_ACK(BYTE bResult, CString strName, BYTE bNpcInven, BYTE bNpcItem)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_SOULMATEREGREADY_ACK)
 		<< bResult
-		<< strName		
+		<< strName
 		<< bNpcInven
 		<< bNpcItem;
 
@@ -4108,10 +4108,10 @@ void CTPlayer::SendCS_SOULMATEEND_ACK(BYTE bResult)
 }
 
 void CTPlayer::SendCS_GAMBLECHECK_ACK(BYTE bResult,
-									  BYTE bInven,
-									  BYTE bItem,
-									  DWORD dwMoney,
-									  BYTE bDiscountRate)
+	BYTE bInven,
+	BYTE bItem,
+	DWORD dwMoney,
+	BYTE bDiscountRate)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_GAMBLECHECK_ACK)
@@ -4125,9 +4125,9 @@ void CTPlayer::SendCS_GAMBLECHECK_ACK(BYTE bResult,
 }
 
 void CTPlayer::SendCS_GAMBLEOPEN_ACK(BYTE bResult,
-									 BYTE bInven,
-									 BYTE bItem,
-									 CTItem * pItem)
+	BYTE bInven,
+	BYTE bItem,
+	CTItem * pItem)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_GAMBLEOPEN_ACK)
@@ -4138,7 +4138,7 @@ void CTPlayer::SendCS_GAMBLEOPEN_ACK(BYTE bResult,
 		<< bInven
 		<< bItem;
 
-	if(pItem)
+	if (pItem)
 		pItem->WrapPacketClient(pMsg, m_dwID, FALSE);
 
 	Say(pMsg);
@@ -4154,7 +4154,7 @@ void CTPlayer::SendCS_ADDGODTOWER_ACK(LPTGODTOWER pGodTower)
 		<< pGodTower->m_fPosY
 		<< pGodTower->m_fPosZ;
 
-	if(pGodTower->m_pGodBall)
+	if (pGodTower->m_pGodBall)
 	{
 		(*pMsg)
 			<< pGodTower->m_pGodBall->m_wID
@@ -4206,7 +4206,7 @@ void CTPlayer::SendCS_DELGODBALL_ACK(WORD wID)
 }
 
 void CTPlayer::SendCS_TAKEGODBALL_ACK(DWORD dwCharID,
-                                      WORD wGodBallID)
+	WORD wGodBallID)
 {
 	CPacket * pMsg = new CPacket();
 
@@ -4218,9 +4218,9 @@ void CTPlayer::SendCS_TAKEGODBALL_ACK(DWORD dwCharID,
 }
 
 void CTPlayer::SendCS_MOUNTGODBALL_ACK(WORD wGodTower,
-									   WORD wGodBall,
-									   BYTE bCamp,
-                                       DWORD dwCharID)
+	WORD wGodBall,
+	BYTE bCamp,
+	DWORD dwCharID)
 {
 	CPacket * pMsg = new CPacket();
 
@@ -4233,7 +4233,7 @@ void CTPlayer::SendCS_MOUNTGODBALL_ACK(WORD wGodTower,
 	Say(pMsg);
 }
 void CTPlayer::SendCS_DEMOUNTGODBALL_ACK(WORD wGodTower,
-                                         DWORD dwCharID)
+	DWORD dwCharID)
 {
 	CPacket * pMsg = new CPacket();
 
@@ -4244,17 +4244,17 @@ void CTPlayer::SendCS_DEMOUNTGODBALL_ACK(WORD wGodTower,
 	Say(pMsg);
 }
 void CTPlayer::SendCS_BALANCEOFPOWER_ACK(FLOAT fPower_Def,
-										 DWORD dwLeftTick,
-										 WORD wKillPoint_Atk,
-										 WORD wKillPoint_Def,
-										 CString strOwner1_Atk,
-										 CString strOwner2_Atk,
-										 CString strOwner1_Def,
-										 CString strOwner2_Def,
-										 WORD wKeep1_Atk,
-										 WORD wKeep2_Atk,
-										 WORD wKeep1_Def,
-										 WORD wKeep2_Def)
+	DWORD dwLeftTick,
+	WORD wKillPoint_Atk,
+	WORD wKillPoint_Def,
+	CString strOwner1_Atk,
+	CString strOwner2_Atk,
+	CString strOwner1_Def,
+	CString strOwner2_Def,
+	WORD wKeep1_Atk,
+	WORD wKeep2_Atk,
+	WORD wKeep1_Def,
+	WORD wKeep2_Def)
 {
 	CPacket * pMsg = new CPacket();
 
@@ -4307,7 +4307,7 @@ void CTPlayer::SendCS_DURATIONEND_ACK(BYTE bInven, BYTE bItem, BYTE bDeleted)
 
 	Say(pMsg);
 }
-void CTPlayer::SendCS_DURATIONREPCOST_ACK(DWORD dwCost,BYTE bDiscountRate)  
+void CTPlayer::SendCS_DURATIONREPCOST_ACK(DWORD dwCost, BYTE bDiscountRate)
 {
 	CPacket * pMsg = new CPacket();
 
@@ -4325,7 +4325,7 @@ void CTPlayer::SendCS_DURATIONREP_ACK(BYTE bResult, VTITEM &vItem)
 		<< bResult
 		<< BYTE(vItem.size());
 
-	while(!vItem.empty())
+	while (!vItem.empty())
 	{
 		CTItem * pItem = vItem.back();
 		(*pMsg)
@@ -4339,7 +4339,7 @@ void CTPlayer::SendCS_DURATIONREP_ACK(BYTE bResult, VTITEM &vItem)
 
 	Say(pMsg);
 }
-void CTPlayer::SendCS_REFINECOST_ACK(DWORD dwCost,BYTE bDiscountRate)  
+void CTPlayer::SendCS_REFINECOST_ACK(DWORD dwCost, BYTE bDiscountRate)
 {
 	CPacket * pMsg = new CPacket();
 
@@ -4358,7 +4358,7 @@ void CTPlayer::SendCS_REFINE_ACK(BYTE bResult, BYTE bInven, CTItem * pItem)
 		<< bResult
 		<< bInven;
 
-	if(pItem)
+	if (pItem)
 		pItem->WrapPacketClient(pMsg, m_dwID);
 
 	Say(pMsg);
@@ -4375,9 +4375,9 @@ void CTPlayer::SendCS_RESETCOOLTIME_ACK(WORD wExceptSkill)
 }
 
 void CTPlayer::SendCS_CASHCABINETBUY_ACK(BYTE bResult,
-                                         __int64 ldwTime,
-                                         DWORD dwCash,
-                                         DWORD dwBonus)
+	__int64 ldwTime,
+	DWORD dwCash,
+	DWORD dwBonus)
 {
 	CPacket * pMsg = new CPacket();
 
@@ -4391,10 +4391,10 @@ void CTPlayer::SendCS_CASHCABINETBUY_ACK(BYTE bResult,
 }
 
 void CTPlayer::SendCS_CASHITEMPUTIN_ACK(BYTE bResult,
-										DWORD dwNewID,
-										CTItem * pItem,
-										DWORD dwCash,
-										DWORD dwBonus)
+	DWORD dwNewID,
+	CTItem * pItem,
+	DWORD dwCash,
+	DWORD dwBonus)
 {
 	CPacket * pMsg = new CPacket();
 
@@ -4402,7 +4402,7 @@ void CTPlayer::SendCS_CASHITEMPUTIN_ACK(BYTE bResult,
 		<< bResult
 		<< dwNewID;
 
-	if(!bResult && pItem)
+	if (!bResult && pItem)
 		pItem->WrapPacketClient(pMsg, m_dwID, FALSE);
 
 	Say(pMsg);
@@ -4418,12 +4418,12 @@ void CTPlayer::SendCS_CASHCABINETBUYCASH_ACK(DWORD dwCash)
 }
 
 void CTPlayer::SendCS_CHANGECHARBASE_ACK(BYTE bResult,
-										 DWORD dwCharID,
-										 BYTE bType,
-										 BYTE bValue,
-										 CString strName,
-										 WORD wTitleID,
-										 DWORD dwSecond)
+	DWORD dwCharID,
+	BYTE bType,
+	BYTE bValue,
+	CString strName,
+	WORD wTitleID,
+	DWORD dwSecond)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_CHANGECHARBASE_ACK)
@@ -4439,9 +4439,9 @@ void CTPlayer::SendCS_CHANGECHARBASE_ACK(BYTE bResult,
 }
 
 void CTPlayer::SendCS_STOPTHECLOCK_ACK(BYTE bResult,
-									   BYTE bInven,
-									   BYTE bItem,
-									   __time64_t dEndTime)
+	BYTE bInven,
+	BYTE bItem,
+	__time64_t dEndTime)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_STOPTHECLOCK_ACK)
@@ -4453,7 +4453,7 @@ void CTPlayer::SendCS_STOPTHECLOCK_ACK(BYTE bResult,
 	Say(pMsg);
 }
 
-void CTPlayer::SendCS_HEROSELECT_ACK(BYTE bResult)   
+void CTPlayer::SendCS_HEROSELECT_ACK(BYTE bResult)
 {
 	CPacket* pMsg = new CPacket();
 	pMsg->SetID(CS_HEROSELECT_ACK)
@@ -4462,13 +4462,13 @@ void CTPlayer::SendCS_HEROSELECT_ACK(BYTE bResult)
 	Say(pMsg);
 }
 
-void CTPlayer::SendCS_HEROLIST_ACK()  
+void CTPlayer::SendCS_HEROLIST_ACK()
 {
 	CPacket* pMSG = new CPacket();
 	pMSG->SetID(CS_HEROLIST_ACK)
 		<< BYTE(_AtlModule.m_vOccupation.size());
 
-	for(DWORD ll=0; ll<_AtlModule.m_vOccupation.size(); ll++)
+	for (DWORD ll = 0; ll < _AtlModule.m_vOccupation.size(); ll++)
 	{
 		LPTLOCAL pLocal = _AtlModule.m_vOccupation[ll];
 
@@ -4480,7 +4480,7 @@ void CTPlayer::SendCS_HEROLIST_ACK()
 	(*pMSG)
 		<< BYTE(_AtlModule.m_vCastle.size());
 
-	for(DWORD ll=0; ll<_AtlModule.m_vCastle.size(); ll++)
+	for (DWORD ll = 0; ll < _AtlModule.m_vCastle.size(); ll++)
 	{
 		LPTLOCAL pLocal = _AtlModule.m_vCastle[ll];
 
@@ -4494,7 +4494,7 @@ void CTPlayer::SendCS_HEROLIST_ACK()
 
 void CTPlayer::SendCS_SYSTEMMSG_ACK(BYTE bType, CPacket * pPacket)
 {
-	if(SM_EVENT_LOTTERY == bType)
+	if (SM_EVENT_LOTTERY == bType)
 	{
 		CPacket * pMsg = new CPacket();
 		pMsg->SetID(CS_SYSTEMMSG_ACK)
@@ -4506,17 +4506,17 @@ void CTPlayer::SendCS_SYSTEMMSG_ACK(BYTE bType, CPacket * pPacket)
 }
 
 void CTPlayer::SendCS_SYSTEMMSG_ACK(BYTE bType,
-									WORD wLocalID,
-									DWORD dwSecond,
-									CString strMsg1,
-									CString strMsg2,
-									BYTE bHour,
-									BYTE bMinute,
-									CString strPresent,
-									BYTE bSelect,
-									INT64 dlValue)
+	WORD wLocalID,
+	DWORD dwSecond,
+	CString strMsg1,
+	CString strMsg2,
+	BYTE bHour,
+	BYTE bMinute,
+	CString strPresent,
+	BYTE bSelect,
+	INT64 dlValue)
 {
-	if(bType == SM_BATTLE_OPENGATE &&
+	if (bType == SM_BATTLE_OPENGATE &&
 		(!m_pLocal || m_pLocal->m_wLocal != wLocalID))
 		return;
 
@@ -4524,7 +4524,7 @@ void CTPlayer::SendCS_SYSTEMMSG_ACK(BYTE bType,
 	pMSG->SetID(CS_SYSTEMMSG_ACK)
 		<< bType;
 
-	switch(bType)
+	switch (bType)
 	{
 	case SM_CASTLE_NORMAL:
 	case SM_BATTLE_NORMAL:
@@ -4575,14 +4575,14 @@ void CTPlayer::SendCS_SYSTEMMSG_ACK(BYTE bType,
 	case SM_BATTLE_PEACE:
 	case SM_SKYGARDEN_PEACE:
 		(*pMSG)
-            << dwSecond;
+			<< dwSecond;
 		break;
 	case SM_MISSION_START_ALARM:
 	case SM_MISSION_END_ALARM:
 	case SM_MISSION_PEACE:
 		(*pMSG)
 			<< wLocalID	//È¦¼ö.Â¦¼ö ¹Ì¼Ç
-            << dwSecond;
+			<< dwSecond;
 		break;
 	case SM_DUAL_WIN:
 		(*pMSG)
@@ -4653,7 +4653,7 @@ void CTPlayer::SendCS_RELAYCONNECT_ACK(DWORD dwIP, WORD wPort)
 }
 
 void CTPlayer::SendCS_COMMENT_ACK(DWORD dwCharID,
-                                  CString strComment)
+	CString strComment)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_COMMENT_ACK)
@@ -4663,11 +4663,11 @@ void CTPlayer::SendCS_COMMENT_ACK(DWORD dwCharID,
 	Say(pMsg);
 }
 
- 
+
 void CTPlayer::SendCS_PVPPOINT_ACK(DWORD dwTotal,
-                                   DWORD dwUseable,
-                                   BYTE bEvent,
-								   DWORD dwMonthPvPoint)
+	DWORD dwUseable,
+	BYTE bEvent,
+	DWORD dwMonthPvPoint)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_PVPPOINT_ACK)
@@ -4683,13 +4683,13 @@ void CTPlayer::SendCS_PVPPOINT_ACK(DWORD dwTotal,
 void CTPlayer::SendCS_GUILDPOINTLOG_ACK(LPPACKETBUF pBUF)
 {
 	CPacket * pMsg = new CPacket();
-	pMsg->CopyData(&pBUF->m_packet, sizeof(DWORD)*2);
+	pMsg->CopyData(&pBUF->m_packet, sizeof(DWORD) * 2);
 	pMsg->SetID(CS_GUILDPOINTLOG_ACK);
 
 	Say(pMsg);
 }
 void CTPlayer::SendCS_GUILDPOINTREWARD_ACK(BYTE bRet,
-										   DWORD dwRemain)
+	DWORD dwRemain)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_GUILDPOINTREWARD_ACK)
@@ -4702,7 +4702,7 @@ void CTPlayer::SendCS_GUILDPVPRECORD_ACK(LPPACKETBUF pBUF)
 {
 	CPacket *pMSG = new CPacket();
 
-	pMSG->CopyData(&pBUF->m_packet, sizeof(DWORD)*2);
+	pMSG->CopyData(&pBUF->m_packet, sizeof(DWORD) * 2);
 	pMSG->SetID(CS_GUILDPVPRECORD_ACK);
 
 	Say(pMSG);
@@ -4713,13 +4713,13 @@ void CTPlayer::SendCS_PVPRECORD_ACK(BYTE bType)
 	pMsg->SetID(CS_PVPRECORD_ACK)
 		<< bType;
 
-	if(bType)
+	if (bType)
 	{
 		(*pMsg)
 			<< DWORD(0)
 			<< BYTE(0);
 
-		for(BYTE i=0; i<TCLASS_COUNT; i++)
+		for (BYTE i = 0; i < TCLASS_COUNT; i++)
 		{
 			(*pMsg)
 				<< m_aDuelScore[i][1]
@@ -4729,7 +4729,7 @@ void CTPlayer::SendCS_PVPRECORD_ACK(BYTE bType)
 		(*pMsg)
 			<< BYTE(m_vDuelRecordSet.size());
 
-		for(BYTE r=0; r<m_vDuelRecordSet.size(); r++)
+		for (BYTE r = 0; r < m_vDuelRecordSet.size(); r++)
 		{
 			(*pMsg)
 				<< m_vDuelRecordSet[r].m_strName
@@ -4746,7 +4746,7 @@ void CTPlayer::SendCS_PVPRECORD_ACK(BYTE bType)
 			<< m_dwPvPRankOrder
 			<< m_bPvPRankPercent;
 
-		for(BYTE i=0; i<TCLASS_COUNT; i++)
+		for (BYTE i = 0; i < TCLASS_COUNT; i++)
 		{
 			(*pMsg)
 				<< m_aPvPRecord[i][1]
@@ -4755,7 +4755,7 @@ void CTPlayer::SendCS_PVPRECORD_ACK(BYTE bType)
 
 		BYTE bCount = 0;
 		WORD wTotal = (WORD)m_vPvPRecent.size();
-		if( wTotal > PVP_RECENTRECORDCOUNT)
+		if (wTotal > PVP_RECENTRECORDCOUNT)
 			bCount = PVP_RECENTRECORDCOUNT;
 		else
 			bCount = (BYTE)wTotal;
@@ -4763,7 +4763,7 @@ void CTPlayer::SendCS_PVPRECORD_ACK(BYTE bType)
 		(*pMsg)
 			<< bCount;
 
-		for(WORD r= wTotal - bCount; r < wTotal ; r++)
+		for (WORD r = wTotal - bCount; r < wTotal; r++)
 		{
 			(*pMsg)
 				<< m_vPvPRecent[r].m_strName
@@ -4771,10 +4771,10 @@ void CTPlayer::SendCS_PVPRECORD_ACK(BYTE bType)
 				<< m_vPvPRecent[r].m_bClass
 				<< m_vPvPRecent[r].m_bLevel
 				<< m_vPvPRecent[r].m_dwPoint
-				<< m_vPvPRecent[r].m_dTime;		
+				<< m_vPvPRecent[r].m_dTime;
 		}
-		 
-		(*pMsg)			
+
+		(*pMsg)
 			<< m_dwMonthRankOrder
 			<< m_bMonthRankPercent
 			<< m_wMonthWin
@@ -4785,17 +4785,17 @@ void CTPlayer::SendCS_PVPRECORD_ACK(BYTE bType)
 }
 
 void CTPlayer::SendCS_ENDWAR_ACK(BYTE bType,
-                                 DWORD dwWinGuildID,
-                                 DWORD dwDefTotal,
-                                 DWORD dwAtkTotal,
-								 CString strDefName,
-								 DWORD dwDefPower,
-                                 WORD wDefPoint,
-                                 WORD wDefKillPoint,
-								 CString strAtkName,
-                                 DWORD dwAtkPower,
-                                 WORD wAtkPoint,
-                                 WORD wAtkKillPoint)
+	DWORD dwWinGuildID,
+	DWORD dwDefTotal,
+	DWORD dwAtkTotal,
+	CString strDefName,
+	DWORD dwDefPower,
+	WORD wDefPoint,
+	WORD wDefKillPoint,
+	CString strAtkName,
+	DWORD dwAtkPower,
+	WORD wAtkPoint,
+	WORD wAtkKillPoint)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_ENDWAR_ACK)
@@ -4816,9 +4816,9 @@ void CTPlayer::SendCS_ENDWAR_ACK(BYTE bType,
 }
 
 void CTPlayer::SendCS_ENTERCASTLE_ACK(WORD wCastle,
-									  BYTE bCamp,
-									  CString strName_Atk,
-									  CString strName_Def)
+	BYTE bCamp,
+	CString strName_Atk,
+	CString strName_Def)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_ENTERCASTLE_ACK)
@@ -4840,12 +4840,12 @@ void CTPlayer::SendCS_LEAVECASTLE_ACK()
 
 #ifdef SKYGARDEN
 void CTPlayer::SendCS_ENTERSKYGARDEN_ACK(WORD wSkyGardenID,
-										 BYTE bCamp,
-										 BYTE bDefendCountry,
-										 BYTE bLeftCountry,
-										 BYTE bCenterCountry,
-										 BYTE bRightCountry,
-										 BYTE bAttackCountry)
+	BYTE bCamp,
+	BYTE bDefendCountry,
+	BYTE bLeftCountry,
+	BYTE bCenterCountry,
+	BYTE bRightCountry,
+	BYTE bAttackCountry)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_ENTERSKYGARDEN_ACK)
@@ -4897,11 +4897,11 @@ void CTPlayer::SendCS_SKYGARDEN_OCCUPY_RIGHT_ACK(BYTE bCountry)
 #endif
 
 void CTPlayer::SendCS_WARP_ACK(DWORD dwObjID,
-							   BYTE bObjType,
-							   DWORD dwRange,
-							   FLOAT fPosX,
-							   FLOAT fPosY,
-							   FLOAT fPosZ)
+	BYTE bObjType,
+	DWORD dwRange,
+	FLOAT fPosX,
+	FLOAT fPosY,
+	FLOAT fPosZ)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_WARP_ACK)
@@ -4950,7 +4950,7 @@ void CTPlayer::SendCS_CHANGEITEMATTR_ACK(BYTE bInven, CTItem * pItem)
 	pMsg->SetID(CS_CHANGEITEMATTR_ACK)
 		<< bInven;
 
-	if(pItem)
+	if (pItem)
 		pItem->WrapPacketClient(pMsg, m_dwID);
 
 	Say(pMsg);
@@ -4966,7 +4966,7 @@ void CTPlayer::SendCS_WASTEREFINE_ACK(BYTE bResult)
 	Say(pMsg);
 }
 
-void CTPlayer::SendCS_CASHSHOPSTOP_ACK(BYTE bUse)  
+void CTPlayer::SendCS_CASHSHOPSTOP_ACK(BYTE bUse)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_CASHSHOPSTOP_ACK)
@@ -4987,7 +4987,7 @@ void CTPlayer::SendCS_APEXDATA_ACK(char * BufRecv, int nLen)
 }
 
 
-void CTPlayer::SendCS_AUCTIONREG_ACK(BYTE bResult,DWORD dwAuctionID)
+void CTPlayer::SendCS_AUCTIONREG_ACK(BYTE bResult, DWORD dwAuctionID)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_AUCTIONREG_ACK)
@@ -4997,7 +4997,7 @@ void CTPlayer::SendCS_AUCTIONREG_ACK(BYTE bResult,DWORD dwAuctionID)
 	Say(pMsg);
 }
 
-void CTPlayer::SendCS_AUCTIONINTEREST_ACK(BYTE bResult,BYTE bType)
+void CTPlayer::SendCS_AUCTIONINTEREST_ACK(BYTE bResult, BYTE bType)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_AUCTIONINTEREST_ACK)
@@ -5007,20 +5007,20 @@ void CTPlayer::SendCS_AUCTIONINTEREST_ACK(BYTE bResult,BYTE bType)
 	Say(pMsg);
 }
 
-void CTPlayer::SendCS_AUCTIONINTERESTLIST_ACK(BYTE bResult,LPVTAUCTION vTAuction,WORD wPageNum,WORD wStartNum, WORD wEndNum)
+void CTPlayer::SendCS_AUCTIONINTERESTLIST_ACK(BYTE bResult, LPVTAUCTION vTAuction, WORD wPageNum, WORD wStartNum, WORD wEndNum)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_AUCTIONINTERESTLIST_ACK)
 		<< bResult;
 
-	if(vTAuction)
+	if (vTAuction)
 	{
 		(*pMsg)
 			<< (WORD)vTAuction->size()
 			<< wPageNum
 			<< (WORD)(wEndNum - wStartNum);
 
-		for(WORD i = wStartNum; i < wEndNum; i++)
+		for (WORD i = wStartNum; i < wEndNum; i++)
 		{
 			vTAuction->at(i)->WrapPacketAuction(pMsg);
 			vTAuction->at(i)->m_pItem->WrapPacketClient(pMsg, m_dwID);
@@ -5031,20 +5031,20 @@ void CTPlayer::SendCS_AUCTIONINTERESTLIST_ACK(BYTE bResult,LPVTAUCTION vTAuction
 	Say(pMsg);
 }
 
-void CTPlayer::SendCS_AUCTIONBIDLIST_ACK(BYTE bResult,LPVTAUCTION vTAuction,WORD wPageNum,WORD wStartNum, WORD wEndNum)
+void CTPlayer::SendCS_AUCTIONBIDLIST_ACK(BYTE bResult, LPVTAUCTION vTAuction, WORD wPageNum, WORD wStartNum, WORD wEndNum)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_AUCTIONBIDLIST_ACK)
 		<< bResult;
 
-	if(vTAuction)
+	if (vTAuction)
 	{
 		(*pMsg)
 			<< (WORD)vTAuction->size()
 			<< wPageNum
 			<< (WORD)(wEndNum - wStartNum);
 
-		for(WORD i = wStartNum; i < wEndNum; i++)
+		for (WORD i = wStartNum; i < wEndNum; i++)
 		{
 			vTAuction->at(i)->WrapPacketAuction(pMsg);
 			vTAuction->at(i)->m_pItem->WrapPacketClient(pMsg, m_dwID);
@@ -5082,20 +5082,20 @@ void CTPlayer::SendCS_AUCTIONBUYDIRECT_ACK(BYTE bResult)
 	Say(pMsg);
 }
 
-void CTPlayer::SendCS_AUCTIONFIND_ACK(BYTE bResult,LPVTAUCTION vTAuction,WORD wPageNum,WORD wStartNum, WORD wEndNum)
+void CTPlayer::SendCS_AUCTIONFIND_ACK(BYTE bResult, LPVTAUCTION vTAuction, WORD wPageNum, WORD wStartNum, WORD wEndNum)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_AUCTIONFIND_ACK)
 		<< bResult;
 
-	if(vTAuction)
+	if (vTAuction)
 	{
 		(*pMsg)
 			<< (WORD)vTAuction->size()
 			<< wPageNum
 			<< (WORD)(wEndNum - wStartNum);
 
-		for(WORD i = wStartNum; i < wEndNum; i++)
+		for (WORD i = wStartNum; i < wEndNum; i++)
 		{
 			vTAuction->at(i)->WrapPacketAuction(pMsg);
 			vTAuction->at(i)->m_pItem->WrapPacketClient(pMsg, m_dwID);
@@ -5105,20 +5105,20 @@ void CTPlayer::SendCS_AUCTIONFIND_ACK(BYTE bResult,LPVTAUCTION vTAuction,WORD wP
 	Say(pMsg);
 }
 
-void CTPlayer::SendCS_AUCTIONREGLIST_ACK(BYTE bResult,LPVTAUCTION vTAuction,WORD wPageNum,WORD wStartNum, WORD wEndNum)
+void CTPlayer::SendCS_AUCTIONREGLIST_ACK(BYTE bResult, LPVTAUCTION vTAuction, WORD wPageNum, WORD wStartNum, WORD wEndNum)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_AUCTIONREGLIST_ACK)
 		<< bResult;
 
-	if(vTAuction)
+	if (vTAuction)
 	{
 		(*pMsg)
 			<< (WORD)vTAuction->size()
 			<< wPageNum
 			<< (WORD)(wEndNum - wStartNum);
 
-		for(WORD i = wStartNum; i < wEndNum; i++)
+		for (WORD i = wStartNum; i < wEndNum; i++)
 		{
 			vTAuction->at(i)->WrapPacketAuction(pMsg);
 			vTAuction->at(i)->m_pItem->WrapPacketClient(pMsg, m_dwID);
@@ -5138,9 +5138,9 @@ void CTPlayer::SendCS_KICKOUTMAP_ACK()
 }
 
 void CTPlayer::SendCS_REGGUILDCLOAK_ACK(BYTE bResult,
-										BYTE bInven,
-										BYTE bItemID,
-										BYTE bReg)
+	BYTE bInven,
+	BYTE bItemID,
+	BYTE bReg)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_REGGUILDCLOAK_ACK)
@@ -5153,8 +5153,8 @@ void CTPlayer::SendCS_REGGUILDCLOAK_ACK(BYTE bResult,
 }
 
 void CTPlayer::SendCS_RESETCLOAK_ACK(DWORD dwCharID,
-									 BYTE bInven,
-									 BYTE bItemID)
+	BYTE bInven,
+	BYTE bItemID)
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_RESETCLOAK_ACK)
@@ -5164,13 +5164,13 @@ void CTPlayer::SendCS_RESETCLOAK_ACK(DWORD dwCharID,
 
 	Say(pMsg);
 }
- 
-void CTPlayer::SendCS_FAMERANKLIST_ACK(BYTE bType, MONTHRANKER arFameRank[MONTHCOUNT][FAMERANKCOUNT],BYTE bMonth)
+
+void CTPlayer::SendCS_FAMERANKLIST_ACK(BYTE bType, MONTHRANKER arFameRank[MONTHCOUNT][FAMERANKCOUNT], BYTE bMonth)
 {
 	CTime t = CTime::GetCurrentTime();
 	WORD wYear = t.GetYear();
 	BYTE bCurMonth = t.GetMonth();
-	if(bMonth >= bCurMonth)
+	if (bMonth >= bCurMonth)
 		wYear--;
 
 	CPacket * pMsg = new CPacket();
@@ -5180,18 +5180,18 @@ void CTPlayer::SendCS_FAMERANKLIST_ACK(BYTE bType, MONTHRANKER arFameRank[MONTHC
 		<< bMonth
 		<< BYTE(FAMERANKCOUNT);
 
-	for(BYTE i = 0; i < FAMERANKCOUNT; i++)
+	for (BYTE i = 0; i < FAMERANKCOUNT; i++)
 		arFameRank[bMonth][i].WrapPacketIn(pMsg);
 
 	Say(pMsg);
 }
 
-void CTPlayer::SendCS_UPDATEFAMERANKLIST_ACK(MONTHRANKER arFameRank[FRT_COUNT][MONTHCOUNT][FAMERANKCOUNT],BYTE bMonth)
+void CTPlayer::SendCS_UPDATEFAMERANKLIST_ACK(MONTHRANKER arFameRank[FRT_COUNT][MONTHCOUNT][FAMERANKCOUNT], BYTE bMonth)
 {
 	CTime t = CTime::GetCurrentTime();
 	WORD wYear = t.GetYear();
 	BYTE bCurMonth = t.GetMonth();
-	if(bMonth > bCurMonth)
+	if (bMonth > bCurMonth)
 		wYear--;
 
 	CPacket * pMsg = new CPacket();
@@ -5200,58 +5200,58 @@ void CTPlayer::SendCS_UPDATEFAMERANKLIST_ACK(MONTHRANKER arFameRank[FRT_COUNT][M
 		<< bMonth
 		<< BYTE(FRT_COUNT);
 
-	for(BYTE f=0; f<FRT_COUNT; f++)
+	for (BYTE f = 0; f < FRT_COUNT; f++)
 	{
 		(*pMsg)
 			<< f
 			<< BYTE(FAMERANKCOUNT);
 
-		for(BYTE i = 0; i < FAMERANKCOUNT; i++)
+		for (BYTE i = 0; i < FAMERANKCOUNT; i++)
 			arFameRank[f][bMonth][i].WrapPacketIn(pMsg);
 	}
 
 	Say(pMsg);
 }
 
-void CTPlayer::SendCS_MONTHRANKLIST_ACK(BYTE bRankMonth,MONTHRANKER arMonthRank[COUNTRY_COUNT][MONTHRANKCOUNT])
+void CTPlayer::SendCS_MONTHRANKLIST_ACK(BYTE bRankMonth, MONTHRANKER arMonthRank[COUNTRY_COUNT][MONTHRANKCOUNT])
 {
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_MONTHRANKLIST_ACK)
 		<< bRankMonth
 		<< _AtlModule.m_bFirstGroupCount
 		<< BYTE(FIRSTGRADEGROUPCOUNT);
-	
-	for(BYTE i = 0; i < COUNTRY_COUNT; i++)
+
+	for (BYTE i = 0; i < COUNTRY_COUNT; i++)
 	{
 		(*pMsg)
 			<< i;
 
-		for(BYTE j = 0; j < FIRSTGRADEGROUPCOUNT; j++)
+		for (BYTE j = 0; j < FIRSTGRADEGROUPCOUNT; j++)
 			arMonthRank[i][j].WrapPacketIn(pMsg);
 	}
 
 	Say(pMsg);
 }
 
-void CTPlayer::SendCS_FIRSTGRADEGROUP_ACK(BYTE bRankMonth,MONTHRANKER arMonthRank[COUNTRY_COUNT][FIRSTGRADEGROUPCOUNT])
+void CTPlayer::SendCS_FIRSTGRADEGROUP_ACK(BYTE bRankMonth, MONTHRANKER arMonthRank[COUNTRY_COUNT][FIRSTGRADEGROUPCOUNT])
 {
-	if(bRankMonth >= MONTHCOUNT || _AtlModule.m_bFirstGroupCount > FIRSTGRADEGROUPCOUNT)
+	if (bRankMonth >= MONTHCOUNT || _AtlModule.m_bFirstGroupCount > FIRSTGRADEGROUPCOUNT)
 		return;
 
 	CPacket * pMsg = new CPacket();
 	pMsg->SetID(CS_FIRSTGRADEGROUP_ACK)
 		<< bRankMonth
 		<< _AtlModule.m_bFirstGroupCount;
-	
-	for(BYTE i = 0; i < COUNTRY_COUNT; i++)
+
+	for (BYTE i = 0; i < COUNTRY_COUNT; i++)
 	{
 		(*pMsg)
 			<< i;
 
-		for(BYTE j = 0; j < _AtlModule.m_bFirstGroupCount; j++)
+		for (BYTE j = 0; j < _AtlModule.m_bFirstGroupCount; j++)
 			arMonthRank[i][j].WrapPacketIn(pMsg);
 	}
-	
+
 	Say(pMsg);
 }
 
@@ -5288,9 +5288,9 @@ void CTPlayer::SendCS_TOURNAMENT_ACK(CPacket * pPacket, WORD wProtocol)
 {
 	CPacket *pMSG = new CPacket();
 
-	pMSG->CopyData(pPacket, sizeof(DWORD)*2 + sizeof(WORD));
+	pMSG->CopyData(pPacket, sizeof(DWORD) * 2 + sizeof(WORD));
 
-	switch(wProtocol)
+	switch (wProtocol)
 	{
 	case MW_TOURNAMENTSCHEDULE_REQ:
 		pMSG->SetID(CS_TOURNAMENTSCHEDULE_ACK);
@@ -5331,11 +5331,11 @@ void CTPlayer::SendCS_TOURNAMENT_ACK(CPacket * pPacket, WORD wProtocol)
 }
 
 void CTPlayer::SendCS_TOURNAMENTRESULT_ACK(BYTE bStep,
-										   BYTE bRet,
-										   DWORD dwWin,
-										   DWORD dwLose,
-										   DWORD dwBlueHideTick,
-										   DWORD dwRedHideTick)
+	BYTE bRet,
+	DWORD dwWin,
+	DWORD dwLose,
+	DWORD dwBlueHideTick,
+	DWORD dwRedHideTick)
 {
 	CPacket * pMSG = new CPacket();
 
@@ -5352,7 +5352,7 @@ void CTPlayer::SendCS_TOURNAMENTRESULT_ACK(BYTE bStep,
 
 void CTPlayer::SendCS_TOURNAMENTENTER_ACK(CTMap * pMap)
 {
-	if(!pMap)
+	if (!pMap)
 		return;
 
 	CPacket * pMSG = new CPacket();
@@ -5363,7 +5363,7 @@ void CTPlayer::SendCS_TOURNAMENTENTER_ACK(CTMap * pMap)
 		<< BYTE(pMap->m_mapTNMTPlayer.size());
 
 	MAPTOURNAMENTPLAYER::iterator it;
-	for(it=pMap->m_mapTNMTPlayer.begin(); it!=pMap->m_mapTNMTPlayer.end(); it++)
+	for (it = pMap->m_mapTNMTPlayer.begin(); it != pMap->m_mapTNMTPlayer.end(); it++)
 	{
 		LPTOURNAMENTPLAYER pPlayer = (*it).second;
 		(*pMSG)
@@ -5442,8 +5442,8 @@ void CTPlayer::SendCS_RPSGAME_ACK(BYTE bWinCount, BYTE bPlayerRPS, BYTE bNpcRPS)
 
 void CTPlayer::SendCS_WARCOUNTRYBALANCE_ACK(DWORD dwCountD, DWORD dwCountC)
 {
-	if(dwCountD + dwCountC <= WARBALANCE_BASECOUNT)
-		dwCountD = dwCountC = WARBALANCE_BASECOUNT/2;
+	if (dwCountD + dwCountC <= WARBALANCE_BASECOUNT)
+		dwCountD = dwCountC = WARBALANCE_BASECOUNT / 2;
 
 	CPacket * pMSG = new CPacket();
 	pMSG->SetID(CS_WARCOUNTRYBALANCE_ACK)
@@ -5484,7 +5484,7 @@ void CTPlayer::SendCS_ARENATEAM_ACK(WORD wID, BYTE bTeam, VDWORD & vFighter)
 		<< bTeam
 		<< bCount;
 
-	for(BYTE i=0; i<bCount; i++)
+	for (BYTE i = 0; i < bCount; i++)
 		(*pMSG) << vFighter[i];
 
 	Say(pMSG);
@@ -5520,14 +5520,14 @@ void CTPlayer::SendCS_SETTIME_ACK(DWORD dwHour, DWORD dwMinute)
 {
 	CString strTime;
 
-	if(dwHour < 10)
+	if (dwHour < 10)
 		strTime.Format("0%d:%d", dwHour, dwMinute);
-	else if(dwMinute < 10)
+	else if (dwMinute < 10)
 		strTime.Format("%d:0%d", dwHour, dwMinute);
 	else
 		strTime.Format("%d:%d", dwHour, dwMinute);
 
-	if(dwHour < 10 && dwMinute < 10)
+	if (dwHour < 10 && dwMinute < 10)
 		strTime.Format("0%d:0%d", dwHour, dwMinute);
 
 	CPacket * pMSG = new CPacket();
@@ -5538,10 +5538,10 @@ void CTPlayer::SendCS_SETTIME_ACK(DWORD dwHour, DWORD dwMinute)
 }
 
 void CTPlayer::SendCS_SOULLOTTERY_ACK(DWORD dwNumber1,
-									  DWORD dwNumber2,
-									  DWORD dwNumber3,
-									  DWORD dwNumber4,
-									  DWORD dwMoney)
+	DWORD dwNumber2,
+	DWORD dwNumber3,
+	DWORD dwNumber4,
+	DWORD dwMoney)
 {
 	CPacket *pMSG = new CPacket();
 
@@ -5556,8 +5556,8 @@ void CTPlayer::SendCS_SOULLOTTERY_ACK(DWORD dwNumber1,
 }
 
 void CTPlayer::SendCS_SOULLOTTERY_TRIGGER_ACK(DWORD dwNumber,
-											  DWORD dwMoney,
-											  BYTE bRet)
+	DWORD dwMoney,
+	BYTE bRet)
 {
 	CPacket *pMSG = new CPacket();
 
