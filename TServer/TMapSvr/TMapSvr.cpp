@@ -4884,14 +4884,12 @@ void CTMapSvrModule::OnTimer( DWORD dwTick)
 		dwPassTick = 0;
 	}
 
-	VTAIBUF::iterator it = m_vAIBUF.begin();
-
-	while(it != m_vAIBUF.end())
+	for (DWORD so = 0; so < m_vAIBUF.size();)
 	{
-		LPTAIBUF pBUF = (*it);
 
+		LPTAIBUF pBUF = m_vAIBUF[so];
 		pBUF->m_dwTick += dwTick;
-		if( pBUF->m_dwTick >= pBUF->m_dwDelay )
+		if (pBUF->m_dwTick >= pBUF->m_dwDelay)
 		{
 			SendSM_AICMD_ACK(
 				pBUF->m_dwCmdHandle,
@@ -4904,11 +4902,12 @@ void CTMapSvrModule::OnTimer( DWORD dwTick)
 				pBUF->m_wMapID,
 				pBUF->m_wPartyID);
 
-			m_vAIBUF.erase(it);
+			m_vAIBUF.erase(m_vAIBUF.begin() + so);
 			delete pBUF;
 		}
-		else
-			it++;
+		else {
+			so++;
+		}
 	}
 
 	VTGBBUF::iterator itGB = m_vGBBUF.begin();
