@@ -21,18 +21,24 @@ TClient/TEngine/Plugins/ExportTMF/Debug/*
 TClient/TEngine/Plugins/ExportTMF/Release/*
 TClient/TEngine/Engine Lib/Debug/*
 TClient/TEngine/Engine Lib/Release/*
+TClient/TEngine/Engine Lib/Release NEW_IF/*
 TClient/TEngine/TachyonControl/Debug/*
 TClient/TEngine/TachyonControl/Release/*
+TClient/TEngine/TachyonControl/Release NEW_IF/*
 TClient/TEngine/Plugins/TachyonShader/Debug/*
 TClient/TEngine/Plugins/TachyonShader/Release/*
+TClient/TEngine/Plugins/TachyonShader/Release NEW_IF/*
 TClient/TChart/Debug/*
 TClient/TChart/Release/*
+TClient/TChart/Release NEW_IF/*
 TClient/TEngine/Game Studio/Debug/*
 TClient/TEngine/Game Studio/Release/*
 TClient/TEngine/TCML/Debug/*
 TClient/TEngine/TCML/Release/*
+TClient/TEngine/TCML/Release NEW_IF/*
 TClient/TEngine/TComp/Debug/*
 TClient/TEngine/TComp/Release/*
+TClient/TEngine/TComp/Release NEW_IF/*
 TClient/TChatClient/Debug/*
 TClient/TChatClient/Release/*
 
