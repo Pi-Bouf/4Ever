@@ -5,6 +5,32 @@ tgame.bak
 tglobal.bak
 **/*.lnk
 
+# Internals
+Includes/Internals/.vs/*
+Includes/Internals/TChart/Debug/*
+Includes/Internals/TChart/Release/*
+Includes/Internals/TChart/.vs/*
+Includes/Internals/TachyonControl/Debug/*
+Includes/Internals/TachyonControl/Release/*
+Includes/Internals/TachyonControl/.vs/*
+Includes/Internals/TCML/Debug/*
+Includes/Internals/TCML/Release/*
+Includes/Internals/TCML/.vs/*
+Includes/Internals/TComp/Debug/*
+Includes/Internals/TComp/Release/*
+Includes/Internals/TComp/.vs/*
+Includes/Internals/TEngine/Debug/*
+Includes/Internals/TEngine/Release/*
+Includes/Internals/TEngine/.vs/*
+Includes/Internals/TProtocol/Release/*
+Includes/Internals/TProtocol/.vs/*
+
+
+
+
+
+
+
 # TClient
 TClient/.vs/*
 TClient/TClient/.vs/*
