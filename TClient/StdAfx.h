@@ -32,7 +32,7 @@
 #define _AFX_ALL_WARNINGS
 
 #define _WIN32_DCOM 
-//#define NEW_IF
+#define NEW_IF
 
 #include <afxwin.h>         // MFC core and standard components
 #include <afxext.h>         // MFC extensions
