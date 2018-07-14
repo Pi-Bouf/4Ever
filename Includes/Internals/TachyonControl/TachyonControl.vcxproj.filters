@@ -1,0 +1,170 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Sources">
+      <UniqueIdentifier>{d8dda65a-2567-479b-b605-9863df9cb7b9}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;def;odl;idl;hpj;bat;asm</Extensions>
+    </Filter>
+    <Filter Include="Headers">
+      <UniqueIdentifier>{3c3d1ef5-5d9d-4c39-8cc9-5b06477f347c}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Stdafx.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TBtnOnFlat.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TButton.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TCmdManager.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TColorCtrl.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TColorDlg.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TComboBox.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TControlBar.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TDockBar.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TEdit.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="THookSink.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TMenuControlBar.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TMiniDockFrameWnd.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TPaintManager.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TPopupMenuWnd.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TResizableDialog.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TShell.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TStatusControlBar.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TTabControlBar.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TTabCtrl.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TToolControlBar.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="resource.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Stdafx.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TBtnOnFlat.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TButton.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TCmdManager.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TColorCtrl.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TColorDlg.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TComboBox.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TControlBar.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TDockBar.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TEdit.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="THookSink.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TIntegrityCheckSum.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TLocalization.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TMemoryDC.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TMenuControlBar.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TMfcDef.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TMiniDockFrameWnd.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TPaintManager.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TPopupMenuWnd.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TResizableDialog.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TShell.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TStatusControlBar.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TTabControlBar.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TTabCtrl.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TTempl.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TToolControlBar.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TUI.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="TachyonControl.rc" />
+  </ItemGroup>
+</Project>

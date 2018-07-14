@@ -1,0 +1,587 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{0C8C47BD-1181-445F-BB2A-FEE809CBFB8D}</ProjectGuid>
+    <RootNamespace>TClient</RootNamespace>
+    <SccProjectName>"$/TClient/TClient", LDAAAAAA</SccProjectName>
+    <SccAuxPath />
+    <SccLocalPath>.</SccLocalPath>
+    <SccProvider>MSSCCI:Microsoft Visual SourceSafe</SccProvider>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v141</PlatformToolset>
+    <UseOfMfc>Static</UseOfMfc>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v141</PlatformToolset>
+    <UseOfMfc>Static</UseOfMfc>
+    <UseOfAtl>false</UseOfAtl>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>15.0.27413.0</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>.\Exec\</OutDir>
+    <IntDir>.\Debug\</IntDir>
+    <LinkIncremental>true</LinkIncremental>
+    <GenerateManifest>false</GenerateManifest>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>.\Exec\</OutDir>
+    <IntDir>.\Release\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+    <GenerateManifest>false</GenerateManifest>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <AdditionalOptions>/Zm200 %(AdditionalOptions)</AdditionalOptions>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>..\Includes\External\NPGame;..\Includes\External\HShield\Include;..\Includes\External\XTrap;..\Includes\External\Apex;..\Includes\External\sdk-directx9\Include;..\Includes\Internals\TProtocol;..\Includes\Internals\TachyonControl;..\Includes\Internals\TEngine;..\Includes\Internals\TComp;..\Includes\Internals\TCML;..\Includes\Internals\TChart;..\Includes\Internals\History Files</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;TEST_MODE;KOREA;NEW_IF;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>false</StringPooling>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>D3d9.lib;D3dx9.lib;winmm.lib;Advapi32.lib;Imm32.lib;dsound.lib;dxguid.lib;strmiids.lib;Version.lib;XTrap4Client_mt.lib;dbghelp.lib;AHClientInterface.lib;Psapi.lib;HShield.lib;HSUpChk.lib;NPGameLib.lib;Wtsapi32.lib;EngineLibd.lib;TCompd.lib;TChartd.lib;TCMLd.lib;legacy_stdio_definitions.lib</AdditionalDependencies>
+      <OutputFile>$(OutDir)TClientd.exe</OutputFile>
+      <AdditionalLibraryDirectories>..\Includes\External\NPGame;..\Includes\External\HShield\Lib;..\Includes\External\XTrap;..\Includes\External\Apex;..\Includes\External\sdk-directx9\Lib;..\Includes\Internals\Lib;..\Includes\External\LegacyMFCISAPI</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(IntDir)TClient.pdb</ProgramDatabaseFile>
+      <GenerateMapFile>true</GenerateMapFile>
+      <MapExports>true</MapExports>
+      <SubSystem>Windows</SubSystem>
+      <SetChecksum>false</SetChecksum>
+      <BaseAddress />
+      <TargetMachine>MachineX86</TargetMachine>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+    </Link>
+    <ResourceCompile>
+      <PreprocessorDefinitions>KOREA;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0412</Culture>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <AdditionalOptions>/Zm200 %(AdditionalOptions)</AdditionalOptions>
+      <Optimization>MaxSpeed</Optimization>
+      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
+      <IntrinsicFunctions>false</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+      <OmitFramePointers>false</OmitFramePointers>
+      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <AdditionalIncludeDirectories>..\Includes\External\NPGame;..\Includes\External\HShield\Include;..\Includes\External\XTrap;..\Includes\External\Apex;..\Includes\External\sdk-directx9\Include;..\Includes\Internals\TProtocol;..\Includes\Internals\TachyonControl;..\Includes\Internals\TEngine;..\Includes\Internals\TComp;..\Includes\Internals\TCML;..\Includes\Internals\TChart;..\Includes\Internals\History Files</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;KOREA;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>false</StringPooling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <FunctionLevelLinking>false</FunctionLevelLinking>
+      <PrecompiledHeader />
+      <AssemblerOutput />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>D3d9.lib;D3dx9.lib;winmm.lib;Advapi32.lib;Imm32.lib;dsound.lib;dxguid.lib;strmiids.lib;Version.lib;XTrap4Client_mt.lib;dbghelp.lib;AHClientInterface.lib;Psapi.lib;HShield.lib;HSUpChk.lib;NPGameLib.lib;Wtsapi32.lib;EngineLib.lib;TComp.lib;TChart.lib;TCML.lib;legacy_stdio_definitions.lib</AdditionalDependencies>
+      <OutputFile>$(OutDir)TClient.exe</OutputFile>
+      <AdditionalLibraryDirectories>..\Includes\External\NPGame;..\Includes\External\HShield\Lib;..\Includes\External\XTrap;..\Includes\External\Apex;..\Includes\External\sdk-directx9\Lib;..\Includes\Internals\Lib;..\Includes\External\LegacyMFCISAPI</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <ProgramDatabaseFile />
+      <StripPrivateSymbols />
+      <GenerateMapFile>true</GenerateMapFile>
+      <MapFileName>$(IntDir)TClient.map</MapFileName>
+      <MapExports>true</MapExports>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <SetChecksum>false</SetChecksum>
+      <BaseAddress />
+      <TargetMachine>MachineX86</TargetMachine>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+    </Link>
+    <ResourceCompile>
+      <PreprocessorDefinitions>KOREA;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Culture>0x0412</Culture>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <Text Include="res\Curse.txt" />
+    <Text Include="res\Curse_GSP.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\cursor1.cur" />
+    <None Include="res\Hand.cur" />
+    <None Include="res\Routing.cur" />
+    <None Include="res\Sword.cur" />
+    <None Include="res\Talk.cur" />
+    <None Include="res\TClient.rc2" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\TClient.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="TClient.manifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="TClient.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="CSHandler.cpp" />
+    <ClCompile Include="CSSender.cpp" />
+    <ClCompile Include="CSSenderAll.cpp" />
+    <ClCompile Include="Curse.cpp" />
+    <ClCompile Include="IPDialog.cpp" />
+    <ClCompile Include="md5.cpp" />
+    <ClCompile Include="PacketSpyAcks.cpp" />
+    <ClCompile Include="PacketSpyDlg.cpp" />
+    <ClCompile Include="StdAfx.cpp" />
+    <ClCompile Include="TAidCountry.cpp" />
+    <ClCompile Include="TAuctionBasket.cpp" />
+    <ClCompile Include="TAuctionCategory.cpp" />
+    <ClCompile Include="TAuctionCommander.cpp" />
+    <ClCompile Include="TAuctionCtrlList.cpp" />
+    <ClCompile Include="TAuctionInnerFrame.cpp" />
+    <ClCompile Include="TAuctionMainFrame.cpp" />
+    <ClCompile Include="TAuctionMsgBox.cpp" />
+    <ClCompile Include="TAuctionMyBid.cpp" />
+    <ClCompile Include="TAuctionRegist.cpp" />
+    <ClCompile Include="TAuctionSearch.cpp" />
+    <ClCompile Include="TBlockListDlg.cpp" />
+    <ClCompile Include="TCabinetDlg.cpp" />
+    <ClCompile Include="TCandidateFrame.cpp" />
+    <ClCompile Include="TCashCabinetDlg.cpp" />
+    <ClCompile Include="TCashShopDlg.cpp" />
+    <ClCompile Include="TChallengeEvent.cpp" />
+    <ClCompile Include="TChallengeItem.cpp" />
+    <ClCompile Include="TChallengeWaiting.cpp" />
+    <ClCompile Include="TCharInfoDlg.cpp" />
+    <ClCompile Include="TCharPvPInfoDlg.cpp" />
+    <ClCompile Include="TCharRankInfoDlg.cpp" />
+    <ClCompile Include="TChatCommander.cpp" />
+    <ClCompile Include="TChatFrame.cpp" />
+    <ClCompile Include="TChatList.cpp" />
+    <ClCompile Include="TChatMenuNew.cpp" />
+    <ClCompile Include="TChatTabButton.cpp" />
+    <ClCompile Include="TCinematicDlg.cpp" />
+    <ClCompile Include="TClient.cpp" />
+    <ClCompile Include="TClientArrow.cpp" />
+    <ClCompile Include="TClientBSP.cpp" />
+    <ClCompile Include="TClientCAM.cpp" />
+    <ClCompile Include="TClientChar.cpp" />
+    <ClCompile Include="TClientFake.cpp" />
+    <ClCompile Include="TClientFlag.cpp" />
+    <ClCompile Include="TClientGame.cpp" />
+    <ClCompile Include="TClientGate.cpp" />
+    <ClCompile Include="TClientGM.cpp" />
+    <ClCompile Include="TClientGuildMark.cpp" />
+    <ClCompile Include="TClientInven.cpp" />
+    <ClCompile Include="TClientItem.cpp" />
+    <ClCompile Include="TClientKEY.cpp" />
+    <ClCompile Include="TClientMaintain.cpp" />
+    <ClCompile Include="TClientMAP.cpp" />
+    <ClCompile Include="TClientMonster.cpp" />
+    <ClCompile Include="TClientMoveObj.cpp" />
+    <ClCompile Include="TClientMsgBox.cpp" />
+    <ClCompile Include="TClientNET.cpp" />
+    <ClCompile Include="TClientNICEventSink.cpp" />
+    <ClCompile Include="TClientNpc.cpp" />
+    <ClCompile Include="TClientNumber.cpp" />
+    <ClCompile Include="TClientObjBase.cpp" />
+    <ClCompile Include="TClientObject.cpp" />
+    <ClCompile Include="TClientPath.cpp" />
+    <ClCompile Include="TClientPet.cpp" />
+    <ClCompile Include="TClientQClass.cpp" />
+    <ClCompile Include="TClientQuest.cpp" />
+    <ClCompile Include="TClientRecall.cpp" />
+    <ClCompile Include="TClientSession.cpp" />
+    <ClCompile Include="TClientSfx.cpp" />
+    <ClCompile Include="TClientSkill.cpp" />
+    <ClCompile Include="TClientSwitch.cpp" />
+    <ClCompile Include="TClientTalkBox.cpp" />
+    <ClCompile Include="TClientTerm.cpp" />
+    <ClCompile Include="TClientUIBase.cpp" />
+    <ClCompile Include="TClientWebCtrl.cpp" />
+    <ClCompile Include="TClientWnd.cpp" />
+    <ClCompile Include="TColorPicker.cpp" />
+    <ClCompile Include="TCommunityDlg.cpp" />
+    <ClCompile Include="TCraftQuestDlg.cpp" />
+    <ClCompile Include="TCtrlList.cpp" />
+    <ClCompile Include="TDetailInfo.cpp" />
+    <ClCompile Include="TDetailInfoDlg.cpp" />
+    <ClCompile Include="TDetailInfoManager.cpp" />
+    <ClCompile Include="TDetailNameDlg.cpp" />
+    <ClCompile Include="TDurationFrame.cpp" />
+    <ClCompile Include="TDynamicHelpDlg.cpp" />
+    <ClCompile Include="TFameBaseDlg.cpp" />
+    <ClCompile Include="TFameListDlg.cpp" />
+    <ClCompile Include="TFameRank.cpp" />
+    <ClCompile Include="TFrameGroupBase.cpp" />
+    <ClCompile Include="TGameSettingFrame.cpp" />
+    <ClCompile Include="TGaugePannel.cpp" />
+    <ClCompile Include="TGuildAppInnerFrame.cpp" />
+    <ClCompile Include="TGuildApplicationDlg.cpp" />
+    <ClCompile Include="TGuildCabinetDlg.cpp" />
+    <ClCompile Include="TGuildCmdHelpDlg.cpp" />
+    <ClCompile Include="TGuildCommander.cpp" />
+    <ClCompile Include="TGuildExpDonDlg.cpp" />
+    <ClCompile Include="TGuildMarkMakeDlg.cpp" />
+    <ClCompile Include="TGuildMemberFrame.cpp" />
+    <ClCompile Include="TGuildMoneyDonDlg.cpp" />
+    <ClCompile Include="TGuildNormalFrame.cpp" />
+    <ClCompile Include="TGuildNotifyDlg.cpp" />
+    <ClCompile Include="TGuildOfferFrame.cpp" />
+    <ClCompile Include="TGuildPointLogFrame.cpp" />
+    <ClCompile Include="TGuildPointRewardFrame.cpp" />
+    <ClCompile Include="TGuildPvPRecordFrame.cpp" />
+    <ClCompile Include="TGuildRegularOffer.cpp" />
+    <ClCompile Include="TGuildRTTypeFrame.cpp" />
+    <ClCompile Include="TGuildSeekFrame.cpp" />
+    <ClCompile Include="TGuildTacticsOffer.cpp" />
+    <ClCompile Include="TGuildTerritoryFrame.cpp" />
+    <ClCompile Include="TGuildVolunteerFrame.cpp" />
+    <ClCompile Include="THelpFrame.cpp" />
+    <ClCompile Include="TInvenDlg.cpp" />
+    <ClCompile Include="TItemExtPeriodDlg.cpp" />
+    <ClCompile Include="TItemGambleDlg.cpp" />
+    <ClCompile Include="TItemRefineDlg.cpp" />
+    <ClCompile Include="TItemRegBox.cpp" />
+    <ClCompile Include="TItemRegGuildDlg.cpp" />
+    <ClCompile Include="TItemRepairDlg.cpp" />
+    <ClCompile Include="TItemSlotBaseDlg.cpp" />
+    <ClCompile Include="TItemUpCashDlg.cpp" />
+    <ClCompile Include="TItemUpDlg.cpp" />
+    <ClCompile Include="TItemUpGaugeDlg.cpp" />
+    <ClCompile Include="TKeySettingDefines.cpp" />
+    <ClCompile Include="TKeySettingDlg.cpp" />
+    <ClCompile Include="TLimitEdit.cpp" />
+    <ClCompile Include="TListEx.cpp" />
+    <ClCompile Include="TMagicItemShopDlg.cpp" />
+    <ClCompile Include="TMailAskMoneyDlg.cpp" />
+    <ClCompile Include="TMailListFrame.cpp" />
+    <ClCompile Include="TMailRecvDlg.cpp" />
+    <ClCompile Include="TMailSendDlg.cpp" />
+    <ClCompile Include="TMailSender.cpp" />
+    <ClCompile Include="TMaintainPannel.cpp" />
+    <ClCompile Include="TMainUI.cpp" />
+    <ClCompile Include="TMessengerBase.cpp" />
+    <ClCompile Include="TMessengerChat.cpp" />
+    <ClCompile Include="TMessengerCommander.cpp" />
+    <ClCompile Include="TMiniDump.cpp" />
+    <ClCompile Include="TMinimapDlg.cpp" />
+    <ClCompile Include="TMiniPopupDlg.cpp" />
+    <ClCompile Include="TMsgChatMemberList.cpp" />
+    <ClCompile Include="TMsgGroupList.cpp" />
+    <ClCompile Include="TNationOption.cpp" />
+    <ClCompile Include="TNetGM.cpp" />
+    <ClCompile Include="TNetHandler.cpp" />
+    <ClCompile Include="TNetSender.cpp" />
+    <ClCompile Include="TNewCashShopDlg.cpp" />
+    <ClCompile Include="TNewQuestDlg.cpp" />
+    <ClCompile Include="TNormalCabinetDlg.cpp" />
+    <ClCompile Include="TNPCTalkDlg.cpp" />
+    <ClCompile Include="TNumberEdit.cpp" />
+    <ClCompile Include="TPartyCommander.cpp" />
+    <ClCompile Include="TPartyItemLottery.cpp" />
+    <ClCompile Include="TPetDlg.cpp" />
+    <ClCompile Include="TPetMakeDlg.cpp" />
+    <ClCompile Include="TPetManageDlg.cpp" />
+    <ClCompile Include="TPopupMenu.cpp" />
+    <ClCompile Include="TPopupNewMenu.cpp" />
+    <ClCompile Include="TPortalShopDlgNew.cpp" />
+    <ClCompile Include="TPrivateShopDlg.cpp" />
+    <ClCompile Include="TProgressRegDlg.cpp" />
+    <ClCompile Include="TQuestNewUI.cpp" />
+    <ClCompile Include="TRankingNewDlg.cpp" />
+    <ClCompile Include="TRankingNewMain.cpp" />
+    <ClCompile Include="TRelayHandler.cpp" />
+    <ClCompile Include="TRelaySender.cpp" />
+    <ClCompile Include="TRentSkillDlg.cpp" />
+    <ClCompile Include="TRpcDlg.cpp" />
+    <ClCompile Include="TRpcRewardDlg.cpp" />
+    <ClCompile Include="TRpsRewardList.cpp" />
+    <ClCompile Include="TRSCSDlg.cpp" />
+    <ClCompile Include="TScenePlayer.cpp" />
+    <ClCompile Include="TSelectCountry.cpp" />
+    <ClCompile Include="TSettingFrame.cpp" />
+    <ClCompile Include="TShopBaseDlg.cpp" />
+    <ClCompile Include="TShopDlg.cpp" />
+    <ClCompile Include="TShopItem.cpp" />
+    <ClCompile Include="TSiegeEnd.cpp" />
+    <ClCompile Include="TSiegeGodBall.cpp" />
+    <ClCompile Include="TSiegeGodTower.cpp" />
+    <ClCompile Include="TSiegeManager.cpp" />
+    <ClCompile Include="TSiegeUI.cpp" />
+    <ClCompile Include="TSkillDlg.cpp" />
+    <ClCompile Include="TSkygardenEnd.cpp" />
+    <ClCompile Include="TSkygardenMap.cpp" />
+    <ClCompile Include="TSMSDlg.cpp" />
+    <ClCompile Include="TSoulLotteryDlg.cpp" />
+    <ClCompile Include="TSoulmateFrame.cpp" />
+    <ClCompile Include="TSystemInfo.cpp" />
+    <ClCompile Include="TSystemSettingFrame.cpp" />
+    <ClCompile Include="TTacticsInviteDlg.cpp" />
+    <ClCompile Include="TTextLinkData.cpp" />
+    <ClCompile Include="TTextLinker.cpp" />
+    <ClCompile Include="TTextPopup.cpp" />
+    <ClCompile Include="TTitleDlg.cpp" />
+    <ClCompile Include="TTournament.cpp" />
+    <ClCompile Include="TTournamentEvent.cpp" />
+    <ClCompile Include="TTournamentGage.cpp" />
+    <ClCompile Include="TTournamentMode.cpp" />
+    <ClCompile Include="TTournamentResult.cpp" />
+    <ClCompile Include="TTournamentSelectTarget.cpp" />
+    <ClCompile Include="TTournamentSelectWinner.cpp" />
+    <ClCompile Include="TTradeDlg.cpp" />
+    <ClCompile Include="TUpItemSellDlg.cpp" />
+    <ClCompile Include="TWebCashShopDlg.cpp" />
+    <ClCompile Include="TWelcome.cpp" />
+    <ClCompile Include="TWorldmapDlg.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Curse.h" />
+    <ClInclude Include="IPDialog.h" />
+    <ClInclude Include="md5.h" />
+    <ClInclude Include="PacketSpyAcks.h" />
+    <ClInclude Include="PacketSpyDlg.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="StdAfx.h" />
+    <ClInclude Include="TAidCountry.h" />
+    <ClInclude Include="TAuctionBasket.h" />
+    <ClInclude Include="TAuctionCategory.h" />
+    <ClInclude Include="TAuctionCommander.h" />
+    <ClInclude Include="TAuctionCtrlList.h" />
+    <ClInclude Include="TAuctionInnerFrame.h" />
+    <ClInclude Include="TAuctionMainFrame.h" />
+    <ClInclude Include="TAuctionMsgBox.h" />
+    <ClInclude Include="TAuctionMyBid.h" />
+    <ClInclude Include="TAuctionRegist.h" />
+    <ClInclude Include="TAuctionSearch.h" />
+    <ClInclude Include="TBlockListDlg.h" />
+    <ClInclude Include="TCabinetDlg.h" />
+    <ClInclude Include="TCandidateFrame.h" />
+    <ClInclude Include="TCashCabinetDlg.h" />
+    <ClInclude Include="TCashShopDlg.h" />
+    <ClInclude Include="TChallengeEvent.h" />
+    <ClInclude Include="TChallengeItem.h" />
+    <ClInclude Include="TChallengeWaiting.h" />
+    <ClInclude Include="TCharInfoDlg.h" />
+    <ClInclude Include="TCharPvPInfoDlg.h" />
+    <ClInclude Include="TCharRankInfoDlg.h" />
+    <ClInclude Include="TChatCommander.h" />
+    <ClInclude Include="TChatFrame.h" />
+    <ClInclude Include="TChatList.h" />
+    <ClInclude Include="TChatMenuNew.h" />
+    <ClInclude Include="TChatTabButton.h" />
+    <ClInclude Include="TCinematicDlg.h" />
+    <ClInclude Include="TClient.h" />
+    <ClInclude Include="TClientArrow.h" />
+    <ClInclude Include="TClientBSP.h" />
+    <ClInclude Include="TClientCAM.h" />
+    <ClInclude Include="TClientChar.h" />
+    <ClInclude Include="TClientFake.h" />
+    <ClInclude Include="TClientFlag.h" />
+    <ClInclude Include="TClientGame.h" />
+    <ClInclude Include="TClientGate.h" />
+    <ClInclude Include="TClientGuildMark.h" />
+    <ClInclude Include="TClientInven.h" />
+    <ClInclude Include="TClientItem.h" />
+    <ClInclude Include="TClientKEY.h" />
+    <ClInclude Include="TClientMaintain.h" />
+    <ClInclude Include="TClientMAP.h" />
+    <ClInclude Include="TClientMonster.h" />
+    <ClInclude Include="TClientMoveObj.h" />
+    <ClInclude Include="TClientMsgBox.h" />
+    <ClInclude Include="TClientNET.h" />
+    <ClInclude Include="TClientNICEventSink.h" />
+    <ClInclude Include="TClientNpc.h" />
+    <ClInclude Include="TClientNumber.h" />
+    <ClInclude Include="TClientObjBase.h" />
+    <ClInclude Include="TClientObject.h" />
+    <ClInclude Include="TClientPath.h" />
+    <ClInclude Include="TClientPet.h" />
+    <ClInclude Include="TClientQClass.h" />
+    <ClInclude Include="TClientQuest.h" />
+    <ClInclude Include="TClientRecall.h" />
+    <ClInclude Include="TClientSession.h" />
+    <ClInclude Include="TClientSfx.h" />
+    <ClInclude Include="TClientSkill.h" />
+    <ClInclude Include="TClientSwitch.h" />
+    <ClInclude Include="TClientTalkBox.h" />
+    <ClInclude Include="TClientTerm.h" />
+    <ClInclude Include="TClientType.h" />
+    <ClInclude Include="TClientUIBase.h" />
+    <ClInclude Include="TClientWebCtrl.h" />
+    <ClInclude Include="TClientWnd.h" />
+    <ClInclude Include="TColorPicker.h" />
+    <ClInclude Include="TCommunityDlg.h" />
+    <ClInclude Include="TCraftQuestDlg.h" />
+    <ClInclude Include="TCtrlList.h" />
+    <ClInclude Include="TDetailInfo.h" />
+    <ClInclude Include="TDetailInfoDlg.h" />
+    <ClInclude Include="TDetailInfoManager.h" />
+    <ClInclude Include="TDetailNameDlg.h" />
+    <ClInclude Include="TDurationFrame.h" />
+    <ClInclude Include="TDynamicHelpDlg.h" />
+    <ClInclude Include="TFameBaseDlg.h" />
+    <ClInclude Include="TFameListDlg.h" />
+    <ClInclude Include="TFameRank.h" />
+    <ClInclude Include="TFrameGroupBase.h" />
+    <ClInclude Include="TGameSettingFrame.h" />
+    <ClInclude Include="TGaugePannel.h" />
+    <ClInclude Include="TGuildAppInnerFrame.h" />
+    <ClInclude Include="TGuildApplicationDlg.h" />
+    <ClInclude Include="TGuildCabinetDlg.h" />
+    <ClInclude Include="TGuildCmdHelpDlg.h" />
+    <ClInclude Include="TGuildCommander.h" />
+    <ClInclude Include="TGuildExpDonDlg.h" />
+    <ClInclude Include="TGuildMarkMakeDlg.h" />
+    <ClInclude Include="TGuildMemberFrame.h" />
+    <ClInclude Include="TGuildMoneyDonDlg.h" />
+    <ClInclude Include="TGuildNormalFrame.h" />
+    <ClInclude Include="TGuildNotifyDlg.h" />
+    <ClInclude Include="TGuildOfferFrame.h" />
+    <ClInclude Include="TGuildPointLogFrame.h" />
+    <ClInclude Include="TGuildPointRewardFrame.h" />
+    <ClInclude Include="TGuildPvPRecordFrame.h" />
+    <ClInclude Include="TGuildRegularOffer.h" />
+    <ClInclude Include="TGuildRTTypeFrame.h" />
+    <ClInclude Include="TGuildSeekFrame.h" />
+    <ClInclude Include="TGuildTacticsOffer.h" />
+    <ClInclude Include="TGuildTerritoryFrame.h" />
+    <ClInclude Include="TGuildVolunteerFrame.h" />
+    <ClInclude Include="THelpFrame.h" />
+    <ClInclude Include="TInnerFrame.h" />
+    <ClInclude Include="TInvenDlg.h" />
+    <ClInclude Include="TItemExtPeriodDlg.h" />
+    <ClInclude Include="TItemGambleDlg.h" />
+    <ClInclude Include="TItemRefineDlg.h" />
+    <ClInclude Include="TItemRegBox.h" />
+    <ClInclude Include="TItemRegGuildDlg.h" />
+    <ClInclude Include="TItemRepairDlg.h" />
+    <ClInclude Include="TItemSlotBaseDlg.h" />
+    <ClInclude Include="TItemUpCashDlg.h" />
+    <ClInclude Include="TItemUpDlg.h" />
+    <ClInclude Include="TItemUpGaugeDlg.h" />
+    <ClInclude Include="TKeySettingDefines.h" />
+    <ClInclude Include="TKeySettingDlg.h" />
+    <ClInclude Include="TLimitEdit.h" />
+    <ClInclude Include="TListEx.h" />
+    <ClInclude Include="TMagicItemShopDlg.h" />
+    <ClInclude Include="TMailAskMoneyDlg.h" />
+    <ClInclude Include="TMailListFrame.h" />
+    <ClInclude Include="TMailRecvDlg.h" />
+    <ClInclude Include="TMailSendDlg.h" />
+    <ClInclude Include="TMailSender.h" />
+    <ClInclude Include="TMaintainPannel.h" />
+    <ClInclude Include="TMainUI.h" />
+    <ClInclude Include="TMessengerBase.h" />
+    <ClInclude Include="TMessengerChat.h" />
+    <ClInclude Include="TMessengerCommander.h" />
+    <ClInclude Include="TMiniDump.h" />
+    <ClInclude Include="TMinimapDlg.h" />
+    <ClInclude Include="TMiniPopupDlg.h" />
+    <ClInclude Include="TMsgChatMemberList.h" />
+    <ClInclude Include="TMsgGroupList.h" />
+    <ClInclude Include="TNationOption.h" />
+    <ClInclude Include="TNewCashShopDlg.h" />
+    <ClInclude Include="TNewQuestDlg.h" />
+    <ClInclude Include="TNormalCabinetDlg.h" />
+    <ClInclude Include="TNPCTalkDlg.h" />
+    <ClInclude Include="TNumberEdit.h" />
+    <ClInclude Include="TPartyCommander.h" />
+    <ClInclude Include="TPartyItemLottery.h" />
+    <ClInclude Include="TPetDlg.h" />
+    <ClInclude Include="TPetMakeDlg.h" />
+    <ClInclude Include="TPetManageDlg.h" />
+    <ClInclude Include="TPopupMenu.h" />
+    <ClInclude Include="TPopupNewMenu.h" />
+    <ClInclude Include="TPortalShopDlgNew.h" />
+    <ClInclude Include="TPrivateShopDlg.h" />
+    <ClInclude Include="TProgressRegDlg.h" />
+    <ClInclude Include="TQuestNewUI.h" />
+    <ClInclude Include="TRankingNewDlg.h" />
+    <ClInclude Include="TRankingNewMain.h" />
+    <ClInclude Include="TRentSkillDlg.h" />
+    <ClInclude Include="TRpcDlg.h" />
+    <ClInclude Include="TRpcRewardDlg.h" />
+    <ClInclude Include="TRpsRewardList.h" />
+    <ClInclude Include="TRSCSDlg.h" />
+    <ClInclude Include="TScenePlayer.h" />
+    <ClInclude Include="TSelectCountry.h" />
+    <ClInclude Include="TSettingFrame.h" />
+    <ClInclude Include="TSharedPtr.h" />
+    <ClInclude Include="TShopBaseDlg.h" />
+    <ClInclude Include="TShopDlg.h" />
+    <ClInclude Include="TShopItem.h" />
+    <ClInclude Include="TSiegeEnd.h" />
+    <ClInclude Include="TSiegeGodBall.h" />
+    <ClInclude Include="TSiegeGodTower.h" />
+    <ClInclude Include="TSiegeManager.h" />
+    <ClInclude Include="TSiegeUI.h" />
+    <ClInclude Include="TSkillDlg.h" />
+    <ClInclude Include="TSkygardenEnd.h" />
+    <ClInclude Include="TSkygardenMap.h" />
+    <ClInclude Include="TSMSDlg.h" />
+    <ClInclude Include="TSoulLotteryDlg.h" />
+    <ClInclude Include="TSoulmateFrame.h" />
+    <ClInclude Include="TSystemInfo.h" />
+    <ClInclude Include="TSystemSettingFrame.h" />
+    <ClInclude Include="TTacticsInviteDlg.h" />
+    <ClInclude Include="TTextLinkData.h" />
+    <ClInclude Include="TTextLinker.h" />
+    <ClInclude Include="TTextPopup.h" />
+    <ClInclude Include="TTitleDlg.h" />
+    <ClInclude Include="TTournament.h" />
+    <ClInclude Include="TTournamentEvent.h" />
+    <ClInclude Include="TTournamentGage.h" />
+    <ClInclude Include="TTournamentMode.h" />
+    <ClInclude Include="TTournamentResult.h" />
+    <ClInclude Include="TTournamentSelectTarget.h" />
+    <ClInclude Include="TTournamentSelectWinner.h" />
+    <ClInclude Include="TTradeDlg.h" />
+    <ClInclude Include="TUpItemSellDlg.h" />
+    <ClInclude Include="TWebCashShopDlg.h" />
+    <ClInclude Include="TWelcome.h" />
+    <ClInclude Include="TWorldmapDlg.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties RESOURCE_FILE="TClient.rc" />
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>
