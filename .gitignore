@@ -31,6 +31,13 @@ TClient/Debug/*
 TClient/Release/*
 TClient/ReleaseNEW_IF/*
 TClient/.vs/*
+TClient/Exec/TClient.exp
+TClient/Exec/TClient.lib
+TClient/Exec/TClient.pdb
+TClient/Exec/TClient.ilk
+TClient/Exec/TClient.map
+TClient/Exec/TClientd.ilk
+TClient/Exec/TClientd.map
 
 # TServer
 TServer/.vs/*
@@ -63,6 +70,12 @@ TServer/TRelaySvr/Debug/*
 TServer/TRelaySvr/Release/*
 TServer/TRelaySvr/TRelaySvr.h
 TServer/TRelaySvr/TRelaySvr_i.c
+
+# TControl
+TServer/TControlSvr/Debug/*
+TServer/TControlSvr/Release/*
+TServer/TControlSvr/TControlSvr.h
+TServer/TControlSvr/TControlSvr_i.c
 
 # Tools
 TClient/Tools
