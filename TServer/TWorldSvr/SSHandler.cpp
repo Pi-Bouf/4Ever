@@ -392,7 +392,7 @@ DWORD CTWorldSvrModule::OnCT_CASHITEMSALE_REQ(LPPACKETBUF pBUF)
 	
 	if(!pvSaleItem)
 	{
-		LogEvent("OnCT_CASHITEMSALE_REQ Error");
+		LogError("OnCT_CASHITEMSALE_REQ Error");
 		return EC_NOERROR;
 	}
 
@@ -501,11 +501,15 @@ DWORD CTWorldSvrModule::OnCT_CMGIFTLIST_REQ(LPPACKETBUF pBUF)
 
 DWORD CTWorldSvrModule::OnSM_QUITSERVICE_REQ( LPPACKETBUF pBUF)
 {
+	/*
 	LogEvent(_T("SM_QUITSERVICE_REQ detected !!"));
 	if(m_bService)
 		SetServiceStatus(SERVICE_STOP_PENDING);
 	PostThreadMessage( m_dwThreadID, WM_QUIT, 0, 0);
 
+	
+	*/
+	LogError("SM_QUITSERVICE_REQ detected !!  ===> but it's not a service !");
 	return EC_NOERROR;
 }
 
@@ -2863,7 +2867,7 @@ DWORD CTWorldSvrModule::OnDM_GUILDUPDATE_REQ(LPPACKETBUF pBUF)
 
 	pBUF->m_packet
 		>> bCount;
-	for(i=0; i<bCount; i++)
+	for(int i=0; i<bCount; i++)
 	{
 		pBUF->m_packet
 			>> dwEnemy;
@@ -10848,7 +10852,7 @@ DWORD CTWorldSvrModule::OnDM_MONTHRANKSAVE_ACK(LPPACKETBUF pBUF)
 
 	if(!bRet)
 	{
-		LogEvent("MONTHRANKSAVE FAILED");
+		LogError("MONTHRANKSAVE FAILED");
 		return EC_NOERROR;
 	}
 	pBUF->m_packet

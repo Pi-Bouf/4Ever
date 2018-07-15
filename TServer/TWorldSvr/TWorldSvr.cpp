@@ -34,7 +34,6 @@ void main()
 	cout << " #################################################################### " << endl << endl;
 
 	_AtlModule.StartServer();
-	//ct.StartServer();
 
 	int i;
 	cin >> i;
