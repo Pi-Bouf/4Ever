@@ -12,7 +12,7 @@ TServerSystem::TServerSystem(string _serverName, string _serverVersion)
 
 	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
 
-	string iniLocation = ".\\Configurations\\" + ServerNameOriginal + ".ini";
+	string iniLocation = ".\\Configurations\\" + ServerNameOriginal + "Svr.ini";
 	cSimpleIni.SetUnicode();
 	cSimpleIni.LoadFile(iniLocation.c_str());
 
@@ -118,7 +118,7 @@ void TServerSystem::LogSpace(int space)
 
 void TServerSystem::DisplayIni()
 {
-	LogInfo("Loaded configuration from " + ServerNameOriginal + ".ini:", 0);
+	LogInfo("Loaded configuration from " + ServerNameOriginal + "Svr.ini:", 0);
 	SetConsoleTextAttribute(hConsole, INI_PRESENTATION_COLOR);
 	cout << "  ##########################################" << endl;
 
