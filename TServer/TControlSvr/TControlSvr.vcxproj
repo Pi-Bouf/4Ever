@@ -18,6 +18,7 @@
     <SccLocalPath>..</SccLocalPath>
     <SccProvider>MSSCCI:Microsoft Visual SourceSafe</SccProvider>
     <Keyword>AtlProj</Keyword>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -48,22 +49,23 @@
     <_ProjectFileVersion>15.0.27413.0</_ProjectFileVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>Debug\</OutDir>
+    <OutDir>..\Servers</OutDir>
     <IntDir>Debug\</IntDir>
     <IgnoreImportLibrary>true</IgnoreImportLibrary>
     <LinkIncremental>true</LinkIncremental>
+    <TargetName>$(ProjectName)_Debug</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>Release\</OutDir>
+    <OutDir>..\Servers</OutDir>
     <IntDir>Release\</IntDir>
     <IgnoreImportLibrary>true</IgnoreImportLibrary>
     <LinkIncremental>false</LinkIncremental>
-    <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
+    <PostBuildEventUseInBuild>true</PostBuildEventUseInBuild>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\TNetLib;..\..\TProtocol;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Includes\External\SimpleIni;..\..\Includes\Internals\TProtocol;..\TNetLib;..\TServerSystem;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -73,12 +75,12 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>odbc32.lib;ws2_32.lib;mswsock.lib;TNetLibd.Lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>$(OutDir)TControlSvr.exe</OutputFile>
-      <AdditionalLibraryDirectories>..\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>odbc32.lib;ws2_32.lib;mswsock.lib;TNetLibd.Lib;TServerSystemd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>..\Servers\TControlSvr_Debug.exe</OutputFile>
+      <AdditionalLibraryDirectories>..\Lib;..\..\Include\External\LegacyMFCISAPI;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <DelayLoadDLLs />
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <ImportLibrary>$(OutDir)TControlSvr.lib</ImportLibrary>
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
@@ -94,8 +96,13 @@
       <ProxyFileName>TControlSvr_p.c</ProxyFileName>
     </Midl>
     <PostBuildEvent>
-      <Message>등록하고 있습니다.</Message>
-      <Command>"$(TargetPath)" /RegServer</Command>
+      <Message>
+      </Message>
+      <Command>IF NOT EXIST "..\Servers\Configurations\$(ProjectName).ini" XCOPY $(ProjectName).ini ..\Servers\Configurations\
+DEL /f ..\Servers\$(ProjectName)
+DEL /f ..\Servers\$(ProjectName).pdb
+DEL /f ..\Servers\$(ProjectName)_Debug.ilk
+DEL /f ..\Servers\$(ProjectName)_Debug.pdb</Command>
     </PostBuildEvent>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -105,7 +112,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\TNetLib;..\..\TProtocol;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Includes\External\SimpleIni;..\..\Includes\Internals\TProtocol;..\TNetLib;..\TServerSystem;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ExceptionHandling>Sync</ExceptionHandling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -115,14 +122,14 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>odbc32.lib;ws2_32.lib;mswsock.lib;TNetLib.Lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>..\Services\TControlSvr.exe</OutputFile>
-      <AdditionalLibraryDirectories>..\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>odbc32.lib;ws2_32.lib;mswsock.lib;TNetLib.Lib;TServerSystem.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>..\Servers\TControlSvr.exe</OutputFile>
+      <AdditionalLibraryDirectories>..\Lib;..\..\Include\External\LegacyMFCISAPI;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <DelayLoadDLLs />
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <GenerateMapFile>true</GenerateMapFile>
       <MapFileName>$(OutDir)$(ProjectName)</MapFileName>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <ImportLibrary>$(OutDir)TControlSvr.lib</ImportLibrary>
@@ -140,8 +147,13 @@
       <ProxyFileName>TControlSvr_p.c</ProxyFileName>
     </Midl>
     <PostBuildEvent>
-      <Message>등록하고 있습니다.</Message>
-      <Command>"$(TargetPath)" /RegServer</Command>
+      <Message>
+      </Message>
+      <Command>IF NOT EXIST "..\Servers\Configurations\$(ProjectName).ini" XCOPY $(ProjectName).ini ..\Servers\Configurations\
+DEL /f ..\Servers\$(ProjectName)
+DEL /f ..\Servers\$(ProjectName).pdb
+DEL /f ..\Servers\$(ProjectName)_Debug.ilk
+DEL /f ..\Servers\$(ProjectName)_Debug.pdb</Command>
     </PostBuildEvent>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -195,6 +207,10 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\TServerSystem\res\TServer_Debug.ico" />
+    <Image Include="..\TServerSystem\res\TServer_Release.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
