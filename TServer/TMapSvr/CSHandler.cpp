@@ -6,23 +6,22 @@
 
 /*DWORD CTMapSvrModule::OnCS_HACKINFO_REQ( LPPACKETBUF pBUF )
 {
-	CTPlayer *pPlayer = (CTPlayer *) pBUF->m_pSESSION;
-	BYTE bDisguise;
-	pBUF->m_packet
-		>> bDisguise;
+CTPlayer *pPlayer = (CTPlayer *) pBUF->m_pSESSION;
+BYTE bDisguise;
+pBUF->m_packet
+>> bDisguise;
 
-	if(pPlayer->GetCountry() != bDisguise)
-	{
-		LogEvent("DETECTED HACK => Name: %s :: ID: %d", pPlayer->m_strNAME,pPlayer->m_dwID);
-		CloseSession( pPlayer );
-	}
+if(pPlayer->GetCountry() != bDisguise)
+{
+LogEvent("DETECTED HACK => Name: %s :: ID: %d", pPlayer->m_strNAME,pPlayer->m_dwID);
+CloseSession( pPlayer );
+}
 
-	return EC_NOERROR;
+return EC_NOERROR;
 }*/
 
 DWORD CTMapSvrModule::OnCS_WINLDIC_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_WINLDIC_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	MAPTPVPOINT::iterator itF = m_mapTPvPointKill.find(MAKEWORD(PVPS_NORMAL, PVPE_KILL_E));
 	if (itF == m_mapTPvPointKill.end())
@@ -38,7 +37,6 @@ DWORD CTMapSvrModule::OnCS_WINLDIC_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCT_SERVICEMONITOR_ACK(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCT_SERVICEMONITOR_ACK");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 
 	DWORD dwTick;
@@ -84,7 +82,6 @@ DWORD CTMapSvrModule::OnCT_SERVICEMONITOR_ACK(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCT_ANNOUNCEMENT_ACK(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCT_ANNOUNCEMENT_ACK");
 	MAPPLAYER::iterator it;
 	CString strAnnounce;
 
@@ -105,7 +102,6 @@ DWORD CTMapSvrModule::OnCT_ANNOUNCEMENT_ACK(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCT_USERKICKOUT_ACK(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCT_USERKICKOUT_ACK");
 	CString strUser;
 
 	pBUF->m_packet
@@ -123,7 +119,6 @@ DWORD CTMapSvrModule::OnCT_USERKICKOUT_ACK(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCT_MONSPAWNFIND_ACK(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCT_MONSPAWNFIND_ACK");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 
 	DWORD dwManager;
@@ -175,7 +170,6 @@ DWORD CTMapSvrModule::OnCT_MONSPAWNFIND_ACK(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCT_MONACTION_ACK(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCT_MONACTION_ACK");
 	BYTE bChannel;
 	WORD wMapID;
 	DWORD dwMonID;
@@ -226,7 +220,6 @@ DWORD CTMapSvrModule::OnCT_MONACTION_ACK(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCT_SERVICEDATACLEAR_ACK(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCT_SERVICEDATACLEAR_ACK");
 	m_mapACTIVEUSER.clear();
 
 	MAPDWORD::iterator finder;
@@ -243,13 +236,11 @@ DWORD CTMapSvrModule::OnCT_SERVICEDATACLEAR_ACK(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCT_CTRLSVR_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCT_CTRLSVR_REQ");
 	return EC_NOERROR;
 }
 
 DWORD CTMapSvrModule::OnCT_CASTLEINFO_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCT_CASTLEINFO_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	DWORD dwManagerID;
 
@@ -266,7 +257,6 @@ DWORD CTMapSvrModule::OnCT_CASTLEINFO_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_CONNECT_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_CONNECT_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 
 	WORD wVersion;
@@ -386,7 +376,6 @@ DWORD CTMapSvrModule::OnCS_CONNECT_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_CONREADY_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_CONREADY_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 
 	if (!pPlayer->m_bExit)
@@ -402,7 +391,6 @@ DWORD CTMapSvrModule::OnCS_CONREADY_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_KICKOUT_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_KICKOUT_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 
 	DWORD dwCharID;
@@ -425,7 +413,6 @@ DWORD CTMapSvrModule::OnCS_KICKOUT_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_MOVE_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_MOVE_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 
 	if (pPlayer->m_bBufFull)
@@ -620,7 +607,6 @@ DWORD CTMapSvrModule::OnCS_MOVE_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_JUMP_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_JUMP_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 
 	BYTE bChannel;
@@ -740,7 +726,6 @@ DWORD CTMapSvrModule::OnCS_JUMP_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_BLOCK_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_BLOCK_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 
 	BYTE bChannel;
@@ -857,7 +842,6 @@ DWORD CTMapSvrModule::OnCS_BLOCK_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_MONMOVE_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_MONMOVE_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP)
 		return EC_NOERROR;
@@ -1002,7 +986,6 @@ DWORD CTMapSvrModule::OnCS_MONMOVE_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_REVIVAL_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_REVIVAL_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 
 	FLOAT fPosX;
@@ -1036,7 +1019,6 @@ DWORD CTMapSvrModule::OnCS_REVIVAL_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_ENTERLB_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_ENTERLB_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 
 	DWORD dwCharID;
@@ -1067,7 +1049,6 @@ DWORD CTMapSvrModule::OnCS_ENTERLB_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_LEAVELB_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_LEAVELB_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 
 	DWORD dwCharID;
@@ -1098,7 +1079,6 @@ DWORD CTMapSvrModule::OnCS_LEAVELB_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_ENTERAB_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_ENTERAB_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 
 	DWORD dwCharID;
@@ -1129,7 +1109,6 @@ DWORD CTMapSvrModule::OnCS_ENTERAB_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_LEAVEAB_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_LEAVEAB_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 
 	DWORD dwCharID;
@@ -1160,7 +1139,6 @@ DWORD CTMapSvrModule::OnCS_LEAVEAB_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_CHGMODE_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_CHGMODE_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
@@ -1174,7 +1152,6 @@ DWORD CTMapSvrModule::OnCS_CHGMODE_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_ACTION_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_ACTION_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 
 	DWORD dwObjID;
@@ -1371,7 +1348,6 @@ DWORD CTMapSvrModule::OnCS_ACTION_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_DEFEND_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_DEFEND_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 
 	DWORD dwHostID;
@@ -1699,7 +1675,6 @@ DWORD CTMapSvrModule::OnCS_DEFEND_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_MOVEITEM_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_MOVEITEM_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain || pPlayer->m_bStatus == OS_DEAD)
@@ -2021,7 +1996,6 @@ DWORD CTMapSvrModule::OnCS_MOVEITEM_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_SKILLBUY_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_SKILLBUY_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
@@ -2253,7 +2227,6 @@ DWORD CTMapSvrModule::OnCS_SKILLBUY_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_SKILLUSE_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_SKILLUSE_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 
 	VDWORD vDEFEND;
@@ -2733,7 +2706,6 @@ DWORD CTMapSvrModule::OnCS_SKILLUSE_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_LOOPSKILL_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_LOOPSKILL_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 
 	VDWORD vDEFEND;
@@ -3064,7 +3036,6 @@ DWORD CTMapSvrModule::OnCS_LOOPSKILL_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_CHGPARTYCHIEF_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_CHGPARTYCHIEF_REQ");
 	CTPlayer * pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -3084,7 +3055,6 @@ DWORD CTMapSvrModule::OnCS_CHGPARTYCHIEF_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_CHGPARTYTYPE_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_CHGPARTYTYPE_REQ");
 	CTPlayer * pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -3104,7 +3074,6 @@ DWORD CTMapSvrModule::OnCS_CHGPARTYTYPE_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_PARTYADD_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_PARTYADD_REQ");
 	CTPlayer * pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -3133,7 +3102,6 @@ DWORD CTMapSvrModule::OnCS_PARTYADD_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_PARTYJOIN_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_PARTYJOIN_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -3162,7 +3130,6 @@ DWORD CTMapSvrModule::OnCS_PARTYJOIN_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_PARTYDEL_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_PARTYDEL_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -3186,7 +3153,6 @@ DWORD CTMapSvrModule::OnCS_PARTYDEL_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_NPCTALK_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_NPCTALK_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -3215,7 +3181,6 @@ DWORD CTMapSvrModule::OnCS_NPCTALK_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_QUESTEXEC_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_QUESTEXEC_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -3271,7 +3236,6 @@ DWORD CTMapSvrModule::OnCS_QUESTEXEC_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_QUESTDROP_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_QUESTDROP_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -3297,7 +3261,6 @@ DWORD CTMapSvrModule::OnCS_QUESTDROP_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_QUESTENDTIMER_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_QUESTENDTIMER_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -3330,7 +3293,6 @@ DWORD CTMapSvrModule::OnCS_QUESTENDTIMER_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_QUESTLIST_POSSIBLE_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_QUESTLIST_POSSIBLE_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -3352,7 +3314,6 @@ DWORD CTMapSvrModule::OnCS_QUESTLIST_POSSIBLE_REQ(LPPACKETBUF pBUF)
 // ±æµå
 DWORD CTMapSvrModule::OnCS_GUILDESTABLISH_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_GUILDESTABLISH_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -3425,7 +3386,6 @@ DWORD CTMapSvrModule::OnCS_GUILDESTABLISH_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_GUILDDISORGANIZATION_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_GUILDDISORGANIZATION_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -3456,7 +3416,6 @@ DWORD CTMapSvrModule::OnCS_GUILDDISORGANIZATION_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_GUILDINVITE_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_GUILDINVITE_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -3486,7 +3445,6 @@ DWORD CTMapSvrModule::OnCS_GUILDINVITE_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_GUILDINVITEANSWER_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_GUILDINVITEANSWER_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -3513,7 +3471,6 @@ DWORD CTMapSvrModule::OnCS_GUILDINVITEANSWER_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_GUILDLEAVE_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_GUILDLEAVE_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -3538,7 +3495,6 @@ DWORD CTMapSvrModule::OnCS_GUILDLEAVE_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_GUILDDUTY_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_GUILDDUTY_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -3571,7 +3527,6 @@ DWORD CTMapSvrModule::OnCS_GUILDDUTY_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_GUILDPEER_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_GUILDPEER_REQ");
 	CTPlayer * pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -3604,7 +3559,6 @@ DWORD CTMapSvrModule::OnCS_GUILDPEER_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_GUILDKICKOUT_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_GUILDKICKOUT_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -3628,7 +3582,6 @@ DWORD CTMapSvrModule::OnCS_GUILDKICKOUT_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_GUILDMEMBERLIST_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_GUILDMEMBERLIST_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -3644,7 +3597,6 @@ DWORD CTMapSvrModule::OnCS_GUILDMEMBERLIST_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_GUILDINFO_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_GUILDINFO_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -3661,7 +3613,6 @@ DWORD CTMapSvrModule::OnCS_GUILDINFO_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_GUILDLOCALLIST_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_GUILDLOCALLIST_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -3672,7 +3623,6 @@ DWORD CTMapSvrModule::OnCS_GUILDLOCALLIST_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_GUILDLOCALRETURN_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_GUILDLOCALRETURN_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -3684,7 +3634,6 @@ DWORD CTMapSvrModule::OnCS_GUILDLOCALRETURN_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_GUILDCABINETLIST_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_GUILDCABINETLIST_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -3704,7 +3653,6 @@ DWORD CTMapSvrModule::OnCS_GUILDCABINETLIST_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_GUILDCABINETPUTIN_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_GUILDCABINETPUTIN_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 
 	if (pPlayer->ProtectTutorial())
@@ -3775,7 +3723,6 @@ DWORD CTMapSvrModule::OnCS_GUILDCABINETPUTIN_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_GUILDCABINETTAKEOUT_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_GUILDCABINETTAKEOUT_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -3829,7 +3776,6 @@ DWORD CTMapSvrModule::OnCS_GUILDCABINETTAKEOUT_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_GUILDCONTRIBUTION_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_GUILDCONTRIBUTION_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -3891,7 +3837,6 @@ DWORD CTMapSvrModule::OnCS_GUILDCONTRIBUTION_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_GUILDARTICLELIST_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_GUILDARTICLELIST_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -3905,7 +3850,6 @@ DWORD CTMapSvrModule::OnCS_GUILDARTICLELIST_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_GUILDARTICLEADD_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_GUILDARTICLEADD_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -3944,7 +3888,6 @@ DWORD CTMapSvrModule::OnCS_GUILDARTICLEADD_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_GUILDARTICLEDEL_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_GUILDARTICLEDEL_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -3974,7 +3917,6 @@ DWORD CTMapSvrModule::OnCS_GUILDARTICLEDEL_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_GUILDARTICLEUPDATE_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_GUILDARTICLEUPDATE_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -4016,7 +3958,6 @@ DWORD CTMapSvrModule::OnCS_GUILDARTICLEUPDATE_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_GUILDFAME_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_GUILDFAME_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -4049,7 +3990,6 @@ DWORD CTMapSvrModule::OnCS_GUILDFAME_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_GUILDWANTEDADD_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_GUILDWANTEDADD_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -4100,7 +4040,6 @@ DWORD CTMapSvrModule::OnCS_GUILDWANTEDADD_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_GUILDWANTEDDEL_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_GUILDWANTEDDEL_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -4121,7 +4060,6 @@ DWORD CTMapSvrModule::OnCS_GUILDWANTEDDEL_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_GUILDWANTEDLIST_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_GUILDWANTEDLIST_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -4132,7 +4070,6 @@ DWORD CTMapSvrModule::OnCS_GUILDWANTEDLIST_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_GUILDVOLUNTEERING_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_GUILDVOLUNTEERING_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -4159,7 +4096,6 @@ DWORD CTMapSvrModule::OnCS_GUILDVOLUNTEERING_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_GUILDVOLUNTEERINGDEL_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_GUILDVOLUNTEERINGDEL_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -4175,7 +4111,6 @@ DWORD CTMapSvrModule::OnCS_GUILDVOLUNTEERINGDEL_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_GUILDVOLUNTEERLIST_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_GUILDVOLUNTEERLIST_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -4191,7 +4126,6 @@ DWORD CTMapSvrModule::OnCS_GUILDVOLUNTEERLIST_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_GUILDVOLUNTEERREPLY_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_GUILDVOLUNTEERREPLY_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -4224,7 +4158,6 @@ DWORD CTMapSvrModule::OnCS_GUILDVOLUNTEERREPLY_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_GUILDTACTICSWANTEDADD_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_GUILDTACTICSWANTEDADD_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -4288,7 +4221,6 @@ DWORD CTMapSvrModule::OnCS_GUILDTACTICSWANTEDADD_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_GUILDTACTICSWANTEDDEL_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_GUILDTACTICSWANTEDDEL_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -4313,7 +4245,6 @@ DWORD CTMapSvrModule::OnCS_GUILDTACTICSWANTEDDEL_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_GUILDTACTICSWANTEDLIST_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_GUILDTACTICSWANTEDLIST_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -4324,7 +4255,6 @@ DWORD CTMapSvrModule::OnCS_GUILDTACTICSWANTEDLIST_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_GUILDTACTICSVOLUNTEERING_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_GUILDTACTICSVOLUNTEERING_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -4367,7 +4297,6 @@ DWORD CTMapSvrModule::OnCS_GUILDTACTICSVOLUNTEERING_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_GUILDTACTICSVOLUNTEERINGDEL_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_GUILDTACTICSVOLUNTEERINGDEL_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -4383,7 +4312,6 @@ DWORD CTMapSvrModule::OnCS_GUILDTACTICSVOLUNTEERINGDEL_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_GUILDTACTICSVOLUNTEERLIST_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_GUILDTACTICSVOLUNTEERLIST_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -4399,7 +4327,6 @@ DWORD CTMapSvrModule::OnCS_GUILDTACTICSVOLUNTEERLIST_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_GUILDTACTICSREPLY_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_GUILDTACTICSREPLY_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -4435,7 +4362,6 @@ DWORD CTMapSvrModule::OnCS_GUILDTACTICSREPLY_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_GUILDTACTICSKICKOUT_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_GUILDTACTICSKICKOUT_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -4474,7 +4400,6 @@ DWORD CTMapSvrModule::OnCS_GUILDTACTICSKICKOUT_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_GUILDTACTICSINVITE_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_GUILDTACTICSINVITE_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -4523,7 +4448,6 @@ DWORD CTMapSvrModule::OnCS_GUILDTACTICSINVITE_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_GUILDTACTICSANSWER_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_GUILDTACTICSANSWER_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -4563,7 +4487,6 @@ DWORD CTMapSvrModule::OnCS_GUILDTACTICSANSWER_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_GUILDTACTICSLIST_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_GUILDTACTICSLIST_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -4582,7 +4505,6 @@ DWORD CTMapSvrModule::OnCS_GUILDTACTICSLIST_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_CHAT_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_CHAT_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -4762,7 +4684,6 @@ DWORD CTMapSvrModule::OnCS_CHAT_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_CABINETPUTIN_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_CABINETPUTIN_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -4869,7 +4790,6 @@ DWORD CTMapSvrModule::OnCS_CABINETPUTIN_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_CABINETTAKEOUT_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_CABINETTAKEOUT_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -4961,7 +4881,6 @@ DWORD CTMapSvrModule::OnCS_CABINETTAKEOUT_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_CABINETLIST_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_CABINETLIST_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -4973,7 +4892,6 @@ DWORD CTMapSvrModule::OnCS_CABINETLIST_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_CABINETITEMLIST_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_CABINETITEMLIST_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -5000,7 +4918,6 @@ DWORD CTMapSvrModule::OnCS_CABINETITEMLIST_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_CABINETOPEN_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_CABINETOPEN_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -5072,7 +4989,6 @@ DWORD CTMapSvrModule::OnCS_CABINETOPEN_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_TELEPORT_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_TELEPORT_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 
 	if (!pPlayer->m_pMAP ||
@@ -5358,7 +5274,6 @@ DWORD CTMapSvrModule::OnCS_TELEPORT_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_NPCITEMLIST_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_NPCITEMLIST_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -5382,7 +5297,6 @@ DWORD CTMapSvrModule::OnCS_NPCITEMLIST_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_ITEMBUY_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_ITEMBUY_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -5575,7 +5489,6 @@ DWORD CTMapSvrModule::OnCS_ITEMBUY_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_MAGICITEMBUY_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_MAGICITEMBUY_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -5685,7 +5598,6 @@ DWORD CTMapSvrModule::OnCS_MAGICITEMBUY_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_ITEMSELL_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_ITEMSELL_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -5803,7 +5715,6 @@ DWORD CTMapSvrModule::OnCS_ITEMSELL_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_MONITEMLIST_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_MONITEMLIST_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 
 	if (!pPlayer->m_pMAP)
@@ -5889,7 +5800,6 @@ DWORD CTMapSvrModule::OnCS_MONITEMLIST_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_MONMONEYTAKE_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_MONMONEYTAKE_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	DWORD dwMonID;
 
@@ -5906,7 +5816,6 @@ DWORD CTMapSvrModule::OnCS_MONMONEYTAKE_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_MONITEMTAKE_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_MONITEMTAKE_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP)
 		return EC_NOERROR;
@@ -5929,7 +5838,6 @@ DWORD CTMapSvrModule::OnCS_MONITEMTAKE_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_MONITEMTAKEALL_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_MONITEMTAKEALL_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP)
 		return EC_NOERROR;
@@ -5946,7 +5854,6 @@ DWORD CTMapSvrModule::OnCS_MONITEMTAKEALL_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_MONITEMLOTTERY_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_MONITEMLOTTERY_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -5996,7 +5903,6 @@ DWORD CTMapSvrModule::OnCS_MONITEMLOTTERY_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_FRIENDLIST_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_FRIENDLIST_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -6010,7 +5916,6 @@ DWORD CTMapSvrModule::OnCS_FRIENDLIST_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_FRIENDASK_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_FRIENDASK_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -6043,7 +5948,6 @@ DWORD CTMapSvrModule::OnCS_FRIENDASK_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_FRIENDREPLY_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_FRIENDREPLY_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -6065,7 +5969,6 @@ DWORD CTMapSvrModule::OnCS_FRIENDREPLY_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_FRIENDERASE_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_FRIENDERASE_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -6083,7 +5986,6 @@ DWORD CTMapSvrModule::OnCS_FRIENDERASE_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_HOTKEYADD_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_HOTKEYADD_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -6105,7 +6007,6 @@ DWORD CTMapSvrModule::OnCS_HOTKEYADD_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_HOTKEYDEL_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_HOTKEYDEL_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -6123,7 +6024,6 @@ DWORD CTMapSvrModule::OnCS_HOTKEYDEL_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_CHARSTATINFO_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_CHARSTATINFO_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -6143,7 +6043,6 @@ DWORD CTMapSvrModule::OnCS_CHARSTATINFO_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_CANCELACTION_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_CANCELACTION_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -6180,7 +6079,6 @@ DWORD CTMapSvrModule::OnCS_CANCELACTION_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_ITEMUPGRADE_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_ITEMUPGRADE_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -6869,7 +6767,6 @@ DWORD CTMapSvrModule::OnCS_ITEMUPGRADE_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_CHGCORPSCOMMANDER_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_CHGCORPSCOMMANDER_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -6884,7 +6781,6 @@ DWORD CTMapSvrModule::OnCS_CHGCORPSCOMMANDER_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_CORPSLEAVE_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_CORPSLEAVE_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -6899,7 +6795,6 @@ DWORD CTMapSvrModule::OnCS_CORPSLEAVE_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_CORPSASK_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_CORPSASK_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -6913,7 +6808,6 @@ DWORD CTMapSvrModule::OnCS_CORPSASK_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_CORPSREPLY_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_CORPSREPLY_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -6936,7 +6830,6 @@ DWORD CTMapSvrModule::OnCS_CORPSREPLY_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_CORPSCMD_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_CORPSCMD_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -6977,7 +6870,6 @@ DWORD CTMapSvrModule::OnCS_CORPSCMD_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_CORPSENEMYLIST_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_CORPSENEMYLIST_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -7049,7 +6941,6 @@ DWORD CTMapSvrModule::OnCS_CORPSENEMYLIST_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_MOVECORPSENEMY_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_MOVECORPSENEMY_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -7091,7 +6982,6 @@ DWORD CTMapSvrModule::OnCS_MOVECORPSENEMY_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_MOVECORPSUNIT_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_MOVECORPSUNIT_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -7132,7 +7022,6 @@ DWORD CTMapSvrModule::OnCS_MOVECORPSUNIT_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_ADDCORPSENEMY_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_ADDCORPSENEMY_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -7173,7 +7062,6 @@ DWORD CTMapSvrModule::OnCS_ADDCORPSENEMY_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_DELCORPSENEMY_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_DELCORPSENEMY_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -7199,7 +7087,6 @@ DWORD CTMapSvrModule::OnCS_DELCORPSENEMY_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_CORPSHP_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_CORPSHP_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -7228,7 +7115,6 @@ DWORD CTMapSvrModule::OnCS_CORPSHP_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_PARTYMOVE_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_PARTYMOVE_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -7258,7 +7144,6 @@ DWORD CTMapSvrModule::OnCS_PARTYMOVE_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_FRIENDGROUPMAKE_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_FRIENDGROUPMAKE_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -7289,7 +7174,6 @@ DWORD CTMapSvrModule::OnCS_FRIENDGROUPMAKE_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_FRIENDGROUPDELETE_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_FRIENDGROUPDELETE_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -7307,7 +7191,6 @@ DWORD CTMapSvrModule::OnCS_FRIENDGROUPDELETE_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_FRIENDGROUPCHANGE_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_FRIENDGROUPCHANGE_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -7328,7 +7211,6 @@ DWORD CTMapSvrModule::OnCS_FRIENDGROUPCHANGE_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_FRIENDGROUPNAME_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_FRIENDGROUPNAME_REQ");
 	CTPlayer * pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -7358,7 +7240,6 @@ DWORD CTMapSvrModule::OnCS_FRIENDGROUPNAME_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_TMSSEND_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_TMSSEND_REQ");
 	CTPlayer * pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -7380,7 +7261,6 @@ DWORD CTMapSvrModule::OnCS_TMSSEND_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_TMSINVITE_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_TMSINVITE_REQ");
 	CTPlayer * pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -7415,7 +7295,6 @@ DWORD CTMapSvrModule::OnCS_TMSINVITE_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_TMSOUT_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_TMSOUT_REQ");
 	CTPlayer * pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -7434,7 +7313,6 @@ DWORD CTMapSvrModule::OnCS_TMSOUT_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_POSTSEND_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_POSTSEND_REQ");
 	CTPlayer * pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -7512,7 +7390,6 @@ DWORD CTMapSvrModule::OnCS_POSTSEND_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_POSTVIEW_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_POSTVIEW_REQ");
 	CTPlayer * pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -7542,7 +7419,6 @@ DWORD CTMapSvrModule::OnCS_POSTVIEW_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_POSTDEL_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_POSTDEL_REQ");
 	CTPlayer * pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -7567,7 +7443,6 @@ DWORD CTMapSvrModule::OnCS_POSTDEL_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_POSTGETITEM_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_POSTGETITEM_REQ");
 	CTPlayer * pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -7665,7 +7540,6 @@ DWORD CTMapSvrModule::OnCS_POSTGETITEM_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_POSTRETURN_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_POSTRETURN_REQ");
 	CTPlayer * pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -7715,7 +7589,6 @@ DWORD CTMapSvrModule::OnCS_POSTRETURN_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_CASTLEAPPLY_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_CASTLEAPPLY_REQ");
 	CTPlayer * pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -7782,7 +7655,6 @@ DWORD CTMapSvrModule::OnCS_CASTLEAPPLY_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_ITEMUSE_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_ITEMUSE_REQ");
 	CTPlayer * pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -8361,7 +8233,6 @@ DWORD CTMapSvrModule::OnCS_ITEMUSE_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_CHGMODERECALLMON_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_CHGMODERECALLMON_REQ");
 	CTPlayer * pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_bMain || !pPlayer->m_pMAP)
 		return EC_NOERROR;
@@ -8384,7 +8255,6 @@ DWORD CTMapSvrModule::OnCS_CHGMODERECALLMON_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_DELRECALLMON_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_DELRECALLMON_REQ");
 	CTPlayer * pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_bMain || !pPlayer->m_pMAP)
 		return EC_NOERROR;
@@ -8413,7 +8283,6 @@ DWORD CTMapSvrModule::OnCS_DELRECALLMON_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_INVENADD_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_INVENADD_REQ");
 	CTPlayer * pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_bMain || !pPlayer->m_pMAP)
 		return EC_NOERROR;
@@ -8485,7 +8354,6 @@ DWORD CTMapSvrModule::OnCS_INVENADD_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_INVENDEL_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_INVENDEL_REQ");
 	CTPlayer * pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_bMain || !pPlayer->m_pMAP)
 		return EC_NOERROR;
@@ -8545,7 +8413,6 @@ DWORD CTMapSvrModule::OnCS_INVENDEL_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_INVENMOVE_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_INVENMOVE_REQ");
 	CTPlayer * pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_bMain || !pPlayer->m_pMAP)
 		return EC_NOERROR;
@@ -8583,7 +8450,6 @@ DWORD CTMapSvrModule::OnCS_INVENMOVE_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_RESETHOST_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_RESETHOST_REQ");
 	CTPlayer * pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -8605,7 +8471,6 @@ DWORD CTMapSvrModule::OnCS_RESETHOST_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_REGION_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_REGION_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	CTObjBase *pOBJ = NULL;
 
@@ -8705,7 +8570,6 @@ DWORD CTMapSvrModule::OnCS_REGION_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_SWITCHCHANGE_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_SWITCHCHANGE_REQ");
 	CTPlayer * pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -8720,7 +8584,6 @@ DWORD CTMapSvrModule::OnCS_SWITCHCHANGE_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_SKILLEND_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_SKILLEND_REQ");
 	CTPlayer * pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 
 	DWORD dwObjID;
@@ -8824,7 +8687,6 @@ DWORD CTMapSvrModule::OnCS_SKILLEND_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_PROTECTEDADD_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_PROTECTEDADD_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -8857,7 +8719,6 @@ DWORD CTMapSvrModule::OnCS_PROTECTEDADD_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_PROTECTEDERASE_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_PROTECTEDERASE_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -8875,7 +8736,7 @@ DWORD CTMapSvrModule::OnCS_PROTECTEDERASE_REQ(LPPACKETBUF pBUF)
 	}
 
 	MAPTPROTECTED::iterator it;
-	for (it = pPlayer->m_mapTPROTECTED.begin();it != pPlayer->m_mapTPROTECTED.end();it++)
+	for (it = pPlayer->m_mapTPROTECTED.begin(); it != pPlayer->m_mapTPROTECTED.end(); it++)
 	{
 		if ((*it).second->m_strName == strProtected)
 			break;
@@ -8905,7 +8766,6 @@ DWORD CTMapSvrModule::OnCS_PROTECTEDERASE_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_REVIVALASK_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_REVIVALASK_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -8945,7 +8805,6 @@ DWORD CTMapSvrModule::OnCS_REVIVALASK_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_DROPDAMAGE_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_DROPDAMAGE_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 
 	DWORD dwTargetID;
@@ -9049,7 +8908,6 @@ DWORD CTMapSvrModule::OnCS_DROPDAMAGE_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_SETRETURNPOS_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_SETRETURNPOS_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -9081,7 +8939,6 @@ DWORD CTMapSvrModule::OnCS_SETRETURNPOS_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_DEALITEMASK_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_DEALITEMASK_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -9126,7 +8983,6 @@ DWORD CTMapSvrModule::OnCS_DEALITEMASK_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_DEALITEMRLY_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_DEALITEMRLY_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -9174,7 +9030,6 @@ DWORD CTMapSvrModule::OnCS_DEALITEMRLY_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_DEALITEMADD_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_DEALITEMADD_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -9303,7 +9158,6 @@ DWORD CTMapSvrModule::OnCS_DEALITEMADD_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_DEALITEM_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_DEALITEM_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -9443,7 +9297,6 @@ DWORD CTMapSvrModule::OnCS_DEALITEM_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_STOREOPEN_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_STOREOPEN_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -9566,7 +9419,6 @@ DWORD CTMapSvrModule::OnCS_STOREOPEN_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_STORECLOSE_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_STORECLOSE_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -9580,7 +9432,6 @@ DWORD CTMapSvrModule::OnCS_STORECLOSE_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_STOREITEMLIST_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_STOREITEMLIST_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -9606,7 +9457,6 @@ DWORD CTMapSvrModule::OnCS_STOREITEMLIST_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_STOREITEMBUY_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_STOREITEMBUY_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -9743,7 +9593,6 @@ DWORD CTMapSvrModule::OnCS_STOREITEMBUY_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_PETMAKE_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_PETMAKE_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -9821,7 +9670,6 @@ DWORD CTMapSvrModule::OnCS_PETMAKE_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_PETDEL_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_PETDEL_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -9863,7 +9711,6 @@ DWORD CTMapSvrModule::OnCS_PETDEL_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_PETRECALL_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_PETRECALL_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 	{
@@ -9961,7 +9808,6 @@ DWORD CTMapSvrModule::OnCS_PETRECALL_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_PETRIDING_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_PETRIDING_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -10018,7 +9864,6 @@ DWORD CTMapSvrModule::OnCS_PETRIDING_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_OTHERSELF_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_OTHERSELF_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -10043,7 +9888,6 @@ DWORD CTMapSvrModule::OnCS_OTHERSELF_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_DISCONNECT_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_DISCONNECT_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	CloseSession(pPlayer);
 	return EC_NOERROR;
@@ -10051,7 +9895,6 @@ DWORD CTMapSvrModule::OnCS_DISCONNECT_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_CHGCHANNEL_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_CHGCHANNEL_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -10099,7 +9942,6 @@ DWORD CTMapSvrModule::OnCS_CHGCHANNEL_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_CANCELSKILL_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_CANCELSKILL_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -10121,7 +9963,6 @@ DWORD CTMapSvrModule::OnCS_CANCELSKILL_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_DUELINVITE_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_DUELINVITE_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -10177,7 +10018,6 @@ DWORD CTMapSvrModule::OnCS_DUELINVITE_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_DUELINVITEREPLY_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_DUELINVITEREPLY_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -10269,7 +10109,6 @@ DWORD CTMapSvrModule::OnCS_DUELINVITEREPLY_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_DUELEND_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_DUELEND_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -10287,7 +10126,6 @@ DWORD CTMapSvrModule::OnCS_DUELEND_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_GETTARGET_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_GETTARGET_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -10305,7 +10143,6 @@ DWORD CTMapSvrModule::OnCS_GETTARGET_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_GETTARGETANS_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_GETTARGETANS_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 
 	DWORD dwAnswerCharID;
@@ -10325,7 +10162,6 @@ DWORD CTMapSvrModule::OnCS_GETTARGETANS_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_SMSSEND_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_SMSSEND_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -10404,7 +10240,6 @@ DWORD CTMapSvrModule::OnCS_SMSSEND_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_SKILLINIT_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_SKILLINIT_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -10508,7 +10343,6 @@ DWORD CTMapSvrModule::OnCS_SKILLINIT_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_SKILLINITPOSSIBLE_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_SKILLINITPOSSIBLE_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -10549,7 +10383,6 @@ DWORD CTMapSvrModule::OnCS_SKILLINITPOSSIBLE_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_HELMETHIDE_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_HELMETHIDE_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -10569,7 +10402,6 @@ DWORD CTMapSvrModule::OnCS_HELMETHIDE_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_PARTYMEMBERRECALL_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_PARTYMEMBERRECALL_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -10696,7 +10528,6 @@ DWORD CTMapSvrModule::OnCS_PARTYMEMBERRECALL_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_PARTYMEMBERRECALLANS_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_PARTYMEMBERRECALLANS_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -10733,7 +10564,6 @@ DWORD CTMapSvrModule::OnCS_PARTYMEMBERRECALLANS_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_CASHITEMCABINET_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_CASHITEMCABINET_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -10751,7 +10581,6 @@ DWORD CTMapSvrModule::OnCS_CASHITEMCABINET_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_CASHITEMGET_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_CASHITEMGET_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -10792,7 +10621,6 @@ DWORD CTMapSvrModule::OnCS_CASHITEMGET_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_CASHSHOPITEMLIST_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_CASHSHOPITEMLIST_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -10821,7 +10649,6 @@ DWORD CTMapSvrModule::OnCS_CASHSHOPITEMLIST_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_TITLELIST_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_TITLELIST_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -10836,7 +10663,6 @@ DWORD CTMapSvrModule::OnCS_TITLELIST_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_CASHITEMBUY_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_CASHITEMBUY_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -10868,7 +10694,6 @@ DWORD CTMapSvrModule::OnCS_CASHITEMBUY_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_CASHITEMPRESENT_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_CASHITEMPRESENT_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -10908,7 +10733,6 @@ DWORD CTMapSvrModule::OnCS_CASHITEMPRESENT_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_SOULMATESEARCH_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_SOULMATESEARCH_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -10997,7 +10821,6 @@ DWORD CTMapSvrModule::OnCS_SOULMATESEARCH_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_SOULMATEREGREADY_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_SOULMATEREGREADY_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -11068,7 +10891,6 @@ DWORD CTMapSvrModule::OnCS_SOULMATEREGREADY_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_SOULMATEREG_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_SOULMATEREG_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -11144,7 +10966,6 @@ DWORD CTMapSvrModule::OnCS_SOULMATEREG_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_SOULMATEEND_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_SOULMATEEND_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -11164,7 +10985,6 @@ DWORD CTMapSvrModule::OnCS_SOULMATEEND_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_GAMBLECHECK_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_GAMBLECHECK_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -11243,7 +11063,6 @@ DWORD CTMapSvrModule::OnCS_GAMBLECHECK_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_GAMBLEOPEN_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_GAMBLEOPEN_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -11536,7 +11355,6 @@ DWORD CTMapSvrModule::OnCS_GAMBLEOPEN_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_TAKEGODBALL_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_TAKEGODBALL_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -11588,7 +11406,6 @@ DWORD CTMapSvrModule::OnCS_TAKEGODBALL_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_MOUNTGODBALL_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_MOUNTGODBALL_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -11634,7 +11451,6 @@ DWORD CTMapSvrModule::OnCS_MOUNTGODBALL_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_DEMOUNTGODBALL_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_DEMOUNTGODBALL_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -11682,7 +11498,6 @@ DWORD CTMapSvrModule::OnCS_DEMOUNTGODBALL_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_DURATIONREP_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_DURATIONREP_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -11896,7 +11711,6 @@ DWORD CTMapSvrModule::OnCS_DURATIONREP_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_REFINE_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_REFINE_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -12203,7 +12017,6 @@ DWORD CTMapSvrModule::OnCS_REFINE_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_ACTEND_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_ACTEND_REQ");
 	/*
 	CTPlayer *pPlayer = (CTPlayer *) pBUF->m_pSESSION;
 	if( !pPlayer->m_pMAP || !pPlayer->m_bMain )
@@ -12253,7 +12066,6 @@ DWORD CTMapSvrModule::OnCS_ACTEND_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_CASHCABINETBUY_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_CASHCABINETBUY_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -12275,7 +12087,6 @@ DWORD CTMapSvrModule::OnCS_CASHCABINETBUY_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_CASHITEMPUTIN_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_CASHITEMPUTIN_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -12340,7 +12151,6 @@ DWORD CTMapSvrModule::OnCS_CASHITEMPUTIN_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_CHANGENAME_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_CHANGENAME_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -12405,7 +12215,6 @@ DWORD CTMapSvrModule::OnCS_CHANGENAME_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_CHANGETITLE_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_CHANGETITLE_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -12437,7 +12246,6 @@ DWORD CTMapSvrModule::OnCS_CHANGETITLE_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_STOPTHECLOCK_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_STOPTHECLOCK_REQ");
 	CTPlayer *pPlayer = (CTPlayer *)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -12486,7 +12294,6 @@ DWORD CTMapSvrModule::OnCS_STOPTHECLOCK_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_HEROSELECT_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_HEROSELECT_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -12563,7 +12370,6 @@ DWORD CTMapSvrModule::OnCS_HEROSELECT_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_HEROLIST_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_HEROLIST_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -12575,7 +12381,6 @@ DWORD CTMapSvrModule::OnCS_HEROLIST_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_TERMINATE_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_TERMINATE_REQ");
 	DWORD dwKey;
 	CString strQuery;
 
@@ -12604,7 +12409,6 @@ DWORD CTMapSvrModule::OnCS_TERMINATE_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_CHECKRELAY_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_CHECKRELAY_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -12617,7 +12421,6 @@ DWORD CTMapSvrModule::OnCS_CHECKRELAY_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_COMMENT_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_COMMENT_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 
 	if (m_timeCurrent < pPlayer->m_nChatBanTime)
@@ -12660,7 +12463,6 @@ DWORD CTMapSvrModule::OnCS_COMMENT_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_GUILDPOINTLOG_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_GUILDPOINTLOG_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -12677,7 +12479,6 @@ DWORD CTMapSvrModule::OnCS_GUILDPOINTLOG_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_GUILDPOINTREWARD_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_GUILDPOINTREWARD_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -12719,7 +12520,6 @@ DWORD CTMapSvrModule::OnCS_GUILDPOINTREWARD_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_GUILDPVPRECORD_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_GUILDPVPRECORD_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -12741,7 +12541,6 @@ DWORD CTMapSvrModule::OnCS_GUILDPVPRECORD_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_PVPRECORD_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_PVPRECORD_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -12757,7 +12556,6 @@ DWORD CTMapSvrModule::OnCS_PVPRECORD_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_MONSTERBUY_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_MONSTERBUY_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -12830,7 +12628,6 @@ DWORD CTMapSvrModule::OnCS_MONSTERBUY_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_PROTECTEDOPTION_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_PROTECTEDOPTION_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -12854,7 +12651,6 @@ DWORD CTMapSvrModule::OnCS_PROTECTEDOPTION_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_ITEMCHANGE_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_ITEMCHANGE_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -12997,7 +12793,6 @@ DWORD CTMapSvrModule::OnCS_ITEMCHANGE_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_COUNTDOWN_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_COUNTDOWN_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -13014,7 +12809,6 @@ DWORD CTMapSvrModule::OnCS_COUNTDOWN_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_WASTEREFINE_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_WASTEREFINE_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -13079,7 +12873,6 @@ DWORD CTMapSvrModule::OnCS_WASTEREFINE_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_PETCANCEL_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_PETCANCEL_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 
 	CTRecallMon * pRecall = pPlayer->FindRecallPet();
@@ -13093,7 +12886,6 @@ DWORD CTMapSvrModule::OnCS_PETCANCEL_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_APEXDATA_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_APEXDATA_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 
 	int nLen;
@@ -13115,7 +12907,6 @@ DWORD CTMapSvrModule::OnCS_APEXDATA_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_APEXSTART_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_APEXSTART_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 
 	long nData;
@@ -13134,7 +12925,6 @@ DWORD CTMapSvrModule::OnCS_APEXSTART_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_AUCTIONREG_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_AUCTIONREG_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -13249,7 +13039,6 @@ DWORD CTMapSvrModule::OnCS_AUCTIONREG_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_AUCTIONINTEREST_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_AUCTIONINTEREST_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -13297,7 +13086,6 @@ DWORD CTMapSvrModule::OnCS_AUCTIONINTEREST_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_AUCTIONINTERESTLIST_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_AUCTIONINTERESTLIST_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -13372,7 +13160,6 @@ DWORD CTMapSvrModule::OnCS_AUCTIONINTERESTLIST_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_AUCTIONBIDLIST_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_AUCTIONBIDLIST_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -13449,7 +13236,6 @@ DWORD CTMapSvrModule::OnCS_AUCTIONBIDLIST_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_AUCTIONREGLIST_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_AUCTIONREGLIST_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -13522,7 +13308,6 @@ DWORD CTMapSvrModule::OnCS_AUCTIONREGLIST_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_AUCTIONREGCANCEL_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_AUCTIONREGCANCEL_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -13575,7 +13360,6 @@ DWORD CTMapSvrModule::OnCS_AUCTIONREGCANCEL_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_AUCTIONBID_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_AUCTIONBID_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -13684,7 +13468,6 @@ DWORD CTMapSvrModule::OnCS_AUCTIONBID_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_AUCTIONBUYDIRECT_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_AUCTIONBUYDIRECT_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -13769,7 +13552,6 @@ DWORD CTMapSvrModule::OnCS_AUCTIONBUYDIRECT_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_AUCTIONFIND_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_AUCTIONFIND_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -13842,7 +13624,7 @@ DWORD CTMapSvrModule::OnCS_AUCTIONFIND_REQ(LPPACKETBUF pBUF)
 		pNpc->SearchAuctionAll(&vTAuction, bMinWearLv, bMaxWearLv, bMinPowerLv, bMaxPowerLv, bOption);
 	else
 	{
-		for (i = 0;i < (WORD)vCode.size(); i++)
+		for (i = 0; i < (WORD)vCode.size(); i++)
 		{
 			wItemID = vItemID[i];
 			pNpc->SearchAuctions(&mapFind, vCode[i], bMinWearLv, bMaxWearLv, bMinPowerLv, bMaxPowerLv, bOption, wItemID);
@@ -13883,7 +13665,6 @@ DWORD CTMapSvrModule::OnCS_AUCTIONFIND_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_KICKOUTMAP_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_KICKOUTMAP_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -13896,7 +13677,6 @@ DWORD CTMapSvrModule::OnCS_KICKOUTMAP_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_REGGUILDCLOAK_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_REGGUILDCLOAK_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -13943,7 +13723,6 @@ DWORD CTMapSvrModule::OnCS_REGGUILDCLOAK_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_FAMERANKLIST_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_FAMERANKLIST_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -13965,7 +13744,6 @@ DWORD CTMapSvrModule::OnCS_FAMERANKLIST_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_MONTHRANKLIST_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_MONTHRANKLIST_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -13977,7 +13755,6 @@ DWORD CTMapSvrModule::OnCS_MONTHRANKLIST_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_FIRSTGRADEGROUP_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_FIRSTGRADEGROUP_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -13989,7 +13766,6 @@ DWORD CTMapSvrModule::OnCS_FIRSTGRADEGROUP_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_WARLORDSAY_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_WARLORDSAY_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -14021,7 +13797,6 @@ DWORD CTMapSvrModule::OnCS_WARLORDSAY_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_CHATBAN_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_CHATBAN_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -14046,7 +13821,6 @@ DWORD CTMapSvrModule::OnCS_CHATBAN_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_POSTLIST_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_POSTLIST_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -14066,7 +13840,6 @@ DWORD CTMapSvrModule::OnCS_POSTLIST_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_TOURNAMENTAPPLYINFO_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_TOURNAMENTAPPLYINFO_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -14086,7 +13859,6 @@ DWORD CTMapSvrModule::OnCS_TOURNAMENTAPPLYINFO_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_TOURNAMENTAPPLY_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_TOURNAMENTAPPLY_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -14160,7 +13932,6 @@ DWORD CTMapSvrModule::OnCS_TOURNAMENTAPPLY_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_TOURNAMENTJOINLIST_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_TOURNAMENTJOINLIST_REQ");
 	/*
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if(!pPlayer->m_pMAP || !pPlayer->m_bMain)
@@ -14175,7 +13946,6 @@ DWORD CTMapSvrModule::OnCS_TOURNAMENTJOINLIST_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_TOURNAMENTPARTYLIST_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_TOURNAMENTPARTYLIST_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -14196,7 +13966,6 @@ DWORD CTMapSvrModule::OnCS_TOURNAMENTPARTYLIST_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_TOURNAMENTPARTYADD_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_TOURNAMENTPARTYADD_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -14217,7 +13986,6 @@ DWORD CTMapSvrModule::OnCS_TOURNAMENTPARTYADD_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_TOURNAMEMTMATCHLIST_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_TOURNAMEMTMATCHLIST_REQ");
 	/*
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if(!pPlayer->m_pMAP || !pPlayer->m_bMain)
@@ -14234,7 +14002,6 @@ DWORD CTMapSvrModule::OnCS_TOURNAMEMTMATCHLIST_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_TOURNAMENTEVENTLIST_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_TOURNAMENTEVENTLIST_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -14251,7 +14018,6 @@ DWORD CTMapSvrModule::OnCS_TOURNAMENTEVENTLIST_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_TOURNAMENTEVENTINFO_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_TOURNAMENTEVENTINFO_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -14273,7 +14039,6 @@ DWORD CTMapSvrModule::OnCS_TOURNAMENTEVENTINFO_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_TOURNAMENTEVENTJOIN_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_TOURNAMENTEVENTJOIN_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -14304,7 +14069,6 @@ DWORD CTMapSvrModule::OnCS_TOURNAMENTEVENTJOIN_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_TOURNAMENTCHEER_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_TOURNAMENTCHEER_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -14398,7 +14162,6 @@ DWORD CTMapSvrModule::OnCS_TOURNAMENTCHEER_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_TOURNAMENTPARTYDEL_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_TOURNAMENTPARTYDEL_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -14419,7 +14182,6 @@ DWORD CTMapSvrModule::OnCS_TOURNAMENTPARTYDEL_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTMapSvrModule::OnCS_TOURNAMENTSCHEDULE_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_TOURNAMENTSCHEDULE_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -14434,7 +14196,6 @@ DWORD CTMapSvrModule::OnCS_TOURNAMENTSCHEDULE_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_RPSSTART_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_RPSSTART_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -14497,7 +14258,6 @@ DWORD CTMapSvrModule::OnCS_RPSSTART_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_RPSGAME_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_RPSGAME_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -14569,7 +14329,6 @@ DWORD CTMapSvrModule::OnCS_RPSGAME_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_ACDCLOSE_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_ACDCLOSE_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -14599,7 +14358,6 @@ DWORD CTMapSvrModule::OnCS_ACDCLOSE_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_CHANGECOUNTRY_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_CHANGECOUNTRY_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -14765,7 +14523,6 @@ DWORD CTMapSvrModule::OnCS_CHANGECOUNTRY_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_WARCOUNTRYBALANCE_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_WARCOUNTRYBALANCE_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -14779,7 +14536,6 @@ DWORD CTMapSvrModule::OnCS_WARCOUNTRYBALANCE_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_MEETINGROOM_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_MEETINGROOM_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -14809,7 +14565,6 @@ DWORD CTMapSvrModule::OnCS_MEETINGROOM_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_ARENA_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_ARENA_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -14951,7 +14706,6 @@ DWORD CTMapSvrModule::OnCS_ARENA_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_CMMOVE_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_CMMOVE_REQ");
 	CTPlayer * pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 
 	BYTE bChannel;
@@ -14977,7 +14731,6 @@ DWORD CTMapSvrModule::OnCS_CMMOVE_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_CMMOVETOUSER_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_CMMOVETOUSER_REQ");
 	CTPlayer * pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 
 	CString strTargetUser;
@@ -14994,7 +14747,6 @@ DWORD CTMapSvrModule::OnCS_CMMOVETOUSER_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_CMGIFT_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_CMGIFT_REQ");
 	CTPlayer * pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 
 	CString strTargetUser;
@@ -15014,7 +14766,6 @@ DWORD CTMapSvrModule::OnCS_CMGIFT_REQ(LPPACKETBUF pBUF)
 #ifdef __HACK_SHIELD
 DWORD CTMapSvrModule::OnCS_HACKSHIELD_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_HACKSHIELD_REQ");
 	CTPlayer * pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 
 	BYTE bServerID;
@@ -15060,7 +14811,6 @@ DWORD CTMapSvrModule::OnCS_HACKSHIELD_REQ(LPPACKETBUF pBUF)
 #ifdef __N_PROTECT
 DWORD CTMapSvrModule::OnCS_NPROTECT_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_NPROTECT_REQ");
 	if (!m_bEnableNP)
 		return EC_NOERROR;
 
@@ -15123,7 +14873,6 @@ DWORD CTMapSvrModule::OnCS_NPROTECT_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_SOULLOTTERY_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_SOULLOTTERY_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;
@@ -15176,7 +14925,6 @@ DWORD CTMapSvrModule::OnCS_SOULLOTTERY_REQ(LPPACKETBUF pBUF)
 
 DWORD CTMapSvrModule::OnCS_SOULLOTTERY_TRIGGER_REQ(LPPACKETBUF pBUF)
 {
-	LogReceivedPacket("OnCS_SOULLOTTERY_TRIGGER_REQ");
 	CTPlayer* pPlayer = (CTPlayer*)pBUF->m_pSESSION;
 	if (!pPlayer->m_pMAP || !pPlayer->m_bMain)
 		return EC_NOERROR;

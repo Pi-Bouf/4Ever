@@ -775,7 +775,7 @@ void CTMapSvrModule::SendDM_SAVECHAR_REQ( CTPlayer *pPlayer,
 
 	if(pPlayer->m_mapTINVEN.empty())
 	{
-		LogError("Char Save Error" + pPlayer->m_dwID);
+		LogEvent("Char Save Error: %d", pPlayer->m_dwID);
 		return;
 	}
 

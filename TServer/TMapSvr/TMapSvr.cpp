@@ -1,50 +1,29 @@
-// TMapSvr.cpp : WinMain¿« ±∏«ˆ¿‘¥œ¥Ÿ.
+// TMapSvr.cpp : WinMainÔøΩÔøΩ ÔøΩÔøΩÔøΩÔøΩÔøΩ‘¥œ¥ÔøΩ.
 #include "stdafx.h"
 #include "TMapSvr.h"
 #include "TMapSvrModule.h"
-#include <iostream>
-#include "SimpleIni.h"
+
 
 CTMapSvrModule _AtlModule;
-using namespace std;
+
+
+//extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, 
+//                                LPTSTR /*lpCmdLine*/, int nShowCmd)
+//{
+//    return _AtlModule.WinMain(nShowCmd);
+//}
+
 
 void main()
 {
-	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-	SetConsoleTextAttribute(hConsole, 14);
-	cout << endl;
-	cout << " #################################################################### " << endl;
-	cout << " #         .o    .oooooo..o     .                                   # " << endl;
-	cout << " #       .d88   d8P'    `Y8   .o8                                   # " << endl;
-	cout << " #     .d'888   Y88bo.      .o888oo  .ooooo.  oooo d8b oooo    ooo  # " << endl;
-	cout << " #   .d'  888    `\"Y8888o.    888   d88' `88b `888\"\"8P  `88.  .8'   # " << endl;
-	cout << " #   88ooo888oo      `\"Y88b   888   888   888  888       `88..8'    # " << endl;
-	cout << " #        888   oo     .d8P   888 . 888   888  888        `888'     # " << endl;
-	cout << " #       o888o  8\"\"88888P'    \"888\" `Y8bod8P' d888b        .8'      # " << endl;
-	SetConsoleTextAttribute(hConsole, 13);
-	cout << " #       TMAP SERVER";
-	SetConsoleTextAttribute(hConsole, 14);
-	cout << "                                   .o..P'       # " << endl;
-	SetConsoleTextAttribute(hConsole, 11);
-	cout << " #       Version: 1.0.1";
-	SetConsoleTextAttribute(hConsole, 14);
-	cout << "                                `Y8P'        # " << endl;
-	cout << " #################################################################### " << endl << endl;
-
-
 	_AtlModule.StartServer();
 
 	int i = 0;
 	cin >> i;
 }
 
-CTMapSvrModule::CTMapSvrModule()
+CTMapSvrModule::CTMapSvrModule() : TServerSystem("TMap", "1.0.1")
 {
-	timeNow = time(0);
-	ltm = localtime(&timeNow);
-	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-	LogInfo("Welcome on TLogin Server !");
-
 	memset( m_dwWarCountryBalance, 0, sizeof(m_dwWarCountryBalance));
 
 	m_wWorldPort = DEF_WORLDPORT;
@@ -169,30 +148,6 @@ CTMapSvrModule::~CTMapSvrModule()
 #endif
 }
 
-void CTMapSvrModule::LogInfo(string text)
-{
-	SetConsoleTextAttribute(hConsole, 10);
-	cout << "[" << ltm->tm_hour << ":" << ltm->tm_min << ":" << ltm->tm_sec << "] ==> " << text << endl;
-}
-
-void CTMapSvrModule::LogError(string text)
-{
-	SetConsoleTextAttribute(hConsole, 4);
-	cout << "[" << ltm->tm_hour << ":" << ltm->tm_min << ":" << ltm->tm_sec << "] ==> " << text << endl;
-}
-
-void CTMapSvrModule::LogReceivedPacket(string text)
-{
-	SetConsoleTextAttribute(hConsole, 13);
-	cout << "[" << ltm->tm_hour << ":" << ltm->tm_min << ":" << ltm->tm_sec << "] [ SERVER <<< CLIENT ]  " << text << endl;
-}
-
-void CTMapSvrModule::LogSentPacket(string text)
-{
-	SetConsoleTextAttribute(hConsole, 11);
-	cout << "[" << ltm->tm_hour << ":" << ltm->tm_min << ":" << ltm->tm_sec << "] [ SERVER >>> CLIENT ]  " << text << endl;
-}
-
 void CTMapSvrModule::OnERROR( DWORD dwErrorCode)
 {
 	static string strErrorMsg[30] = {
@@ -234,7 +189,7 @@ void CTMapSvrModule::OnERROR( DWORD dwErrorCode)
 		dwError = dwErrorCode - EC_SESSIONBASE + 24;
 
 	if(dwErrorCode && dwError < 30)
-		LogInfo("Error: " + strErrorMsg[dwError]);
+		LogEvent("Error: %s", strErrorMsg[dwError]);
 }
 
 DWORD CTMapSvrModule::_ControlThread( LPVOID lpParam)
@@ -273,7 +228,7 @@ DWORD CTMapSvrModule::_LogThread( LPVOID lpParam)
 	return pModule->LogThread();
 }
 
-DWORD CTMapSvrModule::StartUp()
+DWORD CTMapSvrModule::OnEnter()
 {
 	srand( (unsigned)CTime::GetCurrentTime().GetTime() );
 
@@ -352,50 +307,31 @@ DWORD CTMapSvrModule::StartUp()
 	m_mapPLAYER.clear();
 	m_mapSUSPENDER.clear();
 
+	LogInfo("Load configuration...", 1);
 	DWORD dwResult = LoadConfig();
 	if(dwResult)
 		return dwResult;
 
+	LogInfo("Database initialization...", 1);
 	dwResult = InitDB();
-	if (dwResult) {
-		if (dwResult == EC_INITSERVICE_DBOPENFAILED) {
-			LogError("Connection error ! Check your DSN, DBUser and DBPasswd !");
-			cout << endl;
-			LogError("1: Start the 'SQL Server' service");
-			LogError("2: check your ODBC configuration (64 bits AND 32 bits)");
-			LogError("3: check if you have... a database in your server ? :)");
-		}
-
-		if (dwResult == EC_INITSERVICE_PREPAREQUERY) {
-			LogError("Connection error ! Can't init query on database connection !");
-		}
+	if(dwResult)
 		return dwResult;
-	}
-	else {
-		LogInfo("Database OK !");
-	}
 
-	LogInfo("Loading data from DB...");
+	LogInfo("Loading data...", 1);
 	dwResult = LoadData();
 	if(dwResult)
 		return dwResult;
-	LogInfo("Data from DB loaded !");
 
-	cout << endl;
+	LogInfo("Create threads...", 1);
 	dwResult = CreateThreads();
 	if(dwResult)
 		return dwResult;
-	LogInfo("All threads created !");
 
-	cout << endl;
-	LogInfo("Init network...");
+	LogInfo("Init network...", 1);
 	dwResult = InitNetwork();
-	if (dwResult) {
-		LogError("Can't open the server ! Please, check firewall and if port " + to_string(m_wGamePort) + " is open !");
+	if(dwResult)
 		return dwResult;
-	}
 
-	LogInfo("Server started on port " + to_string(m_wGamePort) + " !");
 #ifdef __HACK_SHIELD
 	if(m_bNation == NATION_GERMAN)
 	{
@@ -437,6 +373,7 @@ DWORD CTMapSvrModule::StartUp()
 
 #endif
 
+	LogInfo("Init environment...", 1);
 	InitEnvironment();
 
 	if(!ResumeThreads())
@@ -445,9 +382,7 @@ DWORD CTMapSvrModule::StartUp()
 	// Dump
 	CTMiniDump::SetOption(MiniDumpWithFullMemory);
 
-	cout << endl << endl;
-	LogInfo("Ready !");
-
+	LogInfo("Ready !", 1);
 	return 0;
 }
 
@@ -594,69 +529,21 @@ void CTMapSvrModule::SaveAllCharData()
 
 DWORD CTMapSvrModule::LoadConfig()
 {
-	LogInfo("Load config from TLogin.ini file");
+	LoadStringFromIni("DSN", string("TGLOBAL_GSP"), &m_szGameDSN);
+	LoadStringFromIni("DBUser", string("sa"), &m_szDBUserID);
+	LoadStringFromIni("DBPasswd", string("1234"), &m_szGamePasswd);
+	LoadIntFromIni("GamePort", 5816, &m_wGamePort);
 
-	CSimpleIniA ini;
-	ini.SetUnicode();
-	ini.LoadFile(".\\TMap.ini");
+	LoadStringFromIni("WorldIP", string("127.0.0.1"), &m_szWorldIP);
+	LoadIntFromIni("WorldPort", 4422, &m_wWorldPort);
 
-	m_szGameDSN = ini.GetValue("TMapConfig", "DSN", "TGAME_GSP");
-	m_szDBUserID = ini.GetValue("TLoginConfig", "DBUser", "4Admin");
-	m_szGamePasswd = ini.GetValue("TLoginConfig", "DBPasswd", "popo1234");
-	m_wGamePort = ini.GetLongValue("TLoginConfig", "GamePort", 5816);
+	LoadIntFromIni("GroupID", 1, &m_bGroupID);
+	LoadIntFromIni("ServerID", 1, &m_bServerID);
 
-	m_szWorldIP = ini.GetValue("TLoginConfig", "WorldIP", "127.0.0.1");
-	m_wWorldPort = ini.GetLongValue("TLoginConfig", "WorldPort", 4422);
-	m_bGroupID = ini.GetLongValue("TLoginConfig", "GroupID", 1);
-	m_bServerID = ini.GetLongValue("TLoginConfig", "ServerID", 1);
+	LoadStringFromIni("LogIP", string("127.0.0.1"), &m_szLogServerIP);
+	LoadIntFromIni("LogPort", 7000, &m_wLogServerPORT);
 
-	m_szLogServerIP = ini.GetValue("TLoginConfig", "LogIP", "127.0.0.1");
-	m_wLogServerPORT = stoi(ini.GetValue("TLoginConfig", "LogPort", "7000"));
-
-	LogInfo("Data from TMap.ini:");
-	SetConsoleTextAttribute(hConsole, 11);
-	cout << "  ###################################" << endl;
-	cout << "  # + DSN:         ";
-	SetConsoleTextAttribute(hConsole, 7);
-	cout << m_szGameDSN << endl;
-	SetConsoleTextAttribute(hConsole, 11);
-	cout << "  # + DBUser:      ";
-	SetConsoleTextAttribute(hConsole, 7);
-	cout << m_szDBUserID << endl;
-	SetConsoleTextAttribute(hConsole, 11);
-	cout << "  # + DBPasswd:    ";
-	SetConsoleTextAttribute(hConsole, 7);
-	cout << m_szGamePasswd << endl;
-	SetConsoleTextAttribute(hConsole, 11);
-	cout << "  # + MapPort:     ";
-	SetConsoleTextAttribute(hConsole, 7);
-	cout << m_wGamePort << endl;
-	SetConsoleTextAttribute(hConsole, 11);
-	cout << "  # + World IP:    ";
-	SetConsoleTextAttribute(hConsole, 7);
-	cout << m_szWorldIP << endl;
-	SetConsoleTextAttribute(hConsole, 11);
-	cout << "  # + World Port:  ";
-	SetConsoleTextAttribute(hConsole, 7);
-	cout << m_wWorldPort << endl;
-	SetConsoleTextAttribute(hConsole, 11);
-	cout << "  # + ServerID:    ";
-	SetConsoleTextAttribute(hConsole, 7);
-	cout << m_bServerID << endl;
-	SetConsoleTextAttribute(hConsole, 11);
-	cout << "  # + GroupID:     ";
-	SetConsoleTextAttribute(hConsole, 7);
-	cout << m_bGroupID << endl;
-	SetConsoleTextAttribute(hConsole, 11);
-	cout << "  # + LogIP:       ";
-	SetConsoleTextAttribute(hConsole, 7);
-	cout << m_szLogServerIP << endl;
-	SetConsoleTextAttribute(hConsole, 11);
-	cout << "  # + LogPort:     ";
-	SetConsoleTextAttribute(hConsole, 7);
-	cout << m_wLogServerPORT << endl;
-	SetConsoleTextAttribute(hConsole, 11);
-	cout << "  ###################################" << endl;
+	DisplayIni();
 
 	return EC_NOERROR;
 }
@@ -724,8 +611,6 @@ DWORD CTMapSvrModule::CreateThreads()
 	GetSystemInfo(&vINFO);
 	m_bNumWorker = (BYTE) (2 * vINFO.dwNumberOfProcessors);
 
-	LogInfo("Starting " + to_string(m_bNumWorker) + " threads...");
-
 	for( BYTE i=0; i<m_bNumWorker; i++)
 	{
 		m_hWorker[i] = CreateThread(
@@ -737,8 +622,6 @@ DWORD CTMapSvrModule::CreateThreads()
 
 		if(!m_hWorker[i])
 			return EC_INITSERVICE_CREATETHREAD;
-
-		LogInfo("  Thread #" + to_string(i) + " started !");
 	}
 
 	return EC_NOERROR;
@@ -832,8 +715,6 @@ DWORD CTMapSvrModule::InitNetwork()
 	char * m_szLogServerIPTemp = const_cast<char*>(m_szLogServerIP.c_str());
 	if( !m_pDebugSocket->Initialize(m_szLogServerIPTemp, m_wLogServerPORT) )
 	{
-		LogError("DebugSocket could not be initializised!");
-
 		return EC_INITSERVICE_UDPSOCKETFAILED;
 	}
 
@@ -1288,7 +1169,7 @@ void CTMapSvrModule::OnCloseSession( CTMapSession *pSession)
 		if( finder == m_mapSESSION.end() )
 		{
 			LeaveCriticalSection(&m_csBATCH);
-			LogError("Session Not Found \n");
+			LogEvent("Session Not Found \n");
 			return;
 		}
 
@@ -1419,8 +1300,6 @@ void CTMapSvrModule::SetEventCloseSession(CTMapSession * pSession, BYTE bSave)
 
 void CTMapSvrModule::ClosingSession( CTMapSession *pSession)
 {
-	// pSessionø° ¥Î«— ∆–≈∂√≥∏Æ∞° øœ∑·µ«¥¬ Ω√¡°¿ª æÀ∏≤
-	// pSessionø° ¥Î«— ø¿πˆ∑¶ ø¿∆€∑°¿Ãº«¿Ã øœ∑·µ» ∞Õ¿ª »Æ¿Œ»ƒ »£√‚ «œø©æﬂ «‘.
 	EnterCriticalSection(&m_csBATCH);
 
 	MAPPLAYER::iterator finder = m_mapSESSION.find((DWORD_PTR) pSession);
@@ -3556,7 +3435,7 @@ DWORD CTMapSvrModule::LoadData()
 					if(!pTITEM)
 					{
 						delete pAuction;
-						LogError("Auction Item Error: " + pAuction->m_dwAuctionID);
+						LogEvent("Auction Item Error: %d",pAuction->m_dwAuctionID);
 						continue;
 					}
 
@@ -3568,7 +3447,7 @@ DWORD CTMapSvrModule::LoadData()
 						SendSM_AUCTIONCMD_REQ(pAuction->m_wNpcID,pAuction->m_dwAuctionID,pAuction->m_dEnd);
 				}
 				else			
-					LogError(_T("Invalid Auction NPC"));			
+					LogEvent(_T("Invalid Auction NPC"));	
 			}
 			query->Close();
 		}
@@ -3852,7 +3731,7 @@ DWORD CTMapSvrModule::ControlThread()
 			{
 			case COMP_ACCEPT	:
 				if(!WaitForConnect())
-					LogError(_T("WaitForConnect : Error"));
+					LogEvent(_T("WaitForConnect : Error"));
 
 				break;
 			}
@@ -3863,10 +3742,10 @@ DWORD CTMapSvrModule::ControlThread()
 			{
 			case COMP_ACCEPT	:
 				if(!Accept())
-					LogError(_T("Accept : Error"));
+					LogEvent(_T("Accept : Error"));
 
 				if(!WaitForConnect())
-					LogError(_T("WaitForConnect : Error"));
+					LogEvent(_T("WaitForConnect : Error"));
 
 				break;
 
@@ -3911,21 +3790,11 @@ DWORD CTMapSvrModule::WorkThread()
 					case TOV_SSN_RECV	:
 						if(pSession->m_bSessionType == SESSION_SERVER)
 						{
-							LogError("WorkThread CompletionStatus " + GetLastError());
+							LogEvent("WorkThread CompletionStatus %d\n", GetLastError());
 						}
 						OnInvalidSession(pSession);
 						break;
 
-						// ***** IOCP ªÁøÎπ˝ ¡ﬂ æÀæ∆≥ª±‚ »˚µÁ √ππ¯¬∞ ±∏πÆ (º≠πˆ√¯ ººº« ¡æ∑·) *****
-						//
-						// º≠πˆ∞° ∏’¿˙ closesocket()¿ª »£√‚«œø© ººº«¿ª ¡æ∑·«— ∞ÊøÏ¿Ã∏Á
-						// WSARecv()∞° »£√‚µ» ªÛ≈¬ø°º≠∏∏ ¿Ã ƒ⁄µÂ∑Œ µÈæÓø¿∏Á
-						// ∏µÁ ø¿πˆ∑¶ ø¿∆€∑°¿Ãº«¿Ã ¡æ∑·µ» ªÛ≈¬¿Ã±‚ ∂ßπÆø°
-						// ¿Ã º“ƒœ «⁄µÈ∞˙ ∞¸∑√µ» µ•¿Ã≈∏¥¬ IOCP≈•ø° ≥≤æ∆¿÷¡ˆ æ ¥Ÿ.
-						// µ˚∂Ûº≠ ¿Ã Ω∫∑πµÂø°º≠¥¬ «ÿ¥Á ººº«ø° ∞¸∑√µ» ¿€æ˜ ∏Ì∑…¿ª ¥ı¿ÃªÛ ºˆ«‡«œ¡ˆ æ ±‚ ∂ßπÆø°
-						// ¥Ÿ∏• Ω∫∑πµÂ∞° «„∂Ù«—¥Ÿ∏È ¿Ã ±∏πÆø°º≠ ººº« ∆˜¿Œ≈Õ∏¶ ªË¡¶«ÿµµ π´πÊ«œ¥Ÿ.
-						// ººº«¿ª ªË¡¶ «œ¥¬µ• ∞°¿Â ¡¡¿∫ ¡ˆ¡°¿Ãπ«∑Œ ¿¸√º Ω√Ω∫≈€ º≥∞ËΩ√
-						// ¡§ªÛ¿˚¿Œ ººº« ¡æ∑·¥¬ º≠πˆ√¯ø°º≠ ∏’¿˙ ººº«¿ª ¡æ∑·Ω√≈∞µµ∑œ º≥∞Ë«œ¥¬ ∞Õ¿Ã æ»¿¸«œ¥Ÿ.
 						break;
 					case TOV_SSN_SEND:
 						OnSendComplete(pSession, 0);
@@ -4168,7 +4037,7 @@ void CTMapSvrModule::OnSendComplete( CTMapSession *pSession, DWORD dwIoBytes)
 	if(pSession->SendComplete(dwIoBytes))
 	{
 		if (pSession->m_bSessionType == SESSION_SERVER)
-			cout << "OnSendComplete INVALID: " << pSession->m_bValid << ", " << dwIoBytes << endl;
+			LogEvent("OnSendComplete Valid %d, %d\n", pSession->m_bValid, dwIoBytes);
 
 		ClosingSession(pSession);
 	}
@@ -4234,7 +4103,7 @@ void CTMapSvrModule::ProcessSession( CTMapSession *pSession, DWORD dwIoBytes)
 	if(!pSession->WaitForMessage())
 	{
 		if (pSession->m_bSessionType == SESSION_SERVER)
-			cout << "WaitForMessage " << pSession->m_sock << pSession->m_bValid << pSession->m_bCanRecv << WSAGetLastError() << endl;
+			LogEvent("WaitForMessage %d, %d, %d, %d\n", pSession->m_sock, pSession->m_bValid, pSession->m_bCanRecv, WSAGetLastError());
 		OnInvalidSession(pSession);
 	}
 }
@@ -4243,7 +4112,7 @@ DWORD CTMapSvrModule::OnReceive( LPPACKETBUF pBUF)
 {
 	if(pBUF->m_packet.GetSize() == MAX_PACKET_SIZE)
 	{
-		cout << "Overflow Message: " << pBUF->m_packet.GetID() << endl;
+		LogEvent("Overflow Message %d",pBUF->m_packet.GetID());
 		return EC_SESSION_INVALIDMSG;
 	}
 
@@ -4258,10 +4127,10 @@ DWORD CTMapSvrModule::OnReceive( LPPACKETBUF pBUF)
 		{
 			// Control Server Message
 			ON_RECEIVE(CT_SERVICEMONITOR_ACK)
-			ON_RECEIVE(CT_ANNOUNCEMENT_ACK) // «ˆΩ¬∑Ê ∞¯¡ˆªÁ«◊
-			ON_RECEIVE(CT_USERKICKOUT_ACK) // «ˆΩ¬∑Ê ¿Ø¿˙ ∞≠¡¶≈¿Â
-			ON_RECEIVE(CT_USERMOVE_ACK) // «ˆΩ¬∑Ê ¿Ø¿˙ ¿ßƒ°¿Ãµø
-			ON_RECEIVE(CT_MONSPAWNFIND_ACK) // «ˆΩ¬∑Ê ∏ÛΩ∫≈Õ ∞¸∏Æ
+			ON_RECEIVE(CT_ANNOUNCEMENT_ACK) // ÌòÑÏäπÎ£° Í≥µÏßÄÏÇ¨Ìï≠
+			ON_RECEIVE(CT_USERKICKOUT_ACK) // ÌòÑÏäπÎ£° Ïú†Ï†Ä Í∞ïÏ†úÌá¥Ïû•
+			ON_RECEIVE(CT_USERMOVE_ACK) // ÌòÑÏäπÎ£° Ïú†Ï†Ä ÏúÑÏπòÏù¥Îèô
+			ON_RECEIVE(CT_MONSPAWNFIND_ACK) // ÌòÑÏäπÎ£° Î™¨Ïä§ÌÑ∞ Í¥ÄÎ¶¨
 			ON_RECEIVE(CT_MONACTION_ACK)
 			ON_RECEIVE(CT_SERVICEDATACLEAR_ACK)
 			ON_RECEIVE(CT_CTRLSVR_REQ)
@@ -4351,7 +4220,7 @@ DWORD CTMapSvrModule::OnReceive( LPPACKETBUF pBUF)
 			ON_RECEIVE(DM_SAVECHARPOSITION_REQ)
 
 			//////////////////////////////////////////
-			//±ÊµÂ
+			//Guilds
 			ON_RECEIVE(DM_GUILDCABINETPUTIN_REQ)
 			ON_RECEIVE(DM_GUILDCABINETTAKEOUT_REQ)
 			ON_RECEIVE(DM_GUILDCABINETROLLBACK_REQ)
@@ -4415,7 +4284,7 @@ DWORD CTMapSvrModule::OnReceive( LPPACKETBUF pBUF)
 			ON_RECEIVE(DM_CMGIFTLOG_REQ)
 
 			//////////////////////////////////////////
-			//±ÊµÂ
+			//GUILDS
 			ON_RECEIVE(DM_GUILDCABINETPUTIN_ACK)
 			ON_RECEIVE(DM_GUILDCABINETTAKEOUT_ACK)
 			//////////////////////////////////////////
@@ -4454,7 +4323,7 @@ DWORD CTMapSvrModule::OnReceive( LPPACKETBUF pBUF)
 			ON_RECEIVE(MW_RPSGAMECHANGE_REQ)
 
 			//////////////////////////////////////////////////////////////////////////
-			// ±ÊµÂ
+			// GUILDS
 			ON_RECEIVE(MW_GUILDESTABLISH_REQ)
 			ON_RECEIVE(MW_GUILDDISORGANIZATION_REQ)
 			ON_RECEIVE(MW_GUILDLEAVE_REQ)
@@ -4643,7 +4512,7 @@ DWORD CTMapSvrModule::OnReceive( LPPACKETBUF pBUF)
 	ON_RECEIVE(CS_QUESTENDTIMER_REQ)
 	ON_RECEIVE(CS_QUESTLIST_POSSIBLE_REQ)
 	/////////////////////////////////////////////////////////
-	// ±ÊµÂ
+	// ÔøΩÔøΩÔøΩ
 	ON_RECEIVE(CS_GUILDESTABLISH_REQ)
 	ON_RECEIVE(CS_GUILDDISORGANIZATION_REQ)
 	ON_RECEIVE(CS_GUILDINVITE_REQ)
@@ -4867,7 +4736,7 @@ DWORD CTMapSvrModule::OnReceive( LPPACKETBUF pBUF)
 	}
 
 	if(wMsgID != CS_KICKOUT_REQ && wMsgID != CS_CONNECT_REQ)
-		cout << "Invalid Message: " << pBUF->m_packet.GetID() << endl;
+		LogEvent("Invalid Message %d",pBUF->m_packet.GetID());
 
 	return EC_SESSION_INVALIDMSG;
 }
@@ -5115,16 +4984,6 @@ void CTMapSvrModule::SayToLOG( LPPACKETBUF pBUF)
 	m_qLOGJOB.push(pBUF);
 	LeaveCriticalSection(&m_csLOGQUEUE);
 	SetEvent(m_hLogEvent);
-}
-
-void CTMapSvrModule::StartServer()
-{
-	DWORD dwResult = StartUp();
-
-	if (dwResult)
-	{
-		OnERROR(dwResult);
-	}
 }
 
 CTObjBase * CTMapSvrModule::FindTarget(CTPlayer * pHost,
@@ -5785,7 +5644,6 @@ BYTE CTMapSvrModule::SetMagicOpt(CTPlayer * pPlayer, CTItem * pItem, BYTE bOptTy
 		return 0;
 	}
 
-	// m_wValue √÷¡æø…º«∫Ò¿≤
 	INT nBaseLevel = 0;
 	if(bMakeType == IMT_SCROLL)
 		nBaseLevel = INT(min(ITEMAGIC_BASELEVEL,pPlayer->m_bLevel)) - max(0, 34 - max(pItem->GetEquipLevel(), pItem->GetPowerLevel()));
@@ -6060,9 +5918,6 @@ CTRecallMon* CTMapSvrModule::CreateRecallMon( CTPlayer *pPlayer,
 
 	if(pTemp->m_bIsSelf)
 	{
-		// ø©±‚º≠ LockSelfMonID()∑Œ ª˝º∫µ» ID¥¬ CTSelfObj≈¨∑°Ω∫¿« º“∏Í¿⁄¿Œ ~CTSelfObj()ø°º≠ «ÿ¡¶µ«π«∑Œ
-		// CTSelfObj≈¨∑°Ω∫ ¿ŒΩ∫≈œΩ∫¿« ID∏¶ ¿”¿«∑Œ ºˆ¡§«œ∏È æ»µ . ∏∏¿œ ∫ŒµÊ¿Ã«œ∞‘ ºˆ¡§¿Ã « ø‰«— ∞ÊøÏ
-		// ReleaseSelfMonID(dwID)∏¶ ªÁøÎ«œø© «ÿ¡¶«— »ƒ ¥ŸΩ√ LockSelfMonID()∑Œ ¿Á «“¥Áπﬁæ∆ ªÁøÎ«œø©æﬂ∏∏ «—¥Ÿ.
 
 		pMon = new CTSelfObj();
 		dwID = LockSelfMonID();
@@ -6164,7 +6019,7 @@ CTRecallMon* CTMapSvrModule::CreateRecallMon( CTPlayer *pPlayer,
 	}
 
 	if(pPlayer->m_pMAP && pPlayer->m_bMain &&
-		!pMon->m_pMON->m_wID)//∫–Ω≈
+		!pMon->m_pMON->m_wID)
 	{
 		VTMONSTER vMONS;
 		vMONS.clear();
@@ -6905,7 +6760,6 @@ void CTMapSvrModule::PartyChiefItemTake(CTPlayer * pChief, CTPlayer * pTarget, C
 	pTarget->SendCS_MONITEMLIST_ACK(MIL_SUCCESS, pMon->m_dwID, pMon->m_dwMoney, pInven, TRUE);
 }
 
-// ¿Ã∫•∆Æ ∫ØΩ≈π∞æ‡
 CTSkillTemp * CTMapSvrModule::RandTransSkill(CTSkillTemp * pTemp)
 {
 	LPTSKILLDATA pData = NULL;
@@ -9444,7 +9298,6 @@ BYTE CTMapSvrModule::SetTutorialCharBase(CTPlayer * pPlayer)
 			pSkill->m_pTSKILL = pTemp;
 			pSkill->m_bLevel = pTemp->m_bMaxLevel;
 
-			//Ω∫≈≥ πˆ∏±∂ß m_vRemainSkillø°º≠ «ÿ¥Á Ω∫≈≥ ≤¿ ª¨∞Õ
 			pPlayer->m_mapTSKILL.insert(MAPTSKILL::value_type(pTemp->m_wID, pSkill));
 			pPlayer->RemainSkill( pSkill, 0);
 		}
@@ -10263,7 +10116,7 @@ void CTMapSvrModule::UpdateCSModule()
 	if(!m_bEnableNP)
 		return;
 
-	if(m_dwTick - m_dwNPCSModuleTick > NPROTECT_CS_UPDATETICK)	//	CS∏µ‚ æ˜µ•¿Ã∆Æ Ω√∞£
+	if(m_dwTick - m_dwNPCSModuleTick > NPROTECT_CS_UPDATETICK)
 	{
 		GGAuthUpdateTimer();
 		m_dwNPCSModuleTick = m_dwTick;

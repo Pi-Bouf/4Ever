@@ -100,9 +100,7 @@
       </Message>
       <Command>IF NOT EXIST "..\Servers\Configurations\$(ProjectName).ini" XCOPY $(ProjectName).ini ..\Servers\Configurations\
 DEL /f ..\Servers\$(ProjectName)
-DEL /f ..\Servers\$(ProjectName).pdb
-DEL /f ..\Servers\$(ProjectName)_Debug.ilk
-DEL /f ..\Servers\$(ProjectName)_Debug.pdb</Command>
+DEL /f ..\Servers\$(ProjectName)_Debug.ilk</Command>
     </PostBuildEvent>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -153,9 +151,7 @@ DEL /f ..\Servers\$(ProjectName)_Debug.pdb</Command>
     <PostBuildEvent>
       <Command>IF NOT EXIST "..\Servers\Configurations\$(ProjectName).ini" XCOPY $(ProjectName).ini ..\Servers\Configurations\
 DEL /f ..\Servers\$(ProjectName)
-DEL /f ..\Servers\$(ProjectName).pdb
-DEL /f ..\Servers\$(ProjectName)_Debug.ilk
-DEL /f ..\Servers\$(ProjectName)_Debug.pdb</Command>
+DEL /f ..\Servers\$(ProjectName)_Debug.ilk</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

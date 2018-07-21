@@ -418,4 +418,12 @@
       <Filter>Ressources</Filter>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\TServerSystem\res\TServer_Debug.ico">
+      <Filter>Ressources</Filter>
+    </Image>
+    <Image Include="..\TServerSystem\res\TServer_Release.ico">
+      <Filter>Ressources</Filter>
+    </Image>
+  </ItemGroup>
 </Project>

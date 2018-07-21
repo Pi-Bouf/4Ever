@@ -174,7 +174,6 @@ DWORD TServerSystem::OnEnter()
 	return OnEnter();
 }
 
-
 void TServerSystem::StartServer()
 {
 	LogInfo("Starting up...", 0);
@@ -196,6 +195,11 @@ void TServerSystem::StartupError(DWORD result)
 		LogError("3) Check if you SQL Server is running !", 0);
 
 		break;
+	}
+	case EC_INITSERVICE_CONNECTWORLD: {
+		LogError("Can't connect to TWorld server !", 0);
+		LogError("1) Check if TWorldSvr is running", 0);
+		LogError("2) Check your .ini configuration file", 0);
 	}
 	default:
 		LogError("Unknown error !", 0);
