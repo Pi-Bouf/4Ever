@@ -9,17 +9,23 @@
 CTRelaySvrModule _AtlModule;
 
 
-//
-extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, 
-                                LPTSTR /*lpCmdLine*/, int nShowCmd)
+//extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, 
+//                                LPTSTR /*lpCmdLine*/, int nShowCmd)
+//{
+//    return _AtlModule.WinMain(nShowCmd);
+//}
+
+
+void main()
 {
-    return _AtlModule.WinMain(nShowCmd);
+	_AtlModule.StartServer();
+
+	int i;
+	cin >> i;
 }
 
-CTRelaySvrModule::CTRelaySvrModule()
+CTRelaySvrModule::CTRelaySvrModule() : TServerSystem("TRelay", TRELAY_VERSION)
 {
-	memset(m_szWorldIP,0,ONE_KBYTE);
-	memset(m_szControlIP,0,ONE_KBYTE);	
 
 	m_wWorldPort = DEF_WORLDPORT;
 	m_wRelayPort = 0;
@@ -91,18 +97,22 @@ DWORD CTRelaySvrModule::OnEnter()
 		FALSE,
 		NULL );
 
+	LogInfo("Load configuration...", 1);
 	DWORD dwResult = LoadConfig();
 	if(dwResult)
 		return dwResult;
 
+	LogInfo("Loading data...", 1);
 	dwResult = LoadData();
 	if(dwResult)
 		return dwResult;
 
+	LogInfo("Create threads...", 1);
 	dwResult = CreateThreads();
 	if(dwResult)
 		return dwResult;
 
+	LogInfo("Init network...", 1);
 	dwResult = InitNetwork();
 	if(dwResult)
 		return dwResult;
@@ -113,6 +123,7 @@ DWORD CTRelaySvrModule::OnEnter()
 	// Dump
 	CTMiniDump::SetOption(MiniDumpWithFullMemory);
 
+	LogInfo("Ready !", 1);
 	return EC_NOERROR;
 }
 
@@ -145,25 +156,6 @@ void CTRelaySvrModule::OnExit()
 
 }
 
-HRESULT CTRelaySvrModule::PreMessageLoop(int nShowCmd)
-{
-	DWORD dwResult = OnEnter();
-
-	if(dwResult)
-	{
-		OnERROR(dwResult);
-		return E_FAIL;
-	}
-	m_dwThreadID = GetCurrentThreadId();
-
-	return CAtlServiceModuleT< CTRelaySvrModule, IDS_SERVICENAME >::PreMessageLoop(nShowCmd);
-}
-HRESULT CTRelaySvrModule::PostMessageLoop()
-{
-	OnExit();
-	return CAtlServiceModuleT< CTRelaySvrModule, IDS_SERVICENAME >::PostMessageLoop();
-}
-
 DWORD CTRelaySvrModule::_ControlThread(LPVOID lpParam)
 {
 	CTRelaySvrModule* pModule = (CTRelaySvrModule*)lpParam;
@@ -184,155 +176,25 @@ DWORD CTRelaySvrModule::_WorkThread(LPVOID lpParam)
 
 DWORD CTRelaySvrModule::LoadConfig()
 {
-	//Load config from registry
-	DWORD dwLength;
-	DWORD dwValue;
-	HKEY hKey;
+	LoadIntFromIni("RelayPort", DEF_TRELAYPORT, &m_wRelayPort);
+	LoadStringFromIni("ControlIP", string("127.0.0.1"), &m_szControlIP);
+	LoadStringFromIni("WorldIP", string("127.0.0.1"), &m_szWorldIP);
+	LoadIntFromIni("WorldPort", DEF_WORLDPORT, &m_wWorldPort);
 
-	CString strRegKey;
-	strRegKey.Empty();
+	LoadIntFromIni("ServerID", 1, &m_bServerID);
+	LoadIntFromIni("GroupID", 1, &m_bGroupID);
 
-#ifdef _DEBUG
-	HKEY hOpenKey = HKEY_CURRENT_USER;
-	strRegKey.Format(_T("software\\%s"), m_szServiceName);
-#else
-	HKEY hOpenKey = HKEY_LOCAL_MACHINE;
-	strRegKey.Format(_T("SYSTEM\\CurrentControlSet\\Services\\%s\\Config"), m_szServiceName);
-#endif
+	LoadStringFromIni("LogIP", string("127.0.0.1"), &m_szLogServerIP);
+	LoadIntFromIni("LogPort", 7000, &m_wLogServerPORT);
 
-	int nERROR = RegCreateKey( hOpenKey, strRegKey, &hKey);
-	if( nERROR != ERROR_SUCCESS )
-		return EC_INITSERVICE_OPENREG;
-
-	// Load world server IP
-	dwLength = ONE_KBYTE;
-	nERROR = RegQueryValueEx(
-		hKey,
-		_T("WorldIP"),
-		NULL,
-		NULL,
-		(LPBYTE) &m_szWorldIP,
-		&dwLength);
-	if( nERROR != ERROR_SUCCESS )
-		return EC_INITSERVICE_WORLDIPNOTASSIGNED;
-
-	// Load control server IP
-	dwLength = ONE_KBYTE;
-	nERROR = RegQueryValueEx(
-		hKey,
-		_T("ControlIP"),
-		NULL,
-		NULL,
-		(LPBYTE) &m_szControlIP,
-		&dwLength);
-	if( nERROR != ERROR_SUCCESS )
-		return EC_INITSERVICE_WORLDIPNOTASSIGNED;
-
-	// Load group ID
-	dwLength = sizeof(DWORD);
-	nERROR = RegQueryValueEx(
-		hKey,
-		_T("GroupID"),
-		NULL,
-		NULL,
-		(LPBYTE) &dwValue,
-		&dwLength);
-	if( nERROR != ERROR_SUCCESS )
-		return EC_INITSERVICE_SVRIDNOTASSIGNED;
-	else
-		m_bGroupID = (BYTE) dwValue;
-
-	// Load server ID
-	dwLength = sizeof(DWORD);
-	nERROR = RegQueryValueEx(
-		hKey,
-		_T("ServerID"),
-		NULL,
-		NULL,
-		(LPBYTE) &dwValue,
-		&dwLength);
-	if( nERROR != ERROR_SUCCESS )
-		return EC_INITSERVICE_SVRIDNOTASSIGNED;
-	else
-		m_bServerID = (BYTE) dwValue;
-
-	// Load listen port
-	dwLength = sizeof(DWORD);
-	nERROR = RegQueryValueEx(
-		hKey,
-		_T("RelayPort"),
-		NULL,
-		NULL,
-		(LPBYTE) &dwValue,
-		&dwLength);
-	if( nERROR != ERROR_SUCCESS )
-		return EC_INITSERVICE_PORTNOTASSIGNED;
-	else
-		m_wRelayPort = (WORD) dwValue;
-
-	// Load world server port
-	dwLength = sizeof(DWORD);
-	nERROR = RegQueryValueEx(
-		hKey,
-		_T("WorldPort"),
-		NULL,
-		NULL,
-		(LPBYTE) &dwValue,
-		&dwLength);
-	if( nERROR != ERROR_SUCCESS )
-		return EC_INITSERVICE_WORLDPORTNOTASSIGNED;
-	else
-		m_wWorldPort = (WORD) dwValue;
-
-#ifdef	DEF_UDPLOG
-	
-    //	Load LogServer UDP IP
-	dwLength = ONE_KBYTE;
-	nERROR = RegQueryValueEx( 
-		hKey, 
-		_T("LogIP"), 
-		NULL, 
-		NULL, 
-		(LPBYTE) &m_szLogServerIP, 
-		&dwLength);
-
-	if( nERROR != ERROR_SUCCESS )
-	{
-		LogEvent(_T("Can't Find LogServer IP"));
-
-		return EC_INITSERVICE_DSNNOTASSIGNED;
-	}
-
-
-	//	Load LogServer UDP PORT
-	dwLength = sizeof(DWORD);
-	nERROR = RegQueryValueEx(
-		hKey,
-		_T("LogPort"),
-		NULL,
-		NULL,
-		(LPBYTE) &dwValue,
-		&dwLength);
-
-	if( nERROR != ERROR_SUCCESS )
-	{
-		LogEvent(_T("Can't Find LogServer PORT"));
-
-		return EC_INITSERVICE_PORTNOTASSIGNED;
-	}
-	else
-	{
-		m_wLogServerPORT = (WORD) dwValue;
-	}   
-
-#endif	DEF_UDPLOG
+	DisplayIni();
 
 	return EC_NOERROR;
 }
 
 DWORD CTRelaySvrModule::LoadData()
 {
-	m_addrCtrl.sin_addr.s_addr = inet_addr(m_szControlIP);
+	m_addrCtrl.sin_addr.s_addr = inet_addr(m_szControlIP.c_str());
 
 	return EC_NOERROR;
 }
@@ -427,7 +289,7 @@ DWORD CTRelaySvrModule::InitNetwork()
 	m_world.m_Recv.ExpandIoBuffer(RECV_SVR_SIZE);
 	m_world.m_bUseCrypt = FALSE;
 
-	if(!m_world.ConnectEx(m_szWorldIP,m_wWorldPort,m_hIocpWork,COMP_SESSION,0 ) )
+	if(!m_world.ConnectEx(m_szWorldIP.c_str(),m_wWorldPort,m_hIocpWork,COMP_SESSION,0 ) )
 		return EC_INITSERVICE_CONNECTWORLD;
 /*
 	m_hIocpWork = CreateIoCompletionPort(

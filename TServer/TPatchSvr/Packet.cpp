@@ -220,19 +220,19 @@ void CPacket::AddData(CPacket * pMsg)
 	m_ptrOffset += wDataSize;
 }
 
-int CPacket::DetachBinary( LPVOID *ptr)
+int CPacket::DetachBinary(LPVOID ptr)
 {
 	int nLength;
 
 	Read( &nLength, sizeof(DWORD));
 	if( nLength <= 0 || !CanRead(nLength) )
 	{
-		*ptr = NULL;
+		ptr = NULL;
 		return 0;
 	}
 
-	*ptr = new BYTE[nLength];
-	Read( *ptr, nLength);
+	ptr = new BYTE[nLength];
+	Read( ptr, nLength);
 
 	return nLength;
 }

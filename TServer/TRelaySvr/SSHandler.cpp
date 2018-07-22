@@ -1,4 +1,4 @@
-pragma once
+#pragma once
 
 #include "stdafx.h"
 #include "TRelaySvr.h"
@@ -14,9 +14,8 @@ DWORD CTRelaySvrModule::OnSM_DELSESSION_REQ(LPPACKETBUF pBUF)
 DWORD CTRelaySvrModule::OnSM_QUITSERVICE_REQ(LPPACKETBUF pBUF)
 {
 	LogEvent(_T("SM_QUITSERVICE_REQ detected !!"));
-	if(m_bService)
-		SetServiceStatus(SERVICE_STOP_PENDING);
-	PostThreadMessage( m_dwThreadID, WM_QUIT, 0, 0);
+	//if(m_bService)
+		//SetServiceStatus(SERVICE_STOP_PENDING);
 
 	return EC_NOERROR;
 }
@@ -494,7 +493,7 @@ DWORD CTRelaySvrModule::OnRW_RELAYSVR_ACK(LPPACKETBUF pBUF)
 	DWORD dwID;
 	CString strMsg;
 
-	for(i=0; i<wCount; i++)
+	for(int i=0; i<wCount; i++)
 	{
 		pBUF->m_packet
 			>> dwID

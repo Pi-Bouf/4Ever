@@ -6,18 +6,24 @@
 
 CTPatchSvrModule _AtlModule;
 
-extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, 
-                                LPTSTR /*lpCmdLine*/, int nShowCmd)
+//extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, 
+//                                LPTSTR /*lpCmdLine*/, int nShowCmd)
+//{
+//    return _AtlModule.WinMain(nShowCmd);
+//}
+
+
+void main()
 {
-    return _AtlModule.WinMain(nShowCmd);
+	_AtlModule.StartServer();
+
+	int i;
+	cin >> i;
 }
 
-CTPatchSvrModule::CTPatchSvrModule()
-{
-	memset( m_szDBPasswd, 0, ONE_KBYTE);
-	memset( m_szDBUserID, 0, ONE_KBYTE);
-	memset( m_szDSN, 0, ONE_KBYTE);
 
+CTPatchSvrModule::CTPatchSvrModule() : TServerSystem("TPatch", TPATCH_VERSION)
+{
 	m_wPort = DEF_PATCHPORT;
 	m_bNumWorker = 0;
 	m_bServerID = 1;
@@ -55,44 +61,29 @@ DWORD CTPatchSvrModule::_WorkThread( LPVOID lpParam)
 	return pModule->WorkThread();
 }
 
-HRESULT CTPatchSvrModule::PreMessageLoop( int nShowCmd)
-{
-	DWORD dwResult = OnEnter();
-
-	if(dwResult)
-	{
-		OnERROR(dwResult);
-		return E_FAIL;
-	}
-	m_dwThreadID = GetCurrentThreadId();
-
-	return CAtlServiceModuleT<CTPatchSvrModule,IDS_SERVICENAME>::PreMessageLoop(nShowCmd);
-}
-
-HRESULT CTPatchSvrModule::PostMessageLoop()
-{
-	OnExit();
-	return CAtlServiceModuleT<CTPatchSvrModule,IDS_SERVICENAME>::PostMessageLoop();
-}
-
 DWORD CTPatchSvrModule::OnEnter()
 {
+	LogInfo("Load configuration...", 1);
 	DWORD dwResult = LoadConfig();
-	if(dwResult)
+	if (dwResult)
 		return dwResult;
 
+	LogInfo("Database initialization...", 1);
 	dwResult = InitDB(&m_db);
-	if(dwResult)
+	if (dwResult)
 		return dwResult;
 
+	LogInfo("Loading data...", 1);
 	dwResult = LoadData(&m_db);
 	if(dwResult)
 		return dwResult;
 
+	LogInfo("Create threads...", 1);
 	dwResult = CreateThreads();
 	if(dwResult)
 		return dwResult;
 
+	LogInfo("Init network...", 1);
 	dwResult = InitNetwork();
 	if(dwResult)
 		return dwResult;
@@ -100,6 +91,7 @@ DWORD CTPatchSvrModule::OnEnter()
 	if(!ResumeThreads())
 		return EC_INITSERVICE_RESUMETHREAD;
 
+	LogInfo("Ready !", 1);
 	return 0;
 }
 
@@ -120,96 +112,21 @@ void CTPatchSvrModule::OnExit()
 
 DWORD CTPatchSvrModule::LoadConfig()
 {
-	//Load config from registry
-	DWORD dwLength;
-	DWORD dwValue;
-	HKEY hKey;
 
-	CString strRegKey;
-	strRegKey.Empty();
+	LoadStringFromIni("DSN", string("TGLOBAL_GSP"), &m_szDSN);
+	LoadStringFromIni("DBUser", string("sa"), &m_szDBUserID);
+	LoadStringFromIni("DBPasswd", string("1234"), &m_szDBPasswd);
+	LoadIntFromIni("PatchPort", DEF_PATCHPORT, &m_wPort);
+	LoadIntFromIni("ServerID", 1, &m_bServerID);
 
-#ifdef _DEBUG
-	HKEY hOpenKey = HKEY_CURRENT_USER;
-	strRegKey.Format(_T("software\\%s"), m_szServiceName);
-#else
-	HKEY hOpenKey = HKEY_LOCAL_MACHINE;
-	strRegKey.Format(_T("SYSTEM\\CurrentControlSet\\Services\\%s\\Config"), m_szServiceName);
-#endif
-
-	int nERROR = RegCreateKey( hOpenKey, strRegKey, &hKey);
-	if( nERROR != ERROR_SUCCESS )
-		return EC_INITSERVICE_OPENREG;
-
-	// Load game database password
-	dwLength = ONE_KBYTE;
-	nERROR = RegQueryValueEx(
-		hKey,
-		_T("DBPasswd"),
-		NULL,
-		NULL,
-		(LPBYTE) &m_szDBPasswd,
-		&dwLength);
-	if( nERROR != ERROR_SUCCESS )
-		return EC_INITSERVICE_PASSWDNOTASSIGNED;
-
-	// Load DB user ID
-	dwLength = ONE_KBYTE;
-	nERROR = RegQueryValueEx(
-		hKey,
-		_T("DBUser"),
-		NULL,
-		NULL,
-		(LPBYTE) &m_szDBUserID,
-		&dwLength);
-	if( nERROR != ERROR_SUCCESS )
-		return EC_INITSERVICE_PASSWDNOTASSIGNED;
-
-	// Load account database DSN
-	dwLength = ONE_KBYTE;
-	nERROR = RegQueryValueEx(
-		hKey,
-		_T("DSN"),
-		NULL,
-		NULL,
-		(LPBYTE) &m_szDSN,
-		&dwLength);
-	if( nERROR != ERROR_SUCCESS )
-		return EC_INITSERVICE_DSNNOTASSIGNED;
-
-	// Load server ID
-	dwLength = sizeof(DWORD);
-	nERROR = RegQueryValueEx(
-		hKey,
-		_T("ServerID"),
-		NULL,
-		NULL,
-		(LPBYTE) &dwValue,
-		&dwLength);
-	if( nERROR != ERROR_SUCCESS )
-		return EC_INITSERVICE_SVRIDNOTASSIGNED;
-	else
-		m_bServerID = (BYTE) dwValue;
-
-	// Load listen port
-	dwLength = sizeof(DWORD);
-	nERROR = RegQueryValueEx(
-		hKey,
-		_T("Port"),
-		NULL,
-		NULL,
-		(LPBYTE) &dwValue,
-		&dwLength);
-	if( nERROR != ERROR_SUCCESS )
-		return EC_INITSERVICE_PORTNOTASSIGNED;
-	else
-		m_wPort = (WORD) dwValue;
+	DisplayIni();
 
 	return EC_NOERROR;
 }
 
 DWORD CTPatchSvrModule::InitDB( CSqlDatabase *pDB)
 {
-	if(!pDB->Open( m_szDSN, m_szDBUserID, m_szDBPasswd))
+	if(!pDB->Open( m_szDSN.c_str(), m_szDBUserID.c_str(), m_szDBPasswd.c_str()))
 		return EC_INITSERVICE_DBOPENFAILED;
 
 	if(!InitQueryTPatchSvr(pDB))
@@ -474,9 +391,6 @@ DWORD CTPatchSvrModule::WorkThread()
 	if(dwResult)
 	{
 		OnERROR(dwResult);
-		PostThreadMessage(
-			m_dwThreadID,
-			WM_QUIT, 0, 0);
 
 		return 0;
 	}

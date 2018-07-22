@@ -389,7 +389,7 @@ void CSession::Flush()
 	m_Recv.Flush();
 }
 
-BOOL CSession::Connect( LPCTSTR lpszAddr, WORD wPort)
+BOOL CSession::Connect( LPCTSTR lpszAddr, WORD wPort, LPCTSTR lpszMyAddr)
 {
 	if(!CreateSocket(m_sock))
 		return FALSE;

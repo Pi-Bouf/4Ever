@@ -1,10 +1,10 @@
-#include "stdafx.h"
+Ôªø#include "stdafx.h"
 #include "TWorldSvr.h"
 #include "TWorldSvrModule.h"
 
-DWORD CTWorldSvrModule::OnCT_SERVICEMONITOR_ACK( LPPACKETBUF pBUF )
+DWORD CTWorldSvrModule::OnCT_SERVICEMONITOR_ACK(LPPACKETBUF pBUF)
 {
-	CTServer *pSERVER = (CTServer *) pBUF->m_pSESSION;
+	CTServer *pSERVER = (CTServer *)pBUF->m_pSESSION;
 
 	DWORD dwTick;
 	pBUF->m_packet
@@ -14,7 +14,7 @@ DWORD CTWorldSvrModule::OnCT_SERVICEMONITOR_ACK( LPPACKETBUF pBUF )
 	return EC_NOERROR;
 }
 
-DWORD CTWorldSvrModule::OnCT_USERMOVE_ACK( LPPACKETBUF pBUF)
+DWORD CTWorldSvrModule::OnCT_USERMOVE_ACK(LPPACKETBUF pBUF)
 {
 	CString strUser;
 
@@ -36,11 +36,11 @@ DWORD CTWorldSvrModule::OnCT_USERMOVE_ACK( LPPACKETBUF pBUF)
 		>> wPartyID;
 
 	LPTCHARACTER pPlayer = FindTChar(strUser);
-    if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	CTServer *pServer = FindMapSvr(pPlayer->m_bMainID);
-	if(pServer)
+	if (pServer)
 		pServer->SendCT_USERMOVE_ACK(pPlayer->m_dwCharID, pPlayer->m_dwKEY, bChannel, wMapID, fPosX, fPosY, fPosZ, wPartyID);
 
 	return EC_NOERROR;
@@ -56,23 +56,23 @@ DWORD CTWorldSvrModule::OnCT_USERPOSITION_ACK(LPPACKETBUF pBUF)
 		>> strGMName;
 
 	LPTCHARACTER pTarget = FindTChar(strTargetName);
-    if(!pTarget)
+	if (!pTarget)
 		return EC_NOERROR;
 
 	LPTCHARACTER pGM = FindTChar(strGMName);
-    if(!pGM)
+	if (!pGM)
 		return EC_NOERROR;
 
 	CTServer * pServer = FindMapSvr(pTarget->m_bMainID);
-	if(pServer)
+	if (pServer)
 		pServer->SendMW_USERPOSITION_REQ(pTarget->m_dwCharID, pTarget->m_dwKEY, strGMName);
 
 	return EC_NOERROR;
 }
 
-DWORD CTWorldSvrModule::OnCT_CHATBAN_REQ(LPPACKETBUF pBUF)  
+DWORD CTWorldSvrModule::OnCT_CHATBAN_REQ(LPPACKETBUF pBUF)
 {
-	CTServer *pCTSERVER = (CTServer *) pBUF->m_pSESSION;
+	CTServer *pCTSERVER = (CTServer *)pBUF->m_pSESSION;
 
 	CString strName;
 	WORD wMin;
@@ -86,24 +86,24 @@ DWORD CTWorldSvrModule::OnCT_CHATBAN_REQ(LPPACKETBUF pBUF)
 		>> dwManagerID;
 
 	LPTCHARACTER pTarget = FindTChar(strName);
-	if(!pTarget)
+	if (!pTarget)
 	{
-		pCTSERVER->SendCT_CHATBAN_ACK(FALSE,dwBanSeq,dwManagerID);
+		pCTSERVER->SendCT_CHATBAN_ACK(FALSE, dwBanSeq, dwManagerID);
 		return EC_NOERROR;
 	}
 
 	CTime t(CTime::GetCurrentTime());
-	CTime BanTime(t.GetYear(),t.GetMonth(),t.GetDay(),t.GetHour(),t.GetMinute()+wMin,t.GetSecond());
+	CTime BanTime(t.GetYear(), t.GetMonth(), t.GetDay(), t.GetHour(), t.GetMinute() + wMin, t.GetSecond());
 
 	pTarget->m_nChatBanTime = BanTime.GetTime();
 
 	CTServer* pServer = FindMapSvr(pTarget->m_bMainID);
-	if(pServer)
-		pServer->SendMW_CHATBAN_REQ(strName,pTarget->m_nChatBanTime,CHATBAN_SUCCESS,0,0);
+	if (pServer)
+		pServer->SendMW_CHATBAN_REQ(strName, pTarget->m_nChatBanTime, CHATBAN_SUCCESS, 0, 0);
 
 	AddChatBan(strName, pTarget->m_nChatBanTime);
 
-	pCTSERVER->SendCT_CHATBAN_ACK(TRUE,dwBanSeq,dwManagerID);
+	pCTSERVER->SendCT_CHATBAN_ACK(TRUE, dwBanSeq, dwManagerID);
 
 	return EC_NOERROR;
 }
@@ -118,14 +118,14 @@ DWORD CTWorldSvrModule::OnCT_CHARMSG_ACK(LPPACKETBUF pBUF)
 		>> strMsg;
 
 	LPTCHARACTER pTarget = FindTChar(strName);
-	if(!pTarget)
+	if (!pTarget)
 		return EC_NOERROR;
 
 	strMsg.Left(ONE_KBYTE);
 
 	CTServer* pServer = FindMapSvr(pTarget->m_bMainID);
-	if(pServer)
-		pServer->SendMW_CHARMSG_REQ(strName,strMsg);
+	if (pServer)
+		pServer->SendMW_CHARMSG_REQ(strName, strMsg);
 
 	return EC_NOERROR;
 }
@@ -136,11 +136,11 @@ DWORD CTWorldSvrModule::OnCT_SERVICEDATACLEAR_ACK(LPPACKETBUF pBUF)
 
 	MAPDWORD::iterator itA;
 	MAPTCHARACTER::iterator itC;
-	for(itC = m_mapTCHAR.begin(); itC != m_mapTCHAR.end(); itC++)
+	for (itC = m_mapTCHAR.begin(); itC != m_mapTCHAR.end(); itC++)
 	{
-		itA = m_mapACTIVEUSER.find( (*itC).second->m_dwUserID);
-		if( itA == m_mapACTIVEUSER.end() )
-			m_mapACTIVEUSER.insert(MAPDWORD::value_type( (*itC).second->m_dwUserID, (*itC).second->m_dwUserID) );
+		itA = m_mapACTIVEUSER.find((*itC).second->m_dwUserID);
+		if (itA == m_mapACTIVEUSER.end())
+			m_mapACTIVEUSER.insert(MAPDWORD::value_type((*itC).second->m_dwUserID, (*itC).second->m_dwUserID));
 	}
 
 	return EC_NOERROR;
@@ -148,7 +148,7 @@ DWORD CTWorldSvrModule::OnCT_SERVICEDATACLEAR_ACK(LPPACKETBUF pBUF)
 
 DWORD CTWorldSvrModule::OnCT_ITEMFIND_REQ(LPPACKETBUF pBUF)
 {
-	CTServer *pSERVER = (CTServer *) pBUF->m_pSESSION;
+	CTServer *pSERVER = (CTServer *)pBUF->m_pSESSION;
 
 	DWORD dwManager;
 	WORD wItemID;
@@ -158,13 +158,13 @@ DWORD CTWorldSvrModule::OnCT_ITEMFIND_REQ(LPPACKETBUF pBUF)
 		>> dwManager
 		>> wItemID
 		>> strItemName;
-	
+
 	LPPACKETBUF pMSG = new PACKETBUF();
 	pMSG->m_packet.SetID(DM_ITEMFIND_REQ)
 		<< dwManager
 		<< wItemID
 		<< strItemName;
-	
+
 	SayToDB(pMSG);
 
 	return EC_NOERROR;
@@ -172,7 +172,7 @@ DWORD CTWorldSvrModule::OnCT_ITEMFIND_REQ(LPPACKETBUF pBUF)
 
 DWORD CTWorldSvrModule::OnCT_ITEMSTATE_REQ(LPPACKETBUF pBUF)
 {
-	CTServer *pSERVER = (CTServer *) pBUF->m_pSESSION;	
+	CTServer *pSERVER = (CTServer *)pBUF->m_pSESSION;
 
 	WORD wCount;
 	WORD wItemID;
@@ -188,7 +188,7 @@ DWORD CTWorldSvrModule::OnCT_ITEMSTATE_REQ(LPPACKETBUF pBUF)
 		<< dwID
 		<< wCount;
 
-	for(WORD i = 0; i < wCount; i++)
+	for (WORD i = 0; i < wCount; i++)
 	{
 		pBUF->m_packet
 			>> wItemID
@@ -206,10 +206,10 @@ DWORD CTWorldSvrModule::OnCT_ITEMSTATE_REQ(LPPACKETBUF pBUF)
 
 DWORD CTWorldSvrModule::OnCT_CTRLSVR_REQ(LPPACKETBUF pBUF)
 {
-	CTServer* pSERVER= (CTServer*)pBUF->m_pSESSION;
+	CTServer* pSERVER = (CTServer*)pBUF->m_pSESSION;
 
-	if(pSERVER)
-        m_pCtrlSvr = pSERVER;
+	if (pSERVER)
+		m_pCtrlSvr = pSERVER;
 
 	return EC_NOERROR;
 }
@@ -237,29 +237,29 @@ DWORD CTWorldSvrModule::OnCT_CASTLEGUILDCHG_REQ(LPPACKETBUF pBUF)
 	CTGuild* pDefGuild = FindTGuild(dwDefGuildID);
 	CTGuild* pAtkGuild = FindTGuild(dwAtkGuildID);
 
-	if(pDefGuild && pAtkGuild)
+	if (pDefGuild && pAtkGuild)
 	{
 		strDefGuild = pDefGuild->m_strName;
 		strAtkGuild = pAtkGuild->m_strName;
 	}
-	
-	if(strDefGuild == NAME_NULL || strAtkGuild == NAME_NULL )
+
+	if (strDefGuild == NAME_NULL || strAtkGuild == NAME_NULL)
 	{
-		pSERVER->SendCT_CASTLEGUILDCHG_ACK(dwManagerID,FALSE);
+		pSERVER->SendCT_CASTLEGUILDCHG_ACK(dwManagerID, FALSE);
 		return EC_NOERROR;
 	}
-	
+
 	MAPTSERVER::iterator itS;
-	for(itS = m_mapSERVER.begin(); itS != m_mapSERVER.end(); itS++)
+	for (itS = m_mapSERVER.begin(); itS != m_mapSERVER.end(); itS++)
 	{
-		(*itS).second->SendMW_CASTLEGUILDCHG_REQ(wCastleID,dwDefGuildID,strDefGuild,dwAtkGuildID,strAtkGuild,tTime);		
+		(*itS).second->SendMW_CASTLEGUILDCHG_REQ(wCastleID, dwDefGuildID, strDefGuild, dwAtkGuildID, strAtkGuild, tTime);
 	}
 
-	pSERVER->SendCT_CASTLEGUILDCHG_ACK(dwManagerID,TRUE,wCastleID,dwDefGuildID,strDefGuild,dwAtkGuildID,strAtkGuild,tTime);
+	pSERVER->SendCT_CASTLEGUILDCHG_ACK(dwManagerID, TRUE, wCastleID, dwDefGuildID, strDefGuild, dwAtkGuildID, strAtkGuild, tTime);
 
 	return EC_NOERROR;
 }
- 
+
 DWORD CTWorldSvrModule::OnCT_EVENTUPDATE_REQ(LPPACKETBUF pBUF)
 {
 	BYTE bEventID;
@@ -269,39 +269,39 @@ DWORD CTWorldSvrModule::OnCT_EVENTUPDATE_REQ(LPPACKETBUF pBUF)
 	pBUF->m_packet
 		>> bEventID
 		>> wValue;
-	
+
 	stEVENT.WrapPacketOut(&pBUF->m_packet);
 	stEVENT.m_wValue = wValue;
 
-	if(bEventID > EVENT_COUNT)
+	if (bEventID > EVENT_COUNT)
 		return EC_NOERROR;
 
-	if(stEVENT.m_bID == EVENT_LOTTERY)
+	if (stEVENT.m_bID == EVENT_LOTTERY)
 	{
-		if(stEVENT.m_bState)
+		if (stEVENT.m_bState)
 			LotteryItem(stEVENT.m_vLOTTERY, (BYTE)stEVENT.m_wMapID, stEVENT.m_strLotMsg, stEVENT.m_strTitle);
 
 		return EC_NOERROR;
 	}
-	if(stEVENT.m_bID == EVENT_GIFTTIME)
+	if (stEVENT.m_bID == EVENT_GIFTTIME)
 	{
-		if(stEVENT.m_bState)
+		if (stEVENT.m_bState)
 			GiftTime(&stEVENT);//.m_vLOTTERY.at(0), stEVENT.m_strLotMsg);
 
 		return EC_NOERROR;
 	}
 
 	MAPEVENTINFO::iterator itE = m_mapEVENT.find(stEVENT.m_dwIndex);
-	if( itE != m_mapEVENT.end() )
+	if (itE != m_mapEVENT.end())
 		m_mapEVENT.erase(itE);
-	if(wValue)
-		m_mapEVENT.insert(MAPEVENTINFO::value_type(stEVENT.m_dwIndex,stEVENT));
-	
+	if (wValue)
+		m_mapEVENT.insert(MAPEVENTINFO::value_type(stEVENT.m_dwIndex, stEVENT));
+
 
 	MAPTSERVER::iterator itS;
-	for(itS=m_mapSERVER.begin(); itS!=m_mapSERVER.end(); itS++)
+	for (itS = m_mapSERVER.begin(); itS != m_mapSERVER.end(); itS++)
 	{
-		(*itS).second->SendMW_EVENTUPDATE_REQ(bEventID,wValue,&stEVENT);		
+		(*itS).second->SendMW_EVENTUPDATE_REQ(bEventID, wValue, &stEVENT);
 	}
 
 	return EC_NOERROR;
@@ -319,8 +319,8 @@ DWORD CTWorldSvrModule::OnCT_EVENTMSG_REQ(LPPACKETBUF pBUF)
 		>> strMsg;
 
 	MAPTSERVER::iterator it;
-	for(it=m_mapSERVER.begin(); it!=m_mapSERVER.end(); it++)
-		(*it).second->SendMW_EVENTMSG_REQ(bEventID,bEventMsgType,strMsg);
+	for (it = m_mapSERVER.begin(); it != m_mapSERVER.end(); it++)
+		(*it).second->SendMW_EVENTMSG_REQ(bEventID, bEventMsgType, strMsg);
 
 	return EC_NOERROR;
 }
@@ -333,7 +333,7 @@ DWORD CTWorldSvrModule::OnCT_CASHSHOPSTOP_REQ(LPPACKETBUF pBUF)
 		>> bType;
 
 	MAPTSERVER::iterator it;
-	for(it=m_mapSERVER.begin(); it!=m_mapSERVER.end(); it++)
+	for (it = m_mapSERVER.begin(); it != m_mapSERVER.end(); it++)
 		(*it).second->SendMW_CASHSHOPSTOP_REQ(bType);
 
 	return EC_NOERROR;
@@ -344,11 +344,11 @@ DWORD CTWorldSvrModule::OnCT_CASHITEMSALE_REQ(LPPACKETBUF pBUF)
 	WORD wCount;
 	WORD wValue;
 	DWORD dwIndex;
-	
+
 	LPVTCASHITEMSALE pvSaleItem = NULL;
 	TCASHITEMSALEEVENT stEVENT;
-	
-	
+
+
 	pBUF->m_packet
 		>> dwIndex
 		>> wValue
@@ -356,63 +356,63 @@ DWORD CTWorldSvrModule::OnCT_CASHITEMSALE_REQ(LPPACKETBUF pBUF)
 
 	stEVENT.m_dwIndex = dwIndex;
 	stEVENT.m_wValue = wValue;
-	
-	
-	for(WORD i = 0; i < wCount; i++ )
+
+
+	for (WORD i = 0; i < wCount; i++)
 	{
 		TCASHITEMSALE stSALEITEM;
 
 		pBUF->m_packet
 			>> stSALEITEM.m_wID
 			>> stSALEITEM.m_bSaleValue;
-		
-		stEVENT.m_vCashItemSale.push_back(stSALEITEM);		
+
+		stEVENT.m_vCashItemSale.push_back(stSALEITEM);
 	}
-	
-	if( wValue == 0)
+
+	if (wValue == 0)
 	{
 		m_bCashItemSale = FALSE;
 		MAPTCASHITEMSALE::iterator itC = m_mapTCashItemSale.find(dwIndex);
-		if( itC != m_mapTCashItemSale.end())
+		if (itC != m_mapTCashItemSale.end())
 		{
 			(*itC).second.m_wValue = 0;
 			VTCASHITEMSALE::iterator itE;
-			for( itE = (*itC).second.m_vCashItemSale.begin(); itE != (*itC).second.m_vCashItemSale.end(); itE++ )
-				(*itE).m_bSaleValue = 0;		
+			for (itE = (*itC).second.m_vCashItemSale.begin(); itE != (*itC).second.m_vCashItemSale.end(); itE++)
+				(*itE).m_bSaleValue = 0;
 
-			pvSaleItem = &((*itC).second.m_vCashItemSale);			
-		}		
+			pvSaleItem = &((*itC).second.m_vCashItemSale);
+		}
 	}
 	else
 	{
 		m_bCashItemSale = TRUE;
-        m_mapTCashItemSale.insert(MAPTCASHITEMSALE::value_type(dwIndex, stEVENT));
+		m_mapTCashItemSale.insert(MAPTCASHITEMSALE::value_type(dwIndex, stEVENT));
 		pvSaleItem = &stEVENT.m_vCashItemSale;
 	}
-	
-	if(!pvSaleItem)
+
+	if (!pvSaleItem)
 	{
-		LogError("OnCT_CASHITEMSALE_REQ Error");
+		LogEvent("OnCT_CASHITEMSALE_REQ Error");
 		return EC_NOERROR;
 	}
 
 	MAPTSERVER::iterator it;
-	for(it=m_mapSERVER.begin(); it!=m_mapSERVER.end(); it++)
+	for (it = m_mapSERVER.begin(); it != m_mapSERVER.end(); it++)
 	{
 		(*it).second->m_bCashSale = FALSE;
-		(*it).second->SendMW_CASHITEMSALE_REQ(dwIndex,wValue,pvSaleItem);
+		(*it).second->SendMW_CASHITEMSALE_REQ(dwIndex, wValue, pvSaleItem);
 	}
 
-	
+
 	return EC_NOERROR;
 }
- 
+
 DWORD CTWorldSvrModule::OnCT_EVENTQUARTERLIST_REQ(LPPACKETBUF pBUF)
 {
-	
+
 	LPPACKETBUF pMSG = new PACKETBUF();
-	pMSG->m_packet.Copy(&(pBUF->m_packet));	
-	pMSG->m_packet.SetID(DM_EVENTQUARTERLIST_REQ);		
+	pMSG->m_packet.Copy(&(pBUF->m_packet));
+	pMSG->m_packet.SetID(DM_EVENTQUARTERLIST_REQ);
 
 	SayToDB(pMSG);
 
@@ -423,7 +423,7 @@ DWORD CTWorldSvrModule::OnCT_EVENTQUARTERUPDATE_REQ(LPPACKETBUF pBUF)
 {
 	LPPACKETBUF pMSG = new PACKETBUF();
 	pMSG->m_packet.Copy(&(pBUF->m_packet));
-	pMSG->m_packet.SetID(DM_EVENTQUARTERUPDATE_REQ);		
+	pMSG->m_packet.SetID(DM_EVENTQUARTERUPDATE_REQ);
 
 	SayToDB(pMSG);
 
@@ -444,7 +444,7 @@ DWORD CTWorldSvrModule::OnCT_HELPMESSAGE_REQ(LPPACKETBUF pBUF)
 		>> strMessage;
 
 	MAPTSERVER::iterator it;
-	for(it=m_mapSERVER.begin(); it!=m_mapSERVER.end(); it++)
+	for (it = m_mapSERVER.begin(); it != m_mapSERVER.end(); it++)
 		(*it).second->SendMW_HELPMESSAGE_REQ(bID, dlStart, dlEnd, strMessage);
 
 	SendDM_HELPMESSAGE_REQ(bID, dlStart, dlEnd, strMessage);
@@ -457,75 +457,70 @@ DWORD CTWorldSvrModule::OnCT_CMGIFT_REQ(LPPACKETBUF pBUF)
 	CString strTarget;
 	WORD wGiftID;
 	DWORD dwManagerID;
-	
+
 	pBUF->m_packet
 		>> strTarget
 		>> wGiftID
 		>> dwManagerID;
-	
+
 	MAPCMGIFT::iterator it = m_mapCMGift.find(wGiftID);
-	if(it != m_mapCMGift.end())
+	if (it != m_mapCMGift.end())
 	{
-		if(it->second->m_bTakeType)
+		if (it->second->m_bTakeType)
 			SendDM_CMGIFT_REQ(strTarget, wGiftID, TRUE, dwManagerID);
 		else
-			SendDM_CMGIFT_ACK(CMGIFT_SUCCESS, strTarget, wGiftID, TRUE, dwManagerID); 
+			SendDM_CMGIFT_ACK(CMGIFT_SUCCESS, strTarget, wGiftID, TRUE, dwManagerID);
 		return EC_NOERROR;
 	}
-	
-	SendDM_CMGIFT_ACK(CMGIFT_ID, strTarget, wGiftID, TRUE, dwManagerID); 
-	return EC_NOERROR;	
+
+	SendDM_CMGIFT_ACK(CMGIFT_ID, strTarget, wGiftID, TRUE, dwManagerID);
+	return EC_NOERROR;
 }
 
 DWORD CTWorldSvrModule::OnCT_CMGIFTCHARTUPDATE_REQ(LPPACKETBUF pBUF)
 {
 	SendDM_CMGIFTCHARTUPDATE_REQ(&(pBUF->m_packet));
 
-	return EC_NOERROR;	
+	return EC_NOERROR;
 }
 
 
 DWORD CTWorldSvrModule::OnCT_CMGIFTLIST_REQ(LPPACKETBUF pBUF)
 {
-	DWORD dwManagerID;	
+	DWORD dwManagerID;
 	pBUF->m_packet
 		>> dwManagerID;
 
-	if(m_pCtrlSvr)
+	if (m_pCtrlSvr)
 		m_pCtrlSvr->SendCT_CMGIFTLIST_ACK(dwManagerID, &m_mapCMGift);
-	return EC_NOERROR;	
-}
-
-///////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////
-
-DWORD CTWorldSvrModule::OnSM_QUITSERVICE_REQ( LPPACKETBUF pBUF)
-{
-	/*
-	LogEvent(_T("SM_QUITSERVICE_REQ detected !!"));
-	if(m_bService)
-		SetServiceStatus(SERVICE_STOP_PENDING);
-	PostThreadMessage( m_dwThreadID, WM_QUIT, 0, 0);
-
-	
-	*/
-	LogError("SM_QUITSERVICE_REQ detected !!  ===> but it's not a service !");
 	return EC_NOERROR;
 }
 
-DWORD CTWorldSvrModule::OnSM_DELSESSION_REQ( LPPACKETBUF pBUF)
+///////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////
+
+DWORD CTWorldSvrModule::OnSM_QUITSERVICE_REQ(LPPACKETBUF pBUF)
 {
-	if(HIBYTE(((CTServer *) pBUF->m_pSESSION)->m_wID) == SVRGRP_MAPSVR)
+	LogEvent(_T("SM_QUITSERVICE_REQ detected !!"));
+	//if (m_bService)
+		//SetServiceStatus(SERVICE_STOP_PENDING);
+
+	return EC_NOERROR;
+}
+
+DWORD CTWorldSvrModule::OnSM_DELSESSION_REQ(LPPACKETBUF pBUF)
+{
+	if (HIBYTE(((CTServer *)pBUF->m_pSESSION)->m_wID) == SVRGRP_MAPSVR)
 	{
 		MAPTCHARACTER::iterator itCHAR = m_mapTCHAR.begin();
 
-		while(itCHAR != m_mapTCHAR.end())
+		while (itCHAR != m_mapTCHAR.end())
 		{
 			MAPTCHARACTER::iterator itNEXT = itCHAR;
 			LPTCHARACTER pTCHAR = (*itCHAR).second;
 			itNEXT++;
 
-			if( pTCHAR->m_mapTCHARCON.find(LOBYTE(((CTServer *) pBUF->m_pSESSION)->m_wID)) != pTCHAR->m_mapTCHARCON.end() )
+			if (pTCHAR->m_mapTCHARCON.find(LOBYTE(((CTServer *)pBUF->m_pSESSION)->m_wID)) != pTCHAR->m_mapTCHARCON.end())
 				CloseChar(pTCHAR);
 
 			itCHAR = itNEXT;
@@ -534,21 +529,21 @@ DWORD CTWorldSvrModule::OnSM_DELSESSION_REQ( LPPACKETBUF pBUF)
 		LPPACKETBUF pMsg = new PACKETBUF();
 		pMsg->m_packet.SetID(DM_CLEARMAPCURRENTUSER_REQ)
 			<< m_bGroupID
-			<< LOBYTE(((CTServer *) pBUF->m_pSESSION)->m_wID)
+			<< LOBYTE(((CTServer *)pBUF->m_pSESSION)->m_wID)
 			<< BYTE(SVRGRP_MAPSVR);
-		
+
 		SayToDB(pMsg);
 	}
 
 	PostQueuedCompletionStatus(
 		m_hIocpControl, 0,
 		COMP_CLOSE,
-		(LPOVERLAPPED) pBUF->m_pSESSION);
+		(LPOVERLAPPED)pBUF->m_pSESSION);
 
 	return EC_NOERROR;
 }
 
-DWORD CTWorldSvrModule::OnSM_GUILDDISORGANIZATION_REQ( LPPACKETBUF pBUF)
+DWORD CTWorldSvrModule::OnSM_GUILDDISORGANIZATION_REQ(LPPACKETBUF pBUF)
 {
 	DWORD dwGuildID;
 	DWORD dwTime;
@@ -557,23 +552,23 @@ DWORD CTWorldSvrModule::OnSM_GUILDDISORGANIZATION_REQ( LPPACKETBUF pBUF)
 	pBUF->m_packet
 		>> dwGuildID
 		>> dwTime
-        >> bDisorg;
+		>> bDisorg;
 
-	if(bDisorg)
+	if (bDisorg)
 		m_mapTGuildEx.insert(MAPDWORD::value_type(dwGuildID, dwTime));
 	else
 	{
 		MAPDWORD::iterator it = m_mapTGuildEx.find(dwGuildID);
-		if(it!=m_mapTGuildEx.end())
+		if (it != m_mapTGuildEx.end())
 			m_mapTGuildEx.erase(it);
 	}
 
 	return EC_NOERROR;
 }
 
-DWORD CTWorldSvrModule::OnMW_CONNECT_ACK( LPPACKETBUF pBUF)
+DWORD CTWorldSvrModule::OnMW_CONNECT_ACK(LPPACKETBUF pBUF)
 {
-	CTServer *pSERVER = (CTServer *) pBUF->m_pSESSION;
+	CTServer *pSERVER = (CTServer *)pBUF->m_pSESSION;
 	WORD wServerID;
 	BYTE bCount;
 
@@ -582,21 +577,21 @@ DWORD CTWorldSvrModule::OnMW_CONNECT_ACK( LPPACKETBUF pBUF)
 		>> bCount;
 
 	MAPTSERVER::iterator finder = m_mapSERVER.find(wServerID);
-	if( finder != m_mapSERVER.end() )
+	if (finder != m_mapSERVER.end())
 		return EC_SESSION_DUPSERVERID;
 
 	pSERVER->m_wID = wServerID;
 
-	for( BYTE i=0; i<bCount; i++)
+	for (BYTE i = 0; i<bCount; i++)
 	{
 		BYTE bChannel;
 
 		pBUF->m_packet
 			>> bChannel;
 
-		pSERVER->m_mapCHANNEL.insert( MAPBYTE::value_type( bChannel, bChannel));
+		pSERVER->m_mapCHANNEL.insert(MAPBYTE::value_type(bChannel, bChannel));
 	}
-	m_mapSERVER.insert( MAPTSERVER::value_type( pSERVER->m_wID, pSERVER));
+	m_mapSERVER.insert(MAPTSERVER::value_type(pSERVER->m_wID, pSERVER));
 
 	pSERVER->SendMW_LOCALENABLE_REQ(
 		m_battletime[BT_LOCAL].m_bStatus,
@@ -618,54 +613,54 @@ DWORD CTWorldSvrModule::OnMW_CONNECT_ACK( LPPACKETBUF pBUF)
 		m_battletime[BT_SKYGARDEN].m_dwBattleStart);
 #endif
 
-	if(m_pRelay)
+	if (m_pRelay)
 		pSERVER->SendMW_RELAYCONNECT_REQ(0);
 
 	MAPEVENTINFO::iterator itE;
-	for( itE = m_mapEVENT.begin() ; itE != m_mapEVENT.end(); itE++)
-		pSERVER->SendMW_EVENTUPDATE_REQ((*itE).second.m_bID,(*itE).second.m_wValue,&((*itE).second) );
+	for (itE = m_mapEVENT.begin(); itE != m_mapEVENT.end(); itE++)
+		pSERVER->SendMW_EVENTUPDATE_REQ((*itE).second.m_bID, (*itE).second.m_wValue, &((*itE).second));
 
 	MAPTCASHITEMSALE::iterator itC;
-	for(itC = m_mapTCashItemSale.begin(); itC != m_mapTCashItemSale.end(); itC++)
-		pSERVER->SendMW_CASHITEMSALE_REQ( (*itC).first,(*itC).second.m_wValue,&((*itC).second.m_vCashItemSale) );
+	for (itC = m_mapTCashItemSale.begin(); itC != m_mapTCashItemSale.end(); itC++)
+		pSERVER->SendMW_CASHITEMSALE_REQ((*itC).first, (*itC).second.m_wValue, &((*itC).second.m_vCashItemSale));
 
 	MAPWORD mapCastle;
 	MAPWORD::iterator itCs;
 	MAPTGUILD::iterator itGd;
-	for(itGd=m_mapTGuild.begin(); itGd != m_mapTGuild.end(); itGd++)
+	for (itGd = m_mapTGuild.begin(); itGd != m_mapTGuild.end(); itGd++)
 	{
 		mapCastle.clear();
 		CTGuild * pGuild = (*itGd).second;
 		pGuild->GetCastleApplicantCount(&mapCastle);
-		for(itCs=mapCastle.begin(); itCs != mapCastle.end(); itCs++)
+		for (itCs = mapCastle.begin(); itCs != mapCastle.end(); itCs++)
 			pSERVER->SendMW_CASTLEAPPLICANTCOUNT_REQ((*itCs).first, pGuild->m_dwID, HIBYTE((*itCs).second), LOBYTE((*itCs).second));
 	}
 
 	static BYTE bInitExpired = TRUE;
-	if(bInitExpired)
+	if (bInitExpired)
 	{
 		MAPTGUILD::iterator itGd;
 		MAPTTACTICSMEMBER::iterator itTc;
-		for(itGd=m_mapTGuild.begin(); itGd != m_mapTGuild.end(); itGd++)
+		for (itGd = m_mapTGuild.begin(); itGd != m_mapTGuild.end(); itGd++)
 		{
 			CTGuild * pGuild = (*itGd).second;
-			for(itTc=pGuild->m_mapTTactics.begin(); itTc!=pGuild->m_mapTTactics.end(); itTc++)
+			for (itTc = pGuild->m_mapTTactics.begin(); itTc != pGuild->m_mapTTactics.end(); itTc++)
 				OnEventExpired(TRUE, EXPIRED_GT, (*itTc).second->m_dlEndTime, pGuild->m_dwID, (*itTc).second->m_dwID);
 		}
 
 		bInitExpired = FALSE;
 	}
 
-	 
-	pSERVER->SendMW_MONTHRANKLIST_REQ(m_arMonthRank,m_bRankMonth);	
+
+	pSERVER->SendMW_MONTHRANKLIST_REQ(m_arMonthRank, m_bRankMonth);
 	TournamentInfo(pSERVER);
 
 	return EC_NOERROR;
 }
 
-DWORD CTWorldSvrModule::OnMW_ADDCHAR_ACK( LPPACKETBUF pBUF)
+DWORD CTWorldSvrModule::OnMW_ADDCHAR_ACK(LPPACKETBUF pBUF)
 {
-	CTServer *pSERVER = (CTServer *) pBUF->m_pSESSION;
+	CTServer *pSERVER = (CTServer *)pBUF->m_pSESSION;
 
 	DWORD dwIPAddr;
 	DWORD dwCharID;
@@ -682,13 +677,13 @@ DWORD CTWorldSvrModule::OnMW_ADDCHAR_ACK( LPPACKETBUF pBUF)
 		>> dwUserID;
 
 	MAPDWORD::iterator itA = m_mapACTIVEUSER.find(dwUserID);
-	if( itA == m_mapACTIVEUSER.end() )
-		m_mapACTIVEUSER.insert(MAPDWORD::value_type(dwUserID,dwUserID) );
+	if (itA == m_mapACTIVEUSER.end())
+		m_mapACTIVEUSER.insert(MAPDWORD::value_type(dwUserID, dwUserID));
 
 	MAPTCHARACTER::iterator itCHAR = m_mapTCHAR.find(dwCharID);
-	if( itCHAR == m_mapTCHAR.end())
+	if (itCHAR == m_mapTCHAR.end())
 	{
-		// ø˘µÂø° √≥¿Ω ¿‘¿Â. ƒ≥∏Ø≈Õ ø¿∫Í¡ß∆Æ∏¶ ª˝º∫«œ∞Ì ∞¸∏Æ∏Ò∑œø° µÓ∑œ
+		// ÏõîÎìúÏóê Ï≤òÏùå ÏûÖÏû•. Ï∫êÎ¶≠ÌÑ∞ Ïò§Î∏åÏ†ùÌä∏Î•º ÏÉùÏÑ±ÌïòÍ≥† Í¥ÄÎ¶¨Î™©Î°ùÏóê Îì±Î°ù
 		LPTCHARACTER pTCHAR = new TCHARACTER();
 		LPTCHARCON pCON = new TCHARCON();
 
@@ -722,7 +717,7 @@ DWORD CTWorldSvrModule::OnMW_ADDCHAR_ACK( LPPACKETBUF pBUF)
 		pTCHAR->m_fPosX = 0.0f;
 		pTCHAR->m_fPosY = 0.0f;
 		pTCHAR->m_fPosZ = 0.0f;
-		pTCHAR->m_nChatBanTime = 0; 
+		pTCHAR->m_nChatBanTime = 0;
 		pTCHAR->m_timeRelay = 0;
 		pTCHAR->m_dwSoulSilence = 0;
 		pTCHAR->m_dwTicket = 0;
@@ -734,12 +729,12 @@ DWORD CTWorldSvrModule::OnMW_ADDCHAR_ACK( LPPACKETBUF pBUF)
 		pCON->m_bReady = FALSE;
 		pCON->m_bValid = TRUE;
 
-		// ∏ﬁ¿Œº≠πˆ µÓ∑œ
-		pTCHAR->m_mapTCHARCON.insert( MAPTCHARCON::value_type( LOBYTE(pSERVER->m_wID), pCON));
-		// ƒ≥∏Ø≈Õ µÓ∑œ
-		m_mapTCHAR.insert( MAPTCHARACTER::value_type( dwCharID, pTCHAR));
+		// Î©îÏù∏ÏÑúÎ≤Ñ Îì±Î°ù
+		pTCHAR->m_mapTCHARCON.insert(MAPTCHARCON::value_type(LOBYTE(pSERVER->m_wID), pCON));
+		// Ï∫êÎ¶≠ÌÑ∞ Îì±Î°ù
+		m_mapTCHAR.insert(MAPTCHARACTER::value_type(dwCharID, pTCHAR));
 
-		// ∏ﬁ¿Œº≠πˆ∑Œ ¿‘¿Â. ¿Ã Ω√¡°ø° ∞Ë¡§¿Œ¡ı ¿˝¬˜∏¶ ∞≈ƒ£ »ƒ √÷√ ∑Œ ƒ≥∏Ø≈Õ µ•¿Ã≈Õ∞° ∏  º≠πˆø° ∑ŒµÂ µ»¥Ÿ
+		// Î©îÏù∏ÏÑúÎ≤ÑÎ°ú ÏûÖÏû•. Ïù¥ ÏãúÏ†êÏóê Í≥ÑÏ†ïÏù∏Ï¶ù Ï†àÏ∞®Î•º Í±∞Ïπú ÌõÑ ÏµúÏ¥àÎ°ú Ï∫êÎ¶≠ÌÑ∞ Îç∞Ïù¥ÌÑ∞Í∞Ä Îßµ ÏÑúÎ≤ÑÏóê Î°úÎìú ÎêúÎã§
 		pSERVER->SendMW_ENTERSVR_REQ(
 			TRUE,
 			pTCHAR->m_dwCharID,
@@ -747,21 +742,21 @@ DWORD CTWorldSvrModule::OnMW_ADDCHAR_ACK( LPPACKETBUF pBUF)
 	}
 	else
 	{
-		// √ﬂ∞° ƒø≥ÿº« ø¨∞·. ƒ≥∏Ø≈Õ ø¿∫Í¡ß∆Æø° µÓ∑œµ» ¿Ø»ø«— ø¨∞·¿Œ¡ˆø°¥Î«— ¿Œ¡ı¿˝¬˜∏¶ ∏∂ƒ£ »ƒ
-		// ƒ≥∏Ø≈Õ ø¿∫Í¡ß∆Æø° µÓ∑œµ» «ÿ¥Á ø¨∞·¿« ø¨∞·ªÛ≈¬(m_bValid)∏¶ ø¨∞·µ ¿∏∑Œ ôV∆√«œ∞Ì ƒ≥∏Ø≈Õ ø¿∫Í¡ß∆Æ¿« ∏µÁ ø¨∞·¿«
-		// ø¨∞·ªÛ≈¬∞° ø¨∞·µ ¿∏∑Œ ôV∆√ µ«æ˙¿∏∏È MW_CHARDATA_ACK∏¶ ≈Î«— ∏ﬁ¿Œº≠πˆ √º≈©∏¶ Ω√µµ
+		// Ï∂îÍ∞Ä Ïª§ÎÑ•ÏÖò Ïó∞Í≤∞. Ï∫êÎ¶≠ÌÑ∞ Ïò§Î∏åÏ†ùÌä∏Ïóê Îì±Î°ùÎêú Ïú†Ìö®Ìïú Ïó∞Í≤∞Ïù∏ÏßÄÏóêÎåÄÌïú Ïù∏Ï¶ùÏ†àÏ∞®Î•º ÎßàÏπú ÌõÑ
+		// Ï∫êÎ¶≠ÌÑ∞ Ïò§Î∏åÏ†ùÌä∏Ïóê Îì±Î°ùÎêú Ìï¥Îãπ Ïó∞Í≤∞Ïùò Ïó∞Í≤∞ÏÉÅÌÉú(m_bValid)Î•º Ïó∞Í≤∞Îê®ÏúºÎ°ú ¬ôVÌåÖÌïòÍ≥† Ï∫êÎ¶≠ÌÑ∞ Ïò§Î∏åÏ†ùÌä∏Ïùò Î™®Îì† Ïó∞Í≤∞Ïùò
+		// Ïó∞Í≤∞ÏÉÅÌÉúÍ∞Ä Ïó∞Í≤∞Îê®ÏúºÎ°ú ¬ôVÌåÖ ÎêòÏóàÏúºÎ©¥ MW_CHARDATA_ACKÎ•º ÌÜµÌïú Î©îÏù∏ÏÑúÎ≤Ñ Ï≤¥ÌÅ¨Î•º ÏãúÎèÑ
 		MAPTCHARCON::iterator itCON = (*itCHAR).second->m_mapTCHARCON.find(LOBYTE(pSERVER->m_wID));
 		CTServer *pMAIN = FindMapSvr((*itCHAR).second->m_bMainID);
 
-		if( !pMAIN || (*itCHAR).second->m_dwKEY != dwKEY ||		// ªı∑”∞‘ ¡¢º”«— ªÁøÎ¿⁄¿« ¿Œ¡ı≈∞∞° µÓ∑œµ«æÓ¿÷¥¬ ªÁøÎ¿⁄¿« ¿Œ¡ı≈∞øÕ ¥Ÿ∏£∞≈≥™
-			itCON == (*itCHAR).second->m_mapTCHARCON.end() ||	// ø¨∞·¿Ã ƒ≥∏Ø≈Õ ø¿∫Í¡ß∆Æø° µÓ∑œµ» ø¨∞·¿Ã æ∆¥œ∞≈≥™
-			(*itCON).second->m_bValid ||						// ªı∑ŒøÓ ø¨∞·¿« ø¨∞·ªÛ≈¬∞° ¿ÃπÃ ø¨∞·µ ¿∏∑Œ º≥¡§µ«æÓ ¿÷∞≈≥™
-			dwIPAddr != (*itCON).second->m_dwIPAddr ||			// ªı∑ŒøÓ ø¨∞·¿« IP∞° µÓ∑œµ» ø¨∞·¿« IPøÕ ¥Ÿ∏£∞≈≥™
-			wPort != (*itCON).second->m_wPort )					// ªı∑ŒøÓ ø¨∞·¿« ∆˜∆Æ∞° µÓ∑œµ» ø¨∞·¿« ∆˜∆Æ∞° ¥Ÿ∏£∏È
+		if (!pMAIN || (*itCHAR).second->m_dwKEY != dwKEY ||		// ÏÉàÎ°≠Í≤å Ï†ëÏÜçÌïú ÏÇ¨Ïö©ÏûêÏùò Ïù∏Ï¶ùÌÇ§Í∞Ä Îì±Î°ùÎêòÏñ¥ÏûàÎäî ÏÇ¨Ïö©ÏûêÏùò Ïù∏Ï¶ùÌÇ§ÏôÄ Îã§Î•¥Í±∞ÎÇò
+			itCON == (*itCHAR).second->m_mapTCHARCON.end() ||	// Ïó∞Í≤∞Ïù¥ Ï∫êÎ¶≠ÌÑ∞ Ïò§Î∏åÏ†ùÌä∏Ïóê Îì±Î°ùÎêú Ïó∞Í≤∞Ïù¥ ÏïÑÎãàÍ±∞ÎÇò
+			(*itCON).second->m_bValid ||						// ÏÉàÎ°úÏö¥ Ïó∞Í≤∞Ïùò Ïó∞Í≤∞ÏÉÅÌÉúÍ∞Ä Ïù¥ÎØ∏ Ïó∞Í≤∞Îê®ÏúºÎ°ú ÏÑ§Ï†ïÎêòÏñ¥ ÏûàÍ±∞ÎÇò
+			dwIPAddr != (*itCON).second->m_dwIPAddr ||			// ÏÉàÎ°úÏö¥ Ïó∞Í≤∞Ïùò IPÍ∞Ä Îì±Î°ùÎêú Ïó∞Í≤∞Ïùò IPÏôÄ Îã§Î•¥Í±∞ÎÇò
+			wPort != (*itCON).second->m_wPort)					// ÏÉàÎ°úÏö¥ Ïó∞Í≤∞Ïùò Ìè¨Ìä∏Í∞Ä Îì±Î°ùÎêú Ïó∞Í≤∞Ïùò Ìè¨Ìä∏Í∞Ä Îã§Î•¥Î©¥
 		{
-			// ¡ﬂ∫πµ» ¡¢º” ∂«¥¬ ∞¯Ωƒ πË∆˜µ» ≈¨∂Û¿Ãæ∆Æ∞° æ∆¥œ∞≈≥™ «ÿ≈∑¿∏∑Œ ¿«Ω…µ«¥¬ ø¨∞·
-			// ¡ﬂ∫π¡¢º” √≥∏Æ∏¶ ¿ß«ÿ ∏  º≠πˆ∏¶ ≈Î«ÿ ±‚¡∏ ¡¢º”¿⁄¿« ≈¨∂Û¿Ãæ∆Æ ø¨∞·¿ª ¡æ∑·«œ∞Ì
-			// Ω≈±‘ ¡¢º”¿⁄¿« ≈¨∂Û¿Ãæ∆Æø° ø¿∑˘∏ﬁºº¡ˆ∏¶ ¿¸¥ﬁ«— »ƒ ≈¨∂Û¿Ãæ∆Æ¿« ø¨∞·¿ª ¡æ∑·
+			// Ï§ëÎ≥µÎêú Ï†ëÏÜç ÎòêÎäî Í≥µÏãù Î∞∞Ìè¨Îêú ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏Í∞Ä ÏïÑÎãàÍ±∞ÎÇò Ìï¥ÌÇπÏúºÎ°ú ÏùòÏã¨ÎêòÎäî Ïó∞Í≤∞
+			// Ï§ëÎ≥µÏ†ëÏÜç Ï≤òÎ¶¨Î•º ÏúÑÌï¥ Îßµ ÏÑúÎ≤ÑÎ•º ÌÜµÌï¥ Í∏∞Ï°¥ Ï†ëÏÜçÏûêÏùò ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏ Ïó∞Í≤∞ÏùÑ Ï¢ÖÎ£åÌïòÍ≥†
+			// Ïã†Í∑ú Ï†ëÏÜçÏûêÏùò ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏Ïóê Ïò§Î•òÎ©îÏÑ∏ÏßÄÎ•º Ï†ÑÎã¨Ìïú ÌõÑ ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏Ïùò Ïó∞Í≤∞ÏùÑ Ï¢ÖÎ£å
 			pSERVER->SendMW_INVALIDCHAR_REQ(
 				dwCharID,
 				dwKEY);
@@ -770,17 +765,17 @@ DWORD CTWorldSvrModule::OnMW_ADDCHAR_ACK( LPPACKETBUF pBUF)
 			return EC_NOERROR;
 		}
 
-		// ƒ≥∏Ø≈Õ ∑ŒµÂªÛ≈¬∏¶ ∑ŒµÂµ«¡ˆ æ ¿Ω, ø¨∞·ªÛ≈¬∏¶ ø¨∞·µ ¿∏∑Œ ôV∆√
+		// Ï∫êÎ¶≠ÌÑ∞ Î°úÎìúÏÉÅÌÉúÎ•º Î°úÎìúÎêòÏßÄ ÏïäÏùå, Ïó∞Í≤∞ÏÉÅÌÉúÎ•º Ïó∞Í≤∞Îê®ÏúºÎ°ú ¬ôVÌåÖ
 		(*itCON).second->m_bReady = FALSE;
 		(*itCON).second->m_bValid = TRUE;
 
-		// « ø‰«— ∏µÁ ø¨∞·¿« ø¨∞·ªÛ≈¬∞° ø¨∞·µ ¿∏∑Œ ôV∆√µ«æÓ¿÷¥¬¡ˆ »Æ¿Œ »ƒ ø¨∞·µ«¡ˆ æ ¿Ω¿∏∑Œ ôV∆√µ» ø¨∞·¿Ã ¿÷¿∏∏È
-		// ∏µÁ ø¨∞·¿« ø¨∞·ªÛ≈¬∞° ø¨∞·µ ¿∏∑Œ ôV∆√µ…∂ß±Ó¡ˆ ¥Î±‚
-		for( itCON = (*itCHAR).second->m_mapTCHARCON.begin(); itCON != (*itCHAR).second->m_mapTCHARCON.end(); itCON++)
-			if(!(*itCON).second->m_bValid)
+		// ÌïÑÏöîÌïú Î™®Îì† Ïó∞Í≤∞Ïùò Ïó∞Í≤∞ÏÉÅÌÉúÍ∞Ä Ïó∞Í≤∞Îê®ÏúºÎ°ú ¬ôVÌåÖÎêòÏñ¥ÏûàÎäîÏßÄ ÌôïÏù∏ ÌõÑ Ïó∞Í≤∞ÎêòÏßÄ ÏïäÏùåÏúºÎ°ú ¬ôVÌåÖÎêú Ïó∞Í≤∞Ïù¥ ÏûàÏúºÎ©¥
+		// Î™®Îì† Ïó∞Í≤∞Ïùò Ïó∞Í≤∞ÏÉÅÌÉúÍ∞Ä Ïó∞Í≤∞Îê®ÏúºÎ°ú ¬ôVÌåÖÎê†ÎïåÍπåÏßÄ ÎåÄÍ∏∞
+		for (itCON = (*itCHAR).second->m_mapTCHARCON.begin(); itCON != (*itCHAR).second->m_mapTCHARCON.end(); itCON++)
+			if (!(*itCON).second->m_bValid)
 				return EC_NOERROR;
 
-		// ø¨∞·ªÛ≈¬∞° ø¨∞·µ ¿∏∑Œ ôV∆√ µ«æ˙¿∏∏È MW_CHARDATA_ACK∏¶ ≈Î«— ∏ﬁ¿Œº≠πˆ √º≈©∏¶ Ω√µµ
+		// Ïó∞Í≤∞ÏÉÅÌÉúÍ∞Ä Ïó∞Í≤∞Îê®ÏúºÎ°ú ¬ôVÌåÖ ÎêòÏóàÏúºÎ©¥ MW_CHARDATA_ACKÎ•º ÌÜµÌïú Î©îÏù∏ÏÑúÎ≤Ñ Ï≤¥ÌÅ¨Î•º ÏãúÎèÑ
 		pMAIN->SendMW_CHARDATA_REQ(
 			dwCharID,
 			dwKEY);
@@ -789,9 +784,9 @@ DWORD CTWorldSvrModule::OnMW_ADDCHAR_ACK( LPPACKETBUF pBUF)
 	return EC_NOERROR;
 }
 
-DWORD CTWorldSvrModule::OnMW_CHARDATA_ACK( LPPACKETBUF pBUF)
+DWORD CTWorldSvrModule::OnMW_CHARDATA_ACK(LPPACKETBUF pBUF)
 {
-	CTServer *pSERVER = (CTServer *) pBUF->m_pSESSION;
+	CTServer *pSERVER = (CTServer *)pBUF->m_pSESSION;
 
 	DWORD dwCharID;
 	DWORD dwKEY;
@@ -825,7 +820,7 @@ DWORD CTWorldSvrModule::OnMW_CHARDATA_ACK( LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pTCHAR)
+	if (!pTCHAR)
 	{
 		pSERVER->SendMW_DELCHAR_REQ(
 			dwCharID,
@@ -848,10 +843,10 @@ DWORD CTWorldSvrModule::OnMW_CHARDATA_ACK( LPPACKETBUF pBUF)
 		dwMP);
 
 	CTServer *pMAIN = FindMapSvr(pTCHAR->m_bMainID);
-	if(!pMAIN)
+	if (!pMAIN)
 	{
-		// ∏ﬁ¿Œº≠πˆ∞° æ¯∞≈≥™ ¥Ÿ∏£∞‘ º≥¡§µ«æÓ ∞¯Ωƒ πË∆˜µ» ≈¨∂Û¿Ãæ∆Æ∞° æ∆¥œ∞≈≥™ «ÿ≈∑¿∏∑Œ ¿«Ω…µ«¥¬ ø¨∞·
-		// ∏  º≠πˆ∏¶ ≈Î«ÿ ≈¨∂Û¿Ãæ∆Æø°∞‘ ø¿∑˘∏ﬁºº¡ˆ∏¶ ¿¸¥ﬁ«— »ƒ ≈¨∂Û¿Ãæ∆Æ¿« ø¨∞·¿ª ¡æ∑·
+		// Î©îÏù∏ÏÑúÎ≤ÑÍ∞Ä ÏóÜÍ±∞ÎÇò Îã§Î•¥Í≤å ÏÑ§Ï†ïÎêòÏñ¥ Í≥µÏãù Î∞∞Ìè¨Îêú ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏Í∞Ä ÏïÑÎãàÍ±∞ÎÇò Ìï¥ÌÇπÏúºÎ°ú ÏùòÏã¨ÎêòÎäî Ïó∞Í≤∞
+		// Îßµ ÏÑúÎ≤ÑÎ•º ÌÜµÌï¥ ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏ÏóêÍ≤å Ïò§Î•òÎ©îÏÑ∏ÏßÄÎ•º Ï†ÑÎã¨Ìïú ÌõÑ ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏Ïùò Ïó∞Í≤∞ÏùÑ Ï¢ÖÎ£å
 		pSERVER->SendMW_INVALIDCHAR_REQ(
 			dwCharID,
 			dwKEY);
@@ -861,16 +856,16 @@ DWORD CTWorldSvrModule::OnMW_CHARDATA_ACK( LPPACKETBUF pBUF)
 
 	LPTSOULMATE pSOUL = NULL;
 	MAPTSOULMATE::iterator itSOUL;
-	for(itSOUL=pTCHAR->m_mapTSOULMATE.begin(); itSOUL!=pTCHAR->m_mapTSOULMATE.end(); itSOUL++)
+	for (itSOUL = pTCHAR->m_mapTSOULMATE.begin(); itSOUL != pTCHAR->m_mapTSOULMATE.end(); itSOUL++)
 	{
-		if((*itSOUL).second->m_dwCharID == pTCHAR->m_dwCharID)
-		{			
+		if ((*itSOUL).second->m_dwCharID == pTCHAR->m_dwCharID)
+		{
 			pSOUL = (*itSOUL).second;
 			break;
 		}
 	}
 
-	if(pSOUL)
+	if (pSOUL)
 	{
 		dwSoulmate = pSOUL->m_dwTarget;
 		strSoulmate = pSOUL->m_strName;
@@ -882,20 +877,20 @@ DWORD CTWorldSvrModule::OnMW_CHARDATA_ACK( LPPACKETBUF pBUF)
 	WORD wCastle = 0;
 	BYTE bCamp = 0;
 
-	if(pTCHAR->m_pGuild)
+	if (pTCHAR->m_pGuild)
 	{
 		LPTGUILDMEMBER pMem = pTCHAR->m_pGuild->FindMember(dwCharID);
-		if(pMem)
+		if (pMem)
 		{
 			wCastle = pMem->m_wCastle;
 			bCamp = pMem->m_bCamp;
 		}
 	}
 
-	if(!wCastle && pTCHAR->m_pTactics)
+	if (!wCastle && pTCHAR->m_pTactics)
 	{
 		LPTTACTICSMEMBER pTac = pTCHAR->m_pTactics->FindTactics(dwCharID);
-		if(pTac)
+		if (pTac)
 		{
 			wCastle = pTac->m_wCastle;
 			bCamp = pTac->m_bCamp;
@@ -903,26 +898,26 @@ DWORD CTWorldSvrModule::OnMW_CHARDATA_ACK( LPPACKETBUF pBUF)
 	}
 
 	WORD wCommander = 0;
-	if(pTCHAR->m_pParty)
+	if (pTCHAR->m_pParty)
 	{
 		CTCorps * pCorps = FindCorps(pTCHAR->m_pParty->m_wCorpsID);
-		if(pCorps)
+		if (pCorps)
 			wCommander = pCorps->m_wCommander;
 	}
 
-	// ∏µÁ ø¨∞·¿« ƒ≥∏Ø≈Õ ∑ŒµÂªÛ≈¬∞° ∑ŒµÂµ ¿∏∑Œ ôV∆√µ«æÓ¿÷¥¬¡ˆ √º≈©
-	while(itCON != pTCHAR->m_mapTCHARCON.end())
+	// Î™®Îì† Ïó∞Í≤∞Ïùò Ï∫êÎ¶≠ÌÑ∞ Î°úÎìúÏÉÅÌÉúÍ∞Ä Î°úÎìúÎê®ÏúºÎ°ú ¬ôVÌåÖÎêòÏñ¥ÏûàÎäîÏßÄ Ï≤¥ÌÅ¨
+	while (itCON != pTCHAR->m_mapTCHARCON.end())
 	{
 		MAPTCHARCON::iterator itNEXT = itCON;
 		itNEXT++;
 
-		if(!(*itCON).second->m_bReady)
+		if (!(*itCON).second->m_bReady)
 		{
 			CTServer *pMAP = FindMapSvr((*itCON).first);
 
-			if(pMAP)
+			if (pMAP)
 			{
-				// ƒ≥∏Ø≈Õ∞° ∑ŒµÂµ«¡ˆ æ ¿∫ ø¨∞·∑Œ ƒ≥∏Ø≈Õ µ•¿Ã≈Õ ¿¸º€
+				// Ï∫êÎ¶≠ÌÑ∞Í∞Ä Î°úÎìúÎêòÏßÄ ÏïäÏùÄ Ïó∞Í≤∞Î°ú Ï∫êÎ¶≠ÌÑ∞ Îç∞Ïù¥ÌÑ∞ Ï†ÑÏÜ°
 				pMAP->SendMW_ENTERCHAR_REQ(
 					pTCHAR->m_dwCharID,
 					pTCHAR->m_dwKEY,
@@ -959,12 +954,12 @@ DWORD CTWorldSvrModule::OnMW_CHARDATA_ACK( LPPACKETBUF pBUF)
 					pTCHAR->m_bClass,
 					&pBUF->m_packet);
 
-				// ƒ≥∏Ø≈Õ∞° ∑ŒµÂµ«¡ˆ æ ¿∫ ø¨∞·¿Ã ¡∏¿Á«‘¿ª «•Ω√
-				bReady = FALSE;				
+				// Ï∫êÎ¶≠ÌÑ∞Í∞Ä Î°úÎìúÎêòÏßÄ ÏïäÏùÄ Ïó∞Í≤∞Ïù¥ Ï°¥Ïû¨Ìï®ÏùÑ ÌëúÏãú
+				bReady = FALSE;
 			}
 			else
 			{
-				// ∫Ò»∞º∫ ¡ﬂ¿Œ ∏  º≠πˆ∑Œ¿« ø¨∞·¿∫ ªË¡¶
+				// ÎπÑÌôúÏÑ± Ï§ëÏù∏ Îßµ ÏÑúÎ≤ÑÎ°úÏùò Ïó∞Í≤∞ÏùÄ ÏÇ≠Ï†ú
 				delete (*itCON).second;
 				pTCHAR->m_mapTCHARCON.erase(itCON);
 			}
@@ -973,16 +968,16 @@ DWORD CTWorldSvrModule::OnMW_CHARDATA_ACK( LPPACKETBUF pBUF)
 		itCON = itNEXT;
 	}
 
-	// ∏µÁ ø¨∞·¿« ƒ≥∏Ø≈Õ ∑ŒµÂªÛ≈¬∞° ∑ŒµÂµ ¿∏∑Œ ôV∆√µ«æÓ¿÷¿∏∏È ∏ﬁ¿Œº≠πˆ √º≈©
-	if(bReady)
+	// Î™®Îì† Ïó∞Í≤∞Ïùò Ï∫êÎ¶≠ÌÑ∞ Î°úÎìúÏÉÅÌÉúÍ∞Ä Î°úÎìúÎê®ÏúºÎ°ú ¬ôVÌåÖÎêòÏñ¥ÏûàÏúºÎ©¥ Î©îÏù∏ÏÑúÎ≤Ñ Ï≤¥ÌÅ¨
+	if (bReady)
 		CheckMainCON(pTCHAR);
 
 	return EC_NOERROR;
 }
 
-DWORD CTWorldSvrModule::OnMW_ENTERCHAR_ACK( LPPACKETBUF pBUF)
+DWORD CTWorldSvrModule::OnMW_ENTERCHAR_ACK(LPPACKETBUF pBUF)
 {
-	CTServer *pSERVER = (CTServer *) pBUF->m_pSESSION;
+	CTServer *pSERVER = (CTServer *)pBUF->m_pSESSION;
 
 	DWORD dwCharID;
 	DWORD dwKEY;
@@ -995,7 +990,7 @@ DWORD CTWorldSvrModule::OnMW_ENTERCHAR_ACK( LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pTCHAR)
+	if (!pTCHAR)
 	{
 		pSERVER->SendMW_DELCHAR_REQ(
 			dwCharID,
@@ -1006,16 +1001,16 @@ DWORD CTWorldSvrModule::OnMW_ENTERCHAR_ACK( LPPACKETBUF pBUF)
 		return EC_NOERROR;
 	}
 
-	MAPTCHARCON::iterator itCON = pTCHAR->m_mapTCHARCON.find( LOBYTE(pSERVER->m_wID));
+	MAPTCHARCON::iterator itCON = pTCHAR->m_mapTCHARCON.find(LOBYTE(pSERVER->m_wID));
 	LPTCHARCON pCON = NULL;
 
-	if( itCON != pTCHAR->m_mapTCHARCON.end() )
+	if (itCON != pTCHAR->m_mapTCHARCON.end())
 		pCON = (*itCON).second;
 
-	if(!pCON)
+	if (!pCON)
 	{
-		// ƒ≥∏Ø≈Õ ø¿∫Í¡ß∆Æø° «ÿ¥Á ø¨∞·¿Ã µÓ∑œµ«¡ˆ æ ¿∏π«∑Œ ∞¯Ωƒ πË∆˜µ» ≈¨∂Û¿Ãæ∆Æ∞° æ∆¥œ∞≈≥™ «ÿ≈∑¿∏∑Œ ¿«Ω…µ«¥¬ ø¨∞·
-		// ∏  º≠πˆ∏¶ ≈Î«ÿ ≈¨∂Û¿Ãæ∆Æø°∞‘ ø¿∑˘∏ﬁºº¡ˆ∏¶ ¿¸¥ﬁ«— »ƒ ≈¨∂Û¿Ãæ∆Æ¿« ø¨∞·¿ª ¡æ∑·
+		// Ï∫êÎ¶≠ÌÑ∞ Ïò§Î∏åÏ†ùÌä∏Ïóê Ìï¥Îãπ Ïó∞Í≤∞Ïù¥ Îì±Î°ùÎêòÏßÄ ÏïäÏúºÎØÄÎ°ú Í≥µÏãù Î∞∞Ìè¨Îêú ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏Í∞Ä ÏïÑÎãàÍ±∞ÎÇò Ìï¥ÌÇπÏúºÎ°ú ÏùòÏã¨ÎêòÎäî Ïó∞Í≤∞
+		// Îßµ ÏÑúÎ≤ÑÎ•º ÌÜµÌï¥ ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏ÏóêÍ≤å Ïò§Î•òÎ©îÏÑ∏ÏßÄÎ•º Ï†ÑÎã¨Ìïú ÌõÑ ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏Ïùò Ïó∞Í≤∞ÏùÑ Ï¢ÖÎ£å
 		pSERVER->SendMW_INVALIDCHAR_REQ(
 			dwCharID,
 			dwKEY);
@@ -1023,23 +1018,23 @@ DWORD CTWorldSvrModule::OnMW_ENTERCHAR_ACK( LPPACKETBUF pBUF)
 		return EC_NOERROR;
 	}
 
-	// ƒ≥∏Ø≈Õ µ•¿Ã≈Õ ∑ŒµÂªÛ≈¬∏¶ ∑ŒµÂµ ¿∏∑Œ ôV∆√
+	// Ï∫êÎ¶≠ÌÑ∞ Îç∞Ïù¥ÌÑ∞ Î°úÎìúÏÉÅÌÉúÎ•º Î°úÎìúÎê®ÏúºÎ°ú ¬ôVÌåÖ
 	pCON->m_bReady = TRUE;
 
-	// ∏µÁ ø¨∞·¿« ƒ≥∏Ø≈Õ µ•¿Ã≈Õ ∑ŒµÂªÛ≈¬∞° ∑ŒµÂµ ¿∏∑Œ ôV∆√µ…∂ß ±Ó¡ˆ ¥Î±‚
-	for( itCON = pTCHAR->m_mapTCHARCON.begin(); itCON != pTCHAR->m_mapTCHARCON.end(); itCON++)
-		if(!(*itCON).second->m_bReady)
+	// Î™®Îì† Ïó∞Í≤∞Ïùò Ï∫êÎ¶≠ÌÑ∞ Îç∞Ïù¥ÌÑ∞ Î°úÎìúÏÉÅÌÉúÍ∞Ä Î°úÎìúÎê®ÏúºÎ°ú ¬ôVÌåÖÎê†Îïå ÍπåÏßÄ ÎåÄÍ∏∞
+	for (itCON = pTCHAR->m_mapTCHARCON.begin(); itCON != pTCHAR->m_mapTCHARCON.end(); itCON++)
+		if (!(*itCON).second->m_bReady)
 			return EC_NOERROR;
 
-	// ∏µÁ ø¨∞·¿« ƒ≥∏Ø≈Õ ∑ŒµÂªÛ≈¬∞° ∑ŒµÂµ ¿∏∑Œ ôV∆√µ«æÓ¿÷¿∏∏È ∏ﬁ¿Œº≠πˆ √º≈©
+	// Î™®Îì† Ïó∞Í≤∞Ïùò Ï∫êÎ¶≠ÌÑ∞ Î°úÎìúÏÉÅÌÉúÍ∞Ä Î°úÎìúÎê®ÏúºÎ°ú ¬ôVÌåÖÎêòÏñ¥ÏûàÏúºÎ©¥ Î©îÏù∏ÏÑúÎ≤Ñ Ï≤¥ÌÅ¨
 	CheckMainCON(pTCHAR);
 
 	return EC_NOERROR;
 }
 
-DWORD CTWorldSvrModule::OnMW_CHECKMAIN_ACK( LPPACKETBUF pBUF)
+DWORD CTWorldSvrModule::OnMW_CHECKMAIN_ACK(LPPACKETBUF pBUF)
 {
-	CTServer *pSERVER = (CTServer *) pBUF->m_pSESSION;
+	CTServer *pSERVER = (CTServer *)pBUF->m_pSESSION;
 
 	DWORD dwCharID;
 	DWORD dwKEY;
@@ -1052,7 +1047,7 @@ DWORD CTWorldSvrModule::OnMW_CHECKMAIN_ACK( LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pTCHAR)
+	if (!pTCHAR)
 	{
 		pSERVER->SendMW_DELCHAR_REQ(
 			dwCharID,
@@ -1064,10 +1059,10 @@ DWORD CTWorldSvrModule::OnMW_CHECKMAIN_ACK( LPPACKETBUF pBUF)
 	}
 
 	CTServer *pMAIN = FindMapSvr(pTCHAR->m_bMainID);
-	if(!pMAIN)
+	if (!pMAIN)
 	{
-		// ∏ﬁ¿Œº≠πˆ∞° æ¯æÓ ∞¯Ωƒ πË∆˜µ» ≈¨∂Û¿Ãæ∆Æ∞° æ∆¥œ∞≈≥™ «ÿ≈∑¿∏∑Œ ¿«Ω…µ«¥¬ ø¨∞·
-		// ∏  º≠πˆ∏¶ ≈Î«ÿ ≈¨∂Û¿Ãæ∆Æø°∞‘ ø¿∑˘∏ﬁºº¡ˆ∏¶ ¿¸¥ﬁ«— »ƒ ≈¨∂Û¿Ãæ∆Æ¿« ø¨∞·¿ª ¡æ∑·
+		// Î©îÏù∏ÏÑúÎ≤ÑÍ∞Ä ÏóÜÏñ¥ Í≥µÏãù Î∞∞Ìè¨Îêú ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏Í∞Ä ÏïÑÎãàÍ±∞ÎÇò Ìï¥ÌÇπÏúºÎ°ú ÏùòÏã¨ÎêòÎäî Ïó∞Í≤∞
+		// Îßµ ÏÑúÎ≤ÑÎ•º ÌÜµÌï¥ ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏ÏóêÍ≤å Ïò§Î•òÎ©îÏÑ∏ÏßÄÎ•º Ï†ÑÎã¨Ìïú ÌõÑ ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏Ïùò Ïó∞Í≤∞ÏùÑ Ï¢ÖÎ£å
 		pSERVER->SendMW_INVALIDCHAR_REQ(
 			dwCharID,
 			dwKEY);
@@ -1075,37 +1070,37 @@ DWORD CTWorldSvrModule::OnMW_CHECKMAIN_ACK( LPPACKETBUF pBUF)
 		return EC_NOERROR;
 	}
 
-	if(!pTCHAR->m_bSave)
+	if (!pTCHAR->m_bSave)
 	{
-		// ∏ﬁ¿Œº≠πˆ ±≥√º¡ﬂ ¥ŸΩ√ ∏ﬁ¿Œº≠πˆ∏¶ ±≥√º∏¶ Ω√µµ ∂«¥¬ ∞¯Ωƒ πË∆˜µ» ≈¨∂Û¿Ãæ∆Æ∞° æ∆¥œ∞≈≥™ «ÿ≈∑¿∏∑Œ ¿«Ω…µ«¥¬ ø¨∞·
-		// ≈¨∂Û¿Ãæ∆Æ¿« ø¨∞·¿ª ¡æ∑·
+		// Î©îÏù∏ÏÑúÎ≤Ñ ÍµêÏ≤¥Ï§ë Îã§Ïãú Î©îÏù∏ÏÑúÎ≤ÑÎ•º ÍµêÏ≤¥Î•º ÏãúÎèÑ ÎòêÎäî Í≥µÏãù Î∞∞Ìè¨Îêú ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏Í∞Ä ÏïÑÎãàÍ±∞ÎÇò Ìï¥ÌÇπÏúºÎ°ú ÏùòÏã¨ÎêòÎäî Ïó∞Í≤∞
+		// ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏Ïùò Ïó∞Í≤∞ÏùÑ Ï¢ÖÎ£å
 		CloseChar(pTCHAR);
 	}
 
-	if( pMAIN == pSERVER )
+	if (pMAIN == pSERVER)
 	{
-		// ∏ﬁ¿Œº≠πˆ∏¶ ±≥√º«œ¡ˆ æ æ∆µµ µ«¥¬ ∞ÊøÏ
-		// ø¨∞·∞¸∏Æ «¡∑ŒººΩ∫¿« ∏∂π´∏Æ ¥‹∞Ë
+		// Î©îÏù∏ÏÑúÎ≤ÑÎ•º ÍµêÏ≤¥ÌïòÏßÄ ÏïäÏïÑÎèÑ ÎêòÎäî Í≤ΩÏö∞
+		// Ïó∞Í≤∞Í¥ÄÎ¶¨ ÌîÑÎ°úÏÑ∏Ïä§Ïùò ÎßàÎ¨¥Î¶¨ Îã®Í≥Ñ
 
-		// ¡æ∑·«ÿæﬂ«“ ø¨∞·µÈ¿ª ¡æ∑·
+		// Ï¢ÖÎ£åÌï¥ÏïºÌï† Ïó∞Í≤∞Îì§ÏùÑ Ï¢ÖÎ£å
 		ClearDeadCON(pTCHAR);
 
-		// ∏ ¿∏∑Œ¿« ¡¯¿‘¿ª «„∞°
+		// ÎßµÏúºÎ°úÏùò ÏßÑÏûÖÏùÑ ÌóàÍ∞Ä
 		pMAIN->SendMW_CONRESULT_REQ(
 			pTCHAR->m_dwCharID,
 			pTCHAR->m_dwKEY,
 			CN_SUCCESS,
 			pTCHAR->m_mapTCHARCON);
 
-		// «ˆ¿Á ¡¯«‡µ«∞Ì ¿÷¥¬ ø¨∞·∞¸∏Æ «¡∑ŒººΩ∫∏¶ ¡æ∑·«œ∞Ì ¥Ÿ¿Ω ø¨∞·∞¸∏Æ «¡∑ŒººΩ∫∏¶ »∞º∫»≠
+		// ÌòÑÏû¨ ÏßÑÌñâÎêòÍ≥† ÏûàÎäî Ïó∞Í≤∞Í¥ÄÎ¶¨ ÌîÑÎ°úÏÑ∏Ïä§Î•º Ï¢ÖÎ£åÌïòÍ≥† Îã§Ïùå Ïó∞Í≤∞Í¥ÄÎ¶¨ ÌîÑÎ°úÏÑ∏Ïä§Î•º ÌôúÏÑ±Ìôî
 		PopConCess(pTCHAR);
 	}
 	else
 	{
-		// ∏ﬁ¿Œº≠πˆ∏¶ ±≥√º«ÿæﬂ«œ¥¬ ∞ÊøÏ
+		// Î©îÏù∏ÏÑúÎ≤ÑÎ•º ÍµêÏ≤¥Ìï¥ÏïºÌïòÎäî Í≤ΩÏö∞
 
-		// «ˆ¿Á ∏ﬁ¿Œº≠πˆ∑Œ ∏ﬁ¿Œº≠πˆ «ÿ¡¶∏ﬁºº¡ˆ ¿¸¥ﬁ
-		// ∏  º≠πˆ¥¬ «ÿ¡¶∏ﬁºº¡ˆ∏¶ πﬁ¿∏∏È ƒ≥∏Ø≈Õ µ•¿Ã≈Õ ¿˙¿Â »ƒ «ÿ¡¶øœ∑· ∏ﬁºº¡ˆ(MW_RELEASEMAIN_ACK)∏¶ µπ∑¡¡‹
+		// ÌòÑÏû¨ Î©îÏù∏ÏÑúÎ≤ÑÎ°ú Î©îÏù∏ÏÑúÎ≤Ñ Ìï¥Ï†úÎ©îÏÑ∏ÏßÄ Ï†ÑÎã¨
+		// Îßµ ÏÑúÎ≤ÑÎäî Ìï¥Ï†úÎ©îÏÑ∏ÏßÄÎ•º Î∞õÏúºÎ©¥ Ï∫êÎ¶≠ÌÑ∞ Îç∞Ïù¥ÌÑ∞ Ï†ÄÏû• ÌõÑ Ìï¥Ï†úÏôÑÎ£å Î©îÏÑ∏ÏßÄ(MW_RELEASEMAIN_ACK)Î•º ÎèåÎ†§Ï§å
 		pMAIN->SendMW_RELEASEMAIN_REQ(
 			pTCHAR->m_dwCharID,
 			pTCHAR->m_dwKEY,
@@ -1115,7 +1110,7 @@ DWORD CTWorldSvrModule::OnMW_CHECKMAIN_ACK( LPPACKETBUF pBUF)
 			pTCHAR->m_fPosY,
 			pTCHAR->m_fPosZ);
 
-		// øπ∫Ò ∏ﬁ¿Œº≠πˆ µÓ∑œ
+		// ÏòàÎπÑ Î©îÏù∏ÏÑúÎ≤Ñ Îì±Î°ù
 		pTCHAR->m_bMainID = LOBYTE(pSERVER->m_wID);
 		pTCHAR->m_bSave = FALSE;
 	}
@@ -1123,9 +1118,9 @@ DWORD CTWorldSvrModule::OnMW_CHECKMAIN_ACK( LPPACKETBUF pBUF)
 	return EC_NOERROR;
 }
 
-DWORD CTWorldSvrModule::OnMW_ENTERSVR_ACK( LPPACKETBUF pBUF)
+DWORD CTWorldSvrModule::OnMW_ENTERSVR_ACK(LPPACKETBUF pBUF)
 {
-	CTServer *pSERVER = (CTServer *) pBUF->m_pSESSION;
+	CTServer *pSERVER = (CTServer *)pBUF->m_pSESSION;
 	CString strNAME;
 
 	DWORD dwCharID;
@@ -1184,15 +1179,15 @@ DWORD CTWorldSvrModule::OnMW_ENTERSVR_ACK( LPPACKETBUF pBUF)
 		>> wTitleID
 		>> dwUserIP;
 
-	// ¿Œ¡ı∞·∞˙ »Æ¿Œ Ω√¿€
+	// Ïù∏Ï¶ùÍ≤∞Í≥º ÌôïÏù∏ ÏãúÏûë
 	LPTCHARACTER pTCHAR = FindTChar(
 		dwCharID,
 		dwKEY);
 
-	if(!pTCHAR)
+	if (!pTCHAR)
 	{
-		// MW_ADDCHAR_ACK∏¶ ≈Î«— ø¨∞·¿Ã æ∆¥œ∞≈≥™ ¥Ÿ∏• ø‰¿Œø° ¿««ÿ ªË¡¶µ«æÓ ¿Ø»ø«œ¡ˆ æ ¿∫ ø¨∞·
-		// ∏  º≠πˆ∏¶ ≈Î«ÿ ≈¨∂Û¿Ãæ∆Æ¿« ø¨∞·¿ª ¡æ∑·
+		// MW_ADDCHAR_ACKÎ•º ÌÜµÌïú Ïó∞Í≤∞Ïù¥ ÏïÑÎãàÍ±∞ÎÇò Îã§Î•∏ ÏöîÏù∏Ïóê ÏùòÌï¥ ÏÇ≠Ï†úÎêòÏñ¥ Ïú†Ìö®ÌïòÏßÄ ÏïäÏùÄ Ïó∞Í≤∞
+		// Îßµ ÏÑúÎ≤ÑÎ•º ÌÜµÌï¥ ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏Ïùò Ïó∞Í≤∞ÏùÑ Ï¢ÖÎ£å
 		pSERVER->SendMW_DELCHAR_REQ(
 			dwCharID,
 			dwKEY,
@@ -1203,10 +1198,10 @@ DWORD CTWorldSvrModule::OnMW_ENTERSVR_ACK( LPPACKETBUF pBUF)
 	}
 
 	CTServer *pMAIN = FindMapSvr(pTCHAR->m_bMainID);
-	if( !pMAIN || pMAIN != pSERVER )
+	if (!pMAIN || pMAIN != pSERVER)
 	{
-		// ∏ﬁ¿Œº≠πˆ∞° æ¯∞≈≥™ ¥Ÿ∏£∞‘ º≥¡§µ«æÓ ∞¯Ωƒ πË∆˜µ» ≈¨∂Û¿Ãæ∆Æ∞° æ∆¥œ∞≈≥™ «ÿ≈∑¿∏∑Œ ¿«Ω…µ«¥¬ ø¨∞·
-		// ∏  º≠πˆ∏¶ ≈Î«ÿ ≈¨∂Û¿Ãæ∆Æø°∞‘ ø¿∑˘∏ﬁºº¡ˆ∏¶ ¿¸¥ﬁ«— »ƒ ≈¨∂Û¿Ãæ∆Æ¿« ø¨∞·¿ª ¡æ∑·
+		// Î©îÏù∏ÏÑúÎ≤ÑÍ∞Ä ÏóÜÍ±∞ÎÇò Îã§Î•¥Í≤å ÏÑ§Ï†ïÎêòÏñ¥ Í≥µÏãù Î∞∞Ìè¨Îêú ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏Í∞Ä ÏïÑÎãàÍ±∞ÎÇò Ìï¥ÌÇπÏúºÎ°ú ÏùòÏã¨ÎêòÎäî Ïó∞Í≤∞
+		// Îßµ ÏÑúÎ≤ÑÎ•º ÌÜµÌï¥ ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏ÏóêÍ≤å Ïò§Î•òÎ©îÏÑ∏ÏßÄÎ•º Ï†ÑÎã¨Ìïú ÌõÑ ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏Ïùò Ïó∞Í≤∞ÏùÑ Ï¢ÖÎ£å
 		pSERVER->SendMW_INVALIDCHAR_REQ(
 			dwCharID,
 			dwKEY);
@@ -1214,16 +1209,16 @@ DWORD CTWorldSvrModule::OnMW_ENTERSVR_ACK( LPPACKETBUF pBUF)
 		return EC_NOERROR;
 	}
 
-	MAPTCHARCON::iterator itCON = pTCHAR->m_mapTCHARCON.find( LOBYTE(pSERVER->m_wID));
+	MAPTCHARCON::iterator itCON = pTCHAR->m_mapTCHARCON.find(LOBYTE(pSERVER->m_wID));
 	LPTCHARCON pCON = NULL;
 
-	if( itCON != pTCHAR->m_mapTCHARCON.end() )
+	if (itCON != pTCHAR->m_mapTCHARCON.end())
 		pCON = (*itCON).second;
 
-	if(!pCON)
+	if (!pCON)
 	{
-		// ƒ≥∏Ø≈Õ ø¿∫Í¡ß∆Æø° ∏ﬁ¿Œ ƒø≥ÿº«¿Ã µÓ∑œµ«¡ˆ æ ¿∫ ∞¯Ωƒ πË∆˜µ» ≈¨∂Û¿Ãæ∆Æ∞° æ∆¥œ∞≈≥™ «ÿ≈∑¿∏∑Œ ¿«Ω…µ«¥¬ ø¨∞·
-		// ∏  º≠πˆ∏¶ ≈Î«ÿ ≈¨∂Û¿Ãæ∆Æø°∞‘ ø¿∑˘∏ﬁºº¡ˆ∏¶ ¿¸¥ﬁ«— »ƒ ≈¨∂Û¿Ãæ∆Æ¿« ø¨∞·¿ª ¡æ∑·
+		// Ï∫êÎ¶≠ÌÑ∞ Ïò§Î∏åÏ†ùÌä∏Ïóê Î©îÏù∏ Ïª§ÎÑ•ÏÖòÏù¥ Îì±Î°ùÎêòÏßÄ ÏïäÏùÄ Í≥µÏãù Î∞∞Ìè¨Îêú ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏Í∞Ä ÏïÑÎãàÍ±∞ÎÇò Ìï¥ÌÇπÏúºÎ°ú ÏùòÏã¨ÎêòÎäî Ïó∞Í≤∞
+		// Îßµ ÏÑúÎ≤ÑÎ•º ÌÜµÌï¥ ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏ÏóêÍ≤å Ïò§Î•òÎ©îÏÑ∏ÏßÄÎ•º Ï†ÑÎã¨Ìïú ÌõÑ ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏Ïùò Ïó∞Í≤∞ÏùÑ Ï¢ÖÎ£å
 		pSERVER->SendMW_INVALIDCHAR_REQ(
 			dwCharID,
 			dwKEY);
@@ -1231,11 +1226,11 @@ DWORD CTWorldSvrModule::OnMW_ENTERSVR_ACK( LPPACKETBUF pBUF)
 		return EC_NOERROR;
 	}
 
-	if(m_pRelay)
-		m_pRelay->SendRW_CHANGEMAP_ACK(dwCharID, wMapID, MAKEWORD( BYTE(INT(fPosX) / UNIT_SIZE), BYTE(INT(fPosZ) / UNIT_SIZE)));
+	if (m_pRelay)
+		m_pRelay->SendRW_CHANGEMAP_ACK(dwCharID, wMapID, MAKEWORD(BYTE(INT(fPosX) / UNIT_SIZE), BYTE(INT(fPosZ) / UNIT_SIZE)));
 
-	// ∏ﬁ¿Œº≠πˆ∑Œ ∑Œµ˘µ» µ•¿Ã≈Õ ôV∆√
-	// ∏  ¿Ãµø¿Ã≥™ ∏ﬁ¿Œº≠πˆ ∫Ø∞Ê µÓ¿« ±‚¡ÿ µ•¿Ã≈Õ∑Œ ªÁøÎµ 
+	// Î©îÏù∏ÏÑúÎ≤ÑÎ°ú Î°úÎî©Îêú Îç∞Ïù¥ÌÑ∞ ¬ôVÌåÖ
+	// Îßµ Ïù¥ÎèôÏù¥ÎÇò Î©îÏù∏ÏÑúÎ≤Ñ Î≥ÄÍ≤Ω Îì±Ïùò Í∏∞Ï§Ä Îç∞Ïù¥ÌÑ∞Î°ú ÏÇ¨Ïö©Îê®
 	pTCHAR->m_bCountry = bCountry;
 	pTCHAR->m_dwRegion = dwRegion;
 	pTCHAR->m_bLogout = bLogout;
@@ -1258,9 +1253,9 @@ DWORD CTWorldSvrModule::OnMW_ENTERSVR_ACK( LPPACKETBUF pBUF)
 
 	SetCharLevel(pTCHAR, bLevel);
 
-	if(bResult)
+	if (bResult)
 	{
-		// Enter server error, ¡ﬂ∫π ¡¢º” µÓ¿∏∑Œ ∏ º≠πˆ∏¶ ≈Î«ÿ ≈¨∂Û¿Ãæ∆Æø° ø¿∑˘∏ﬁºº¡ˆ∏¶ ¿¸¥ﬁ«— »ƒ ≈¨∂Û¿Ãæ∆Æ¿« ø¨∞·¿ª ¡æ∑·
+		// Enter server error, Ï§ëÎ≥µ Ï†ëÏÜç Îì±ÏúºÎ°ú ÎßµÏÑúÎ≤ÑÎ•º ÌÜµÌï¥ ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏Ïóê Ïò§Î•òÎ©îÏÑ∏ÏßÄÎ•º Ï†ÑÎã¨Ìïú ÌõÑ ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏Ïùò Ïó∞Í≤∞ÏùÑ Ï¢ÖÎ£å
 		pMAIN->SendMW_CONRESULT_REQ(
 			pTCHAR->m_dwCharID,
 			pTCHAR->m_dwKEY,
@@ -1269,16 +1264,16 @@ DWORD CTWorldSvrModule::OnMW_ENTERSVR_ACK( LPPACKETBUF pBUF)
 
 		return EC_NOERROR;
 	}
-	// ¿Œ¡ı∞·∞˙ ¿Ø»ø«— ø¨∞·∑Œ »Æ¿Œµ 
+	// Ïù∏Ï¶ùÍ≤∞Í≥º Ïú†Ìö®Ìïú Ïó∞Í≤∞Î°ú ÌôïÏù∏Îê®
 
-	if(pTCHAR->m_bCHGMainID)
+	if (pTCHAR->m_bCHGMainID)
 	{
-		// ƒ≥∏Ø≈Õ ø¿∫Í¡ß∆Æ∞° ∏ﬁ¿Œº≠πˆ ±≥√º ¡ﬂ ªÛ≈¬∑Œ ôV∆√µ» ∞ÊøÏ
+		// Ï∫êÎ¶≠ÌÑ∞ Ïò§Î∏åÏ†ùÌä∏Í∞Ä Î©îÏù∏ÏÑúÎ≤Ñ ÍµêÏ≤¥ Ï§ë ÏÉÅÌÉúÎ°ú ¬ôVÌåÖÎêú Í≤ΩÏö∞
 
-		// ƒ≥∏Ø≈Õ ø¿∫Í¡ß∆Æ∏¶ ∏ﬁ¿Œº≠πˆ ±≥√ºøœ∑· ªÛ≈¬∑Œ ôV∆√
+		// Ï∫êÎ¶≠ÌÑ∞ Ïò§Î∏åÏ†ùÌä∏Î•º Î©îÏù∏ÏÑúÎ≤Ñ ÍµêÏ≤¥ÏôÑÎ£å ÏÉÅÌÉúÎ°ú ¬ôVÌåÖ
 		pTCHAR->m_bCHGMainID = FALSE;
 
-		// √ﬂ∞°∑Œ « ø‰«— ø¨∞·∏Ò∑œ¿ª ∏ﬁ¿Œº≠πˆø° ø‰√ª
+		// Ï∂îÍ∞ÄÎ°ú ÌïÑÏöîÌïú Ïó∞Í≤∞Î™©Î°ùÏùÑ Î©îÏù∏ÏÑúÎ≤ÑÏóê ÏöîÏ≤≠
 		pMAIN->SendMW_MAPSVRLIST_REQ(
 			pTCHAR->m_dwCharID,
 			pTCHAR->m_dwKEY,
@@ -1290,10 +1285,10 @@ DWORD CTWorldSvrModule::OnMW_ENTERSVR_ACK( LPPACKETBUF pBUF)
 	}
 	else
 	{
-		// √≥¿Ω¿∏∑Œ ∏ ø° ∑Œ±◊¿Œ «ﬂ¿ª ∂ß
+		// Ï≤òÏùåÏúºÎ°ú ÎßµÏóê Î°úÍ∑∏Ïù∏ ÌñàÏùÑ Îïå
 		CString strFindName = strNAME;
 		strFindName.MakeUpper();
-		m_mapTCHARNAME.insert( MAPTCHARACTERNAME::value_type( strFindName, pTCHAR));
+		m_mapTCHARNAME.insert(MAPTCHARACTERNAME::value_type(strFindName, pTCHAR));
 		pTCHAR->m_strNAME = strNAME;
 
 		CTGuild *pGuild = NULL;
@@ -1304,21 +1299,21 @@ DWORD CTWorldSvrModule::OnMW_ENTERSVR_ACK( LPPACKETBUF pBUF)
 		BYTE bCamp = 0;
 		DWORD dwGuildID = 0;
 		DWORD dwTacticsID = 0;
-	
+
 		MAPDWORD::iterator itGM = m_mapCharGuild.find(dwCharID);
-		if(itGM != m_mapCharGuild.end())
+		if (itGM != m_mapCharGuild.end())
 			dwGuildID = (*itGM).second;
 
-		if(dwGuildID)
+		if (dwGuildID)
 		{
 			pGuild = FindTGuild(dwGuildID);
-			if(pGuild)
+			if (pGuild)
 			{
 				LPTGUILDMEMBER pMem = pGuild->FindMember(dwCharID);
-				if(pMem)
+				if (pMem)
 				{
 					pTCHAR->m_pGuild = pGuild;
-					pGuild->SetMemberConnection( dwCharID, pTCHAR, m_timeCurrent);
+					pGuild->SetMemberConnection(dwCharID, pTCHAR, m_timeCurrent);
 					bDuty = pMem->m_bDuty;
 					bPeer = pMem->m_bPeer;
 					wCastle = pMem->m_wCastle;
@@ -1328,21 +1323,21 @@ DWORD CTWorldSvrModule::OnMW_ENTERSVR_ACK( LPPACKETBUF pBUF)
 		}
 
 		MAPDWORD::iterator itTM = m_mapCharTactics.find(dwCharID);
-		if(itTM != m_mapCharTactics.end())
+		if (itTM != m_mapCharTactics.end())
 			dwTacticsID = (*itTM).second;
 
-		if(dwTacticsID)
+		if (dwTacticsID)
 		{
 			pGuild = FindTGuild(dwTacticsID);
-			if(pGuild)
+			if (pGuild)
 			{
 				LPTTACTICSMEMBER pTac = pGuild->FindTactics(dwCharID);
-				if(pTac)
+				if (pTac)
 				{
 					pTCHAR->m_pTactics = pGuild;
-					pGuild->SetTacticsConnection( dwCharID, pTCHAR);
+					pGuild->SetTacticsConnection(dwCharID, pTCHAR);
 
-					if(!wCastle)
+					if (!wCastle)
 					{
 						wCastle = pTac->m_wCastle;
 						bCamp = pTac->m_bCamp;
@@ -1351,8 +1346,8 @@ DWORD CTWorldSvrModule::OnMW_ENTERSVR_ACK( LPPACKETBUF pBUF)
 			}
 		}
 
-		// ∏ﬁ¿Œ º≠πˆ∏¶ ≈Î«ÿ CS_CHARINFO_ACKµÓ ƒ≥∏Ø≈Õ ¡§∫∏∏¶ ≈¨∂Û¿Ãæ∆Æ∑Œ ¿¸º€
-		// ≈¨∂Û¿Ãæ∆Æ¥¬ ¿Ã Ω√¡°ø° ∏  ∑Œµ˘¿Ã Ω√¿€µ 
+		// Î©îÏù∏ ÏÑúÎ≤ÑÎ•º ÌÜµÌï¥ CS_CHARINFO_ACKÎì± Ï∫êÎ¶≠ÌÑ∞ Ï†ïÎ≥¥Î•º ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏Î°ú Ï†ÑÏÜ°
+		// ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏Îäî Ïù¥ ÏãúÏ†êÏóê Îßµ Î°úÎî©Ïù¥ ÏãúÏûëÎê®
 		pMAIN->SendMW_CHARINFO_REQ(
 			pTCHAR->m_dwCharID,
 			pTCHAR->m_dwKEY,
@@ -1365,7 +1360,7 @@ DWORD CTWorldSvrModule::OnMW_ENTERSVR_ACK( LPPACKETBUF pBUF)
 			bCamp,
 			pTCHAR->m_wTitleID);
 
-		// ∏ﬁ¿Œ º≠πˆ∏¶ ≈Î«ÿ ¥ı « ø‰«— ƒø≥ÿº«¿Ã ¿÷¥¬¡ˆ √º≈©
+		// Î©îÏù∏ ÏÑúÎ≤ÑÎ•º ÌÜµÌï¥ Îçî ÌïÑÏöîÌïú Ïª§ÎÑ•ÏÖòÏù¥ ÏûàÎäîÏßÄ Ï≤¥ÌÅ¨
 		pMAIN->SendMW_ROUTE_REQ(
 			pTCHAR->m_dwCharID,
 			pTCHAR->m_dwKEY,
@@ -1375,12 +1370,12 @@ DWORD CTWorldSvrModule::OnMW_ENTERSVR_ACK( LPPACKETBUF pBUF)
 			pTCHAR->m_fPosY,
 			pTCHAR->m_fPosZ);
 
-		// DBThread∑Œ º“øÔ∏ﬁ¿Ã∆Æ∏¶ ø‰√ª
+		// DBThreadÎ°ú ÏÜåÏö∏Î©îÏù¥Ìä∏Î•º ÏöîÏ≤≠
 		SendDM_SOULMATELIST_REQ(
 			pTCHAR->m_dwCharID,
 			pTCHAR->m_dwKEY);
 
-		// DBThread∑Œ ƒ£±∏∏Ò∑œ¿ª ø‰√ª
+		// DBThreadÎ°ú ÏπúÍµ¨Î™©Î°ùÏùÑ ÏöîÏ≤≠
 		SendDM_FRIENDLIST_REQ(
 			pTCHAR->m_dwCharID,
 			pTCHAR->m_dwKEY);
@@ -1388,7 +1383,7 @@ DWORD CTWorldSvrModule::OnMW_ENTERSVR_ACK( LPPACKETBUF pBUF)
 		CheckChatBan(pTCHAR, FALSE);
 
 #ifdef __TW_APEX
-		if(m_bNation == NATION_TAIWAN)
+		if (m_bNation == NATION_TAIWAN)
 			ApexNotifyUserEnter(dwCharID, strNAME, dwUserIP);
 #endif
 
@@ -1397,9 +1392,9 @@ DWORD CTWorldSvrModule::OnMW_ENTERSVR_ACK( LPPACKETBUF pBUF)
 	return EC_NOERROR;
 }
 
-DWORD CTWorldSvrModule::OnMW_TELEPORT_ACK( LPPACKETBUF pBUF)
+DWORD CTWorldSvrModule::OnMW_TELEPORT_ACK(LPPACKETBUF pBUF)
 {
-	CTServer *pSERVER = (CTServer *) pBUF->m_pSESSION;
+	CTServer *pSERVER = (CTServer *)pBUF->m_pSESSION;
 
 	DWORD dwCharID;
 	DWORD dwKEY;
@@ -1411,8 +1406,8 @@ DWORD CTWorldSvrModule::OnMW_TELEPORT_ACK( LPPACKETBUF pBUF)
 		>> dwKEY
 		>> bServerID;
 
-	LPTCHARACTER pTCHAR = FindTChar( dwCharID, dwKEY);
-	if(!pTCHAR)
+	LPTCHARACTER pTCHAR = FindTChar(dwCharID, dwKEY);
+	if (!pTCHAR)
 	{
 		pSERVER->SendMW_DELCHAR_REQ(
 			dwCharID,
@@ -1424,10 +1419,10 @@ DWORD CTWorldSvrModule::OnMW_TELEPORT_ACK( LPPACKETBUF pBUF)
 	}
 
 	CTServer *pTMAP = FindMapSvr(bServerID);
-	if(!pTMAP)
+	if (!pTMAP)
 	{
-		// ¿Ø»ø«œ¡ˆ æ ¿∫ º≠πˆ∑Œ ≈⁄∑π∆˜∆Æ Ω√µµ
-		// ≈¨∂Û¿Ãæ∆Æø° ø¿∑˘∏ﬁºº¡ˆ∏¶ ¿¸º€«— »ƒ ≈¨∂Û¿Ãæ∆Æ¿« ø¨∞·¿ª ¡æ∑·
+		// Ïú†Ìö®ÌïòÏßÄ ÏïäÏùÄ ÏÑúÎ≤ÑÎ°ú ÌÖîÎ†àÌè¨Ìä∏ ÏãúÎèÑ
+		// ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏Ïóê Ïò§Î•òÎ©îÏÑ∏ÏßÄÎ•º Ï†ÑÏÜ°Ìïú ÌõÑ ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏Ïùò Ïó∞Í≤∞ÏùÑ Ï¢ÖÎ£å
 		pSERVER->SendMW_TELEPORT_REQ(
 			dwCharID,
 			dwKEY,
@@ -1444,8 +1439,8 @@ DWORD CTWorldSvrModule::OnMW_TELEPORT_ACK( LPPACKETBUF pBUF)
 
 	pTCHAR->m_bPartyWaiter = FALSE;
 
-	// ≈¨∂Û¿Ãæ∆Æø°∞‘ ≈⁄∑π∆˜∆Æ Ω¬¿Œ∏ﬁºº¡ˆ∏¶ ¿¸º€«—¥Ÿ
-	// ¿Ã ∂ß ≈¨∂Û¿Ãæ∆Æø°º≠ Ω«¡˙¿˚¿Œ ≈⁄∑π∆˜∆Æ Ω««‡
+	// ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏ÏóêÍ≤å ÌÖîÎ†àÌè¨Ìä∏ ÏäπÏù∏Î©îÏÑ∏ÏßÄÎ•º Ï†ÑÏÜ°ÌïúÎã§
+	// Ïù¥ Îïå ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏ÏóêÏÑú Ïã§ÏßàÏ†ÅÏù∏ ÌÖîÎ†àÌè¨Ìä∏ Ïã§Ìñâ
 	pSERVER->SendMW_TELEPORT_REQ(
 		dwCharID,
 		dwKEY,
@@ -1456,7 +1451,7 @@ DWORD CTWorldSvrModule::OnMW_TELEPORT_ACK( LPPACKETBUF pBUF)
 		pTCHAR->m_fPosZ,
 		TPR_SUCCESS);
 
-	// ≈⁄∑π∆˜∆Æø°¥Î«— ∏Ò¿˚¡ˆ º≠πˆø° « ø‰«— ø¨∞·∏Ò∑œ¿ª ø‰√ª
+	// ÌÖîÎ†àÌè¨Ìä∏ÏóêÎåÄÌïú Î™©Ï†ÅÏßÄ ÏÑúÎ≤ÑÏóê ÌïÑÏöîÌïú Ïó∞Í≤∞Î™©Î°ùÏùÑ ÏöîÏ≤≠
 	pTMAP->SendMW_CONLIST_REQ(
 		dwCharID,
 		dwKEY,
@@ -1484,15 +1479,15 @@ DWORD CTWorldSvrModule::OnDM_FRIENDLIST_REQ(LPPACKETBUF pBUF)
 		<< dwKEY;
 
 	WORD wSize = pMSG->m_packet.GetSize();
-	BYTE bCount=0;
+	BYTE bCount = 0;
 	pMSG->m_packet
 		<< bCount;
 
 	DEFINE_QUERY(&m_db, CTBLFriendGroupTable)
-	query->m_dwCharID = dwCharID;
-	if(query->Open())
+		query->m_dwCharID = dwCharID;
+	if (query->Open())
 	{
-		while(query->Fetch())
+		while (query->Fetch())
 		{
 			pMSG->m_packet
 				<< query->m_bGroup
@@ -1503,16 +1498,16 @@ DWORD CTWorldSvrModule::OnDM_FRIENDLIST_REQ(LPPACKETBUF pBUF)
 		query->Close();
 	}
 	UNDEFINE_QUERY()
-	memcpy(pMSG->m_packet.GetBuffer()+wSize,&bCount,sizeof(bCount));
+		memcpy(pMSG->m_packet.GetBuffer() + wSize, &bCount, sizeof(bCount));
 
 	MAPTFRIENDTEMP mapFriend;
 	mapFriend.clear();
 
 	DEFINE_QUERY(&m_db, CTBLFriend)
-	query->m_dwCharID = dwCharID;
-	if(query->Open())
+		query->m_dwCharID = dwCharID;
+	if (query->Open())
 	{
-		while(query->Fetch())
+		while (query->Fetch())
 		{
 			TFRIEND f;
 			f.m_dwID = query->m_dwFriendID;
@@ -1531,8 +1526,8 @@ DWORD CTWorldSvrModule::OnDM_FRIENDLIST_REQ(LPPACKETBUF pBUF)
 		<< (BYTE)mapFriend.size();
 
 	DEFINE_QUERY(&m_db, CSPProtectedSearch)
-	MAPTFRIENDTEMP::iterator it;
-	for(it=mapFriend.begin(); it!=mapFriend.end(); it++)
+		MAPTFRIENDTEMP::iterator it;
+	for (it = mapFriend.begin(); it != mapFriend.end(); it++)
 	{
 		query->m_dwCharID = (*it).second.m_dwID;
 		query->m_dwProtected = dwCharID;
@@ -1551,10 +1546,10 @@ DWORD CTWorldSvrModule::OnDM_FRIENDLIST_REQ(LPPACKETBUF pBUF)
 	mapFriend.clear();
 
 	DEFINE_QUERY(&m_db, CTBLFriendTarget)
-	query->m_dwCharID = dwCharID;
-	if(query->Open())
+		query->m_dwCharID = dwCharID;
+	if (query->Open())
 	{
-		while(query->Fetch())
+		while (query->Fetch())
 		{
 			TFRIEND f;
 			f.m_dwID = query->m_dwFriendID;
@@ -1566,8 +1561,8 @@ DWORD CTWorldSvrModule::OnDM_FRIENDLIST_REQ(LPPACKETBUF pBUF)
 	UNDEFINE_QUERY();
 
 	DEFINE_QUERY(&m_db, CSPProtectedSearch)
-	MAPTFRIENDTEMP::iterator it;
-	for(it=mapFriend.begin(); it!=mapFriend.end(); it++)
+		MAPTFRIENDTEMP::iterator it;
+	for (it = mapFriend.begin(); it != mapFriend.end(); it++)
 	{
 		query->m_dwCharID = dwCharID;
 		query->m_dwProtected = (*it).second.m_dwID;
@@ -1597,7 +1592,7 @@ DWORD CTWorldSvrModule::OnDM_FRIENDLIST_ACK(LPPACKETBUF pBUF)
 		>> dwKEY;
 
 	LPTCHARACTER pPlayer = FindTChar(dwCharID, dwKEY);
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	pPlayer->m_bDBLoading = TRUE;
@@ -1610,7 +1605,7 @@ DWORD CTWorldSvrModule::OnDM_FRIENDLIST_ACK(LPPACKETBUF pBUF)
 	CString strName;
 
 	pPlayer->m_mapFRIENDGROUP.clear();
-	for(BYTE i=0; i<bCount; i++)
+	for (BYTE i = 0; i<bCount; i++)
 	{
 		pBUF->m_packet
 			>> bGroup
@@ -1626,7 +1621,7 @@ DWORD CTWorldSvrModule::OnDM_FRIENDLIST_ACK(LPPACKETBUF pBUF)
 
 	LPTCHARACTER pFriendChar = NULL;
 
-	for(BYTE i=0; i<bCount; i++)
+	for (BYTE i = 0; i<bCount; i++)
 	{
 		LPTFRIEND pFriend = new TFRIEND();
 		pBUF->m_packet
@@ -1639,16 +1634,16 @@ DWORD CTWorldSvrModule::OnDM_FRIENDLIST_ACK(LPPACKETBUF pBUF)
 
 		pFriend->m_bType = FT_FRIEND;
 		pFriendChar = FindTChar(pFriend->m_strName);
-		if(pFriendChar && pFriendChar->m_bDBLoading)
+		if (pFriendChar && pFriendChar->m_bDBLoading)
 		{
-			if(bRet)
+			if (bRet)
 				pFriend->m_bConnected = FALSE;
 			else
 			{
 				pFriend->m_bConnected = TRUE;
 				pFriend->m_dwRegion = pFriendChar->m_dwRegion;
 				MAPTFRIEND::iterator it = pFriendChar->m_mapTFRIEND.find(dwCharID);
-				if(it!=pFriendChar->m_mapTFRIEND.end())
+				if (it != pFriendChar->m_mapTFRIEND.end())
 				{
 					(*it).second->m_bConnected = TRUE;
 					(*it).second->m_dwRegion = pPlayer->m_dwRegion;
@@ -1661,7 +1656,7 @@ DWORD CTWorldSvrModule::OnDM_FRIENDLIST_ACK(LPPACKETBUF pBUF)
 		pPlayer->m_mapTFRIEND.insert(MAPTFRIEND::value_type(pFriend->m_dwID, pFriend));
 	}
 
-	while(!pBUF->m_packet.IsEOF())
+	while (!pBUF->m_packet.IsEOF())
 	{
 		DWORD dwFriend;
 		CString strName;
@@ -1673,7 +1668,7 @@ DWORD CTWorldSvrModule::OnDM_FRIENDLIST_ACK(LPPACKETBUF pBUF)
 		LPTCHARACTER pChar = NULL;
 
 		MAPTFRIEND::iterator itF = pPlayer->m_mapTFRIEND.find(dwFriend);
-		if(itF!=pPlayer->m_mapTFRIEND.end())
+		if (itF != pPlayer->m_mapTFRIEND.end())
 		{
 			(*itF).second->m_bType = FT_FRIENDFRIEND;
 			pChar = FindTChar((*itF).second->m_strName);
@@ -1685,7 +1680,7 @@ DWORD CTWorldSvrModule::OnDM_FRIENDLIST_ACK(LPPACKETBUF pBUF)
 			pFriend->m_strName = strName;
 			pFriend->m_bType = FT_TARGET;
 			pFriendChar = FindTChar(strName);
-			if(pFriendChar && pFriendChar->m_bDBLoading)
+			if (pFriendChar && pFriendChar->m_bDBLoading)
 			{
 				pFriend->m_bConnected = TRUE;
 				pChar = pFriendChar;
@@ -1695,12 +1690,12 @@ DWORD CTWorldSvrModule::OnDM_FRIENDLIST_ACK(LPPACKETBUF pBUF)
 
 			pPlayer->m_mapTFRIEND.insert(MAPTFRIEND::value_type(pFriend->m_dwID, pFriend));
 
-			if(pChar)
+			if (pChar)
 			{
 				MAPTFRIEND::iterator it = pChar->m_mapTFRIEND.find(dwCharID);
-				if(it!=pChar->m_mapTFRIEND.end())
+				if (it != pChar->m_mapTFRIEND.end())
 				{
-					if(bRet)
+					if (bRet)
 					{
 						(*it).second->m_bConnected = FALSE;
 						pFriend->m_bConnected = FALSE;
@@ -1715,11 +1710,11 @@ DWORD CTWorldSvrModule::OnDM_FRIENDLIST_ACK(LPPACKETBUF pBUF)
 			}
 		}
 
-		if(pChar)
+		if (pChar)
 		{
 			CTServer *pCon = FindMapSvr(pChar->m_bMainID);
 
-			if(pCon)
+			if (pCon)
 			{
 				pCon->SendMW_FRIENDCONNECTION_REQ(
 					dwFriend,
@@ -1736,7 +1731,7 @@ DWORD CTWorldSvrModule::OnDM_FRIENDLIST_ACK(LPPACKETBUF pBUF)
 
 DWORD CTWorldSvrModule::OnMW_FRIENDLIST_ACK(LPPACKETBUF pBUF)
 {
-	CTServer *pSERVER = (CTServer *) pBUF->m_pSESSION;
+	CTServer *pSERVER = (CTServer *)pBUF->m_pSESSION;
 
 	DWORD dwCharID;
 	DWORD dwKEY;
@@ -1749,7 +1744,7 @@ DWORD CTWorldSvrModule::OnMW_FRIENDLIST_ACK(LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pTCHAR)
+	if (!pTCHAR)
 		return EC_NOERROR;
 
 	pSERVER->SendMW_FRIENDLIST_REQ(pTCHAR);
@@ -1757,9 +1752,9 @@ DWORD CTWorldSvrModule::OnMW_FRIENDLIST_ACK(LPPACKETBUF pBUF)
 	return EC_NOERROR;
 }
 
-DWORD CTWorldSvrModule::OnMW_ROUTE_ACK( LPPACKETBUF pBUF)
+DWORD CTWorldSvrModule::OnMW_ROUTE_ACK(LPPACKETBUF pBUF)
 {
-	CTServer *pSERVER = (CTServer *) pBUF->m_pSESSION;
+	CTServer *pSERVER = (CTServer *)pBUF->m_pSESSION;
 
 	DWORD dwCharID;
 	DWORD dwKEY;
@@ -1775,10 +1770,10 @@ DWORD CTWorldSvrModule::OnMW_ROUTE_ACK( LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pTCHAR)
+	if (!pTCHAR)
 	{
-		// MW_ADDCHAR_ACK∏¶ ≈Î«— ø¨∞·¿Ã æ∆¥œ∞≈≥™ ¥Ÿ∏• ø‰¿Œø° ¿««ÿ ªË¡¶µ«æÓ ¿Ø»ø«œ¡ˆ æ ¿∫ ø¨∞·
-		// ∏  º≠πˆ∏¶ ≈Î«ÿ ≈¨∂Û¿Ãæ∆Æ¿« ø¨∞·¿ª ¡æ∑·
+		// MW_ADDCHAR_ACKÎ•º ÌÜµÌïú Ïó∞Í≤∞Ïù¥ ÏïÑÎãàÍ±∞ÎÇò Îã§Î•∏ ÏöîÏù∏Ïóê ÏùòÌï¥ ÏÇ≠Ï†úÎêòÏñ¥ Ïú†Ìö®ÌïòÏßÄ ÏïäÏùÄ Ïó∞Í≤∞
+		// Îßµ ÏÑúÎ≤ÑÎ•º ÌÜµÌï¥ ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏Ïùò Ïó∞Í≤∞ÏùÑ Ï¢ÖÎ£å
 		pSERVER->SendMW_DELCHAR_REQ(
 			dwCharID,
 			dwKEY,
@@ -1788,9 +1783,9 @@ DWORD CTWorldSvrModule::OnMW_ROUTE_ACK( LPPACKETBUF pBUF)
 		return EC_NOERROR;
 	}
 
-	if(!bCount)
+	if (!bCount)
 	{
-		// √ﬂ∞° ƒø≥ÿº«¿Ã « ø‰ æ¯¥¬ ∞ÊøÏ MW_CHARDATA_ACK∏¶ ≈Î«ÿ ∏ﬁ¿Œº≠πˆ∏¶ √º≈©«‘
+		// Ï∂îÍ∞Ä Ïª§ÎÑ•ÏÖòÏù¥ ÌïÑÏöî ÏóÜÎäî Í≤ΩÏö∞ MW_CHARDATA_ACKÎ•º ÌÜµÌï¥ Î©îÏù∏ÏÑúÎ≤ÑÎ•º Ï≤¥ÌÅ¨Ìï®
 		pSERVER->SendMW_CHARDATA_REQ(
 			pTCHAR->m_dwCharID,
 			pTCHAR->m_dwKEY);
@@ -1799,20 +1794,20 @@ DWORD CTWorldSvrModule::OnMW_ROUTE_ACK( LPPACKETBUF pBUF)
 	}
 	CPacket *pMSG = new CPacket();
 
-	// √ﬂ∞° ƒø≥ÿº«¿ª ø‰√ª«— ∏  º≠πˆ∏¶ ≈Î«ÿ ≈¨∂Û¿Ãæ∆Æ∑Œ « ø‰«— √ﬂ∞° ƒø≥ÿº« ¡§∫∏∏¶ ¿¸º€
+	// Ï∂îÍ∞Ä Ïª§ÎÑ•ÏÖòÏùÑ ÏöîÏ≤≠Ìïú Îßµ ÏÑúÎ≤ÑÎ•º ÌÜµÌï¥ ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏Î°ú ÌïÑÏöîÌïú Ï∂îÍ∞Ä Ïª§ÎÑ•ÏÖò Ï†ïÎ≥¥Î•º Ï†ÑÏÜ°
 	pMSG->SetID(MW_ADDCONNECT_REQ)
 		<< pTCHAR->m_dwCharID
 		<< pTCHAR->m_dwKEY
 		<< bCount;
 
-	for( BYTE i=0; i<bCount; i++)
+	for (BYTE i = 0; i<bCount; i++)
 	{
-		// « ø‰«— √ﬂ∞° ƒø≥ÿº«¿ª ø¨∞·ªÛ≈¬(m_bValid)∏¶ ø¨∞·µ«¡ˆ æ ¿Ω
-		// µ•¿Ã≈Õ ∑ŒµÂ ªÛ≈¬(m_bReady)∏¶ ∑ŒµÂµ«¡ˆ æ ¿Ω¿∏∑Œ
-		// ôV∆√«œø© ƒ≥∏Ø≈Õ ø¿∫Í¡ß∆Æø° µÓ∑œ«œø© ¿Ã »ƒ MW_ADDCHAR_ACKø°º≠
-		// ¿Ø»øº∫ ∞ÀªÁ »ƒ ø¨∞·ªÛ≈¬∏¶ ø¨∞·µ ¿∏∑Œ ôV∆√«œ∞Ì MW_CHARDATA_ACKø°º≠
-		// µ•¿Ã≈Õ ∑ŒµÂ ªÛ≈¬∏¶ ∑ŒµÂµ ¿∏∑Œ ôV∆√«œø© ∏µÁ ƒø≥ÿº«ø° ¥Î«ÿ ¡ÿ∫Ò∞° øœ∑·µ«∏È
-		// ∏ﬁ¿Œº≠πˆ∏¶ √º≈©«œµµ∑œ «—¥Ÿ.
+		// ÌïÑÏöîÌïú Ï∂îÍ∞Ä Ïª§ÎÑ•ÏÖòÏùÑ Ïó∞Í≤∞ÏÉÅÌÉú(m_bValid)Î•º Ïó∞Í≤∞ÎêòÏßÄ ÏïäÏùå
+		// Îç∞Ïù¥ÌÑ∞ Î°úÎìú ÏÉÅÌÉú(m_bReady)Î•º Î°úÎìúÎêòÏßÄ ÏïäÏùåÏúºÎ°ú
+		// ¬ôVÌåÖÌïòÏó¨ Ï∫êÎ¶≠ÌÑ∞ Ïò§Î∏åÏ†ùÌä∏Ïóê Îì±Î°ùÌïòÏó¨ Ïù¥ ÌõÑ MW_ADDCHAR_ACKÏóêÏÑú
+		// Ïú†Ìö®ÏÑ± Í≤ÄÏÇ¨ ÌõÑ Ïó∞Í≤∞ÏÉÅÌÉúÎ•º Ïó∞Í≤∞Îê®ÏúºÎ°ú ¬ôVÌåÖÌïòÍ≥† MW_CHARDATA_ACKÏóêÏÑú
+		// Îç∞Ïù¥ÌÑ∞ Î°úÎìú ÏÉÅÌÉúÎ•º Î°úÎìúÎê®ÏúºÎ°ú ¬ôVÌåÖÌïòÏó¨ Î™®Îì† Ïª§ÎÑ•ÏÖòÏóê ÎåÄÌï¥ Ï§ÄÎπÑÍ∞Ä ÏôÑÎ£åÎêòÎ©¥
+		// Î©îÏù∏ÏÑúÎ≤ÑÎ•º Ï≤¥ÌÅ¨ÌïòÎèÑÎ°ù ÌïúÎã§.
 		LPTCHARCON pCON = new TCHARCON();
 		BYTE bServerID;
 
@@ -1830,23 +1825,23 @@ DWORD CTWorldSvrModule::OnMW_ROUTE_ACK( LPPACKETBUF pBUF)
 			<< bServerID;
 
 		MAPTCHARCON::iterator itCON = pTCHAR->m_mapTCHARCON.find(bServerID);
-		if( itCON != pTCHAR->m_mapTCHARCON.end() )
+		if (itCON != pTCHAR->m_mapTCHARCON.end())
 		{
 			pCON->m_bValid = (*itCON).second->m_bValid;
 			delete (*itCON).second;
 			pTCHAR->m_mapTCHARCON.erase(itCON);
 		}
 
-		pTCHAR->m_mapTCHARCON.insert( MAPTCHARCON::value_type( bServerID, pCON));
+		pTCHAR->m_mapTCHARCON.insert(MAPTCHARCON::value_type(bServerID, pCON));
 	}
 	pSERVER->Say(pMSG);
 
 	return EC_NOERROR;
 }
 
-DWORD CTWorldSvrModule::OnMW_CLOSECHAR_ACK( LPPACKETBUF pBUF)
+DWORD CTWorldSvrModule::OnMW_CLOSECHAR_ACK(LPPACKETBUF pBUF)
 {
-	CTServer *pSERVER = (CTServer *) pBUF->m_pSESSION;
+	CTServer *pSERVER = (CTServer *)pBUF->m_pSESSION;
 
 	DWORD dwCharID;
 	DWORD dwKEY;
@@ -1859,7 +1854,7 @@ DWORD CTWorldSvrModule::OnMW_CLOSECHAR_ACK( LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pTCHAR)
+	if (!pTCHAR)
 	{
 		pSERVER->SendMW_DELCHAR_REQ(
 			dwCharID,
@@ -1874,9 +1869,9 @@ DWORD CTWorldSvrModule::OnMW_CLOSECHAR_ACK( LPPACKETBUF pBUF)
 	return EC_NOERROR;
 }
 
-DWORD CTWorldSvrModule::OnMW_CONLIST_ACK( LPPACKETBUF pBUF)
+DWORD CTWorldSvrModule::OnMW_CONLIST_ACK(LPPACKETBUF pBUF)
 {
-	CTServer *pSERVER = (CTServer *) pBUF->m_pSESSION;
+	CTServer *pSERVER = (CTServer *)pBUF->m_pSESSION;
 
 	DWORD dwCharID;
 	DWORD dwKEY;
@@ -1892,7 +1887,7 @@ DWORD CTWorldSvrModule::OnMW_CONLIST_ACK( LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pTCHAR)
+	if (!pTCHAR)
 	{
 		pSERVER->SendMW_DELCHAR_REQ(
 			dwCharID,
@@ -1904,10 +1899,10 @@ DWORD CTWorldSvrModule::OnMW_CONLIST_ACK( LPPACKETBUF pBUF)
 	}
 
 	CTServer *pMAIN = FindMapSvr(pTCHAR->m_bMainID);
-	if(!pMAIN)
+	if (!pMAIN)
 	{
-		// ∏ﬁ¿Œº≠πˆ∞° æ¯∞≈≥™ ¥Ÿ∏£∞‘ º≥¡§µ«æÓ ∞¯Ωƒ πË∆˜µ» ≈¨∂Û¿Ãæ∆Æ∞° æ∆¥œ∞≈≥™ «ÿ≈∑¿∏∑Œ ¿«Ω…µ«¥¬ ø¨∞·
-		// ∏  º≠πˆ∏¶ ≈Î«ÿ ≈¨∂Û¿Ãæ∆Æø°∞‘ ø¿∑˘∏ﬁºº¡ˆ∏¶ ¿¸¥ﬁ«— »ƒ ≈¨∂Û¿Ãæ∆Æ¿« ø¨∞·¿ª ¡æ∑·
+		// Î©îÏù∏ÏÑúÎ≤ÑÍ∞Ä ÏóÜÍ±∞ÎÇò Îã§Î•¥Í≤å ÏÑ§Ï†ïÎêòÏñ¥ Í≥µÏãù Î∞∞Ìè¨Îêú ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏Í∞Ä ÏïÑÎãàÍ±∞ÎÇò Ìï¥ÌÇπÏúºÎ°ú ÏùòÏã¨ÎêòÎäî Ïó∞Í≤∞
+		// Îßµ ÏÑúÎ≤ÑÎ•º ÌÜµÌï¥ ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏ÏóêÍ≤å Ïò§Î•òÎ©îÏÑ∏ÏßÄÎ•º Ï†ÑÎã¨Ìïú ÌõÑ ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏Ïùò Ïó∞Í≤∞ÏùÑ Ï¢ÖÎ£å
 		pSERVER->SendMW_INVALIDCHAR_REQ(
 			dwCharID,
 			dwKEY);
@@ -1918,26 +1913,26 @@ DWORD CTWorldSvrModule::OnMW_CONLIST_ACK( LPPACKETBUF pBUF)
 	MAPBYTE mapCON;
 	mapCON.clear();
 
-	// « ø‰«— ø¨∞·∏Ò∑œ ±∏º∫
-	for( BYTE i=0; i<bCount; i++)
+	// ÌïÑÏöîÌïú Ïó∞Í≤∞Î™©Î°ù Íµ¨ÏÑ±
+	for (BYTE i = 0; i<bCount; i++)
 	{
 		BYTE bServerID;
 
 		pBUF->m_packet
 			>> bServerID;
 
-		mapCON.insert( MAPBYTE::value_type( bServerID, bServerID));
+		mapCON.insert(MAPBYTE::value_type(bServerID, bServerID));
 	}
-	mapCON.insert( MAPBYTE::value_type( LOBYTE(pSERVER->m_wID), LOBYTE(pSERVER->m_wID)));
+	mapCON.insert(MAPBYTE::value_type(LOBYTE(pSERVER->m_wID), LOBYTE(pSERVER->m_wID)));
 
-	// « ø‰æ¯¥¬ ø¨∞·µÈ¿ª ¡æ∑·¥Î±‚ πˆ∆€∑Œ ¿Ãµø
+	// ÌïÑÏöîÏóÜÎäî Ïó∞Í≤∞Îì§ÏùÑ Ï¢ÖÎ£åÎåÄÍ∏∞ Î≤ÑÌçºÎ°ú Ïù¥Îèô
 	MAPTCHARCON::iterator itCON = pTCHAR->m_mapTCHARCON.begin();
-	while(itCON != pTCHAR->m_mapTCHARCON.end())
+	while (itCON != pTCHAR->m_mapTCHARCON.end())
 	{
 		MAPTCHARCON::iterator itNEXT = itCON;
 		itNEXT++;
 
-		if( mapCON.find((*itCON).first) == mapCON.end() )
+		if (mapCON.find((*itCON).first) == mapCON.end())
 		{
 			pTCHAR->m_vTDEADCON.push_back((*itCON).first);
 
@@ -1948,23 +1943,23 @@ DWORD CTWorldSvrModule::OnMW_CONLIST_ACK( LPPACKETBUF pBUF)
 		itCON = itNEXT;
 	}
 
-	// ªı∑”∞‘ ø¨∞·µ«æÓæﬂ «œ¥¬ ø¨∞·∏Ò∑œ ±∏º∫
+	// ÏÉàÎ°≠Í≤å Ïó∞Í≤∞ÎêòÏñ¥Ïïº ÌïòÎäî Ïó∞Í≤∞Î™©Î°ù Íµ¨ÏÑ±
 	MAPBYTE::iterator itID = mapCON.begin();
-	while(itID != mapCON.end())
+	while (itID != mapCON.end())
 	{
 		MAPBYTE::iterator itNEXT = itID;
 		itNEXT++;
 
-		if( pTCHAR->m_mapTCHARCON.find((*itID).first) != pTCHAR->m_mapTCHARCON.end() )
+		if (pTCHAR->m_mapTCHARCON.find((*itID).first) != pTCHAR->m_mapTCHARCON.end())
 			mapCON.erase(itID);
 
 		itID = itNEXT;
 	}
 
-	if(!mapCON.empty())
+	if (!mapCON.empty())
 	{
-		// ªı∑”∞‘ ø¨∞·µ«æÓæﬂ «œ¥¬ ø¨∞·¿Ã ¿÷¿∏∏È ∏ﬁ¿Œº≠πˆ∑Œ «ÿ¥Á ø¨∞·¿« ¡¢º”¡§∫∏(IP, ∆˜∆Æ µÓ)∏¶ ø‰√ª
-		// ¿Ã ∂ß ∏  º≠πˆ¥¬ MW_ROUTE_ACK∏¶ ¿ÃøÎ«œø© ¡¢º”¡§∫∏∏¶ π›»Ø«œø© √ﬂ∞° ø¨∞·∞¸∏Æ «¡∑ŒººΩ∫ Ω««‡
+		// ÏÉàÎ°≠Í≤å Ïó∞Í≤∞ÎêòÏñ¥Ïïº ÌïòÎäî Ïó∞Í≤∞Ïù¥ ÏûàÏúºÎ©¥ Î©îÏù∏ÏÑúÎ≤ÑÎ°ú Ìï¥Îãπ Ïó∞Í≤∞Ïùò Ï†ëÏÜçÏ†ïÎ≥¥(IP, Ìè¨Ìä∏ Îì±)Î•º ÏöîÏ≤≠
+		// Ïù¥ Îïå Îßµ ÏÑúÎ≤ÑÎäî MW_ROUTE_ACKÎ•º Ïù¥Ïö©ÌïòÏó¨ Ï†ëÏÜçÏ†ïÎ≥¥Î•º Î∞òÌôòÌïòÏó¨ Ï∂îÍ∞Ä Ïó∞Í≤∞Í¥ÄÎ¶¨ ÌîÑÎ°úÏÑ∏Ïä§ Ïã§Ìñâ
 		CPacket *pMSG = new CPacket();
 
 		pMSG->SetID(MW_ROUTELIST_REQ)
@@ -1972,14 +1967,14 @@ DWORD CTWorldSvrModule::OnMW_CONLIST_ACK( LPPACKETBUF pBUF)
 			<< pTCHAR->m_dwKEY
 			<< BYTE(mapCON.size());
 
-		for( itID = mapCON.begin(); itID != mapCON.end(); itID++)
+		for (itID = mapCON.begin(); itID != mapCON.end(); itID++)
 			(*pMSG) << (*itID).first;
 
 		pMAIN->Say(pMSG);
 	}
 	else
 	{
-		// ªı∑”∞‘ ø¨∞·µ«æÓæﬂ «œ¥¬ ø¨∞·¿Ã æ¯¿∏∏È ¡ÔΩ√ ∏ﬁ¿Œº≠πˆ √º≈©
+		// ÏÉàÎ°≠Í≤å Ïó∞Í≤∞ÎêòÏñ¥Ïïº ÌïòÎäî Ïó∞Í≤∞Ïù¥ ÏóÜÏúºÎ©¥ Ï¶âÏãú Î©îÏù∏ÏÑúÎ≤Ñ Ï≤¥ÌÅ¨
 		CheckMainCON(pTCHAR);
 	}
 	mapCON.clear();
@@ -1987,9 +1982,9 @@ DWORD CTWorldSvrModule::OnMW_CONLIST_ACK( LPPACKETBUF pBUF)
 	return EC_NOERROR;
 }
 
-DWORD CTWorldSvrModule::OnMW_MAPSVRLIST_ACK( LPPACKETBUF pBUF)
+DWORD CTWorldSvrModule::OnMW_MAPSVRLIST_ACK(LPPACKETBUF pBUF)
 {
-	CTServer *pSERVER = (CTServer *) pBUF->m_pSESSION;
+	CTServer *pSERVER = (CTServer *)pBUF->m_pSESSION;
 
 	DWORD dwCharID;
 	DWORD dwKEY;
@@ -2005,7 +2000,7 @@ DWORD CTWorldSvrModule::OnMW_MAPSVRLIST_ACK( LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pTCHAR)
+	if (!pTCHAR)
 	{
 		pSERVER->SendMW_DELCHAR_REQ(
 			dwCharID,
@@ -2017,10 +2012,10 @@ DWORD CTWorldSvrModule::OnMW_MAPSVRLIST_ACK( LPPACKETBUF pBUF)
 	}
 
 	CTServer *pMAIN = FindMapSvr(pTCHAR->m_bMainID);
-	if(!pMAIN)
+	if (!pMAIN)
 	{
-		// ∏ﬁ¿Œº≠πˆ∞° æ¯∞≈≥™ ¥Ÿ∏£∞‘ º≥¡§µ«æÓ ∞¯Ωƒ πË∆˜µ» ≈¨∂Û¿Ãæ∆Æ∞° æ∆¥œ∞≈≥™ «ÿ≈∑¿∏∑Œ ¿«Ω…µ«¥¬ ø¨∞·
-		// ∏  º≠πˆ∏¶ ≈Î«ÿ ≈¨∂Û¿Ãæ∆Æø°∞‘ ø¿∑˘∏ﬁºº¡ˆ∏¶ ¿¸¥ﬁ«— »ƒ ≈¨∂Û¿Ãæ∆Æ¿« ø¨∞·¿ª ¡æ∑·
+		// Î©îÏù∏ÏÑúÎ≤ÑÍ∞Ä ÏóÜÍ±∞ÎÇò Îã§Î•¥Í≤å ÏÑ§Ï†ïÎêòÏñ¥ Í≥µÏãù Î∞∞Ìè¨Îêú ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏Í∞Ä ÏïÑÎãàÍ±∞ÎÇò Ìï¥ÌÇπÏúºÎ°ú ÏùòÏã¨ÎêòÎäî Ïó∞Í≤∞
+		// Îßµ ÏÑúÎ≤ÑÎ•º ÌÜµÌï¥ ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏ÏóêÍ≤å Ïò§Î•òÎ©îÏÑ∏ÏßÄÎ•º Ï†ÑÎã¨Ìïú ÌõÑ ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏Ïùò Ïó∞Í≤∞ÏùÑ Ï¢ÖÎ£å
 		pSERVER->SendMW_INVALIDCHAR_REQ(
 			dwCharID,
 			dwKEY);
@@ -2031,26 +2026,26 @@ DWORD CTWorldSvrModule::OnMW_MAPSVRLIST_ACK( LPPACKETBUF pBUF)
 	MAPBYTE mapCON;
 	mapCON.clear();
 
-	// « ø‰«— ø¨∞·∏Ò∑œ ±∏º∫
-	for( BYTE i=0; i<bCount; i++)
+	// ÌïÑÏöîÌïú Ïó∞Í≤∞Î™©Î°ù Íµ¨ÏÑ±
+	for (BYTE i = 0; i<bCount; i++)
 	{
 		BYTE bServerID;
 
 		pBUF->m_packet
 			>> bServerID;
 
-		mapCON.insert( MAPBYTE::value_type( bServerID, bServerID));
+		mapCON.insert(MAPBYTE::value_type(bServerID, bServerID));
 	}
-	mapCON.insert( MAPBYTE::value_type( LOBYTE(pSERVER->m_wID), LOBYTE(pSERVER->m_wID)));
+	mapCON.insert(MAPBYTE::value_type(LOBYTE(pSERVER->m_wID), LOBYTE(pSERVER->m_wID)));
 
-	// « ø‰æ¯¥¬ ø¨∞·µÈ¿ª ¡æ∑·¥Î±‚ πˆ∆€∑Œ ¿Ãµø
+	// ÌïÑÏöîÏóÜÎäî Ïó∞Í≤∞Îì§ÏùÑ Ï¢ÖÎ£åÎåÄÍ∏∞ Î≤ÑÌçºÎ°ú Ïù¥Îèô
 	MAPTCHARCON::iterator itCON = pTCHAR->m_mapTCHARCON.begin();
-	while(itCON != pTCHAR->m_mapTCHARCON.end())
+	while (itCON != pTCHAR->m_mapTCHARCON.end())
 	{
 		MAPTCHARCON::iterator itNEXT = itCON;
 		itNEXT++;
 
-		if( mapCON.find((*itCON).first) == mapCON.end() )
+		if (mapCON.find((*itCON).first) == mapCON.end())
 		{
 			pTCHAR->m_vTDEADCON.push_back((*itCON).first);
 
@@ -2061,23 +2056,23 @@ DWORD CTWorldSvrModule::OnMW_MAPSVRLIST_ACK( LPPACKETBUF pBUF)
 		itCON = itNEXT;
 	}
 
-	// ªı∑”∞‘ ø¨∞·µ«æÓæﬂ «œ¥¬ ø¨∞·∏Ò∑œ ±∏º∫
+	// ÏÉàÎ°≠Í≤å Ïó∞Í≤∞ÎêòÏñ¥Ïïº ÌïòÎäî Ïó∞Í≤∞Î™©Î°ù Íµ¨ÏÑ±
 	MAPBYTE::iterator itID = mapCON.begin();
-	while(itID != mapCON.end())
+	while (itID != mapCON.end())
 	{
 		MAPBYTE::iterator itNEXT = itID;
 		itNEXT++;
 
-		if( pTCHAR->m_mapTCHARCON.find((*itID).first) != pTCHAR->m_mapTCHARCON.end() )
+		if (pTCHAR->m_mapTCHARCON.find((*itID).first) != pTCHAR->m_mapTCHARCON.end())
 			mapCON.erase(itID);
 
 		itID = itNEXT;
 	}
 
-	if(!mapCON.empty())
+	if (!mapCON.empty())
 	{
-		// ªı∑”∞‘ ø¨∞·µ«æÓæﬂ «œ¥¬ ø¨∞·¿Ã ¿÷¿∏∏È ∏ﬁ¿Œº≠πˆ∑Œ «ÿ¥Á ø¨∞·¿« ¡¢º”¡§∫∏(IP, ∆˜∆Æ µÓ)∏¶ ø‰√ª
-		// ¿Ã ∂ß ∏  º≠πˆ¥¬ MW_ROUTE_ACK∏¶ ¿ÃøÎ«œø© ¡¢º”¡§∫∏∏¶ π›»Ø«œø© √ﬂ∞° ø¨∞·∞¸∏Æ «¡∑ŒººΩ∫ Ω««‡
+		// ÏÉàÎ°≠Í≤å Ïó∞Í≤∞ÎêòÏñ¥Ïïº ÌïòÎäî Ïó∞Í≤∞Ïù¥ ÏûàÏúºÎ©¥ Î©îÏù∏ÏÑúÎ≤ÑÎ°ú Ìï¥Îãπ Ïó∞Í≤∞Ïùò Ï†ëÏÜçÏ†ïÎ≥¥(IP, Ìè¨Ìä∏ Îì±)Î•º ÏöîÏ≤≠
+		// Ïù¥ Îïå Îßµ ÏÑúÎ≤ÑÎäî MW_ROUTE_ACKÎ•º Ïù¥Ïö©ÌïòÏó¨ Ï†ëÏÜçÏ†ïÎ≥¥Î•º Î∞òÌôòÌïòÏó¨ Ï∂îÍ∞Ä Ïó∞Í≤∞Í¥ÄÎ¶¨ ÌîÑÎ°úÏÑ∏Ïä§ Ïã§Ìñâ
 		CPacket *pMSG = new CPacket();
 
 		pMSG->SetID(MW_ROUTELIST_REQ)
@@ -2085,14 +2080,14 @@ DWORD CTWorldSvrModule::OnMW_MAPSVRLIST_ACK( LPPACKETBUF pBUF)
 			<< pTCHAR->m_dwKEY
 			<< BYTE(mapCON.size());
 
-		for( itID = mapCON.begin(); itID != mapCON.end(); itID++)
+		for (itID = mapCON.begin(); itID != mapCON.end(); itID++)
 			(*pMSG) << (*itID).first;
 
 		pMAIN->Say(pMSG);
 	}
 	else
 	{
-		// ªı∑”∞‘ ø¨∞·µ«æÓæﬂ «œ¥¬ ø¨∞·¿Ã æ¯¿∏∏È ¡ÔΩ√ ∏ﬁ¿Œº≠πˆ √º≈©
+		// ÏÉàÎ°≠Í≤å Ïó∞Í≤∞ÎêòÏñ¥Ïïº ÌïòÎäî Ïó∞Í≤∞Ïù¥ ÏóÜÏúºÎ©¥ Ï¶âÏãú Î©îÏù∏ÏÑúÎ≤Ñ Ï≤¥ÌÅ¨
 		CheckMainCON(pTCHAR);
 	}
 	mapCON.clear();
@@ -2100,9 +2095,9 @@ DWORD CTWorldSvrModule::OnMW_MAPSVRLIST_ACK( LPPACKETBUF pBUF)
 	return EC_NOERROR;
 }
 
-DWORD CTWorldSvrModule::OnMW_CHECKCONNECT_ACK( LPPACKETBUF pBUF)
+DWORD CTWorldSvrModule::OnMW_CHECKCONNECT_ACK(LPPACKETBUF pBUF)
 {
-	CTServer *pSERVER = (CTServer *) pBUF->m_pSESSION;
+	CTServer *pSERVER = (CTServer *)pBUF->m_pSESSION;
 
 	DWORD dwCharID;
 	DWORD dwKEY;
@@ -2115,7 +2110,7 @@ DWORD CTWorldSvrModule::OnMW_CHECKCONNECT_ACK( LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pTCHAR)
+	if (!pTCHAR)
 	{
 		pSERVER->SendMW_DELCHAR_REQ(
 			dwCharID,
@@ -2126,21 +2121,21 @@ DWORD CTWorldSvrModule::OnMW_CHECKCONNECT_ACK( LPPACKETBUF pBUF)
 		return EC_NOERROR;
 	}
 
-	// ø¨∞·∞¸∏Æ «¡∑ŒººΩ∫ ≈•ø° µÓ∑œ «— »ƒ ¿ÃπÃ Ω««‡ ¡ﬂ¿Ã∞≈≥™ Ω««‡¥Î±‚ ¡ﬂ¿Œ ø¨∞·∞¸∏Æ «¡∑ŒººΩ∫∞° ¿÷¿∏∏È
-	// ∏’¿˙ µÓ∑œµ» ø¨∞·∞¸∏Æ «¡∑ŒººΩ∫∞° ≥°≥Ø∂ß±Ó¡ˆ ¥Î±‚
-	if(PushConCess( pTCHAR, pBUF))
+	// Ïó∞Í≤∞Í¥ÄÎ¶¨ ÌîÑÎ°úÏÑ∏Ïä§ ÌÅêÏóê Îì±Î°ù Ìïú ÌõÑ Ïù¥ÎØ∏ Ïã§Ìñâ Ï§ëÏù¥Í±∞ÎÇò Ïã§ÌñâÎåÄÍ∏∞ Ï§ëÏù∏ Ïó∞Í≤∞Í¥ÄÎ¶¨ ÌîÑÎ°úÏÑ∏Ïä§Í∞Ä ÏûàÏúºÎ©¥
+	// Î®ºÏ†Ä Îì±Î°ùÎêú Ïó∞Í≤∞Í¥ÄÎ¶¨ ÌîÑÎ°úÏÑ∏Ïä§Í∞Ä ÎÅùÎÇ†ÎïåÍπåÏßÄ ÎåÄÍ∏∞
+	if (PushConCess(pTCHAR, pBUF))
 		return EC_NOERROR;
 
-	// ¿ÃπÃ Ω««‡ ¡ﬂ¿Ã∞≈≥™ Ω««‡¥Î±‚ ¡ﬂ¿Œ ø¨∞·∞¸∏Æ «¡∑ŒººΩ∫∞° æ¯¿∏∏È ø¨∞·»Æ¿Œ Ω√¿€
+	// Ïù¥ÎØ∏ Ïã§Ìñâ Ï§ëÏù¥Í±∞ÎÇò Ïã§ÌñâÎåÄÍ∏∞ Ï§ëÏù∏ Ïó∞Í≤∞Í¥ÄÎ¶¨ ÌîÑÎ°úÏÑ∏Ïä§Í∞Ä ÏóÜÏúºÎ©¥ Ïó∞Í≤∞ÌôïÏù∏ ÏãúÏûë
 	pBUF->m_packet.Rewind(FALSE);
-	OnCheckConnect( pTCHAR, pBUF);
+	OnCheckConnect(pTCHAR, pBUF);
 
 	return EC_NOERROR;
 }
 
-DWORD CTWorldSvrModule::OnMW_RELEASEMAIN_ACK( LPPACKETBUF pBUF)
+DWORD CTWorldSvrModule::OnMW_RELEASEMAIN_ACK(LPPACKETBUF pBUF)
 {
-	CTServer *pSERVER = (CTServer *) pBUF->m_pSESSION;
+	CTServer *pSERVER = (CTServer *)pBUF->m_pSESSION;
 
 	BYTE bDBLoad;
 	DWORD dwCharID;
@@ -2155,7 +2150,7 @@ DWORD CTWorldSvrModule::OnMW_RELEASEMAIN_ACK( LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pTCHAR)
+	if (!pTCHAR)
 	{
 		pSERVER->SendMW_DELCHAR_REQ(
 			dwCharID,
@@ -2167,10 +2162,10 @@ DWORD CTWorldSvrModule::OnMW_RELEASEMAIN_ACK( LPPACKETBUF pBUF)
 	}
 
 	CTServer *pMAIN = FindMapSvr(pTCHAR->m_bMainID);
-	if(!pMAIN)
+	if (!pMAIN)
 	{
-		// ¿”Ω√ ∏ﬁ¿Œº≠πˆ∞° æ¯∞≈≥™ ¥Ÿ∏£∞‘ º≥¡§µ«æÓ ∞¯Ωƒ πË∆˜µ» ≈¨∂Û¿Ãæ∆Æ∞° æ∆¥œ∞≈≥™ «ÿ≈∑¿∏∑Œ ¿«Ω…µ«¥¬ ø¨∞·
-		// ∏  º≠πˆ∏¶ ≈Î«ÿ ≈¨∂Û¿Ãæ∆Æø°∞‘ ø¿∑˘∏ﬁºº¡ˆ∏¶ ¿¸¥ﬁ«— »ƒ ≈¨∂Û¿Ãæ∆Æ¿« ø¨∞·¿ª ¡æ∑·
+		// ÏûÑÏãú Î©îÏù∏ÏÑúÎ≤ÑÍ∞Ä ÏóÜÍ±∞ÎÇò Îã§Î•¥Í≤å ÏÑ§Ï†ïÎêòÏñ¥ Í≥µÏãù Î∞∞Ìè¨Îêú ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏Í∞Ä ÏïÑÎãàÍ±∞ÎÇò Ìï¥ÌÇπÏúºÎ°ú ÏùòÏã¨ÎêòÎäî Ïó∞Í≤∞
+		// Îßµ ÏÑúÎ≤ÑÎ•º ÌÜµÌï¥ ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏ÏóêÍ≤å Ïò§Î•òÎ©îÏÑ∏ÏßÄÎ•º Ï†ÑÎã¨Ìïú ÌõÑ ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏Ïùò Ïó∞Í≤∞ÏùÑ Ï¢ÖÎ£å
 		pSERVER->SendMW_INVALIDCHAR_REQ(
 			dwCharID,
 			dwKEY,
@@ -2179,8 +2174,8 @@ DWORD CTWorldSvrModule::OnMW_RELEASEMAIN_ACK( LPPACKETBUF pBUF)
 		return EC_NOERROR;
 	}
 
-	// ¿”Ω√ ∏ﬁ¿Œº≠πˆ∑Œ ¿‘¿ÂΩ¬¿Œ ∏ﬁºº¡ˆ∏¶ ¿¸¥ﬁ«œ∞Ì ƒ≥∏Ø≈Õ ø¿∫Í¡ß∆Æ∏¶ ∏ﬁ¿Œº≠πˆ ±≥√º ¡ﬂ ªÛ≈¬∑Œ ôV∆√
-	// ¿Ã Ω√¡°ø° ∞Ë¡§¿Œ¡ı ¿˝¬˜∏¶ ∞≈ƒ£ »ƒ ƒ≥∏Ø≈Õ µ•¿Ã≈Õ∞° ¿”Ω√ ∏ﬁ¿Œº≠πˆø° ∑ŒµÂ µ»¥Ÿ
+	// ÏûÑÏãú Î©îÏù∏ÏÑúÎ≤ÑÎ°ú ÏûÖÏû•ÏäπÏù∏ Î©îÏÑ∏ÏßÄÎ•º Ï†ÑÎã¨ÌïòÍ≥† Ï∫êÎ¶≠ÌÑ∞ Ïò§Î∏åÏ†ùÌä∏Î•º Î©îÏù∏ÏÑúÎ≤Ñ ÍµêÏ≤¥ Ï§ë ÏÉÅÌÉúÎ°ú ¬ôVÌåÖ
+	// Ïù¥ ÏãúÏ†êÏóê Í≥ÑÏ†ïÏù∏Ï¶ù Ï†àÏ∞®Î•º Í±∞Ïπú ÌõÑ Ï∫êÎ¶≠ÌÑ∞ Îç∞Ïù¥ÌÑ∞Í∞Ä ÏûÑÏãú Î©îÏù∏ÏÑúÎ≤ÑÏóê Î°úÎìú ÎêúÎã§
 	pMAIN->SendMW_ENTERSVR_REQ(pBUF);
 
 	pTCHAR->m_bCHGMainID = LOBYTE(pSERVER->m_wID);
@@ -2202,27 +2197,27 @@ DWORD CTWorldSvrModule::OnMW_CHGPARTYCHIEF_ACK(LPPACKETBUF pBUF)
 	LPTCHARACTER pChief = FindTChar(
 		dwChiefID,
 		dwKEY);
-    if(!pChief)
+	if (!pChief)
 		return EC_NOERROR;
 
 	MAPTCHARACTER::iterator itTarget = m_mapTCHAR.find(dwTargetID);
-	if(itTarget == m_mapTCHAR.end())
+	if (itTarget == m_mapTCHAR.end())
 	{
 		CTServer * pCon = FindMapSvr(pChief->m_bMainID);
-		if(pCon)
+		if (pCon)
 			pCon->SendMW_CHGPARTYCHIEF_REQ(
 				pChief->m_dwCharID,
 				pChief->m_dwKEY,
 				PARTY_NOUSER);
-		
+
 		return EC_NOERROR;
 	}
 
 	LPTCHARACTER pTarget = (*itTarget).second;
-	if(!pChief->m_pParty || !pTarget->m_pParty)
+	if (!pChief->m_pParty || !pTarget->m_pParty)
 	{
 		CTServer * pCon = FindMapSvr(pChief->m_bMainID);
-		if(pCon)
+		if (pCon)
 			pCon->SendMW_CHGPARTYCHIEF_REQ(
 				pChief->m_dwCharID,
 				pChief->m_dwKEY,
@@ -2231,10 +2226,10 @@ DWORD CTWorldSvrModule::OnMW_CHGPARTYCHIEF_ACK(LPPACKETBUF pBUF)
 		return EC_NOERROR;
 	}
 
-	if(!pChief->m_pParty->IsChief(pChief->m_dwCharID))
+	if (!pChief->m_pParty->IsChief(pChief->m_dwCharID))
 	{
 		CTServer * pCon = FindMapSvr(pChief->m_bMainID);
-		if(pCon)
+		if (pCon)
 			pCon->SendMW_CHGPARTYCHIEF_REQ(
 				pChief->m_dwCharID,
 				pChief->m_dwKEY,
@@ -2243,10 +2238,10 @@ DWORD CTWorldSvrModule::OnMW_CHGPARTYCHIEF_ACK(LPPACKETBUF pBUF)
 		return EC_NOERROR;
 	}
 
-	if(pChief->m_pParty->GetID() != pTarget->m_pParty->GetID())
+	if (pChief->m_pParty->GetID() != pTarget->m_pParty->GetID())
 	{
 		CTServer * pCon = FindMapSvr(pChief->m_bMainID);
-		if(pCon)
+		if (pCon)
 			pCon->SendMW_CHGPARTYCHIEF_REQ(
 				pChief->m_dwCharID,
 				pChief->m_dwKEY,
@@ -2255,10 +2250,10 @@ DWORD CTWorldSvrModule::OnMW_CHGPARTYCHIEF_ACK(LPPACKETBUF pBUF)
 		return EC_NOERROR;
 	}
 
-	if(pChief->m_dwCharID == pTarget->m_dwCharID)
+	if (pChief->m_dwCharID == pTarget->m_dwCharID)
 	{
 		CTServer * pCon = FindMapSvr(pChief->m_bMainID);
-		if(pCon)
+		if (pCon)
 			pCon->SendMW_CHGPARTYCHIEF_REQ(
 				pChief->m_dwCharID,
 				pChief->m_dwKEY,
@@ -2269,11 +2264,11 @@ DWORD CTWorldSvrModule::OnMW_CHGPARTYCHIEF_ACK(LPPACKETBUF pBUF)
 
 	CTParty * pParty = pTarget->m_pParty;
 	pParty->SetChiefID(pTarget->m_dwCharID);
-	if(m_pRelay)
+	if (m_pRelay)
 		m_pRelay->SendRW_PARTYCHGCHIEF_ACK(pParty->GetID(), pParty->GetChiefID());
 
 	CTServer * pMap = FindMapSvr(pChief->m_bMainID);
-	if(pMap)
+	if (pMap)
 	{
 		pMap->SendMW_CHGPARTYCHIEF_REQ(
 			pChief->m_dwCharID,
@@ -2283,25 +2278,25 @@ DWORD CTWorldSvrModule::OnMW_CHGPARTYCHIEF_ACK(LPPACKETBUF pBUF)
 
 	WORD wCommander = 0;
 	CTCorps * pCorps = FindCorps(pParty->m_wCorpsID);
-	if(pCorps)
+	if (pCorps)
 	{
 		wCommander = pCorps->m_wCommander;
-		if(pCorps->m_wCommander == pParty->GetID())
+		if (pCorps->m_wCommander == pParty->GetID())
 			pCorps->m_dwGeneralID = pParty->GetChiefID();
 	}
 
-    for(int i=0; i<pParty->GetSize(); i++)
+	for (int i = 0; i<pParty->GetSize(); i++)
 		PartyAttr(pParty->GetMember(i));
 
 	ChgSquadChief(pCorps, pParty);
 
-	if(pCorps)
+	if (pCorps)
 		ReportEnemyList(pCorps, pParty->GetID(), pParty->GetChiefID());
 
 	return EC_NOERROR;
 }
 
-DWORD CTWorldSvrModule::OnMW_CHGPARTYTYPE_ACK( LPPACKETBUF pBUF)
+DWORD CTWorldSvrModule::OnMW_CHGPARTYTYPE_ACK(LPPACKETBUF pBUF)
 {
 	DWORD dwCharID;
 	DWORD dwKEY;
@@ -2313,27 +2308,27 @@ DWORD CTWorldSvrModule::OnMW_CHGPARTYTYPE_ACK( LPPACKETBUF pBUF)
 		>> bPartyType;
 
 	LPTCHARACTER pTCHAR = FindTChar(dwCharID, dwKEY);
-	if(!pTCHAR)
+	if (!pTCHAR)
 		return EC_NOERROR;
 
-	if(!pTCHAR->m_pParty)
+	if (!pTCHAR->m_pParty)
 		return EC_NOERROR;
 
-	if(!pTCHAR->m_pParty->IsChief(pTCHAR->m_dwCharID))
+	if (!pTCHAR->m_pParty->IsChief(pTCHAR->m_dwCharID))
 	{
 		CTServer *pCon = FindMapSvr(pTCHAR->m_bMainID);
-		if(pCon)
+		if (pCon)
 			pCon->SendMW_CHGPARTYTYPE_REQ(pTCHAR->m_dwCharID, pTCHAR->m_dwKEY, PARTY_NOTCHIEF, bPartyType);
 		return EC_NOERROR;
 	}
 
 	pTCHAR->m_pParty->m_bObtainType = bPartyType;
 
-	for(BYTE i=0; i<pTCHAR->m_pParty->GetSize(); i++)
+	for (BYTE i = 0; i<pTCHAR->m_pParty->GetSize(); i++)
 	{
 		LPTCHARACTER pMember = pTCHAR->m_pParty->GetMember(i);
 		CTServer *pCon = FindMapSvr(pMember->m_bMainID);
-		if(pCon)
+		if (pCon)
 			pCon->SendMW_CHGPARTYTYPE_REQ(pMember->m_dwCharID, pMember->m_dwKEY, 0, bPartyType);
 	}
 
@@ -2362,13 +2357,13 @@ DWORD CTWorldSvrModule::OnMW_PARTYADD_ACK(LPPACKETBUF pBUF)
 	LPTCHARACTER pRequest = FindTChar(strRequest);
 	LPTCHARACTER pTarget = FindTChar(strTarget);
 
-	if(!pRequest || pRequest == pTarget)
+	if (!pRequest || pRequest == pTarget)
 		return EC_NOERROR;
 
-	if(!pTarget)
+	if (!pTarget)
 	{
 		CTServer *pCon = FindMapSvr(pRequest->m_bMainID);
-		if(pCon)
+		if (pCon)
 			pCon->SendMW_PARTYADD_REQ(
 				pRequest->m_dwCharID,
 				pRequest->m_dwKEY,
@@ -2380,10 +2375,10 @@ DWORD CTWorldSvrModule::OnMW_PARTYADD_ACK(LPPACKETBUF pBUF)
 		return EC_NOERROR;
 	}
 
-	if(pTarget->m_bPartyWaiter)
+	if (pTarget->m_bPartyWaiter)
 	{
 		CTServer *pCon = FindMapSvr(pRequest->m_bMainID);
-		if(pCon)
+		if (pCon)
 			pCon->SendMW_PARTYADD_REQ(
 				pRequest->m_dwCharID,
 				pRequest->m_dwKEY,
@@ -2395,10 +2390,10 @@ DWORD CTWorldSvrModule::OnMW_PARTYADD_ACK(LPPACKETBUF pBUF)
 		return EC_NOERROR;
 	}
 
-	if(pTarget->m_pParty)
+	if (pTarget->m_pParty)
 	{
 		CTServer *pCon = FindMapSvr(pRequest->m_bMainID);
-		if(pCon)
+		if (pCon)
 			pCon->SendMW_PARTYADD_REQ(
 				pRequest->m_dwCharID,
 				pRequest->m_dwKEY,
@@ -2407,13 +2402,13 @@ DWORD CTWorldSvrModule::OnMW_PARTYADD_ACK(LPPACKETBUF pBUF)
 				bObtainType,
 				PARTY_ALREADY);
 
-		return EC_NOERROR;		
+		return EC_NOERROR;
 	}
 
-	if(GetWarCountry(pTarget) != GetWarCountry(pRequest))
+	if (GetWarCountry(pTarget) != GetWarCountry(pRequest))
 	{
 		CTServer *pCon = FindMapSvr(pRequest->m_bMainID);
-		if(pCon)
+		if (pCon)
 			pCon->SendMW_PARTYADD_REQ(
 				pRequest->m_dwCharID,
 				pRequest->m_dwKEY,
@@ -2425,12 +2420,12 @@ DWORD CTWorldSvrModule::OnMW_PARTYADD_ACK(LPPACKETBUF pBUF)
 		return EC_NOERROR;
 	}
 
-	if(pRequest->m_pParty)
+	if (pRequest->m_pParty)
 	{
-		if(!pRequest->m_pParty->IsChief(pRequest->m_dwCharID))
+		if (!pRequest->m_pParty->IsChief(pRequest->m_dwCharID))
 		{
 			CTServer *pCon = FindMapSvr(pRequest->m_bMainID);
-			if(pCon)
+			if (pCon)
 				pCon->SendMW_PARTYADD_REQ(
 					pRequest->m_dwCharID,
 					pRequest->m_dwKEY,
@@ -2439,12 +2434,12 @@ DWORD CTWorldSvrModule::OnMW_PARTYADD_ACK(LPPACKETBUF pBUF)
 					bObtainType,
 					PARTY_NOTCHIEF);
 
-			return EC_NOERROR;	
+			return EC_NOERROR;
 		}
-		if(pRequest->m_pParty->GetSize() >= MAX_PARTY_MEMBER)
+		if (pRequest->m_pParty->GetSize() >= MAX_PARTY_MEMBER)
 		{
 			CTServer *pCon = FindMapSvr(pRequest->m_bMainID);
-			if(pCon)
+			if (pCon)
 				pCon->SendMW_PARTYADD_REQ(
 					pRequest->m_dwCharID,
 					pRequest->m_dwKEY,
@@ -2453,16 +2448,16 @@ DWORD CTWorldSvrModule::OnMW_PARTYADD_ACK(LPPACKETBUF pBUF)
 					bObtainType,
 					PARTY_FULL);
 
-			return EC_NOERROR;	
+			return EC_NOERROR;
 		}
-		if(pRequest->m_pParty->m_bArena)
+		if (pRequest->m_pParty->m_bArena)
 			return EC_NOERROR;
 	}
 
 	SetCharStatus(pRequest, dwMaxHP, dwHP, dwMaxMP, dwMP);
 
 	CTServer *pCon = FindMapSvr(pTarget->m_bMainID);
-	if(pCon)
+	if (pCon)
 	{
 		pCon->SendMW_PARTYADD_REQ(
 			pTarget->m_dwCharID,
@@ -2501,16 +2496,16 @@ DWORD CTWorldSvrModule::OnMW_PARTYJOIN_ACK(LPPACKETBUF pBUF)
 	LPTCHARACTER pOrigin = FindTChar(strOrigin);
 	LPTCHARACTER pTarget = FindTChar(strTarget);
 
-	if(pTarget)
+	if (pTarget)
 		pTarget->m_bPartyWaiter = FALSE;
 
-	if(!pOrigin && !pTarget)
+	if (!pOrigin && !pTarget)
 		return EC_NOERROR;
 
-	if(!pOrigin && pTarget)
+	if (!pOrigin && pTarget)
 	{
 		CTServer * pCon = FindMapSvr(pTarget->m_bMainID);
-		if(pCon)
+		if (pCon)
 			pCon->SendMW_PARTYADD_REQ(
 				pTarget->m_dwCharID,
 				pTarget->m_dwKEY,
@@ -2521,10 +2516,10 @@ DWORD CTWorldSvrModule::OnMW_PARTYJOIN_ACK(LPPACKETBUF pBUF)
 
 		return EC_NOERROR;
 	}
-	if(pOrigin && !pTarget)
+	if (pOrigin && !pTarget)
 	{
 		CTServer * pCon = FindMapSvr(pOrigin->m_bMainID);
-		if(pCon)
+		if (pCon)
 			pCon->SendMW_PARTYADD_REQ(
 				pOrigin->m_dwCharID,
 				pOrigin->m_dwKEY,
@@ -2535,10 +2530,10 @@ DWORD CTWorldSvrModule::OnMW_PARTYJOIN_ACK(LPPACKETBUF pBUF)
 
 		return EC_NOERROR;
 	}
-	if(bResponse != ASK_YES)
+	if (bResponse != ASK_YES)
 	{
 		CTServer * pCon = FindMapSvr(pOrigin->m_bMainID);
-		if(pCon)
+		if (pCon)
 			pCon->SendMW_PARTYADD_REQ(
 				pOrigin->m_dwCharID,
 				pOrigin->m_dwKEY,
@@ -2550,10 +2545,10 @@ DWORD CTWorldSvrModule::OnMW_PARTYJOIN_ACK(LPPACKETBUF pBUF)
 		return EC_NOERROR;
 	}
 
-	if(pTarget->m_pParty)
+	if (pTarget->m_pParty)
 	{
 		CTServer * pCon = FindMapSvr(pOrigin->m_bMainID);
-		if(pCon)
+		if (pCon)
 			pCon->SendMW_PARTYADD_REQ(
 				pOrigin->m_dwCharID,
 				pOrigin->m_dwKEY,
@@ -2565,10 +2560,10 @@ DWORD CTWorldSvrModule::OnMW_PARTYJOIN_ACK(LPPACKETBUF pBUF)
 		return EC_NOERROR;
 	}
 
-	if(GetWarCountry(pTarget) != GetWarCountry(pOrigin))
+	if (GetWarCountry(pTarget) != GetWarCountry(pOrigin))
 	{
 		CTServer *pCon = FindMapSvr(pTarget->m_bMainID);
-		if(pCon)
+		if (pCon)
 			pCon->SendMW_PARTYADD_REQ(
 				pTarget->m_dwCharID,
 				pTarget->m_dwKEY,
@@ -2578,7 +2573,7 @@ DWORD CTWorldSvrModule::OnMW_PARTYJOIN_ACK(LPPACKETBUF pBUF)
 				PARTY_COUNTRY);
 
 		pCon = FindMapSvr(pOrigin->m_bMainID);
-		if(pCon)
+		if (pCon)
 			pCon->SendMW_PARTYADD_REQ(
 				pOrigin->m_dwCharID,
 				pOrigin->m_dwKEY,
@@ -2596,12 +2591,12 @@ DWORD CTWorldSvrModule::OnMW_PARTYJOIN_ACK(LPPACKETBUF pBUF)
 
 	CTServer * pTgCon = FindMapSvr(pTarget->m_bMainID);
 	CTServer * pOgCon = FindMapSvr(pOrigin->m_bMainID);
-	if(!pTgCon || !pOgCon)
+	if (!pTgCon || !pOgCon)
 		return EC_NOERROR;
 
-	if(pOrigin->m_pParty)
+	if (pOrigin->m_pParty)
 	{
-		if(!pOrigin->m_pParty->IsChief(pOrigin->m_dwCharID))
+		if (!pOrigin->m_pParty->IsChief(pOrigin->m_dwCharID))
 		{
 			pOgCon->SendMW_PARTYADD_REQ(
 				pOrigin->m_dwCharID,
@@ -2622,7 +2617,7 @@ DWORD CTWorldSvrModule::OnMW_PARTYJOIN_ACK(LPPACKETBUF pBUF)
 			return EC_NOERROR;
 		}
 
-		if(pOrigin->m_pParty->GetSize() >= MAX_PARTY_MEMBER)
+		if (pOrigin->m_pParty->GetSize() >= MAX_PARTY_MEMBER)
 		{
 			pOgCon->SendMW_PARTYADD_REQ(
 				pOrigin->m_dwCharID,
@@ -2643,7 +2638,7 @@ DWORD CTWorldSvrModule::OnMW_PARTYJOIN_ACK(LPPACKETBUF pBUF)
 			return EC_NOERROR;
 		}
 
-		if(pOrigin->m_pParty->m_bArena)
+		if (pOrigin->m_pParty->m_bArena)
 		{
 			pTgCon->SendMW_PARTYADD_REQ(
 				pTarget->m_dwCharID,
@@ -2668,7 +2663,7 @@ DWORD CTWorldSvrModule::OnMW_PARTYJOIN_ACK(LPPACKETBUF pBUF)
 		JoinParty(pParty, pOrigin->m_dwCharID, pOrigin);
 		JoinParty(pParty, pOrigin->m_dwCharID, pTarget);
 	}
-	
+
 	return EC_NOERROR;
 }
 DWORD CTWorldSvrModule::OnMW_PARTYDEL_ACK(LPPACKETBUF pBUF)
@@ -2683,11 +2678,11 @@ DWORD CTWorldSvrModule::OnMW_PARTYDEL_ACK(LPPACKETBUF pBUF)
 		>> bKick;
 
 	CTParty * pParty = FindParty(wPartyID);
-	if(!pParty)
+	if (!pParty)
 		return EC_NOERROR;
 
 	LPTCHARACTER pPlayer = pParty->FindMember(dwCharID);
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	LeaveParty(pPlayer, bKick);
@@ -2714,50 +2709,50 @@ DWORD CTWorldSvrModule::OnMW_PARTYMANSTAT_ACK(LPPACKETBUF pBUF)
 		>> dwCurMP;
 
 	CTParty * pParty = FindParty(wPartyID);
-	if(!pParty)
+	if (!pParty)
 		return EC_NOERROR;
 
-	for(int i=0; i<pParty->GetSize(); i++)
+	for (int i = 0; i<pParty->GetSize(); i++)
 	{
 		LPTCHARACTER pMember = pParty->GetMember(i);
-		if(pMember->m_dwCharID == dwID)
+		if (pMember->m_dwCharID == dwID)
 			SetCharStatus(pMember, dwMaxHP, dwCurHP, dwMaxMP, dwCurMP);
 
 		CTServer * pCon = FindMapSvr(pMember->m_bMainID);
-		if(pCon)
+		if (pCon)
 			pCon->SendMW_PARTYMANSTAT_REQ(
-			pMember->m_dwCharID,
-			pMember->m_dwKEY,
-			dwID,
-			bType,
-			bLevel,
-			dwMaxHP,
-			dwCurHP,
-			dwMaxMP,
-			dwCurMP);
+				pMember->m_dwCharID,
+				pMember->m_dwKEY,
+				dwID,
+				bType,
+				bLevel,
+				dwMaxHP,
+				dwCurHP,
+				dwMaxMP,
+				dwCurMP);
 	}
 
-	if(pParty->m_wCorpsID &&
+	if (pParty->m_wCorpsID &&
 		pParty->IsChief(dwID))
 	{
 		CTCorps * pCorps = FindCorps(pParty->m_wCorpsID);
-		if(pCorps)
+		if (pCorps)
 		{
 			MAPTCHARACTER::iterator itGe = m_mapTCHAR.find(pCorps->m_dwGeneralID);
-			if(itGe != m_mapTCHAR.end())
+			if (itGe != m_mapTCHAR.end())
 			{
 				CTServer * pCon = FindMapSvr((*itGe).second->m_bMainID);
-				if(pCon)
+				if (pCon)
 					pCon->SendMW_PARTYMANSTAT_REQ(
 					(*itGe).second->m_dwCharID,
-					(*itGe).second->m_dwKEY,
-					dwID,
-					bType,
-					bLevel,
-					dwMaxHP,
-					dwCurHP,
-					dwMaxMP,
-					dwCurMP);
+						(*itGe).second->m_dwKEY,
+						dwID,
+						bType,
+						bLevel,
+						dwMaxHP,
+						dwCurHP,
+						dwMaxMP,
+						dwCurMP);
 			}
 		}
 	}
@@ -2779,18 +2774,18 @@ DWORD CTWorldSvrModule::OnMW_LEVELUP_ACK(LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pTCHAR)
+	if (!pTCHAR)
 		return EC_NOERROR;
 
 	SetCharLevel(pTCHAR, bLevel);
 
 	MAPTCHARCON::iterator itCON;
-	for(itCON =pTCHAR->m_mapTCHARCON.begin(); itCON != pTCHAR->m_mapTCHARCON.end(); itCON++)
+	for (itCON = pTCHAR->m_mapTCHARCON.begin(); itCON != pTCHAR->m_mapTCHARCON.end(); itCON++)
 	{
-		if((*itCON).second->m_bValid && (*itCON).first != pTCHAR->m_bMainID)
+		if ((*itCON).second->m_bValid && (*itCON).first != pTCHAR->m_bMainID)
 		{
 			CTServer *pMAP = FindMapSvr((*itCON).first);
-			if(pMAP)
+			if (pMAP)
 			{
 				pMAP->SendMW_LEVELUP_REQ(
 					dwCharID,
@@ -2801,12 +2796,12 @@ DWORD CTWorldSvrModule::OnMW_LEVELUP_ACK(LPPACKETBUF pBUF)
 	}
 
 	MAPTSOULMATE::iterator itSOUL;
-	for(itSOUL=pTCHAR->m_mapTSOULMATE.begin(); itSOUL!=pTCHAR->m_mapTSOULMATE.end(); itSOUL++)
+	for (itSOUL = pTCHAR->m_mapTSOULMATE.begin(); itSOUL != pTCHAR->m_mapTSOULMATE.end(); itSOUL++)
 	{
 		LPTCHARACTER pCHAR = NULL;
 		LPTSOULMATE pSOUL = NULL;
 
-		if((*itSOUL).second->m_dwCharID == pTCHAR->m_dwCharID)
+		if ((*itSOUL).second->m_dwCharID == pTCHAR->m_dwCharID)
 		{
 			pCHAR = pTCHAR;
 			pSOUL = (*itSOUL).second;
@@ -2814,11 +2809,11 @@ DWORD CTWorldSvrModule::OnMW_LEVELUP_ACK(LPPACKETBUF pBUF)
 		else
 		{
 			MAPTCHARACTER::iterator it = m_mapTCHAR.find((*itSOUL).second->m_dwCharID);
-			if(it!=m_mapTCHAR.end())
+			if (it != m_mapTCHAR.end())
 			{
 				pCHAR = (*it).second;
 				MAPTSOULMATE::iterator findSOUL = pCHAR->m_mapTSOULMATE.find(pCHAR->m_dwCharID);
-				if(findSOUL!=pCHAR->m_mapTSOULMATE.end())
+				if (findSOUL != pCHAR->m_mapTSOULMATE.end())
 				{
 					pSOUL = (*findSOUL).second;
 					pSOUL->m_bLevel = bLevel;
@@ -2832,7 +2827,7 @@ DWORD CTWorldSvrModule::OnMW_LEVELUP_ACK(LPPACKETBUF pBUF)
 	return EC_NOERROR;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
-// ±ÊµÂ
+// Í∏∏Îìú
 DWORD CTWorldSvrModule::OnDM_GUILDUPDATE_REQ(LPPACKETBUF pBUF)
 {
 	DWORD	dwAllience;
@@ -2841,7 +2836,7 @@ DWORD CTWorldSvrModule::OnDM_GUILDUPDATE_REQ(LPPACKETBUF pBUF)
 	BYTE	bCount;
 
 	DEFINE_QUERY(&m_db, CSPGuildUpdate)
-	pBUF->m_packet
+		pBUF->m_packet
 		>> query->m_dwID
 		>> query->m_bFame
 		>> query->m_bGPoint
@@ -2855,31 +2850,31 @@ DWORD CTWorldSvrModule::OnDM_GUILDUPDATE_REQ(LPPACKETBUF pBUF)
 
 	memset(query->m_szAllience, 0, MAX_STR_GUILD);
 	memset(query->m_szEnemy, 0, MAX_STR_GUILD);
-	for(int i=0; i<bCount; i++)
+	for (int i = 0; i<bCount; i++)
 	{
 		pBUF->m_packet
 			>> dwAllience;
-		itoa(dwAllience,query->m_szAllience+lstrlen(query->m_szAllience),10);
+		itoa(dwAllience, query->m_szAllience + lstrlen(query->m_szAllience), 10);
 		query->m_szAllience[lstrlen(query->m_szAllience)] = ',';
 	}
-	if(bCount==0)
+	if (bCount == 0)
 		query->m_szAllience[0] = ',';
 
 	pBUF->m_packet
 		>> bCount;
-	for(int i=0; i<bCount; i++)
+	for (int i = 0; i<bCount; i++)
 	{
 		pBUF->m_packet
 			>> dwEnemy;
-		itoa(dwEnemy,query->m_szEnemy+lstrlen(query->m_szEnemy),10);
+		itoa(dwEnemy, query->m_szEnemy + lstrlen(query->m_szEnemy), 10);
 		query->m_szEnemy[lstrlen(query->m_szEnemy)] = ',';
 	}
-	if(bCount==0)
+	if (bCount == 0)
 		query->m_szEnemy[0] = ',';
 
 	query->Call();
 	UNDEFINE_QUERY()
-	return EC_NOERROR;
+		return EC_NOERROR;
 }
 DWORD CTWorldSvrModule::OnMW_GUILDESTABLISH_ACK(LPPACKETBUF pBUF)
 {
@@ -2897,7 +2892,7 @@ DWORD CTWorldSvrModule::OnMW_GUILDESTABLISH_ACK(LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pTCHAR || pTCHAR->m_pGuild)
+	if (!pTCHAR || pTCHAR->m_pGuild)
 	{
 		pServer->SendMW_GUILDESTABLISH_REQ(
 			dwCharID,
@@ -2910,7 +2905,7 @@ DWORD CTWorldSvrModule::OnMW_GUILDESTABLISH_ACK(LPPACKETBUF pBUF)
 		return EC_NOERROR;
 	}
 
-	if(strGuildName.GetLength() > MAX_NAME)
+	if (strGuildName.GetLength() > MAX_NAME)
 		return EC_NOERROR;
 
 	LPPACKETBUF pMsg = new PACKETBUF();
@@ -2924,8 +2919,8 @@ DWORD CTWorldSvrModule::OnMW_GUILDESTABLISH_ACK(LPPACKETBUF pBUF)
 }
 DWORD CTWorldSvrModule::OnDM_GUILDESTABLISH_REQ(LPPACKETBUF pBUF)
 {
-	BYTE bRet=GUILD_ESTABLISH_ERR;
-	DWORD dwGuildID=0;
+	BYTE bRet = GUILD_ESTABLISH_ERR;
+	DWORD dwGuildID = 0;
 	CString strGuildName;
 	DWORD dwCharID;
 	DWORD dwKEY;
@@ -2936,11 +2931,11 @@ DWORD CTWorldSvrModule::OnDM_GUILDESTABLISH_REQ(LPPACKETBUF pBUF)
 		>> strGuildName;
 
 	DEFINE_QUERY(&m_db, CSPGuildEstablish)
-	query->m_dwGuildID = dwGuildID;
+		query->m_dwGuildID = dwGuildID;
 	lstrcpy(query->m_szName, strGuildName);
 	query->m_dwChiefID = dwCharID;
 	__TIMETODB(m_timeCurrent, query->m_timeEstablish);
-	if(query->Call())
+	if (query->Call())
 	{
 		bRet = query->m_nRET;
 		dwGuildID = query->m_dwGuildID;
@@ -2981,10 +2976,10 @@ DWORD CTWorldSvrModule::OnDM_GUILDESTABLISH_ACK(LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pTCHAR)
+	if (!pTCHAR)
 		return EC_NOERROR;
 
-	if(!bRet)
+	if (!bRet)
 	{
 		CTGuild * pGuild = new CTGuild();
 		pGuild->m_dwID = dwGuildID;
@@ -3012,7 +3007,7 @@ DWORD CTWorldSvrModule::OnDM_GUILDESTABLISH_ACK(LPPACKETBUF pBUF)
 	}
 
 	CTServer *pMAP = FindMapSvr(pTCHAR->m_bMainID);
-	if(!pMAP)
+	if (!pMAP)
 		return EC_NOERROR;
 
 	pMAP->SendMW_GUILDESTABLISH_REQ(
@@ -3041,16 +3036,16 @@ DWORD CTWorldSvrModule::OnMW_GUILDDISORGANIZATION_ACK(LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pTCHAR) 
+	if (!pTCHAR)
 		return EC_NOERROR;
 
-	if(!pTCHAR->m_pGuild || pTCHAR->m_pGuild->m_bDisorg==bDisorg)
+	if (!pTCHAR->m_pGuild || pTCHAR->m_pGuild->m_bDisorg == bDisorg)
 		return EC_NOERROR;
 
 	LPPACKETBUF pMsg = new PACKETBUF();
 	pMsg->m_packet.SetID(DM_GUILDDISORGANIZATION_REQ)
 		<< dwCharID
-        << dwKEY
+		<< dwKEY
 		<< pTCHAR->m_pGuild->m_dwID
 		<< bDisorg;
 	SayToDB(pMsg);
@@ -3073,7 +3068,7 @@ DWORD CTWorldSvrModule::OnDM_GUILDDISORGANIZATION_REQ(LPPACKETBUF pBUF)
 	DWORD dwTime = bDisorg ? (DWORD)m_timeCurrent : 0;
 
 	DEFINE_QUERY(&m_db, CSPGuildDisorg)
-	query->m_dwGuildID = dwGuildID;
+		query->m_dwGuildID = dwGuildID;
 	query->m_bDisorg = bDisorg;
 	query->m_dwTime = dwTime;
 	query->Call();
@@ -3113,7 +3108,7 @@ DWORD CTWorldSvrModule::OnDM_GUILDDISORGANIZATION_ACK(LPPACKETBUF pBUF)
 		>> dwTime;
 
 	CTGuild * pGuild = FindTGuild(dwGuildID);
-	if(pGuild)
+	if (pGuild)
 	{
 		pGuild->m_bDisorg = bDisorg;
 		pGuild->m_dwTime = dwTime;
@@ -3123,11 +3118,11 @@ DWORD CTWorldSvrModule::OnDM_GUILDDISORGANIZATION_ACK(LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pTCHAR)
+	if (!pTCHAR)
 		return EC_NOERROR;
 
 	CTServer *pMAP = FindMapSvr(pTCHAR->m_bMainID);
-	if(!pMAP)
+	if (!pMAP)
 		return EC_NOERROR;
 
 	pMAP->SendMW_GUILDDISORGANIZATION_REQ(
@@ -3137,19 +3132,19 @@ DWORD CTWorldSvrModule::OnDM_GUILDDISORGANIZATION_ACK(LPPACKETBUF pBUF)
 
 	return EC_NOERROR;
 }
-DWORD CTWorldSvrModule::OnDM_GUILDEXTINCTION_REQ( LPPACKETBUF pBUF)
+DWORD CTWorldSvrModule::OnDM_GUILDEXTINCTION_REQ(LPPACKETBUF pBUF)
 {
 	DWORD dwGuildID;
-	BYTE bRet=0;
+	BYTE bRet = 0;
 	pBUF->m_packet
 		>> dwGuildID;
 
 	DEFINE_QUERY(&m_db, CSPGuildDelete)
-	query->m_dwGuildID = dwGuildID;
-	if(query->Call())
+		query->m_dwGuildID = dwGuildID;
+	if (query->Call())
 		bRet = query->m_nRET;
 	UNDEFINE_QUERY();
-	
+
 	LPPACKETBUF pMsg = new PACKETBUF();
 	pMsg->m_packet.SetID(DM_GUILDEXTINCTION_ACK)
 		<< dwGuildID
@@ -3158,7 +3153,7 @@ DWORD CTWorldSvrModule::OnDM_GUILDEXTINCTION_REQ( LPPACKETBUF pBUF)
 
 	return EC_NOERROR;
 }
-DWORD CTWorldSvrModule::OnDM_GUILDEXTINCTION_ACK( LPPACKETBUF pBUF)
+DWORD CTWorldSvrModule::OnDM_GUILDEXTINCTION_ACK(LPPACKETBUF pBUF)
 {
 	DWORD dwGuildID;
 	BYTE bRet;
@@ -3166,18 +3161,18 @@ DWORD CTWorldSvrModule::OnDM_GUILDEXTINCTION_ACK( LPPACKETBUF pBUF)
 		>> dwGuildID
 		>> bRet;
 
-	if(!bRet)
+	if (!bRet)
 		DeleteTGuild(dwGuildID);
 
 	return EC_NOERROR;
 }
-DWORD CTWorldSvrModule::OnDM_GUILDMEMBERADD_REQ( LPPACKETBUF pBUF)
+DWORD CTWorldSvrModule::OnDM_GUILDMEMBERADD_REQ(LPPACKETBUF pBUF)
 {
 	DWORD dwGuildID;
 	DWORD dwCharID;
 	BYTE bLevel;
 	BYTE bDuty;
-		
+
 	pBUF->m_packet
 		>> dwGuildID
 		>> dwCharID
@@ -3185,7 +3180,7 @@ DWORD CTWorldSvrModule::OnDM_GUILDMEMBERADD_REQ( LPPACKETBUF pBUF)
 		>> bDuty;
 
 	DEFINE_QUERY(&m_db, CSPGuildMemberAdd)
-	query->m_dwGuildID = dwGuildID;
+		query->m_dwGuildID = dwGuildID;
 	query->m_dwCharID = dwCharID;
 	query->m_bLevel = bLevel;
 	query->m_bDuty = bDuty;
@@ -3201,7 +3196,7 @@ DWORD CTWorldSvrModule::OnMW_GUILDKICKOUT_ACK(LPPACKETBUF pBUF)
 	DWORD dwCharID;
 	DWORD dwKEY;
 	CString strTarget;
-	
+
 	pBUF->m_packet
 		>> dwCharID
 		>> dwKEY
@@ -3211,16 +3206,16 @@ DWORD CTWorldSvrModule::OnMW_GUILDKICKOUT_ACK(LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pTCHAR || !pTCHAR->m_pGuild)
+	if (!pTCHAR || !pTCHAR->m_pGuild)
 		return EC_NOERROR;
 
 	LPTGUILDMEMBER pMember = pTCHAR->m_pGuild->FindMember(strTarget);
-	if(!pMember)
+	if (!pMember)
 		return EC_NOERROR;
 
-	if(pMember->m_bDuty!=GUILD_DUTY_NONE)
+	if (pMember->m_bDuty != GUILD_DUTY_NONE)
 	{
-		if(pTCHAR->m_pGuild->m_dwChief != dwCharID )
+		if (pTCHAR->m_pGuild->m_dwChief != dwCharID)
 			return EC_NOERROR;
 	}
 
@@ -3228,14 +3223,14 @@ DWORD CTWorldSvrModule::OnMW_GUILDKICKOUT_ACK(LPPACKETBUF pBUF)
 	DWORD dwTargetID = pMember->m_dwID;
 
 	LPTCHARACTER pTarget = FindTChar(strTarget);
-	if(pTarget)
+	if (pTarget)
 	{
-		if(pTarget->m_dwCharID != pMember->m_dwID)
+		if (pTarget->m_dwCharID != pMember->m_dwID)
 			return EC_NOERROR;
 
 		pTarget->m_pGuild = NULL;
 		CTServer * pMap = FindMapSvr(pTarget->m_bMainID);
-		if(pMap)
+		if (pMap)
 			pMap->SendMW_GUILDLEAVE_REQ(pTarget->m_dwCharID, pTarget->m_dwKEY, pTarget->m_strNAME, GUILD_LEAVE_KICK, 0);
 	}
 
@@ -3245,7 +3240,7 @@ DWORD CTWorldSvrModule::OnMW_GUILDKICKOUT_ACK(LPPACKETBUF pBUF)
 
 	return EC_NOERROR;
 }
-DWORD CTWorldSvrModule::OnDM_GUILDKICKOUT_REQ( LPPACKETBUF pBUF)
+DWORD CTWorldSvrModule::OnDM_GUILDKICKOUT_REQ(LPPACKETBUF pBUF)
 {
 	DWORD dwGuildID;
 	DWORD dwCharID;
@@ -3255,7 +3250,7 @@ DWORD CTWorldSvrModule::OnDM_GUILDKICKOUT_REQ( LPPACKETBUF pBUF)
 		>> dwCharID;
 
 	DEFINE_QUERY(&m_db, CSPGuildKickout)
-	query->m_dwGuildID = dwGuildID;
+		query->m_dwGuildID = dwGuildID;
 	query->m_dwCharID = dwCharID;
 	query->Call();
 	UNDEFINE_QUERY();
@@ -3281,16 +3276,16 @@ DWORD CTWorldSvrModule::OnMW_GUILDDUTY_ACK(LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pTCHAR)
+	if (!pTCHAR)
 		return EC_NOERROR;
 
-	if( !pTCHAR->m_pGuild || pTCHAR->m_pGuild->m_bDisorg)
+	if (!pTCHAR->m_pGuild || pTCHAR->m_pGuild->m_bDisorg)
 		return EC_NOERROR;
 
 	LPTGUILDMEMBER pTarget = pTCHAR->m_pGuild->FindMember(strTarget);
 
-	if(!pTarget ||
-		pTarget->m_bDuty==bDuty ||
+	if (!pTarget ||
+		pTarget->m_bDuty == bDuty ||
 		pTarget->m_dwID == dwCharID ||
 		pTarget->m_dwTactics)
 		return EC_NOERROR;
@@ -3298,43 +3293,43 @@ DWORD CTWorldSvrModule::OnMW_GUILDDUTY_ACK(LPPACKETBUF pBUF)
 	//if(bDuty == GUILD_DUTY_CHIEF &&	!pTarget->m_pChar)
 	//	return EC_NOERROR;
 
-	if(bDuty == GUILD_DUTY_VICECHIEF)
+	if (bDuty == GUILD_DUTY_VICECHIEF)
 	{
-		BYTE bVice=0;
+		BYTE bVice = 0;
 		MAPTGUILDMEMBER::iterator it;
-		for(it=pTCHAR->m_pGuild->m_mapTMember.begin(); it!=pTCHAR->m_pGuild->m_mapTMember.end(); it++)
+		for (it = pTCHAR->m_pGuild->m_mapTMember.begin(); it != pTCHAR->m_pGuild->m_mapTMember.end(); it++)
 		{
-			if((*it).second->m_bDuty == GUILD_DUTY_VICECHIEF)
+			if ((*it).second->m_bDuty == GUILD_DUTY_VICECHIEF)
 				bVice++;
 		}
-		if(bVice==2)
+		if (bVice == 2)
 			return EC_NOERROR;
 	}
 
-	if(bDuty == GUILD_DUTY_CHIEF)
+	if (bDuty == GUILD_DUTY_CHIEF)
 	{
 		pTCHAR->m_pGuild->Designate(dwCharID, GUILD_DUTY_NONE);
 		SendDM_GUILDDUTY_REQ(dwCharID, pTCHAR->m_pGuild->m_dwID, GUILD_DUTY_NONE);
 
 		pServer->SendMW_GUILDDUTY_REQ(dwCharID, dwKEY, pTCHAR->m_strNAME, GUILD_DUTY_NONE);
-		if(m_pRelay)
+		if (m_pRelay)
 			m_pRelay->SendRW_GUILDCHGMASTER_ACK(pTCHAR->m_pGuild->m_dwID, pTarget->m_dwID);
 	}
 
 	pTCHAR->m_pGuild->Designate(pTarget->m_dwID, bDuty);
 	SendDM_GUILDDUTY_REQ(pTarget->m_dwID, pTCHAR->m_pGuild->m_dwID, bDuty);
 
-	if(pTarget->m_pChar)
+	if (pTarget->m_pChar)
 	{
 		CTServer *pMap = FindMapSvr(pTarget->m_pChar->m_bMainID);
-		if(pMap)
+		if (pMap)
 			pMap->SendMW_GUILDDUTY_REQ(pTarget->m_dwID, pTarget->m_pChar->m_dwKEY, strTarget, bDuty);
 	}
 
 	pServer->SendMW_GUILDDUTY_REQ(dwCharID, dwKEY, strTarget, bDuty);
 	return EC_NOERROR;
 }
-DWORD CTWorldSvrModule::OnDM_GUILDDUTY_REQ( LPPACKETBUF pBUF)
+DWORD CTWorldSvrModule::OnDM_GUILDDUTY_REQ(LPPACKETBUF pBUF)
 {
 	DWORD dwCharID;
 	DWORD dwGuildID;
@@ -3346,7 +3341,7 @@ DWORD CTWorldSvrModule::OnDM_GUILDDUTY_REQ( LPPACKETBUF pBUF)
 		>> bDuty;
 
 	DEFINE_QUERY(&m_db, CSPGuildDuty)
-	query->m_dwCharID = dwCharID;
+		query->m_dwCharID = dwCharID;
 	query->m_dwGuildID = dwGuildID;
 	query->m_bDuty = bDuty;
 	query->Call();
@@ -3374,19 +3369,19 @@ DWORD CTWorldSvrModule::OnMW_GUILDPEER_ACK(LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pTCHAR)
+	if (!pTCHAR)
 		return EC_NOERROR;
 
-	if(!pTCHAR->m_pGuild || pTCHAR->m_pGuild->m_bDisorg)
+	if (!pTCHAR->m_pGuild || pTCHAR->m_pGuild->m_bDisorg)
 		return EC_NOERROR;
 
 	LPTGUILDMEMBER pTarget = pTCHAR->m_pGuild->FindMember(strTarget);
-	if(!pTarget || pTarget->m_bPeer==bPeer)
+	if (!pTarget || pTarget->m_bPeer == bPeer)
 		return EC_NOERROR;
 
 	bOldPeer = pTarget->m_bPeer;
 
-	if(!pTCHAR->m_pGuild->CheckPeerage(pTarget->m_bDuty, bPeer))
+	if (!pTCHAR->m_pGuild->CheckPeerage(pTarget->m_bDuty, bPeer))
 	{
 		pServer->SendMW_GUILDPEER_REQ(dwCharID, dwKEY, GUILD_FAIL, strTarget, bPeer, bOldPeer);
 		return EC_NOERROR;
@@ -3395,17 +3390,17 @@ DWORD CTWorldSvrModule::OnMW_GUILDPEER_ACK(LPPACKETBUF pBUF)
 	pTCHAR->m_pGuild->CreatePeerage(pTarget->m_dwID, bPeer);
 	SendDM_GUILDPEER_REQ(pTarget->m_dwID, pTCHAR->m_pGuild->m_dwID, bPeer);
 
-	if(pTarget->m_pChar && pTarget->m_pChar != pTCHAR)
+	if (pTarget->m_pChar && pTarget->m_pChar != pTCHAR)
 	{
 		CTServer *pMap = FindMapSvr(pTarget->m_pChar->m_bMainID);
-		if(pMap)
+		if (pMap)
 			pMap->SendMW_GUILDPEER_REQ(pTarget->m_dwID, pTarget->m_pChar->m_dwKEY, GUILD_SUCCESS, strTarget, bPeer, bOldPeer);
 	}
 
 	pServer->SendMW_GUILDPEER_REQ(dwCharID, dwKEY, GUILD_SUCCESS, strTarget, bPeer, bOldPeer);
 	return EC_NOERROR;
 }
-DWORD CTWorldSvrModule::OnDM_GUILDPEER_REQ( LPPACKETBUF pBUF)
+DWORD CTWorldSvrModule::OnDM_GUILDPEER_REQ(LPPACKETBUF pBUF)
 {
 	DWORD dwCharID;
 	DWORD dwGuildID;
@@ -3417,7 +3412,7 @@ DWORD CTWorldSvrModule::OnDM_GUILDPEER_REQ( LPPACKETBUF pBUF)
 		>> bPeer;
 
 	DEFINE_QUERY(&m_db, CSPGuildPeer)
-	query->m_dwCharID = dwCharID;
+		query->m_dwCharID = dwCharID;
 	query->m_dwGuildID = dwGuildID;
 	query->m_bPeer = bPeer;
 	query->Call();
@@ -3439,14 +3434,14 @@ DWORD CTWorldSvrModule::OnMW_GUILDLEAVE_ACK(LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pTCHAR)
+	if (!pTCHAR)
 		return EC_NOERROR;
 
-	if(!pTCHAR->m_pGuild)
+	if (!pTCHAR->m_pGuild)
 		return EC_NOERROR;
 
 	LPTGUILDMEMBER pMember = pTCHAR->m_pGuild->FindMember(dwCharID);
-	if(!pMember)
+	if (!pMember)
 		return EC_NOERROR;
 
 	DWORD dwGuildID = pTCHAR->m_pGuild->m_dwID;
@@ -3458,7 +3453,7 @@ DWORD CTWorldSvrModule::OnMW_GUILDLEAVE_ACK(LPPACKETBUF pBUF)
 
 	return EC_NOERROR;
 }
-DWORD CTWorldSvrModule::OnDM_GUILDLEAVE_REQ( LPPACKETBUF pBUF)
+DWORD CTWorldSvrModule::OnDM_GUILDLEAVE_REQ(LPPACKETBUF pBUF)
 {
 	DWORD dwGuildID;
 	DWORD dwCharID;
@@ -3472,7 +3467,7 @@ DWORD CTWorldSvrModule::OnDM_GUILDLEAVE_REQ( LPPACKETBUF pBUF)
 		>> dwTime;
 
 	DEFINE_QUERY(&m_db, CSPGuildLeave)
-	query->m_dwGuildID = dwGuildID;
+		query->m_dwGuildID = dwGuildID;
 	query->m_dwCharID = dwCharID;
 	query->m_bLeave = bLeave;
 	query->m_dwLeaveTime = dwTime;
@@ -3500,54 +3495,54 @@ DWORD CTWorldSvrModule::OnMW_GUILDINVITEANSWER_ACK(LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pTCHAR)
+	if (!pTCHAR)
 		return EC_NOERROR;
 
-	LPTCHARACTER pChief=NULL;
+	LPTCHARACTER pChief = NULL;
 	MAPTCHARACTER::iterator it = m_mapTCHAR.find(dwInviter);
-	if(it!=m_mapTCHAR.end())
+	if (it != m_mapTCHAR.end())
 		pChief = (*it).second;
 
-	if(!pChief || !pTCHAR)
+	if (!pChief || !pTCHAR)
 		return EC_NOERROR;
 
 	CTServer * pChiefMap = FindMapSvr(pChief->m_bMainID);
-	if(!pChiefMap)
+	if (!pChiefMap)
 		return EC_NOERROR;
 
-	if(bAnswer != ASK_YES)
+	if (bAnswer != ASK_YES)
 	{
 		pChiefMap->SendMW_GUILDJOIN_REQ(
 			pChief->m_dwCharID,
 			pChief->m_dwKEY,
 			bAnswer,
-			0,0,0,NAME_NULL,
-			0,pTCHAR->m_strNAME);
+			0, 0, 0, NAME_NULL,
+			0, pTCHAR->m_strNAME);
 
 		return EC_NOERROR;
 	}
 
-	if(!pChief->m_pGuild)
+	if (!pChief->m_pGuild)
 	{
 		pServer->SendMW_GUILDJOIN_REQ(
 			dwCharID,
 			dwKEY,
 			GUILD_NOTFOUND,
-			0,0,0,NAME_NULL,
-			0,NAME_NULL);
+			0, 0, 0, NAME_NULL,
+			0, NAME_NULL);
 		pChiefMap->SendMW_GUILDJOIN_REQ(
 			pChief->m_dwCharID,
 			pChief->m_dwKEY,
 			GUILD_NOTFOUND,
-			0,0,0,NAME_NULL,
-			0,NAME_NULL);
+			0, 0, 0, NAME_NULL,
+			0, NAME_NULL);
 		return EC_NOERROR;
 	}
 
-	if(pChief->m_pGuild->FindTactics(dwCharID))
+	if (pChief->m_pGuild->FindTactics(dwCharID))
 		return EC_NOERROR;
 
-	if(!pChief->m_pGuild->CanAddMember())
+	if (!pChief->m_pGuild->CanAddMember())
 	{
 		BYTE bMaxMember = pChief->m_pGuild->GetMaxMemberCnt();
 
@@ -3555,31 +3550,31 @@ DWORD CTWorldSvrModule::OnMW_GUILDINVITEANSWER_ACK(LPPACKETBUF pBUF)
 			dwCharID,
 			dwKEY,
 			GUILD_MEMBER_FULL,
-			0,0,0,NAME_NULL,
-			0,NAME_NULL,bMaxMember);
+			0, 0, 0, NAME_NULL,
+			0, NAME_NULL, bMaxMember);
 		pChiefMap->SendMW_GUILDJOIN_REQ(
 			pChief->m_dwCharID,
 			pChief->m_dwKEY,
 			GUILD_MEMBER_FULL,
-			0,0,0,NAME_NULL,
-			0,NAME_NULL,bMaxMember);
+			0, 0, 0, NAME_NULL,
+			0, NAME_NULL, bMaxMember);
 		return EC_NOERROR;
 	}
 
-	if(pTCHAR->m_pGuild)
+	if (pTCHAR->m_pGuild)
 	{
 		pServer->SendMW_GUILDJOIN_REQ(
 			dwCharID,
 			dwKEY,
 			GUILD_HAVEGUILD,
-			0,0,0,NAME_NULL,
-			0,NAME_NULL);
+			0, 0, 0, NAME_NULL,
+			0, NAME_NULL);
 		pChiefMap->SendMW_GUILDJOIN_REQ(
 			pChief->m_dwCharID,
 			pChief->m_dwKEY,
 			GUILD_HAVEGUILD,
-			0,0,0,NAME_NULL,
-			0,NAME_NULL);
+			0, 0, 0, NAME_NULL,
+			0, NAME_NULL);
 		return EC_NOERROR;
 	}
 
@@ -3616,21 +3611,21 @@ DWORD CTWorldSvrModule::OnMW_GUILDINVITE_ACK(LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pTCHAR)
+	if (!pTCHAR)
 		return EC_NOERROR;
 
-	if(!pTCHAR->m_pGuild || pTCHAR->m_pGuild->m_bDisorg)
+	if (!pTCHAR->m_pGuild || pTCHAR->m_pGuild->m_bDisorg)
 	{
 		pServer->SendMW_GUILDJOIN_REQ(
 			dwCharID,
 			dwKEY,
 			GUILD_NOTFOUND,
-			0,0,0,NAME_NULL,
-			0,NAME_NULL);
+			0, 0, 0, NAME_NULL,
+			0, NAME_NULL);
 		return EC_NOERROR;
 	}
 
-	if(!pTCHAR->m_pGuild->CanAddMember())
+	if (!pTCHAR->m_pGuild->CanAddMember())
 	{
 		BYTE bMaxMember = pTCHAR->m_pGuild->GetMaxMemberCnt();
 
@@ -3638,43 +3633,43 @@ DWORD CTWorldSvrModule::OnMW_GUILDINVITE_ACK(LPPACKETBUF pBUF)
 			dwCharID,
 			dwKEY,
 			GUILD_MEMBER_FULL,
-			0,0,0,NAME_NULL,
-			0,NAME_NULL,bMaxMember);
+			0, 0, 0, NAME_NULL,
+			0, NAME_NULL, bMaxMember);
 		return EC_NOERROR;
 	}
 
-	LPTCHARACTER pTarget=FindTChar(strTarget);
+	LPTCHARACTER pTarget = FindTChar(strTarget);
 
-	if(pTarget)
+	if (pTarget)
 	{
-		if(pTCHAR->m_bCountry!=pTarget->m_bCountry)
+		if (pTCHAR->m_bCountry != pTarget->m_bCountry)
 		{
 			pServer->SendMW_GUILDJOIN_REQ(
 				dwCharID,
 				dwKEY,
 				GUILD_FAIL,
-				0,0,0,NAME_NULL,
-				0,NAME_NULL);
+				0, 0, 0, NAME_NULL,
+				0, NAME_NULL);
 
 			return EC_NOERROR;
 		}
 
-		if(pTarget->m_pGuild)
+		if (pTarget->m_pGuild)
 		{
 			pServer->SendMW_GUILDJOIN_REQ(
 				dwCharID,
 				dwKEY,
 				GUILD_HAVEGUILD,
-				0,0,0,NAME_NULL,
-				0,NAME_NULL);
+				0, 0, 0, NAME_NULL,
+				0, NAME_NULL);
 			return EC_NOERROR;
 		}
 
-		if(pTCHAR->m_pGuild->FindTactics(strTarget))
+		if (pTCHAR->m_pGuild->FindTactics(strTarget))
 			return EC_NOERROR;
 
 		CTServer * pMap = FindMapSvr(pTarget->m_bMainID);
-		if(pMap)
+		if (pMap)
 			pMap->SendMW_GUILDINVITE_REQ(
 				pTarget->m_dwCharID,
 				pTarget->m_dwKEY,
@@ -3699,10 +3694,10 @@ DWORD CTWorldSvrModule::OnMW_GUILDMEMBERLIST_ACK(LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pTCHAR)
+	if (!pTCHAR)
 		return EC_NOERROR;
 
-	if(!pTCHAR->m_pGuild && !pTCHAR->m_pTactics)
+	if (!pTCHAR->m_pGuild && !pTCHAR->m_pTactics)
 	{
 		pServer->SendMW_GUILDMEMBERLIST_REQ(
 			dwCharID,
@@ -3720,7 +3715,7 @@ DWORD CTWorldSvrModule::OnMW_GUILDMEMBERLIST_ACK(LPPACKETBUF pBUF)
 
 	return EC_NOERROR;
 }
-DWORD CTWorldSvrModule::OnMW_GUILDINFO_ACK( LPPACKETBUF pBUF)
+DWORD CTWorldSvrModule::OnMW_GUILDINFO_ACK(LPPACKETBUF pBUF)
 {
 	CTServer * pServer = (CTServer *)pBUF->m_pSESSION;
 
@@ -3735,11 +3730,11 @@ DWORD CTWorldSvrModule::OnMW_GUILDINFO_ACK( LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pTCHAR)
+	if (!pTCHAR)
 		return EC_NOERROR;
 
 	CTGuild * pCurGuild = GetCurGuild(pTCHAR);
-	if(!pCurGuild)
+	if (!pCurGuild)
 	{
 		pServer->SendMW_GUILDINFO_REQ(
 			dwCharID,
@@ -3752,9 +3747,9 @@ DWORD CTWorldSvrModule::OnMW_GUILDINFO_ACK( LPPACKETBUF pBUF)
 	BYTE bPeer = 0;
 
 	LPTGUILDMEMBER pMember = pCurGuild->FindMember(dwCharID);
-	if(!pMember)
+	if (!pMember)
 	{
-		if(!pCurGuild->FindTactics(dwCharID))
+		if (!pCurGuild->FindTactics(dwCharID))
 		{
 			pServer->SendMW_GUILDINFO_REQ(
 				dwCharID,
@@ -3771,7 +3766,7 @@ DWORD CTWorldSvrModule::OnMW_GUILDINFO_ACK( LPPACKETBUF pBUF)
 
 	LPTGUILDMEMBER pChief = pCurGuild->FindMember(pCurGuild->m_dwChief);
 
-	if(!pChief)
+	if (!pChief)
 	{
 		pServer->SendMW_GUILDINFO_REQ(
 			dwCharID,
@@ -3792,7 +3787,7 @@ DWORD CTWorldSvrModule::OnMW_GUILDINFO_ACK( LPPACKETBUF pBUF)
 	return EC_NOERROR;
 }
 
-DWORD CTWorldSvrModule::OnMW_GUILDCABINETLIST_ACK( LPPACKETBUF pBUF)
+DWORD CTWorldSvrModule::OnMW_GUILDCABINETLIST_ACK(LPPACKETBUF pBUF)
 {
 	CTServer * pServer = (CTServer *)pBUF->m_pSESSION;
 
@@ -3807,14 +3802,14 @@ DWORD CTWorldSvrModule::OnMW_GUILDCABINETLIST_ACK( LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pTCHAR || !pTCHAR->m_pGuild || pTCHAR->m_pTactics)
+	if (!pTCHAR || !pTCHAR->m_pGuild || pTCHAR->m_pTactics)
 		return EC_NOERROR;
 
 	pServer->SendMW_GUILDCABINETLIST_REQ(dwCharID, dwKEY, pTCHAR->m_pGuild);
 
 	return EC_NOERROR;
 }
-DWORD CTWorldSvrModule::OnMW_GUILDCABINETPUTIN_ACK( LPPACKETBUF pBUF)
+DWORD CTWorldSvrModule::OnMW_GUILDCABINETPUTIN_ACK(LPPACKETBUF pBUF)
 {
 	CTServer * pServer = (CTServer *)pBUF->m_pSESSION;
 
@@ -3831,7 +3826,7 @@ DWORD CTWorldSvrModule::OnMW_GUILDCABINETPUTIN_ACK( LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pTCHAR || !pTCHAR->m_pGuild)
+	if (!pTCHAR || !pTCHAR->m_pGuild)
 		return EC_NOERROR;
 
 	LPTITEM pItem = CreateItem(&(pBUF->m_packet));
@@ -3839,13 +3834,13 @@ DWORD CTWorldSvrModule::OnMW_GUILDCABINETPUTIN_ACK( LPPACKETBUF pBUF)
 
 	pTCHAR->m_pGuild->PutInItem(pItem->m_dwItemID, pItem);
 	pServer->SendMW_GUILDCABINETLIST_REQ(
-		dwCharID, 
+		dwCharID,
 		dwKEY,
 		pTCHAR->m_pGuild);
 
 	return EC_NOERROR;
 }
-DWORD CTWorldSvrModule::OnMW_GUILDCABINETTAKEOUT_ACK( LPPACKETBUF pBUF)
+DWORD CTWorldSvrModule::OnMW_GUILDCABINETTAKEOUT_ACK(LPPACKETBUF pBUF)
 {
 	CTServer * pServer = (CTServer *)pBUF->m_pSESSION;
 
@@ -3864,18 +3859,18 @@ DWORD CTWorldSvrModule::OnMW_GUILDCABINETTAKEOUT_ACK( LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pTCHAR || !pTCHAR->m_pGuild)
+	if (!pTCHAR || !pTCHAR->m_pGuild)
 		return EC_NOERROR;
 
 	pTCHAR->m_pGuild->TakeOutItem(dwItemID, bCount);
 	pServer->SendMW_GUILDCABINETLIST_REQ(
-		dwCharID, 
+		dwCharID,
 		dwKEY,
 		pTCHAR->m_pGuild);
 
 	return EC_NOERROR;
 }
-DWORD CTWorldSvrModule::OnMW_GUILDCONTRIBUTION_ACK( LPPACKETBUF pBUF)
+DWORD CTWorldSvrModule::OnMW_GUILDCONTRIBUTION_ACK(LPPACKETBUF pBUF)
 {
 	CTServer * pServer = (CTServer *)pBUF->m_pSESSION;
 
@@ -3900,15 +3895,15 @@ DWORD CTWorldSvrModule::OnMW_GUILDCONTRIBUTION_ACK( LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pTCHAR ||
+	if (!pTCHAR ||
 		!pTCHAR->m_pGuild ||
 		pTCHAR->m_pTactics ||
 		pTCHAR->m_pGuild->m_bDisorg)
 		return EC_NOERROR;
 
-	if(pTCHAR->m_pGuild->m_bLevel == MAX_GUILD_LEVEL)
+	if (pTCHAR->m_pGuild->m_bLevel == MAX_GUILD_LEVEL)
 	{
-		if(dwExp)
+		if (dwExp)
 		{
 			pServer->SendMW_GUILDCONTRIBUTION_REQ(dwCharID, dwKEY, GUILD_CONTRIBUTION_MAXGUILDLEVEL, 0, 0, 0, 0, 0);
 			return EC_NOERROR;
@@ -3916,14 +3911,14 @@ DWORD CTWorldSvrModule::OnMW_GUILDCONTRIBUTION_ACK( LPPACKETBUF pBUF)
 	}
 
 	BYTE bResult = GUILD_NOTFOUND;
-	if(pTCHAR->m_pGuild->Contribution(pTCHAR->m_dwCharID, dwExp, dwGold, dwSilver, dwCooper, dwPvPoint))
+	if (pTCHAR->m_pGuild->Contribution(pTCHAR->m_dwCharID, dwExp, dwGold, dwSilver, dwCooper, dwPvPoint))
 		bResult = GUILD_SUCCESS;
 
 	pServer->SendMW_GUILDCONTRIBUTION_REQ(dwCharID, dwKEY, bResult, dwExp, dwGold, dwSilver, dwCooper, dwPvPoint);
 
 	return EC_NOERROR;
 }
-DWORD CTWorldSvrModule::OnDM_GUILDLEVEL_REQ( LPPACKETBUF pBUF)
+DWORD CTWorldSvrModule::OnDM_GUILDLEVEL_REQ(LPPACKETBUF pBUF)
 {
 	DWORD dwGuildID;
 	BYTE bLevel;
@@ -3933,14 +3928,14 @@ DWORD CTWorldSvrModule::OnDM_GUILDLEVEL_REQ( LPPACKETBUF pBUF)
 		>> bLevel;
 
 	DEFINE_QUERY(&m_db, CSPGuildLevel)
-	query->m_dwGuildID = dwGuildID;
+		query->m_dwGuildID = dwGuildID;
 	query->m_bLevel = bLevel;
 	query->Call();
 	UNDEFINE_QUERY();
 
 	return EC_NOERROR;
 }
-DWORD CTWorldSvrModule::OnDM_GUILDCABINETMAX_REQ( LPPACKETBUF pBUF)
+DWORD CTWorldSvrModule::OnDM_GUILDCABINETMAX_REQ(LPPACKETBUF pBUF)
 {
 	DWORD dwGuildID;
 	BYTE bMaxCabinet;
@@ -3950,14 +3945,14 @@ DWORD CTWorldSvrModule::OnDM_GUILDCABINETMAX_REQ( LPPACKETBUF pBUF)
 		>> bMaxCabinet;
 
 	DEFINE_QUERY(&m_db, CSPGuildMaxCabinet)
-	query->m_dwGuildID = dwGuildID;
+		query->m_dwGuildID = dwGuildID;
 	query->m_bMaxCabinet = bMaxCabinet;
 	query->Call();
 	UNDEFINE_QUERY();
 
 	return EC_NOERROR;
 }
-DWORD CTWorldSvrModule::OnDM_GUILDCONTRIBUTION_REQ( LPPACKETBUF pBUF)
+DWORD CTWorldSvrModule::OnDM_GUILDCONTRIBUTION_REQ(LPPACKETBUF pBUF)
 {
 	DWORD dwGuildID;
 	DWORD dwCharID;
@@ -3975,7 +3970,7 @@ DWORD CTWorldSvrModule::OnDM_GUILDCONTRIBUTION_REQ( LPPACKETBUF pBUF)
 		>> dwCooper;
 
 	DEFINE_QUERY(&m_db, CSPGuildContribution)
-	query->m_dwGuildID = dwGuildID;
+		query->m_dwGuildID = dwGuildID;
 	query->m_dwCharID = dwCharID;
 	query->m_dwExp = dwExp;
 	query->m_dwGold = dwGold;
@@ -3986,7 +3981,7 @@ DWORD CTWorldSvrModule::OnDM_GUILDCONTRIBUTION_REQ( LPPACKETBUF pBUF)
 
 	return EC_NOERROR;
 }
-DWORD CTWorldSvrModule::OnMW_GUILDARTICLELIST_ACK( LPPACKETBUF pBUF)
+DWORD CTWorldSvrModule::OnMW_GUILDARTICLELIST_ACK(LPPACKETBUF pBUF)
 {
 	CTServer * pServer = (CTServer *)pBUF->m_pSESSION;
 
@@ -4001,14 +3996,14 @@ DWORD CTWorldSvrModule::OnMW_GUILDARTICLELIST_ACK( LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pTCHAR || !pTCHAR->m_pGuild)
+	if (!pTCHAR || !pTCHAR->m_pGuild)
 		return EC_NOERROR;
 
 	pServer->SendMW_GUILDARTICLELIST_REQ(dwCharID, dwKEY, pTCHAR->m_pGuild);
 
 	return EC_NOERROR;
 }
-DWORD CTWorldSvrModule::OnMW_GUILDARTICLEADD_ACK( LPPACKETBUF pBUF)
+DWORD CTWorldSvrModule::OnMW_GUILDARTICLEADD_ACK(LPPACKETBUF pBUF)
 {
 	CTServer * pServer = (CTServer *)pBUF->m_pSESSION;
 
@@ -4023,10 +4018,10 @@ DWORD CTWorldSvrModule::OnMW_GUILDARTICLEADD_ACK( LPPACKETBUF pBUF)
 		>> strTitle
 		>> strArticle;
 
-	if(strTitle == NAME_NULL)
+	if (strTitle == NAME_NULL)
 		return EC_NOERROR;
 
-	if(strTitle.GetLength() > MAX_BOARD_TITLE ||
+	if (strTitle.GetLength() > MAX_BOARD_TITLE ||
 		strArticle.GetLength() > MAX_BOARD_TEXT)
 		return EC_NOERROR;
 
@@ -4034,17 +4029,17 @@ DWORD CTWorldSvrModule::OnMW_GUILDARTICLEADD_ACK( LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pTCHAR || !pTCHAR->m_pGuild)
+	if (!pTCHAR || !pTCHAR->m_pGuild)
 		return EC_NOERROR;
 
 	LPTGUILDMEMBER pMember = pTCHAR->m_pGuild->FindMember(pTCHAR->m_dwCharID);
-	if(!pMember)
+	if (!pMember)
 		return EC_NOERROR;
 
 	DWORD dwTime = DWORD(m_timeCurrent);
 
 	DWORD dwID = pTCHAR->m_pGuild->AddArticle(pMember->m_bDuty, pMember->m_strName, strTitle, strArticle, dwTime);
-	if(dwID)
+	if (dwID)
 	{
 		pServer->SendMW_GUILDARTICLEADD_REQ(dwCharID, dwKEY, GUILD_SUCCESS);
 		pServer->SendMW_GUILDARTICLELIST_REQ(dwCharID, dwKEY, pTCHAR->m_pGuild);
@@ -4055,7 +4050,7 @@ DWORD CTWorldSvrModule::OnMW_GUILDARTICLEADD_ACK( LPPACKETBUF pBUF)
 
 	return EC_NOERROR;
 }
-DWORD CTWorldSvrModule::OnDM_GUILDARTICLEADD_REQ( LPPACKETBUF pBUF)
+DWORD CTWorldSvrModule::OnDM_GUILDARTICLEADD_REQ(LPPACKETBUF pBUF)
 {
 	DWORD dwGuildID;
 	DWORD dwID;
@@ -4075,7 +4070,7 @@ DWORD CTWorldSvrModule::OnDM_GUILDARTICLEADD_REQ( LPPACKETBUF pBUF)
 		>> dwTime;
 
 	DEFINE_QUERY(&m_db, CSPGuildArticleAdd)
-	query->m_dwGuildID = dwGuildID;
+		query->m_dwGuildID = dwGuildID;
 	query->m_dwID = dwID;
 	query->m_bDuty = bDuty;
 	lstrcpy(query->m_szWritter, strWritter);
@@ -4087,7 +4082,7 @@ DWORD CTWorldSvrModule::OnDM_GUILDARTICLEADD_REQ( LPPACKETBUF pBUF)
 
 	return EC_NOERROR;
 }
-DWORD CTWorldSvrModule::OnMW_GUILDARTICLEDEL_ACK( LPPACKETBUF pBUF)
+DWORD CTWorldSvrModule::OnMW_GUILDARTICLEDEL_ACK(LPPACKETBUF pBUF)
 {
 	CTServer * pServer = (CTServer *)pBUF->m_pSESSION;
 
@@ -4104,10 +4099,10 @@ DWORD CTWorldSvrModule::OnMW_GUILDARTICLEDEL_ACK( LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pTCHAR || !pTCHAR->m_pGuild)
+	if (!pTCHAR || !pTCHAR->m_pGuild)
 		return EC_NOERROR;
 
-	if(pTCHAR->m_pGuild->DelArticle(dwID))
+	if (pTCHAR->m_pGuild->DelArticle(dwID))
 	{
 		pServer->SendMW_GUILDARTICLEDEL_REQ(dwCharID, dwKEY, GUILD_SUCCESS);
 		pServer->SendMW_GUILDARTICLELIST_REQ(dwCharID, dwKEY, pTCHAR->m_pGuild);
@@ -4118,7 +4113,7 @@ DWORD CTWorldSvrModule::OnMW_GUILDARTICLEDEL_ACK( LPPACKETBUF pBUF)
 
 	return EC_NOERROR;
 }
-DWORD CTWorldSvrModule::OnDM_GUILDARTICLEDEL_REQ( LPPACKETBUF pBUF)
+DWORD CTWorldSvrModule::OnDM_GUILDARTICLEDEL_REQ(LPPACKETBUF pBUF)
 {
 	DWORD dwGuildID;
 	DWORD dwID;
@@ -4128,14 +4123,14 @@ DWORD CTWorldSvrModule::OnDM_GUILDARTICLEDEL_REQ( LPPACKETBUF pBUF)
 		>> dwID;
 
 	DEFINE_QUERY(&m_db, CSPGuildArticleDel)
-	query->m_dwGuildID = dwGuildID;
+		query->m_dwGuildID = dwGuildID;
 	query->m_dwID = dwID;
 	query->Call();
 	UNDEFINE_QUERY();
 
 	return EC_NOERROR;
 }
-DWORD CTWorldSvrModule::OnMW_GUILDARTICLEUPDATE_ACK( LPPACKETBUF pBUF)
+DWORD CTWorldSvrModule::OnMW_GUILDARTICLEUPDATE_ACK(LPPACKETBUF pBUF)
 {
 	CTServer * pServer = (CTServer *)pBUF->m_pSESSION;
 
@@ -4152,10 +4147,10 @@ DWORD CTWorldSvrModule::OnMW_GUILDARTICLEUPDATE_ACK( LPPACKETBUF pBUF)
 		>> strTitle
 		>> strArticle;
 
-	if(strTitle == NAME_NULL)
+	if (strTitle == NAME_NULL)
 		return EC_NOERROR;
 
-	if(strTitle.GetLength() > MAX_BOARD_TITLE ||
+	if (strTitle.GetLength() > MAX_BOARD_TITLE ||
 		strArticle.GetLength() > MAX_BOARD_TEXT)
 		return EC_NOERROR;
 
@@ -4163,10 +4158,10 @@ DWORD CTWorldSvrModule::OnMW_GUILDARTICLEUPDATE_ACK( LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pTCHAR || !pTCHAR->m_pGuild)
+	if (!pTCHAR || !pTCHAR->m_pGuild)
 		return EC_NOERROR;
 
-	if(pTCHAR->m_pGuild->UpdateArticle(dwID, strTitle, strArticle))
+	if (pTCHAR->m_pGuild->UpdateArticle(dwID, strTitle, strArticle))
 	{
 		pServer->SendMW_GUILDARTICLEUPDATE_REQ(dwCharID, dwKEY, GUILD_SUCCESS);
 		pServer->SendMW_GUILDARTICLELIST_REQ(dwCharID, dwKEY, pTCHAR->m_pGuild);
@@ -4177,7 +4172,7 @@ DWORD CTWorldSvrModule::OnMW_GUILDARTICLEUPDATE_ACK( LPPACKETBUF pBUF)
 
 	return EC_NOERROR;
 }
-DWORD CTWorldSvrModule::OnDM_GUILDARTICLEUPDATE_REQ( LPPACKETBUF pBUF)
+DWORD CTWorldSvrModule::OnDM_GUILDARTICLEUPDATE_REQ(LPPACKETBUF pBUF)
 {
 	DWORD dwGuildID;
 	DWORD dwID;
@@ -4191,7 +4186,7 @@ DWORD CTWorldSvrModule::OnDM_GUILDARTICLEUPDATE_REQ( LPPACKETBUF pBUF)
 		>> strArticle;
 
 	DEFINE_QUERY(&m_db, CSPGuildArticleUpdate)
-	query->m_dwGuildID = dwGuildID;
+		query->m_dwGuildID = dwGuildID;
 	query->m_dwID = dwID;
 	lstrcpy(query->m_szTitle, strTitle);
 	lstrcpy(query->m_szArticle, strArticle);
@@ -4200,7 +4195,7 @@ DWORD CTWorldSvrModule::OnDM_GUILDARTICLEUPDATE_REQ( LPPACKETBUF pBUF)
 
 	return EC_NOERROR;
 }
-DWORD CTWorldSvrModule::OnMW_GUILDFAME_ACK( LPPACKETBUF pBUF)
+DWORD CTWorldSvrModule::OnMW_GUILDFAME_ACK(LPPACKETBUF pBUF)
 {
 	CTServer * pServer = (CTServer *)pBUF->m_pSESSION;
 
@@ -4219,25 +4214,25 @@ DWORD CTWorldSvrModule::OnMW_GUILDFAME_ACK( LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pTCHAR || !pTCHAR->m_pGuild || pTCHAR->m_pGuild->m_bDisorg)
+	if (!pTCHAR || !pTCHAR->m_pGuild || pTCHAR->m_pGuild->m_bDisorg)
 		return EC_NOERROR;
 
 	DWORD dwUsePoint = 30000;
 
-	if(pTCHAR->m_pGuild->m_dwPvPUseablePoint < dwUsePoint)
+	if (pTCHAR->m_pGuild->m_dwPvPUseablePoint < dwUsePoint)
 	{
 		pServer->SendMW_GUILDFAME_REQ(
-			dwCharID, 
-			dwKEY, 
-			GUILD_NOPOINT, 
 			dwCharID,
-			dwFame, 
+			dwKEY,
+			GUILD_NOPOINT,
+			dwCharID,
+			dwFame,
 			dwFameColor);
 
 		return EC_NOERROR;
 	}
 
-	if(pTCHAR->m_pGuild->m_dwFame == dwFame &&
+	if (pTCHAR->m_pGuild->m_dwFame == dwFame &&
 		pTCHAR->m_pGuild->m_dwFameColor == dwFameColor)
 		return EC_NOERROR;
 
@@ -4245,19 +4240,19 @@ DWORD CTWorldSvrModule::OnMW_GUILDFAME_ACK( LPPACKETBUF pBUF)
 	pTCHAR->m_pGuild->SetFame(dwFame, dwFameColor);
 
 	MAPTGUILDMEMBER::iterator it;
-	for(it=pTCHAR->m_pGuild->m_mapTMember.begin(); it!=pTCHAR->m_pGuild->m_mapTMember.end(); it++)
+	for (it = pTCHAR->m_pGuild->m_mapTMember.begin(); it != pTCHAR->m_pGuild->m_mapTMember.end(); it++)
 	{
-		if((*it).second->m_pChar)
+		if ((*it).second->m_pChar)
 		{
 			CTServer *pMap = FindMapSvr((*it).second->m_pChar->m_bMainID);
-			if(pMap)
+			if (pMap)
 			{
 				pMap->SendMW_GUILDFAME_REQ(
-					(*it).second->m_pChar->m_dwCharID, 
-					(*it).second->m_pChar->m_dwKEY, 
-					GUILD_SUCCESS, 
+					(*it).second->m_pChar->m_dwCharID,
+					(*it).second->m_pChar->m_dwKEY,
+					GUILD_SUCCESS,
 					dwCharID,
-					dwFame, 
+					dwFame,
 					dwFameColor);
 			}
 		}
@@ -4266,7 +4261,7 @@ DWORD CTWorldSvrModule::OnMW_GUILDFAME_ACK( LPPACKETBUF pBUF)
 
 	return EC_NOERROR;
 }
-DWORD CTWorldSvrModule::OnDM_GUILDFAME_REQ( LPPACKETBUF pBUF)
+DWORD CTWorldSvrModule::OnDM_GUILDFAME_REQ(LPPACKETBUF pBUF)
 {
 	DWORD dwGuildID;
 	DWORD dwFame;
@@ -4278,7 +4273,7 @@ DWORD CTWorldSvrModule::OnDM_GUILDFAME_REQ( LPPACKETBUF pBUF)
 		>> dwFameColor;
 
 	DEFINE_QUERY(&m_db, CSPGuildFame)
-	query->m_dwGuildID = dwGuildID;
+		query->m_dwGuildID = dwGuildID;
 	query->m_dwFame = dwFame;
 	query->m_dwFameColor = dwFameColor;
 	query->Call();
@@ -4307,10 +4302,10 @@ DWORD CTWorldSvrModule::OnMW_GUILDWANTEDADD_ACK(LPPACKETBUF pBUF)
 		>> bMinLevel
 		>> bMaxLevel;
 
-	if(strTitle == NAME_NULL)
+	if (strTitle == NAME_NULL)
 		return EC_NOERROR;
 
-	if(strTitle.GetLength() > MAX_BOARD_TITLE ||
+	if (strTitle.GetLength() > MAX_BOARD_TITLE ||
 		strText.GetLength() > MAX_BOARD_TEXT)
 		return EC_NOERROR;
 
@@ -4318,7 +4313,7 @@ DWORD CTWorldSvrModule::OnMW_GUILDWANTEDADD_ACK(LPPACKETBUF pBUF)
 		dwCharID,
 		dwKey);
 
-	if(!pTCHAR || !pTCHAR->m_pGuild || pTCHAR->m_pGuild->m_bDisorg)
+	if (!pTCHAR || !pTCHAR->m_pGuild || pTCHAR->m_pGuild->m_bDisorg)
 		return EC_NOERROR;
 
 	BYTE bResult = AddGuildWanted(pTCHAR->m_pGuild, bMinLevel, bMaxLevel, strTitle, strText);
@@ -4328,7 +4323,7 @@ DWORD CTWorldSvrModule::OnMW_GUILDWANTEDADD_ACK(LPPACKETBUF pBUF)
 		pTCHAR->m_dwKEY,
 		bResult);
 
-	if(!bResult)
+	if (!bResult)
 	{
 		NotifyGuildWantedList(dwCharID, dwKey, pServer);
 		SendDM_GUILDWANTEDADD_REQ(pTCHAR->m_pGuild->m_dwID, bMinLevel, bMaxLevel, strTitle, strText);
@@ -4352,7 +4347,7 @@ DWORD CTWorldSvrModule::OnMW_GUILDWANTEDDEL_ACK(LPPACKETBUF pBUF)
 
 	LPTCHARACTER pTCHAR = FindTChar(dwCharID, dwKey);
 
-	if(!pTCHAR || !pTCHAR->m_pGuild)
+	if (!pTCHAR || !pTCHAR->m_pGuild)
 		return EC_NOERROR;
 
 	BYTE bResult = DelGuildWanted(pTCHAR->m_pGuild);
@@ -4361,7 +4356,7 @@ DWORD CTWorldSvrModule::OnMW_GUILDWANTEDDEL_ACK(LPPACKETBUF pBUF)
 		pTCHAR->m_dwKEY,
 		bResult);
 
-	if(!bResult)
+	if (!bResult)
 	{
 		NotifyGuildWantedList(dwCharID, dwKey, pServer);
 		SendDM_GUILDWANTEDDEL_REQ(pTCHAR->m_pGuild->m_dwID);
@@ -4381,9 +4376,9 @@ DWORD CTWorldSvrModule::OnMW_GUILDWANTEDLIST_ACK(LPPACKETBUF pBUF)
 		>> dwKey;
 
 	MAPTGUILDWANTED::iterator it;
-	for(it=m_mapTGuildWanted.begin(); it!=m_mapTGuildWanted.end(); it++)
+	for (it = m_mapTGuildWanted.begin(); it != m_mapTGuildWanted.end(); it++)
 	{
-		if((*it).second.m_dlEndTime + DAY_ONE < m_timeCurrent)
+		if ((*it).second.m_dlEndTime + DAY_ONE < m_timeCurrent)
 		{
 			LPPACKETBUF pBUF = new PACKETBUF();
 			pBUF->m_packet.SetID(SM_EVENTEXPIRED_ACK)
@@ -4416,7 +4411,7 @@ DWORD CTWorldSvrModule::OnMW_GUILDVOLUNTEERING_ACK(LPPACKETBUF pBUF)
 
 	LPTCHARACTER pTCHAR = FindTChar(dwCharID, dwKey);
 
-	if(!pTCHAR || pTCHAR->m_pGuild)
+	if (!pTCHAR || pTCHAR->m_pGuild)
 		return EC_NOERROR;
 
 	BYTE bResult = AddGuildWantedApp(
@@ -4432,7 +4427,7 @@ DWORD CTWorldSvrModule::OnMW_GUILDVOLUNTEERING_ACK(LPPACKETBUF pBUF)
 		dwKey,
 		bResult);
 
-	if(!bResult)
+	if (!bResult)
 	{
 		NotifyGuildWantedList(dwCharID, dwKey, pServer);
 		SendDM_GUILDVOLUNTEERING_REQ(GUILDAPP_MEMBER, dwCharID, dwID);
@@ -4453,7 +4448,7 @@ DWORD CTWorldSvrModule::OnMW_GUILDVOLUNTEERINGDEL_ACK(LPPACKETBUF pBUF)
 
 	LPTCHARACTER pTCHAR = FindTChar(dwCharID, dwKey);
 
-	if(!pTCHAR)
+	if (!pTCHAR)
 		return EC_NOERROR;
 
 	BYTE bResult = DelGuildWantedApp(dwCharID);
@@ -4463,7 +4458,7 @@ DWORD CTWorldSvrModule::OnMW_GUILDVOLUNTEERINGDEL_ACK(LPPACKETBUF pBUF)
 		dwKey,
 		bResult);
 
-	if(!bResult)
+	if (!bResult)
 		NotifyGuildWantedList(dwCharID, dwKey, pServer);
 
 	return EC_NOERROR;
@@ -4500,18 +4495,18 @@ DWORD CTWorldSvrModule::OnMW_GUILDVOLUNTEERREPLY_ACK(LPPACKETBUF pBUF)
 
 	LPTCHARACTER pTCHAR = FindTChar(dwCharID, dwKey);
 
-	if(!pTCHAR || !pTCHAR->m_pGuild)
+	if (!pTCHAR || !pTCHAR->m_pGuild)
 		return EC_NOERROR;
 
 	BYTE bResult = GUILD_SUCCESS;
 
-	if(!bReply)
-		DelGuildWantedApp(dwTarget);		
+	if (!bReply)
+		DelGuildWantedApp(dwTarget);
 	else
 	{
 		bResult = ApplyGuildApp(dwTarget);
 
-		if(bResult)
+		if (bResult)
 			pServer->SendMW_GUILDVOLUNTEERREPLY_REQ(
 				dwCharID,
 				dwKey,
@@ -4553,10 +4548,10 @@ DWORD CTWorldSvrModule::OnMW_GUILDTACTICSWANTEDADD_ACK(LPPACKETBUF pBUF)
 		>> dwSilver
 		>> dwCooper;
 
-	if(strTitle == NAME_NULL)
+	if (strTitle == NAME_NULL)
 		return EC_NOERROR;
 
-	if(strTitle.GetLength() > MAX_BOARD_TITLE ||
+	if (strTitle.GetLength() > MAX_BOARD_TITLE ||
 		strText.GetLength() > MAX_BOARD_TEXT)
 		return EC_NOERROR;
 
@@ -4564,7 +4559,7 @@ DWORD CTWorldSvrModule::OnMW_GUILDTACTICSWANTEDADD_ACK(LPPACKETBUF pBUF)
 		dwCharID,
 		dwKey);
 
-	if(!pTCHAR || !pTCHAR->m_pGuild || pTCHAR->m_pGuild->m_bDisorg)
+	if (!pTCHAR || !pTCHAR->m_pGuild || pTCHAR->m_pGuild->m_bDisorg)
 		return EC_NOERROR;
 
 	dwID = (dwID > 0) ? dwID : ++m_dwTacticsIndex;
@@ -4587,7 +4582,7 @@ DWORD CTWorldSvrModule::OnMW_GUILDTACTICSWANTEDADD_ACK(LPPACKETBUF pBUF)
 		pTCHAR->m_dwKEY,
 		bResult);
 
-	if(!bResult)
+	if (!bResult)
 	{
 		NotifyGuildTacticsWantedList(dwCharID, dwKey, pServer);
 		SendDM_GUILDTACTICSWANTEDADD_REQ(
@@ -4615,7 +4610,7 @@ DWORD CTWorldSvrModule::OnMW_GUILDTACTICSWANTEDDEL_ACK(LPPACKETBUF pBUF)
 
 	LPTCHARACTER pTCHAR = FindTChar(dwCharID, dwKey);
 
-	if(!pTCHAR || !pTCHAR->m_pGuild)
+	if (!pTCHAR || !pTCHAR->m_pGuild)
 		return EC_NOERROR;
 
 	BYTE bResult = DelGuildTacticsWanted(pTCHAR->m_pGuild, dwID);
@@ -4624,7 +4619,7 @@ DWORD CTWorldSvrModule::OnMW_GUILDTACTICSWANTEDDEL_ACK(LPPACKETBUF pBUF)
 		pTCHAR->m_dwKEY,
 		bResult);
 
-	if(!bResult)
+	if (!bResult)
 	{
 		NotifyGuildTacticsWantedList(dwCharID, dwKey, pServer);
 		SendDM_GUILDTACTICSWANTEDDEL_REQ(dwID);
@@ -4644,11 +4639,11 @@ DWORD CTWorldSvrModule::OnMW_GUILDTACTICSWANTEDLIST_ACK(LPPACKETBUF pBUF)
 		>> dwKey;
 
 	MAPVTGUILDTACTICSWANTED::iterator it;
-	for(it=m_mapTGuildTacticsWanted.begin(); it!=m_mapTGuildTacticsWanted.end(); it++)
+	for (it = m_mapTGuildTacticsWanted.begin(); it != m_mapTGuildTacticsWanted.end(); it++)
 	{
-		for(DWORD i=0; i<(*it).second.size(); i++)
+		for (DWORD i = 0; i<(*it).second.size(); i++)
 		{
-			if(((*it).second)[i].m_dlEndTime + DAY_ONE < m_timeCurrent)
+			if (((*it).second)[i].m_dlEndTime + DAY_ONE < m_timeCurrent)
 			{
 				LPPACKETBUF pBUF = new PACKETBUF();
 				pBUF->m_packet.SetID(SM_EVENTEXPIRED_ACK)
@@ -4683,7 +4678,7 @@ DWORD CTWorldSvrModule::OnMW_GUILDTACTICSVOLUNTEERING_ACK(LPPACKETBUF pBUF)
 
 	LPTCHARACTER pTCHAR = FindTChar(dwCharID, dwKey);
 
-	if(!pTCHAR)
+	if (!pTCHAR)
 		return EC_NOERROR;
 
 	BYTE bResult = AddGuildTacticsWantedApp(
@@ -4700,7 +4695,7 @@ DWORD CTWorldSvrModule::OnMW_GUILDTACTICSVOLUNTEERING_ACK(LPPACKETBUF pBUF)
 		dwKey,
 		bResult);
 
-	if(!bResult)
+	if (!bResult)
 	{
 		NotifyGuildTacticsWantedList(dwCharID, dwKey, pServer);
 		SendDM_GUILDVOLUNTEERING_REQ(GUILDAPP_TACTICS, dwCharID, dwID);
@@ -4721,7 +4716,7 @@ DWORD CTWorldSvrModule::OnMW_GUILDTACTICSVOLUNTEERINGDEL_ACK(LPPACKETBUF pBUF)
 
 	LPTCHARACTER pTCHAR = FindTChar(dwCharID, dwKey);
 
-	if(!pTCHAR)
+	if (!pTCHAR)
 		return EC_NOERROR;
 
 	BYTE bResult = DelGuildTacticsWantedApp(dwCharID);
@@ -4731,7 +4726,7 @@ DWORD CTWorldSvrModule::OnMW_GUILDTACTICSVOLUNTEERINGDEL_ACK(LPPACKETBUF pBUF)
 		dwKey,
 		bResult);
 
-	if(!bResult)
+	if (!bResult)
 		NotifyGuildTacticsWantedList(dwCharID, dwKey, pServer);
 
 	return EC_NOERROR;
@@ -4767,22 +4762,22 @@ DWORD CTWorldSvrModule::OnMW_GUILDTACTICSREPLY_ACK(LPPACKETBUF pBUF)
 		>> bReply;
 
 	LPTCHARACTER pTCHAR = FindTChar(dwCharID, dwKey);
-	if(!pTCHAR || !pTCHAR->m_pGuild)
+	if (!pTCHAR || !pTCHAR->m_pGuild)
 		return EC_NOERROR;
 
 	BYTE bResult = GUILD_SUCCESS;
 
-	if(!bReply)
-		DelGuildTacticsWantedApp(dwTarget);		
+	if (!bReply)
+		DelGuildTacticsWantedApp(dwTarget);
 	else
 	{
 		bResult = ApplyGuildTacticsApp(dwTarget);
-		if(bResult)
+		if (bResult)
 			pServer->SendMW_GUILDTACTICSREPLY_REQ(
 				pTCHAR->m_dwCharID,
 				pTCHAR->m_dwKEY,
 				bResult,
-				dwTarget);		
+				dwTarget);
 	}
 
 	NotifyGuildTacticsVolunteerList(dwCharID, dwKey, pServer);
@@ -4804,19 +4799,19 @@ DWORD CTWorldSvrModule::OnMW_GUILDTACTICSKICKOUT_ACK(LPPACKETBUF pBUF)
 
 	LPTCHARACTER pTCHAR = FindTChar(dwCharID, dwKey);
 
-	if(!pTCHAR)
+	if (!pTCHAR)
 		return EC_NOERROR;
 
 	CTGuild * pGuild = NULL;
 	LPTTACTICSMEMBER pMember = NULL;
 
-	if(dwCharID != dwTarget)
+	if (dwCharID != dwTarget)
 	{
-		if(!pTCHAR->m_pGuild)
+		if (!pTCHAR->m_pGuild)
 			return EC_NOERROR;
 
 		pMember = pTCHAR->m_pGuild->FindTactics(dwTarget);
-		if(!pMember)
+		if (!pMember)
 			return EC_NOERROR;
 
 		pGuild = pTCHAR->m_pGuild;
@@ -4824,37 +4819,37 @@ DWORD CTWorldSvrModule::OnMW_GUILDTACTICSKICKOUT_ACK(LPPACKETBUF pBUF)
 	else
 	{
 		MAPDWORD::iterator itTc = m_mapCharTactics.find(dwTarget);
-		if(itTc == m_mapCharTactics.end())
+		if (itTc == m_mapCharTactics.end())
 			return EC_NOERROR;
 
 		CTGuild * pTG = FindTGuild(itTc->second);
-		if(!pTG)
+		if (!pTG)
 			return EC_NOERROR;
 
 		pMember = pTG->FindTactics(dwTarget);
-		if(!pMember)
+		if (!pMember)
 			return EC_NOERROR;
 
 		pGuild = pTG;
 	}
 
-	if(!pGuild || !pMember)
+	if (!pGuild || !pMember)
 		return EC_NOERROR;
 
-	BYTE bResult = GuildTacticsDel(pGuild, pMember, (dwCharID==dwTarget) ? 0 : 1);
+	BYTE bResult = GuildTacticsDel(pGuild, pMember, (dwCharID == dwTarget) ? 0 : 1);
 
-	if(dwCharID != dwTarget)
+	if (dwCharID != dwTarget)
 	{
 		pServer->SendMW_GUILDTACTICSKICKOUT_REQ(
 			dwCharID,
 			dwKey,
 			bResult,
 			dwTarget,
-			(dwCharID==dwTarget) ? 0 : 1);
+			(dwCharID == dwTarget) ? 0 : 1);
 
 		pServer->SendMW_GUILDTACTICSLIST_REQ(
-			dwCharID, 
-			dwKey, 
+			dwCharID,
+			dwKey,
 			pGuild);
 	}
 
@@ -4885,41 +4880,41 @@ DWORD CTWorldSvrModule::OnMW_GUILDTACTICSINVITE_ACK(LPPACKETBUF pBUF)
 
 	LPTCHARACTER pTCHAR = FindTChar(dwCharID, dwKey);
 
-	if(!pTCHAR || !pTCHAR->m_pGuild)
+	if (!pTCHAR || !pTCHAR->m_pGuild)
 		return EC_NOERROR;
 
 	BYTE bResult = GUILD_SUCCESS;
 
 	LPTCHARACTER pTarget = FindTChar(strName);
-	if(!pTarget)
+	if (!pTarget)
 		bResult = GUILD_NOTFOUND;
-	else if(GetWarCountry(pTarget) != GetWarCountry(pTCHAR))
+	else if (GetWarCountry(pTarget) != GetWarCountry(pTCHAR))
 		bResult = GUILD_FAIL;
-	else if(pTCHAR->m_pGuild->m_dwPvPUseablePoint < dwPoint)
+	else if (pTCHAR->m_pGuild->m_dwPvPUseablePoint < dwPoint)
 		bResult = GUILD_NOPOINT;
-	else if(!pTCHAR->m_pGuild->UseMoney(dwGold, dwSilver, dwCooper, FALSE))
+	else if (!pTCHAR->m_pGuild->UseMoney(dwGold, dwSilver, dwCooper, FALSE))
 		bResult = GUILD_NOMONEY;
-	else if(pTarget->m_pTactics && pTarget->m_pTactics->m_dwID != pTCHAR->m_pGuild->m_dwID)
+	else if (pTarget->m_pTactics && pTarget->m_pTactics->m_dwID != pTCHAR->m_pGuild->m_dwID)
 		bResult = GUILD_HAVEGUILD;
-	else if(!pTarget->m_pTactics && !pTCHAR->m_pGuild->CanAddTactics())
+	else if (!pTarget->m_pTactics && !pTCHAR->m_pGuild->CanAddTactics())
 		bResult = GUILD_MEMBER_FULL;
-	else if(pTarget->m_pGuild)
+	else if (pTarget->m_pGuild)
 	{
-		if(pTarget->m_pGuild->m_dwID == pTCHAR->m_pGuild->m_dwID)
+		if (pTarget->m_pGuild->m_dwID == pTCHAR->m_pGuild->m_dwID)
 			bResult = GUILD_SAMEGUILDTACTICS;
-/*		else
+		/*		else
 		{
-			LPTGUILDMEMBER pMember = pTarget->m_pGuild->FindMember(pTarget->m_dwCharID);
-			if(pMember && pMember->m_bDuty >= GUILD_DUTY_VICECHIEF)
-				bResult = GUILD_NODUTY;
+		LPTGUILDMEMBER pMember = pTarget->m_pGuild->FindMember(pTarget->m_dwCharID);
+		if(pMember && pMember->m_bDuty >= GUILD_DUTY_VICECHIEF)
+		bResult = GUILD_NODUTY;
 		}
-*/
+		*/
 	}
 
-	if(bResult == GUILD_SUCCESS)
+	if (bResult == GUILD_SUCCESS)
 	{
 		CTServer * pMain = FindMapSvr(pTarget->m_bMainID);
-		if(pMain)
+		if (pMain)
 			pMain->SendMW_GUILDTACTICSINVITE_REQ(
 				pTarget->m_dwCharID,
 				pTarget->m_dwKEY,
@@ -4975,47 +4970,47 @@ DWORD CTWorldSvrModule::OnMW_GUILDTACTICSANSWER_ACK(LPPACKETBUF pBUF)
 
 	LPTCHARACTER pTCHAR = FindTChar(dwCharID, dwKey);
 
-	if(!pTCHAR)
+	if (!pTCHAR)
 		return EC_NOERROR;
 
 	LPTCHARACTER pOrigin = FindTChar(strName);
-	if(!pOrigin || !pOrigin->m_pGuild)
+	if (!pOrigin || !pOrigin->m_pGuild)
 		return EC_NOERROR;
 
 	CTGuild * pGuild = pOrigin->m_pGuild;
-	if(pTCHAR->m_pTactics && pTCHAR->m_pTactics->m_dwID != pGuild->m_dwID)
+	if (pTCHAR->m_pTactics && pTCHAR->m_pTactics->m_dwID != pGuild->m_dwID)
 		return EC_NOERROR;
-/*
+	/*
 	if(pTCHAR->m_pGuild)
 	{
-		LPTGUILDMEMBER pGM = pTCHAR->m_pGuild->FindMember(dwCharID);
-		if(pGM && pGM->m_bDuty >= GUILD_DUTY_VICECHIEF)
-			return EC_NOERROR;
+	LPTGUILDMEMBER pGM = pTCHAR->m_pGuild->FindMember(dwCharID);
+	if(pGM && pGM->m_bDuty >= GUILD_DUTY_VICECHIEF)
+	return EC_NOERROR;
 	}
-*/
+	*/
 	INT64 timeCur = m_timeCurrent;
 	LPTTACTICSMEMBER pMember = pGuild->FindTactics(pTCHAR->m_dwCharID);
 
 	BYTE bResult = GUILD_SUCCESS;
 
-	if(bAnswer == ASK_YES)
+	if (bAnswer == ASK_YES)
 	{
-		if(pGuild->m_dwPvPUseablePoint < dwPoint)
+		if (pGuild->m_dwPvPUseablePoint < dwPoint)
 			bResult = GUILD_NOPOINT;
-		else if(GetWarCountry(pOrigin) != GetWarCountry(pTCHAR))
+		else if (GetWarCountry(pOrigin) != GetWarCountry(pTCHAR))
 			bResult = GUILD_FAIL;
-		else if(!pGuild->UseMoney(dwGold, dwSilver, dwCooper, FALSE))
+		else if (!pGuild->UseMoney(dwGold, dwSilver, dwCooper, FALSE))
 			bResult = GUILD_NOMONEY;
-		else if(pTCHAR->m_pTactics && pTCHAR->m_pTactics->m_dwID != pGuild->m_dwID)
+		else if (pTCHAR->m_pTactics && pTCHAR->m_pTactics->m_dwID != pGuild->m_dwID)
 			bResult = GUILD_HAVEGUILD;
-		else if(!pTCHAR->m_pTactics && !pGuild->CanAddTactics())
+		else if (!pTCHAR->m_pTactics && !pGuild->CanAddTactics())
 			bResult = GUILD_MEMBER_FULL;
-		else if(pTCHAR->m_pGuild && pTCHAR->m_pGuild->m_dwID == pGuild->m_dwID)
+		else if (pTCHAR->m_pGuild && pTCHAR->m_pGuild->m_dwID == pGuild->m_dwID)
 			bResult = GUILD_SAMEGUILDTACTICS;
 
-		if(bResult == GUILD_SUCCESS)
+		if (bResult == GUILD_SUCCESS)
 		{
-			if(pMember)
+			if (pMember)
 			{
 				timeCur = pMember->m_dlEndTime;
 				GuildTacticsDel(pGuild, pMember, 2);
@@ -5056,7 +5051,7 @@ DWORD CTWorldSvrModule::OnMW_GUILDTACTICSANSWER_ACK(LPPACKETBUF pBUF)
 		dwCooper);
 
 	CTServer * pChiefMap = FindMapSvr(pOrigin->m_bMainID);
-	if(pChiefMap)
+	if (pChiefMap)
 	{
 		pChiefMap->SendMW_GUILDTACTICSANSWER_REQ(
 			pOrigin->m_dwCharID,
@@ -5090,12 +5085,12 @@ DWORD CTWorldSvrModule::OnMW_GUILDTACTICSLIST_ACK(LPPACKETBUF pBUF)
 
 	CTGuild * pCurGuild = GetCurGuild(pTCHAR);
 
-	if(!pTCHAR || !pCurGuild)
+	if (!pTCHAR || !pCurGuild)
 		return EC_NOERROR;
 
 	pServer->SendMW_GUILDTACTICSLIST_REQ(
-		dwCharID, 
-		dwKEY, 
+		dwCharID,
+		dwKEY,
 		pCurGuild);
 
 	return EC_NOERROR;
@@ -5129,173 +5124,143 @@ DWORD CTWorldSvrModule::OnMW_CHAT_ACK(LPPACKETBUF pBUF)
 		>> strTalk;
 
 	MAPTCHARACTER::iterator itSd = m_mapTCHAR.find(dwSender);
-	if(itSd == m_mapTCHAR.end())
+	if (itSd == m_mapTCHAR.end())
 		return EC_NOERROR;
-/*
+	/*
 	else if(m_pRelay)
 	{
-		LPTCHARACTER pChar = (*itSd).second;
-		if(m_timeCurrent - pChar->m_timeRelay > 30)
-		{
-			pChar->m_timeRelay = m_timeCurrent;
-			pServer->SendMW_RELAYCONNECT_REQ(dwSender);
-		}
+	LPTCHARACTER pChar = (*itSd).second;
+	if(m_timeCurrent - pChar->m_timeRelay > 30)
+	{
+	pChar->m_timeRelay = m_timeCurrent;
+	pServer->SendMW_RELAYCONNECT_REQ(dwSender);
 	}
-*/
-	switch(bGroup)
+	}
+	*/
+	switch (bGroup)
 	{
 	case CHAT_TACTICS:
+	{
+		CTGuild * pGuild = FindTGuild(dwTarget);
+		if (!pGuild)
+			return EC_NOERROR;
+
+		MAPTGUILDMEMBER::iterator it;
+		for (it = pGuild->m_mapTMember.begin(); it != pGuild->m_mapTMember.end(); it++)
 		{
-			CTGuild * pGuild = FindTGuild(dwTarget);
-			if(!pGuild)
-				return EC_NOERROR;
-
-			MAPTGUILDMEMBER::iterator it;
-			for(it=pGuild->m_mapTMember.begin(); it!=pGuild->m_mapTMember.end(); it++)
+			if ((*it).second->m_pChar)
 			{
-				if((*it).second->m_pChar)
-				{
-					CTServer * pCon = FindMapSvr((*it).second->m_pChar->m_bMainID);
-					if(pCon)
-						pCon->SendMW_CHAT_REQ(
-							(*it).second->m_pChar->m_dwCharID,
-							(*it).second->m_pChar->m_dwKEY,
-							bChannel,
-							dwSender,
-							strSenderName,
-							itSd->second->m_bCountry,
-							itSd->second->m_bAidCountry,
-							bType,
-							bGroup,
-							dwTarget,
-							strTalk);
-				}
-			}
-
-			MAPTTACTICSMEMBER::iterator itTs;
-			for(itTs=pGuild->m_mapTTactics.begin(); itTs!=pGuild->m_mapTTactics.end(); itTs++)
-			{
-				if((*itTs).second->m_pChar)
-				{
-					CTServer * pCon = FindMapSvr((*itTs).second->m_pChar->m_bMainID);
-					if(pCon)
-						pCon->SendMW_CHAT_REQ(
-							(*itTs).second->m_pChar->m_dwCharID,
-							(*itTs).second->m_pChar->m_dwKEY,
-							bChannel,
-							dwSender,
-							strSenderName,
-							itSd->second->m_bCountry,
-							itSd->second->m_bAidCountry,
-							bType,
-							bGroup,
-							dwTarget,
-							strTalk);
-				}
+				CTServer * pCon = FindMapSvr((*it).second->m_pChar->m_bMainID);
+				if (pCon)
+					pCon->SendMW_CHAT_REQ(
+					(*it).second->m_pChar->m_dwCharID,
+						(*it).second->m_pChar->m_dwKEY,
+						bChannel,
+						dwSender,
+						strSenderName,
+						itSd->second->m_bCountry,
+						itSd->second->m_bAidCountry,
+						bType,
+						bGroup,
+						dwTarget,
+						strTalk);
 			}
 		}
-		break;
+
+		MAPTTACTICSMEMBER::iterator itTs;
+		for (itTs = pGuild->m_mapTTactics.begin(); itTs != pGuild->m_mapTTactics.end(); itTs++)
+		{
+			if ((*itTs).second->m_pChar)
+			{
+				CTServer * pCon = FindMapSvr((*itTs).second->m_pChar->m_bMainID);
+				if (pCon)
+					pCon->SendMW_CHAT_REQ(
+					(*itTs).second->m_pChar->m_dwCharID,
+						(*itTs).second->m_pChar->m_dwKEY,
+						bChannel,
+						dwSender,
+						strSenderName,
+						itSd->second->m_bCountry,
+						itSd->second->m_bAidCountry,
+						bType,
+						bGroup,
+						dwTarget,
+						strTalk);
+			}
+		}
+	}
+	break;
 	case CHAT_GUILD:
-		{
-			CTGuild * pGuild = FindTGuild(dwTarget);
-			if(!pGuild)
-				return EC_NOERROR;
+	{
+		CTGuild * pGuild = FindTGuild(dwTarget);
+		if (!pGuild)
+			return EC_NOERROR;
 
-			MAPTGUILDMEMBER::iterator it;
-			for(it=pGuild->m_mapTMember.begin(); it!=pGuild->m_mapTMember.end(); it++)
+		MAPTGUILDMEMBER::iterator it;
+		for (it = pGuild->m_mapTMember.begin(); it != pGuild->m_mapTMember.end(); it++)
+		{
+			if ((*it).second->m_pChar)
 			{
-				if((*it).second->m_pChar)
-				{
-					CTServer * pCon = FindMapSvr((*it).second->m_pChar->m_bMainID);
-					if(pCon)
-						pCon->SendMW_CHAT_REQ(
-							(*it).second->m_pChar->m_dwCharID,
-							(*it).second->m_pChar->m_dwKEY,
-							bChannel,
-							dwSender,
-							strSenderName,
-							itSd->second->m_bCountry,
-							itSd->second->m_bAidCountry,
-							bType,
-							bGroup,
-							dwTarget,
-							strTalk);
-				}
+				CTServer * pCon = FindMapSvr((*it).second->m_pChar->m_bMainID);
+				if (pCon)
+					pCon->SendMW_CHAT_REQ(
+					(*it).second->m_pChar->m_dwCharID,
+						(*it).second->m_pChar->m_dwKEY,
+						bChannel,
+						dwSender,
+						strSenderName,
+						itSd->second->m_bCountry,
+						itSd->second->m_bAidCountry,
+						bType,
+						bGroup,
+						dwTarget,
+						strTalk);
 			}
 		}
-		break;
+	}
+	break;
 	case CHAT_SHOW:
 	case CHAT_MAP:
 	case CHAT_WORLD:
+	{
+		MAPTSERVER::iterator it;
+		for (it = m_mapSERVER.begin(); it != m_mapSERVER.end(); it++)
 		{
-			MAPTSERVER::iterator it;
-			for(it=m_mapSERVER.begin(); it != m_mapSERVER.end(); it++)
-			{
-				(*it).second->SendMW_CHAT_REQ(
-					0,
-					0,
-					bChannel,
-					dwSender,
-					strSenderName,
-					itSd->second->m_bCountry,
-					itSd->second->m_bAidCountry,
-					bType,
-					bGroup,
-					dwTarget,
-					strTalk);
-			}
+			(*it).second->SendMW_CHAT_REQ(
+				0,
+				0,
+				bChannel,
+				dwSender,
+				strSenderName,
+				itSd->second->m_bCountry,
+				itSd->second->m_bAidCountry,
+				bType,
+				bGroup,
+				dwTarget,
+				strTalk);
 		}
-		break;
+	}
+	break;
 	case CHAT_FORCE:
-		{
-			CTCorps * pCorps = NULL;
-			LPTCHARACTER pTCHAR = FindTChar(dwSender, dwSenderKEY);
-			if(pTCHAR && pTCHAR->m_pParty)
-				pCorps = FindCorps(pTCHAR->m_pParty->m_wCorpsID);
+	{
+		CTCorps * pCorps = NULL;
+		LPTCHARACTER pTCHAR = FindTChar(dwSender, dwSenderKEY);
+		if (pTCHAR && pTCHAR->m_pParty)
+			pCorps = FindCorps(pTCHAR->m_pParty->m_wCorpsID);
 
-			if(pCorps)
-			{
-				MAPTPARTY::iterator itParty;
-				for(itParty=pCorps->m_mapParty.begin(); itParty!=pCorps->m_mapParty.end(); itParty++)
-				{
-					CTParty * pParty = (*itParty).second;
-					for(int i=0; i<pParty->GetSize(); i++)
-					{
-						LPTCHARACTER pChar = pParty->GetMember(i);
-						if(pChar)
-						{
-							CTServer * pCon = FindMapSvr(pChar->m_bMainID);
-							if(pCon)
-								pCon->SendMW_CHAT_REQ(
-									pChar->m_dwCharID,
-									pChar->m_dwKEY,
-									bChannel,
-									dwSender,
-									strSenderName,
-									itSd->second->m_bCountry,
-									itSd->second->m_bAidCountry,
-									bType,
-									bGroup,
-									dwTarget,
-									strTalk);
-						}
-					}
-				}
-			}
-		}
-		break;
-	case CHAT_PARTY:
+		if (pCorps)
 		{
-			CTParty * pParty = FindParty((WORD)dwTarget);
-			if(pParty)
+			MAPTPARTY::iterator itParty;
+			for (itParty = pCorps->m_mapParty.begin(); itParty != pCorps->m_mapParty.end(); itParty++)
 			{
-				for(int i=0; i<pParty->GetSize(); i++)
+				CTParty * pParty = (*itParty).second;
+				for (int i = 0; i<pParty->GetSize(); i++)
 				{
 					LPTCHARACTER pChar = pParty->GetMember(i);
-					if(pChar)
+					if (pChar)
 					{
 						CTServer * pCon = FindMapSvr(pChar->m_bMainID);
-						if(pCon)
+						if (pCon)
 							pCon->SendMW_CHAT_REQ(
 								pChar->m_dwCharID,
 								pChar->m_dwKEY,
@@ -5312,52 +5277,160 @@ DWORD CTWorldSvrModule::OnMW_CHAT_ACK(LPPACKETBUF pBUF)
 				}
 			}
 		}
-		break;
-	case CHAT_WHISPER:
+	}
+	break;
+	case CHAT_PARTY:
+	{
+		CTParty * pParty = FindParty((WORD)dwTarget);
+		if (pParty)
 		{
-			MAPTCHARACTER::iterator it;
-			if(strName == GetSvrMsg(NAME_OPERATOR))
+			for (int i = 0; i<pParty->GetSize(); i++)
 			{
-				BYTE bCount = 0;				
-				for(DWORD i=0; i<m_vTOPERATOR.size(); i++)
+				LPTCHARACTER pChar = pParty->GetMember(i);
+				if (pChar)
 				{
-					it = m_mapTCHAR.find(m_vTOPERATOR[i]);
-					if(it!=m_mapTCHAR.end() &&
-						(*it).second->m_bCountry == itSd->second->m_bCountry) 
+					CTServer * pCon = FindMapSvr(pChar->m_bMainID);
+					if (pCon)
+						pCon->SendMW_CHAT_REQ(
+							pChar->m_dwCharID,
+							pChar->m_dwKEY,
+							bChannel,
+							dwSender,
+							strSenderName,
+							itSd->second->m_bCountry,
+							itSd->second->m_bAidCountry,
+							bType,
+							bGroup,
+							dwTarget,
+							strTalk);
+				}
+			}
+		}
+	}
+	break;
+	case CHAT_WHISPER:
+	{
+		MAPTCHARACTER::iterator it;
+		if (strName == GetSvrMsg(NAME_OPERATOR))
+		{
+			BYTE bCount = 0;
+			for (DWORD i = 0; i<m_vTOPERATOR.size(); i++)
+			{
+				it = m_mapTCHAR.find(m_vTOPERATOR[i]);
+				if (it != m_mapTCHAR.end() &&
+					(*it).second->m_bCountry == itSd->second->m_bCountry)
+				{
+					CTServer * pCon = FindMapSvr((*it).second->m_bMainID);
+					if (pCon)
 					{
-						CTServer * pCon = FindMapSvr((*it).second->m_bMainID);
-						if(pCon)
-						{
-							pCon->SendMW_CHAT_REQ(
-								(*it).second->m_dwCharID,
-								(*it).second->m_dwKEY,
-								bChannel,
-								dwSender,
-								strSenderName,
-								itSd->second->m_bCountry,
-								itSd->second->m_bAidCountry,
-								bType,
-								bGroup,
-								dwTarget,
-								strTalk);
-							bCount++;
-						}
+						pCon->SendMW_CHAT_REQ(
+							(*it).second->m_dwCharID,
+							(*it).second->m_dwKEY,
+							bChannel,
+							dwSender,
+							strSenderName,
+							itSd->second->m_bCountry,
+							itSd->second->m_bAidCountry,
+							bType,
+							bGroup,
+							dwTarget,
+							strTalk);
+						bCount++;
 					}
 				}
+			}
 
-				DWORD dwSenderID = dwSender;
-				if(!bCount)
-				{
-					strTalk = BuildNetString(NAME_NULL, GetSvrMsg(MSG_CHAR_LOGOUT));
-					bType = CHAT_OPERATOR;
-					dwSenderID = 0;
-				}
+			DWORD dwSenderID = dwSender;
+			if (!bCount)
+			{
+				strTalk = BuildNetString(NAME_NULL, GetSvrMsg(MSG_CHAR_LOGOUT));
+				bType = CHAT_OPERATOR;
+				dwSenderID = 0;
+			}
 
+			pServer->SendMW_CHAT_REQ(
+				dwSender,
+				dwSenderKEY,
+				bChannel,
+				dwSenderID,
+				strName,
+				itSd->second->m_bCountry,
+				itSd->second->m_bAidCountry,
+				bType,
+				bGroup,
+				dwTarget,
+				strTalk);
+
+			break;
+		}
+
+		it = m_mapTCHAR.find(dwTarget);
+		if (it != m_mapTCHAR.end())
+		{
+			if (GetWarCountry(itSd->second) != GetWarCountry(it->second) &&
+				itSd->second->m_bCountry != TCONTRY_PEACE &&
+				it->second->m_bCountry != TCONTRY_PEACE)
+				break;
+
+			CTServer * pCon = FindMapSvr((*it).second->m_bMainID);
+			if (pCon)
+			{
+				pCon->SendMW_CHAT_REQ(
+					(*it).second->m_dwCharID,
+					(*it).second->m_dwKEY,
+					bChannel,
+					dwSender,
+					strSenderName,
+					itSd->second->m_bCountry,
+					itSd->second->m_bAidCountry,
+					bType,
+					bGroup,
+					dwTarget,
+					strTalk);
 				pServer->SendMW_CHAT_REQ(
 					dwSender,
 					dwSenderKEY,
 					bChannel,
-					dwSenderID,
+					dwSender,
+					(*it).second->m_strNAME,
+					itSd->second->m_bCountry,
+					itSd->second->m_bAidCountry,
+					bType,
+					bGroup,
+					dwTarget,
+					strTalk);
+				break;
+			}
+		}
+
+		LPTCHARACTER pTarget = FindTChar(strName);
+		if (pTarget)
+		{
+			if (GetWarCountry(itSd->second) != GetWarCountry(pTarget) &&
+				itSd->second->m_bCountry != TCONTRY_PEACE &&
+				pTarget->m_bCountry != TCONTRY_PEACE)
+				break;
+
+			CTServer * pCon = FindMapSvr(pTarget->m_bMainID);
+			if (pCon)
+			{
+				pCon->SendMW_CHAT_REQ(
+					pTarget->m_dwCharID,
+					pTarget->m_dwKEY,
+					bChannel,
+					dwSender,
+					strSenderName,
+					itSd->second->m_bCountry,
+					itSd->second->m_bAidCountry,
+					bType,
+					bGroup,
+					dwTarget,
+					strTalk);
+				pServer->SendMW_CHAT_REQ(
+					dwSender,
+					dwSenderKEY,
+					bChannel,
+					dwSender,
 					strName,
 					itSd->second->m_bCountry,
 					itSd->second->m_bAidCountry,
@@ -5365,89 +5438,11 @@ DWORD CTWorldSvrModule::OnMW_CHAT_ACK(LPPACKETBUF pBUF)
 					bGroup,
 					dwTarget,
 					strTalk);
-
 				break;
 			}
-
-			it = m_mapTCHAR.find(dwTarget);
-			if(it!=m_mapTCHAR.end())
-			{
-				if(GetWarCountry(itSd->second) != GetWarCountry(it->second) &&
-					itSd->second->m_bCountry != TCONTRY_PEACE &&
-					it->second->m_bCountry != TCONTRY_PEACE)
-					break;
-
-				CTServer * pCon = FindMapSvr((*it).second->m_bMainID);
-				if(pCon)
-				{
-					pCon->SendMW_CHAT_REQ(
-						(*it).second->m_dwCharID,
-						(*it).second->m_dwKEY,
-						bChannel,
-						dwSender,
-						strSenderName,
-						itSd->second->m_bCountry,
-						itSd->second->m_bAidCountry,
-						bType,
-						bGroup,
-						dwTarget,
-						strTalk);
-					pServer->SendMW_CHAT_REQ(
-						dwSender,
-						dwSenderKEY,
-						bChannel,
-						dwSender,
-						(*it).second->m_strNAME,
-						itSd->second->m_bCountry,
-						itSd->second->m_bAidCountry,
-						bType,
-						bGroup,
-						dwTarget,
-						strTalk);
-					break;
-				}
-			}
-
-			LPTCHARACTER pTarget = FindTChar(strName);
-			if(pTarget)
-			{
-				if(GetWarCountry(itSd->second) != GetWarCountry(pTarget) &&
-					itSd->second->m_bCountry != TCONTRY_PEACE &&
-					pTarget->m_bCountry != TCONTRY_PEACE)
-					break;
-
-				CTServer * pCon = FindMapSvr(pTarget->m_bMainID);
-				if(pCon)
-				{
-					pCon->SendMW_CHAT_REQ(
-						pTarget->m_dwCharID,
-						pTarget->m_dwKEY,
-						bChannel,
-						dwSender,
-						strSenderName,
-						itSd->second->m_bCountry,
-						itSd->second->m_bAidCountry,
-						bType,
-						bGroup,
-						dwTarget,
-						strTalk);
-					pServer->SendMW_CHAT_REQ(
-						dwSender,
-						dwSenderKEY,
-						bChannel,
-						dwSender,
-						strName,
-						itSd->second->m_bCountry,
-						itSd->second->m_bAidCountry,
-						bType,
-						bGroup,
-						dwTarget,
-						strTalk);
-					break;
-				}
-			}
 		}
-		break;
+	}
+	break;
 	}
 	return EC_NOERROR;
 }
@@ -5465,11 +5460,11 @@ DWORD CTWorldSvrModule::OnMW_TAKEMONMONEY_ACK(LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pTCHAR)
+	if (!pTCHAR)
 		return EC_NOERROR;
 
 	CTServer *pServer = FindMapSvr(pTCHAR->m_bMainID);
-	if(pServer)
+	if (pServer)
 		pServer->SendMW_TAKEMONMONEY_REQ(pBUF);
 
 	return EC_NOERROR;
@@ -5488,11 +5483,11 @@ DWORD CTWorldSvrModule::OnMW_MONSTERDIE_ACK(LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pTCHAR)
+	if (!pTCHAR)
 		return EC_NOERROR;
 
 	CTServer * pServer = FindMapSvr(pTCHAR->m_bMainID);
-	if(pServer)
+	if (pServer)
 		pServer->SendMW_MONSTERDIE_REQ(pBUF);
 
 	return EC_NOERROR;
@@ -5526,7 +5521,7 @@ DWORD CTWorldSvrModule::OnMW_ADDITEM_ACK(LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pTCHAR)
+	if (!pTCHAR)
 	{
 		pServer->SendMW_ADDITEMRESULT_REQ(
 			dwCharID,
@@ -5541,7 +5536,7 @@ DWORD CTWorldSvrModule::OnMW_ADDITEM_ACK(LPPACKETBUF pBUF)
 	}
 
 	CTServer * pMain = FindMapSvr(pTCHAR->m_bMainID);
-	if(pMain)
+	if (pMain)
 		pMain->SendMW_ADDITEM_REQ(&(pBUF->m_packet));
 
 	return EC_NOERROR;
@@ -5557,7 +5552,7 @@ DWORD CTWorldSvrModule::OnMW_PARTYORDERTAKEITEM_ACK(LPPACKETBUF pBUF)
 	BYTE bChannel;
 	WORD wMapID;
 	DWORD dwMonID;
-	WORD wTempMonID;  
+	WORD wTempMonID;
 	BYTE bCnt;
 
 	VECTORDWORD vMember;
@@ -5571,12 +5566,12 @@ DWORD CTWorldSvrModule::OnMW_PARTYORDERTAKEITEM_ACK(LPPACKETBUF pBUF)
 		>> bChannel
 		>> wMapID
 		>> dwMonID
-		>> wTempMonID  
+		>> wTempMonID
 		>> bCnt;
 
 	DWORD dwID;
 
-    for(BYTE i=0; i<bCnt; i++)
+	for (BYTE i = 0; i<bCnt; i++)
 	{
 		pBUF->m_packet
 			>> dwID;
@@ -5586,7 +5581,7 @@ DWORD CTWorldSvrModule::OnMW_PARTYORDERTAKEITEM_ACK(LPPACKETBUF pBUF)
 	LPTITEM pITEM = CreateItem(&(pBUF->m_packet));
 
 	CTParty * pParty = FindParty(wPartyID);
-	if(!pParty)
+	if (!pParty)
 	{
 		pServer->SendMW_ADDITEMRESULT_REQ(
 			dwCharID,
@@ -5602,10 +5597,10 @@ DWORD CTWorldSvrModule::OnMW_PARTYORDERTAKEITEM_ACK(LPPACKETBUF pBUF)
 	}
 
 	LPTCHARACTER pNext = pParty->GetNextOrder(vMember);
-	if(pNext)
+	if (pNext)
 	{
 		CTServer * pMain = FindMapSvr(pNext->m_bMainID);
-		if(pMain)
+		if (pMain)
 			pMain->SendMW_PARTYORDERTAKEITEM_REQ(
 				pNext->m_dwCharID,
 				pNext->m_dwKEY,
@@ -5638,39 +5633,39 @@ DWORD CTWorldSvrModule::OnMW_PROTECTEDCHECK_ACK(LPPACKETBUF pBUF)
 		>> strProtected;
 
 	LPTCHARACTER pChar = FindTChar(dwCharID, dwKey);
-	if(!pChar)
+	if (!pChar)
 		return EC_NOERROR;
 
 	LPTFRIEND pFr = NULL;
 	MAPTFRIEND::iterator itFr;
-	for(itFr=pChar->m_mapTFRIEND.begin(); itFr!=pChar->m_mapTFRIEND.end(); itFr++)
+	for (itFr = pChar->m_mapTFRIEND.begin(); itFr != pChar->m_mapTFRIEND.end(); itFr++)
 	{
-		if((*itFr).second->m_strName == strProtected)
+		if ((*itFr).second->m_strName == strProtected)
 		{
 			pFr = (*itFr).second;
 			break;
 		}
 	}
 
-	if(!pFr)
+	if (!pFr)
 		return EC_NOERROR;
 
-	if(bConnect==FRIEND_DISCONNECTION )
+	if (bConnect == FRIEND_DISCONNECTION)
 		SendDM_FRIENDERASE_REQ(pChar->m_dwCharID, pFr->m_dwID);
 
 	LPTCHARACTER pTarget = FindTChar(strProtected);
-	if(!pTarget)
+	if (!pTarget)
 		return EC_NOERROR;
 
 	MAPTFRIEND::iterator it = pTarget->m_mapTFRIEND.find(dwCharID);
-	if(it==pTarget->m_mapTFRIEND.end())
+	if (it == pTarget->m_mapTFRIEND.end())
 		return EC_NOERROR;
 
 	MAPTFRIEND::iterator itC = pChar->m_mapTFRIEND.find(pTarget->m_dwCharID);
-	if(itC==pChar->m_mapTFRIEND.end())
+	if (itC == pChar->m_mapTFRIEND.end())
 		return EC_NOERROR;
 
-	switch(bConnect)
+	switch (bConnect)
 	{
 	case FRIEND_CONNECTION:
 		(*it).second->m_bConnected = TRUE;
@@ -5684,10 +5679,10 @@ DWORD CTWorldSvrModule::OnMW_PROTECTEDCHECK_ACK(LPPACKETBUF pBUF)
 		break;
 	}
 
-	if((*it).second->m_bType != FT_TARGET)
+	if ((*it).second->m_bType != FT_TARGET)
 	{
 		CTServer * pMAP = FindMapSvr(pTarget->m_bMainID);
-		if(pMAP)
+		if (pMAP)
 		{
 			pMAP->SendMW_FRIENDCONNECTION_REQ(
 				pTarget->m_dwCharID,
@@ -5712,15 +5707,15 @@ DWORD CTWorldSvrModule::OnMW_FRIENDPROTECTEDASK_ACK(LPPACKETBUF pBUF)
 		>> strTarget;
 
 	LPTCHARACTER pChar = FindTChar(dwCharID, dwKey);
-	if(!pChar)
+	if (!pChar)
 		return EC_NOERROR;
 
 	LPTCHARACTER pTarget = FindTChar(strTarget);
-	if(!pTarget)
+	if (!pTarget)
 		return EC_NOERROR;
 
 	CTServer * pCon = FindMapSvr(pTarget->m_bMainID);
-	if(pCon)
+	if (pCon)
 	{
 		pCon->SendMW_FRIENDADD_REQ(
 			pTarget->m_dwCharID,
@@ -5747,11 +5742,11 @@ DWORD CTWorldSvrModule::OnMW_FRIENDASK_ACK(LPPACKETBUF pBUF)
 		>> strTarget;
 
 	LPTCHARACTER pChar = FindTChar(dwCharID, dwKey);
-	if(!pChar)
+	if (!pChar)
 		return EC_NOERROR;
 
 	LPTCHARACTER pTarget = FindTChar(strTarget);
-	if(!pTarget)
+	if (!pTarget)
 	{
 		pServer->SendMW_FRIENDADD_REQ(
 			pChar->m_dwCharID,
@@ -5762,7 +5757,7 @@ DWORD CTWorldSvrModule::OnMW_FRIENDASK_ACK(LPPACKETBUF pBUF)
 		return EC_NOERROR;
 	}
 
-	if(pChar->m_bCountry != pTarget->m_bCountry)
+	if (pChar->m_bCountry != pTarget->m_bCountry)
 	{
 		pServer->SendMW_FRIENDADD_REQ(
 			pChar->m_dwCharID,
@@ -5778,10 +5773,10 @@ DWORD CTWorldSvrModule::OnMW_FRIENDASK_ACK(LPPACKETBUF pBUF)
 	LPTFRIEND pTT = NULL;
 
 	MAPTFRIEND::iterator it = pChar->m_mapTFRIEND.find(pTarget->m_dwCharID);
-	if(it!=pChar->m_mapTFRIEND.end())
+	if (it != pChar->m_mapTFRIEND.end())
 		pTF = (*it).second;
 
-	if(pTF && (pTF->m_bType!=FT_TARGET))
+	if (pTF && (pTF->m_bType != FT_TARGET))
 	{
 		pServer->SendMW_FRIENDADD_REQ(
 			pChar->m_dwCharID,
@@ -5793,17 +5788,17 @@ DWORD CTWorldSvrModule::OnMW_FRIENDASK_ACK(LPPACKETBUF pBUF)
 	}
 
 	it = pTarget->m_mapTFRIEND.find(pChar->m_dwCharID);
-	if(it!=pTarget->m_mapTFRIEND.end())
+	if (it != pTarget->m_mapTFRIEND.end())
 		pTT = (*it).second;
-	
+
 	BYTE bCount = BYTE(pChar->m_mapTFRIEND.size());
 	MAPTFRIEND::iterator itMax;
-	for(itMax=pChar->m_mapTFRIEND.begin(); itMax!=pChar->m_mapTFRIEND.end(); itMax++)
+	for (itMax = pChar->m_mapTFRIEND.begin(); itMax != pChar->m_mapTFRIEND.end(); itMax++)
 	{
-		if((*itMax).second->m_bType == FT_TARGET )
+		if ((*itMax).second->m_bType == FT_TARGET)
 			bCount--;
 	}
-	if(bCount == MAX_FRIEND)
+	if (bCount == MAX_FRIEND)
 	{
 		pServer->SendMW_FRIENDADD_REQ(
 			pChar->m_dwCharID,
@@ -5814,7 +5809,7 @@ DWORD CTWorldSvrModule::OnMW_FRIENDASK_ACK(LPPACKETBUF pBUF)
 		return EC_NOERROR;
 	}
 
-	if(pTF && pTT)
+	if (pTF && pTT)
 	{
 		pTF->m_bType = FT_FRIENDFRIEND;
 		pTT->m_bType = FT_FRIENDFRIEND;
@@ -5824,7 +5819,7 @@ DWORD CTWorldSvrModule::OnMW_FRIENDASK_ACK(LPPACKETBUF pBUF)
 		pTF->m_bGroup = 0;
 		pTT->m_bConnected = TRUE;
 		pTT->m_dwRegion = pChar->m_dwRegion;
-		
+
 		LPPACKETBUF pMSG = new PACKETBUF();
 		pMSG->m_packet.SetID(DM_FRIENDINSERT_REQ)
 			<< pChar->m_dwCharID
@@ -5845,13 +5840,13 @@ DWORD CTWorldSvrModule::OnMW_FRIENDASK_ACK(LPPACKETBUF pBUF)
 	}
 
 	bCount = BYTE(pTarget->m_mapTFRIEND.size());
-	for(itMax=pTarget->m_mapTFRIEND.begin(); itMax!=pTarget->m_mapTFRIEND.end(); itMax++)
+	for (itMax = pTarget->m_mapTFRIEND.begin(); itMax != pTarget->m_mapTFRIEND.end(); itMax++)
 	{
-		if((*itMax).second->m_bType == FT_TARGET ||
+		if ((*itMax).second->m_bType == FT_TARGET ||
 			(*itMax).second->m_dwID == pChar->m_dwCharID)
 			bCount--;
 	}
-	if(bCount == MAX_FRIEND)
+	if (bCount == MAX_FRIEND)
 	{
 		pServer->SendMW_FRIENDADD_REQ(
 			pChar->m_dwCharID,
@@ -5863,7 +5858,7 @@ DWORD CTWorldSvrModule::OnMW_FRIENDASK_ACK(LPPACKETBUF pBUF)
 	}
 
 	CTServer * pSvr = FindMapSvr(pTarget->m_bMainID);
-	if(pSvr)
+	if (pSvr)
 		pSvr->SendMW_FRIENDASK_REQ(pTarget->m_dwCharID, pTarget->m_dwKEY, pChar->m_strNAME, pChar->m_dwCharID);
 
 	return EC_NOERROR;
@@ -5886,13 +5881,13 @@ DWORD CTWorldSvrModule::OnMW_FRIENDREPLY_ACK(LPPACKETBUF pBUF)
 	LPTCHARACTER pPlayer = FindTChar(strInviter);
 	LPTCHARACTER pFriend = FindTChar(dwCharID, dwKey);
 
-	if(!pPlayer && !pFriend)
+	if (!pPlayer && !pFriend)
 		return EC_NOERROR;
 
-	if(!pPlayer && pFriend)
+	if (!pPlayer && pFriend)
 	{
 		CTServer * pCon = FindMapSvr(pFriend->m_bMainID);
-		if(pCon)
+		if (pCon)
 			pCon->SendMW_FRIENDADD_REQ(
 				pFriend->m_dwCharID,
 				pFriend->m_dwKEY,
@@ -5902,10 +5897,10 @@ DWORD CTWorldSvrModule::OnMW_FRIENDREPLY_ACK(LPPACKETBUF pBUF)
 
 		return EC_NOERROR;
 	}
-	else if(pPlayer && !pFriend)
+	else if (pPlayer && !pFriend)
 	{
 		CTServer * pCon = FindMapSvr(pPlayer->m_bMainID);
-		if(pCon)
+		if (pCon)
 			pCon->SendMW_FRIENDADD_REQ(
 				pPlayer->m_dwCharID,
 				pPlayer->m_dwKEY,
@@ -5913,11 +5908,11 @@ DWORD CTWorldSvrModule::OnMW_FRIENDREPLY_ACK(LPPACKETBUF pBUF)
 
 		return EC_NOERROR;
 	}
-	
-	if(bReply == ASK_YES)
+
+	if (bReply == ASK_YES)
 	{
 		MAPTFRIEND::iterator find = pPlayer->m_mapTFRIEND.find(pFriend->m_dwCharID);
-		if(find==pPlayer->m_mapTFRIEND.end())
+		if (find == pPlayer->m_mapTFRIEND.end())
 		{
 			LPTFRIEND pNew = new TFRIEND();
 			pNew->m_dwID = pFriend->m_dwCharID;
@@ -5928,7 +5923,7 @@ DWORD CTWorldSvrModule::OnMW_FRIENDREPLY_ACK(LPPACKETBUF pBUF)
 			pNew->m_bType = FT_FRIENDFRIEND;
 			pNew->m_bConnected = TRUE;
 			pNew->m_dwRegion = pFriend->m_dwRegion;
-            pPlayer->m_mapTFRIEND.insert(MAPTFRIEND::value_type(pNew->m_dwID, pNew));
+			pPlayer->m_mapTFRIEND.insert(MAPTFRIEND::value_type(pNew->m_dwID, pNew));
 		}
 		else
 		{
@@ -5938,7 +5933,7 @@ DWORD CTWorldSvrModule::OnMW_FRIENDREPLY_ACK(LPPACKETBUF pBUF)
 		}
 
 		find = pFriend->m_mapTFRIEND.find(pPlayer->m_dwCharID);
-		if(find==pFriend->m_mapTFRIEND.end())
+		if (find == pFriend->m_mapTFRIEND.end())
 		{
 			LPTFRIEND pNewPl = new TFRIEND();
 			pNewPl->m_dwID = pPlayer->m_dwCharID;
@@ -5949,7 +5944,7 @@ DWORD CTWorldSvrModule::OnMW_FRIENDREPLY_ACK(LPPACKETBUF pBUF)
 			pNewPl->m_bType = FT_FRIENDFRIEND;
 			pNewPl->m_bConnected = TRUE;
 			pNewPl->m_dwRegion = pPlayer->m_dwRegion;
-            pFriend->m_mapTFRIEND.insert(MAPTFRIEND::value_type(pNewPl->m_dwID, pNewPl));
+			pFriend->m_mapTFRIEND.insert(MAPTFRIEND::value_type(pNewPl->m_dwID, pNewPl));
 		}
 		else
 		{
@@ -5971,7 +5966,7 @@ DWORD CTWorldSvrModule::OnMW_FRIENDREPLY_ACK(LPPACKETBUF pBUF)
 		SayToDB(pMSGF);
 
 		CTServer * pCon = FindMapSvr(pPlayer->m_bMainID);
-		if(pCon)
+		if (pCon)
 			pCon->SendMW_FRIENDADD_REQ(
 				pPlayer->m_dwCharID,
 				pPlayer->m_dwKEY,
@@ -5984,7 +5979,7 @@ DWORD CTWorldSvrModule::OnMW_FRIENDREPLY_ACK(LPPACKETBUF pBUF)
 				pFriend->m_dwRegion);
 
 		pCon = FindMapSvr(pFriend->m_bMainID);
-		if(pCon)
+		if (pCon)
 			pCon->SendMW_FRIENDADD_REQ(
 				pFriend->m_dwCharID,
 				pFriend->m_dwKEY,
@@ -5999,7 +5994,7 @@ DWORD CTWorldSvrModule::OnMW_FRIENDREPLY_ACK(LPPACKETBUF pBUF)
 	else
 	{
 		CTServer * pCon = FindMapSvr(pPlayer->m_bMainID);
-		if(pCon)
+		if (pCon)
 			pCon->SendMW_FRIENDADD_REQ(
 				pPlayer->m_dwCharID,
 				pPlayer->m_dwKEY,
@@ -6022,7 +6017,7 @@ DWORD CTWorldSvrModule::OnMW_FRIENDERASE_ACK(LPPACKETBUF pBUF)
 		>> dwTarget;
 
 	LPTCHARACTER pTCHAR = FindTChar(dwCharID, dwKey);
-	if(!pTCHAR)
+	if (!pTCHAR)
 		return EC_NOERROR;
 
 	SendDM_FRIENDERASE_REQ(pTCHAR->m_dwCharID, dwTarget);
@@ -6039,7 +6034,7 @@ DWORD CTWorldSvrModule::OnDM_FRIENDINSERT_REQ(LPPACKETBUF pBUF)
 		>> dwFriendID;
 
 	DEFINE_QUERY(&m_db, CSPFriendInsert)
-	query->m_dwCharID = dwCharID;
+		query->m_dwCharID = dwCharID;
 	query->m_dwFriendID = dwFriendID;
 	query->Call();
 	UNDEFINE_QUERY();
@@ -6056,7 +6051,7 @@ DWORD CTWorldSvrModule::OnDM_FRIENDERASE_REQ(LPPACKETBUF pBUF)
 		>> dwFriendID;
 
 	DEFINE_QUERY(&m_db, CSPFriendErase)
-	query->m_dwCharID = dwCharID;
+		query->m_dwCharID = dwCharID;
 	query->m_dwFriendID = dwFriendID;
 	query->Call();
 	UNDEFINE_QUERY();
@@ -6081,7 +6076,7 @@ DWORD CTWorldSvrModule::OnDM_FRIENDERASE_ACK(LPPACKETBUF pBUF)
 		>> dwFriendID;
 
 	MAPTCHARACTER::iterator it = m_mapTCHAR.find(dwCharID);
-	if(it==m_mapTCHAR.end())
+	if (it == m_mapTCHAR.end())
 		return EC_NOERROR;
 
 	LPTCHARACTER pTCHAR = (*it).second;
@@ -6105,14 +6100,14 @@ DWORD CTWorldSvrModule::OnMW_FRIENDGROUPMAKE_ACK(LPPACKETBUF pBUF)
 		>> strName;
 
 	LPTCHARACTER pPlayer = FindTChar(dwCharID, dwKey);
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	CTServer * pCon = FindMapSvr(pPlayer->m_bMainID);
-	if(!pCon)
+	if (!pCon)
 		return EC_NOERROR;
 
-	if( !bGroup || pPlayer->m_mapFRIENDGROUP.size() == MAX_FRIENDGROUP )
+	if (!bGroup || pPlayer->m_mapFRIENDGROUP.size() == MAX_FRIENDGROUP)
 	{
 		pCon->SendMW_FRIENDGROUPMAKE_REQ(
 			dwCharID,
@@ -6123,14 +6118,14 @@ DWORD CTWorldSvrModule::OnMW_FRIENDGROUPMAKE_ACK(LPPACKETBUF pBUF)
 		return EC_NOERROR;
 	}
 
-	if(strName.GetLength() > MAX_GROUPNAME)
+	if (strName.GetLength() > MAX_GROUPNAME)
 		return EC_NOERROR;
 
 	MAPBSTRING::iterator itGROUP = pPlayer->m_mapFRIENDGROUP.find(bGroup);
-	for(itGROUP=pPlayer->m_mapFRIENDGROUP.begin(); itGROUP!=pPlayer->m_mapFRIENDGROUP.end(); itGROUP++)
+	for (itGROUP = pPlayer->m_mapFRIENDGROUP.begin(); itGROUP != pPlayer->m_mapFRIENDGROUP.end(); itGROUP++)
 	{
-		if( (*itGROUP).first == bGroup ||
-			(*itGROUP).second == strName )
+		if ((*itGROUP).first == bGroup ||
+			(*itGROUP).second == strName)
 		{
 			pCon->SendMW_FRIENDGROUPMAKE_REQ(
 				dwCharID,
@@ -6172,26 +6167,26 @@ DWORD CTWorldSvrModule::OnMW_FRIENDGROUPDELETE_ACK(LPPACKETBUF pBUF)
 		>> bGroup;
 
 	LPTCHARACTER pPlayer = FindTChar(dwCharID, dwKey);
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	CTServer * pCon = FindMapSvr(pPlayer->m_bMainID);
-	if(!pCon)
+	if (!pCon)
 		return EC_NOERROR;
 
 	MAPBSTRING::iterator itGROUP = pPlayer->m_mapFRIENDGROUP.find(bGroup);
-	if(itGROUP == pPlayer->m_mapFRIENDGROUP.end())
+	if (itGROUP == pPlayer->m_mapFRIENDGROUP.end())
 		return EC_NOERROR;
 
 	MAPTFRIEND::iterator itFRIEND;
-	for(itFRIEND=pPlayer->m_mapTFRIEND.begin(); itFRIEND!=pPlayer->m_mapTFRIEND.end(); itFRIEND++)
+	for (itFRIEND = pPlayer->m_mapTFRIEND.begin(); itFRIEND != pPlayer->m_mapTFRIEND.end(); itFRIEND++)
 	{
-		if((*itFRIEND).second->m_bType != FT_TARGET && (*itFRIEND).second->m_bGroup == bGroup)
+		if ((*itFRIEND).second->m_bType != FT_TARGET && (*itFRIEND).second->m_bGroup == bGroup)
 		{
 			pCon->SendMW_FRIENDGROUPDELETE_REQ(
-				dwCharID, 
-				dwKey, 
-				FRIEND_REFUSE, 
+				dwCharID,
+				dwKey,
+				FRIEND_REFUSE,
 				bGroup);
 			return EC_NOERROR;
 		}
@@ -6200,9 +6195,9 @@ DWORD CTWorldSvrModule::OnMW_FRIENDGROUPDELETE_ACK(LPPACKETBUF pBUF)
 	pPlayer->m_mapFRIENDGROUP.erase(bGroup);
 
 	pCon->SendMW_FRIENDGROUPDELETE_REQ(
-		dwCharID, 
-		dwKey, 
-		FRIEND_SUCCESS, 
+		dwCharID,
+		dwKey,
+		FRIEND_SUCCESS,
 		bGroup);
 
 	LPPACKETBUF pMSG = new PACKETBUF();
@@ -6227,29 +6222,29 @@ DWORD CTWorldSvrModule::OnMW_FRIENDGROUPCHANGE_ACK(LPPACKETBUF pBUF)
 		>> bGroup;
 
 	LPTCHARACTER pPlayer = FindTChar(dwCharID, dwKey);
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
-	if(bGroup)
+	if (bGroup)
 	{
 		MAPBSTRING::iterator itGROUP = pPlayer->m_mapFRIENDGROUP.find(bGroup);
-		if(itGROUP == pPlayer->m_mapFRIENDGROUP.end())
+		if (itGROUP == pPlayer->m_mapFRIENDGROUP.end())
 			return EC_NOERROR;
 	}
 
 	MAPTFRIEND::iterator itFRIEND = pPlayer->m_mapTFRIEND.find(dwFriend);
-	if(itFRIEND == pPlayer->m_mapTFRIEND.end())
+	if (itFRIEND == pPlayer->m_mapTFRIEND.end())
 		return EC_NOERROR;
 
 	(*itFRIEND).second->m_bGroup = bGroup;
 
 	CTServer * pCon = FindMapSvr(pPlayer->m_bMainID);
-	if(pCon)
+	if (pCon)
 	{
 		pCon->SendMW_FRIENDGROUPCHANGE_REQ(
-			dwCharID, 
-			dwKey, 
-			FRIEND_SUCCESS, 
+			dwCharID,
+			dwKey,
+			FRIEND_SUCCESS,
 			bGroup,
 			dwFriend);
 	}
@@ -6277,25 +6272,25 @@ DWORD CTWorldSvrModule::OnMW_FRIENDGROUPNAME_ACK(LPPACKETBUF pBUF)
 		>> strName;
 
 	LPTCHARACTER pPlayer = FindTChar(dwCharID, dwKey);
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	CTServer * pCon = FindMapSvr(pPlayer->m_bMainID);
-	if(!pCon)
+	if (!pCon)
 		return EC_NOERROR;
 
-	if(strName.GetLength() > MAX_GROUPNAME)
+	if (strName.GetLength() > MAX_GROUPNAME)
 		return EC_NOERROR;
 
-	MAPBSTRING::iterator itG;	
-	for(itG=pPlayer->m_mapFRIENDGROUP.begin(); itG!=pPlayer->m_mapFRIENDGROUP.end(); itG++)
+	MAPBSTRING::iterator itG;
+	for (itG = pPlayer->m_mapFRIENDGROUP.begin(); itG != pPlayer->m_mapFRIENDGROUP.end(); itG++)
 	{
-		if((*itG).second == strName)
+		if ((*itG).second == strName)
 		{
 			pCon->SendMW_FRIENDGROUPNAME_REQ(
-				dwCharID, 
-				dwKey, 
-				FRIEND_REFUSE, 
+				dwCharID,
+				dwKey,
+				FRIEND_REFUSE,
 				bGroup,
 				strName);
 			return EC_NOERROR;
@@ -6303,12 +6298,12 @@ DWORD CTWorldSvrModule::OnMW_FRIENDGROUPNAME_ACK(LPPACKETBUF pBUF)
 	}
 
 	itG = pPlayer->m_mapFRIENDGROUP.find(bGroup);
-	if(itG == pPlayer->m_mapFRIENDGROUP.end())
+	if (itG == pPlayer->m_mapFRIENDGROUP.end())
 	{
 		pCon->SendMW_FRIENDGROUPNAME_REQ(
-			dwCharID, 
-			dwKey, 
-			FRIEND_NOTFOUND, 
+			dwCharID,
+			dwKey,
+			FRIEND_NOTFOUND,
 			bGroup,
 			strName);
 		return EC_NOERROR;
@@ -6317,9 +6312,9 @@ DWORD CTWorldSvrModule::OnMW_FRIENDGROUPNAME_ACK(LPPACKETBUF pBUF)
 	(*itG).second = strName;
 
 	pCon->SendMW_FRIENDGROUPNAME_REQ(
-		dwCharID, 
-		dwKey, 
-		0, 
+		dwCharID,
+		dwKey,
+		0,
 		bGroup,
 		strName);
 
@@ -6344,7 +6339,7 @@ DWORD CTWorldSvrModule::OnDM_FRIENDGROUPMAKE_REQ(LPPACKETBUF pBUF)
 		>> strName;
 
 	DEFINE_QUERY(&m_db, CSPFriendGroupMake)
-	query->m_dwCharID = dwCharID;
+		query->m_dwCharID = dwCharID;
 	query->m_bGroup = bGroup;
 	lstrcpy(query->m_szName, strName);
 	query->Call();
@@ -6362,7 +6357,7 @@ DWORD CTWorldSvrModule::OnDM_FRIENDGROUPDELETE_REQ(LPPACKETBUF pBUF)
 		>> bGroup;
 
 	DEFINE_QUERY(&m_db, CSPFriendGroupDelete)
-	query->m_dwCharID = dwCharID;
+		query->m_dwCharID = dwCharID;
 	query->m_bGroup = bGroup;
 	query->Call();
 	UNDEFINE_QUERY();
@@ -6371,7 +6366,7 @@ DWORD CTWorldSvrModule::OnDM_FRIENDGROUPDELETE_REQ(LPPACKETBUF pBUF)
 }
 DWORD CTWorldSvrModule::OnDM_FRIENDGROUPCHANGE_REQ(LPPACKETBUF pBUF)
 {
-    DWORD dwCharID;
+	DWORD dwCharID;
 	DWORD dwFriend;
 	BYTE bGroup;
 
@@ -6381,7 +6376,7 @@ DWORD CTWorldSvrModule::OnDM_FRIENDGROUPCHANGE_REQ(LPPACKETBUF pBUF)
 		>> bGroup;
 
 	DEFINE_QUERY(&m_db, CSPFriendGroupChange)
-	query->m_dwCharID = dwCharID;
+		query->m_dwCharID = dwCharID;
 	query->m_dwFriendID = dwFriend;
 	query->m_bGroup = bGroup;
 	query->Call();
@@ -6401,7 +6396,7 @@ DWORD CTWorldSvrModule::OnDM_FRIENDGROUPNAME_REQ(LPPACKETBUF pBUF)
 		>> strName;
 
 	DEFINE_QUERY(&m_db, CSPFriendGroupName)
-	query->m_dwCharID = dwCharID;
+		query->m_dwCharID = dwCharID;
 	query->m_bGroup = bGroup;
 	lstrcpy(query->m_szName, strName);
 	query->Call();
@@ -6409,51 +6404,51 @@ DWORD CTWorldSvrModule::OnDM_FRIENDGROUPNAME_REQ(LPPACKETBUF pBUF)
 
 	return EC_NOERROR;
 }
-DWORD CTWorldSvrModule::OnDM_RESERVEDPOSTSEND_REQ(LPPACKETBUF pBUF)  
+DWORD CTWorldSvrModule::OnDM_RESERVEDPOSTSEND_REQ(LPPACKETBUF pBUF)
 {
 	CString strSender;
 	CString strRecver;
 	CString strTitle;
-	CString strMessage;	
+	CString strMessage;
 
 	DEFINE_QUERY(&m_db, CSPGetReservedPost)
 
-	for(BYTE i=0; i<30; i++)
-	{
-		int nRet = 1;
-
-		if(query->Call() )
-			nRet = query->m_nRET;
-
-		if(!nRet)
+		for (BYTE i = 0; i<30; i++)
 		{
-			// Recver ∞° ¿÷¿∏∏È Notify
-			strSender = query->m_szSender;
-			strRecver = query->m_szRecver;
-			strTitle  = query->m_szTitle;
-			BYTE bType = 1;
+			int nRet = 1;
 
-			LPPACKETBUF pMSG = new PACKETBUF();
-			pMSG->m_packet.SetID(DM_RESERVEDPOSTRECV_ACK)
-				<< query->m_dwPostID
-				<< strSender
-				<< strRecver
-				<< strTitle
-				<< bType;
+			if (query->Call())
+				nRet = query->m_nRET;
 
-			SayToBATCH(pMSG);
+			if (!nRet)
+			{
+				// Recver Í∞Ä ÏûàÏúºÎ©¥ Notify
+				strSender = query->m_szSender;
+				strRecver = query->m_szRecver;
+				strTitle = query->m_szTitle;
+				BYTE bType = 1;
+
+				LPPACKETBUF pMSG = new PACKETBUF();
+				pMSG->m_packet.SetID(DM_RESERVEDPOSTRECV_ACK)
+					<< query->m_dwPostID
+					<< strSender
+					<< strRecver
+					<< strTitle
+					<< bType;
+
+				SayToBATCH(pMSG);
+			}
+			else
+				break;
 		}
-		else
-			break;
-	}
 
 	UNDEFINE_QUERY()
 
-	return EC_NOERROR;
+		return EC_NOERROR;
 }
 
 
-DWORD CTWorldSvrModule::OnDM_RESERVEDPOSTRECV_ACK(LPPACKETBUF pBUF)  
+DWORD CTWorldSvrModule::OnDM_RESERVEDPOSTRECV_ACK(LPPACKETBUF pBUF)
 {
 	DWORD dwPostID;
 	CString strSender;
@@ -6469,12 +6464,12 @@ DWORD CTWorldSvrModule::OnDM_RESERVEDPOSTRECV_ACK(LPPACKETBUF pBUF)
 		>> bType;
 
 	LPTCHARACTER pChar = FindTChar(strTarget);
-	if(!pChar)
+	if (!pChar)
 		return EC_NOERROR;
 	else
 	{
 		CTServer * pServer = FindMapSvr(pChar->m_bMainID);
-		if(pServer)
+		if (pServer)
 			pServer->SendMW_POSTRECV_REQ(&pBUF->m_packet);
 	}
 
@@ -6503,7 +6498,7 @@ DWORD CTWorldSvrModule::OnMW_ADDITEMRESULT_ACK(LPPACKETBUF pBUF)
 		>> bRet;
 
 	CTServer *pServer = FindMapSvr(bMapSvrID);
-	if(pServer)
+	if (pServer)
 		pServer->SendMW_ADDITEMRESULT_REQ(
 			dwCharID,
 			dwKEY,
@@ -6516,9 +6511,9 @@ DWORD CTWorldSvrModule::OnMW_ADDITEMRESULT_ACK(LPPACKETBUF pBUF)
 	return EC_NOERROR;
 }
 
-DWORD CTWorldSvrModule::OnMW_LEAVESOLOMAP_ACK( LPPACKETBUF pBUF)
+DWORD CTWorldSvrModule::OnMW_LEAVESOLOMAP_ACK(LPPACKETBUF pBUF)
 {
-	CTServer *pSERVER = (CTServer *) pBUF->m_pSESSION;
+	CTServer *pSERVER = (CTServer *)pBUF->m_pSESSION;
 
 	DWORD dwCharID;
 	DWORD dwKEY;
@@ -6531,18 +6526,18 @@ DWORD CTWorldSvrModule::OnMW_LEAVESOLOMAP_ACK( LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pTCHAR)
+	if (!pTCHAR)
 		return EC_NOERROR;
 
-	if( pTCHAR->m_pParty && pTCHAR->m_pParty->m_bObtainType == PT_SOLO )
+	if (pTCHAR->m_pParty && pTCHAR->m_pParty->m_bObtainType == PT_SOLO)
 		DeleteParty(pTCHAR->m_pParty->GetID());
 
 	return EC_NOERROR;
 }
 
-DWORD CTWorldSvrModule::OnMW_ENTERSOLOMAP_ACK( LPPACKETBUF pBUF)
+DWORD CTWorldSvrModule::OnMW_ENTERSOLOMAP_ACK(LPPACKETBUF pBUF)
 {
-	CTServer *pSERVER = (CTServer *) pBUF->m_pSESSION;
+	CTServer *pSERVER = (CTServer *)pBUF->m_pSESSION;
 
 	DWORD dwCharID;
 	DWORD dwKEY;
@@ -6555,14 +6550,14 @@ DWORD CTWorldSvrModule::OnMW_ENTERSOLOMAP_ACK( LPPACKETBUF pBUF)
 		dwCharID,
 		dwKEY);
 
-	if(!pTCHAR)
+	if (!pTCHAR)
 		return EC_NOERROR;
 
 	CTServer *pMAIN = FindMapSvr(pTCHAR->m_bMainID);
-	if(!pMAIN)
+	if (!pMAIN)
 		return EC_NOERROR;
 
-	if(!pTCHAR->m_pParty)
+	if (!pTCHAR->m_pParty)
 	{
 		CTParty *pParty = new CTParty();
 
@@ -6570,15 +6565,15 @@ DWORD CTWorldSvrModule::OnMW_ENTERSOLOMAP_ACK( LPPACKETBUF pBUF)
 		pParty->SetID(GenPartyID());
 		pParty->AddMember(pTCHAR);
 
-		m_mapTParty.insert( MAPTPARTY::value_type( pParty->GetID(), pParty));
+		m_mapTParty.insert(MAPTPARTY::value_type(pParty->GetID(), pParty));
 	}
 
 	MAPTCHARCON::iterator itTCON;
-	for( itTCON = pTCHAR->m_mapTCHARCON.begin(); itTCON != pTCHAR->m_mapTCHARCON.end(); itTCON++)
+	for (itTCON = pTCHAR->m_mapTCHARCON.begin(); itTCON != pTCHAR->m_mapTCHARCON.end(); itTCON++)
 	{
 		CTServer *pTMAP = FindMapSvr((*itTCON).first);
 
-		if(pTMAP && pTMAP->m_bValid)
+		if (pTMAP && pTMAP->m_bValid)
 		{
 			pTMAP->SendMW_ENTERSOLOMAP_REQ(
 				dwCharID,
@@ -6602,11 +6597,11 @@ DWORD CTWorldSvrModule::OnMW_CHARSTATINFO_ACK(LPPACKETBUF pBUF)
 		>> dwCharID;
 
 	MAPTCHARACTER::iterator itCHAR = m_mapTCHAR.find(dwCharID);
-	if(itCHAR!=m_mapTCHAR.end())
+	if (itCHAR != m_mapTCHAR.end())
 	{
 		LPTCHARACTER pPlayer = (*itCHAR).second;
 		CTServer * pMain = FindMapSvr(pPlayer->m_bMainID);
-		if(pMain)
+		if (pMain)
 			pMain->SendMW_CHARSTATINFOANS_REQ(dwReqCharID, dwCharID);
 	}
 
@@ -6620,11 +6615,11 @@ DWORD CTWorldSvrModule::OnMW_CHARSTATINFOANS_ACK(LPPACKETBUF pBUF)
 		>> dwReqCharID;
 
 	MAPTCHARACTER::iterator itCHAR = m_mapTCHAR.find(dwReqCharID);
-	if(itCHAR!=m_mapTCHAR.end())
+	if (itCHAR != m_mapTCHAR.end())
 	{
 		LPTCHARACTER pPlayer = (*itCHAR).second;
 		CTServer * pMain = FindMapSvr(pPlayer->m_bMainID);
-		if(pMain)
+		if (pMain)
 			pMain->SendMW_CHARSTATINFO_REQ(&(pBUF->m_packet));
 	}
 
@@ -6643,69 +6638,69 @@ DWORD CTWorldSvrModule::OnMW_CHGCORPSCOMMANDER_ACK(LPPACKETBUF pBUF)
 		>> wPartyID;
 
 	LPTCHARACTER pChar = FindTChar(dwCharID, dwKey);
-	if(!pChar)
+	if (!pChar)
 		return EC_NOERROR;
 
-	if(!pChar->m_pParty)
+	if (!pChar->m_pParty)
 	{
 		CTServer * pCon = FindMapSvr(pChar->m_bMainID);
-		if(pCon)
+		if (pCon)
 			pCon->SendMW_CHGCORPSCOMMANDER_REQ(
 				pChar->m_dwCharID,
 				pChar->m_dwKEY,
 				CORPS_NO_PARTY);
-		
+
 		return EC_NOERROR;
 	}
 
 	CTCorps * pCorps = FindCorps(pChar->m_pParty->m_wCorpsID);
-	if(!pCorps)
+	if (!pCorps)
 	{
 		CTServer * pCon = FindMapSvr(pChar->m_bMainID);
-		if(pCon)
+		if (pCon)
 			pCon->SendMW_CHGCORPSCOMMANDER_REQ(
 				pChar->m_dwCharID,
 				pChar->m_dwKEY,
 				CORPS_NO_PARTY);
-		
+
 		return EC_NOERROR;
 	}
 
-	if( (pChar->m_pParty->GetID() != pCorps->m_wCommander) ||
+	if ((pChar->m_pParty->GetID() != pCorps->m_wCommander) ||
 		(pChar->m_dwCharID != pCorps->m_dwGeneralID))
 	{
 		CTServer * pCon = FindMapSvr(pChar->m_bMainID);
-		if(pCon)
+		if (pCon)
 			pCon->SendMW_CHGCORPSCOMMANDER_REQ(
 				pChar->m_dwCharID,
 				pChar->m_dwKEY,
 				CORPS_NOT_COMMANDER);
-		
+
 		return EC_NOERROR;
 	}
 
-	if(wPartyID == pCorps->m_wCommander)
+	if (wPartyID == pCorps->m_wCommander)
 	{
 		CTServer * pCon = FindMapSvr(pChar->m_bMainID);
-		if(pCon)
+		if (pCon)
 			pCon->SendMW_CHGCORPSCOMMANDER_REQ(
 				pChar->m_dwCharID,
 				pChar->m_dwKEY,
 				CORPS_WRONG_TARGET);
-		
+
 		return EC_NOERROR;
 	}
 
 	CTParty * pParty = pCorps->FindParty(wPartyID);
-	if(!pParty)
+	if (!pParty)
 	{
 		CTServer * pCon = FindMapSvr(pChar->m_bMainID);
-		if(pCon)
+		if (pCon)
 			pCon->SendMW_CHGCORPSCOMMANDER_REQ(
 				pChar->m_dwCharID,
 				pChar->m_dwKEY,
 				CORPS_TARGET_NO_PARTY);
-		
+
 		return EC_NOERROR;
 	}
 
@@ -6713,14 +6708,14 @@ DWORD CTWorldSvrModule::OnMW_CHGCORPSCOMMANDER_ACK(LPPACKETBUF pBUF)
 	pCorps->m_dwGeneralID = pParty->GetChiefID();
 
 	CTServer * pCon = FindMapSvr(pChar->m_bMainID);
-	if(pCon)
+	if (pCon)
 		pCon->SendMW_CHGCORPSCOMMANDER_REQ(
 			pChar->m_dwCharID,
 			pChar->m_dwKEY,
 			CORPS_CHGCOMMANDER);
 
 	MAPTPARTY::iterator itParty;
-	for(itParty=pCorps->m_mapParty.begin(); itParty!=pCorps->m_mapParty.end(); itParty++)
+	for (itParty = pCorps->m_mapParty.begin(); itParty != pCorps->m_mapParty.end(); itParty++)
 		CorpsJoin((*itParty).second, pCorps->m_wCommander);
 
 	return EC_NOERROR;
@@ -6740,11 +6735,11 @@ DWORD CTWorldSvrModule::OnMW_CORPSASK_ACK(LPPACKETBUF pBUF)
 		>> strTargetName;
 
 	LPTCHARACTER pPlayer = FindTChar(dwCharID, dwKey);
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	LPTCHARACTER pTarget = FindTChar(strTargetName);
-	if(!pTarget)
+	if (!pTarget)
 	{
 		pCon->SendMW_CORPSREPLY_REQ(
 			dwCharID,
@@ -6755,7 +6750,7 @@ DWORD CTWorldSvrModule::OnMW_CORPSASK_ACK(LPPACKETBUF pBUF)
 		return EC_NOERROR;
 	}
 
-	if( !pPlayer->m_pParty ||
+	if (!pPlayer->m_pParty ||
 		!pPlayer->m_pParty->IsChief(dwCharID) ||
 		!pTarget->m_pParty ||
 		!pTarget->m_pParty->IsChief(pTarget->m_dwCharID) ||
@@ -6770,7 +6765,7 @@ DWORD CTWorldSvrModule::OnMW_CORPSASK_ACK(LPPACKETBUF pBUF)
 		return EC_NOERROR;
 	}
 
-	if(pPlayer->m_pParty->m_bArena || pTarget->m_pParty->m_bArena)
+	if (pPlayer->m_pParty->m_bArena || pTarget->m_pParty->m_bArena)
 	{
 		pCon->SendMW_CORPSREPLY_REQ(
 			dwCharID,
@@ -6783,7 +6778,7 @@ DWORD CTWorldSvrModule::OnMW_CORPSASK_ACK(LPPACKETBUF pBUF)
 
 	BYTE bResult = CheckCorpsJoin(pPlayer->m_pParty, pTarget->m_pParty);
 
-	if(bResult)
+	if (bResult)
 	{
 		pCon->SendMW_CORPSREPLY_REQ(
 			dwCharID,
@@ -6795,7 +6790,7 @@ DWORD CTWorldSvrModule::OnMW_CORPSASK_ACK(LPPACKETBUF pBUF)
 	}
 
 	CTServer * pMain = FindMapSvr(pTarget->m_bMainID);
-	if(!pMain)
+	if (!pMain)
 		return EC_NOERROR;
 
 	pMain->SendMW_CORPSASK_REQ(
@@ -6822,11 +6817,11 @@ DWORD CTWorldSvrModule::OnMW_CORPSREPLY_ACK(LPPACKETBUF pBUF)
 		>> strReqName;
 
 	LPTCHARACTER pPlayer = FindTChar(dwCharID, dwKey);
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	LPTCHARACTER pRequest = FindTChar(strReqName);
-	if(!pRequest)
+	if (!pRequest)
 	{
 		pCon->SendMW_CORPSREPLY_REQ(
 			dwCharID,
@@ -6839,7 +6834,7 @@ DWORD CTWorldSvrModule::OnMW_CORPSREPLY_ACK(LPPACKETBUF pBUF)
 
 	CTServer * pConRequest = FindMapSvr(pRequest->m_bMainID);
 
-	if(!pConRequest)
+	if (!pConRequest)
 	{
 		pCon->SendMW_CORPSREPLY_REQ(
 			dwCharID,
@@ -6850,7 +6845,7 @@ DWORD CTWorldSvrModule::OnMW_CORPSREPLY_ACK(LPPACKETBUF pBUF)
 		return EC_NOERROR;
 	}
 
-	if(bReply != ASK_YES)
+	if (bReply != ASK_YES)
 	{
 		pConRequest->SendMW_CORPSREPLY_REQ(
 			pRequest->m_dwCharID,
@@ -6861,8 +6856,8 @@ DWORD CTWorldSvrModule::OnMW_CORPSREPLY_ACK(LPPACKETBUF pBUF)
 		return EC_NOERROR;
 	}
 
-	if( !pPlayer->m_pParty ||
-        !pPlayer->m_pParty->IsChief(dwCharID) ||
+	if (!pPlayer->m_pParty ||
+		!pPlayer->m_pParty->IsChief(dwCharID) ||
 		!pRequest->m_pParty ||
 		!pRequest->m_pParty->IsChief(pRequest->m_dwCharID) ||
 		GetWarCountry(pPlayer) != GetWarCountry(pRequest))
@@ -6882,7 +6877,7 @@ DWORD CTWorldSvrModule::OnMW_CORPSREPLY_ACK(LPPACKETBUF pBUF)
 		return EC_NOERROR;
 	}
 
-	if(pPlayer->m_pParty->m_bArena || pRequest->m_pParty->m_bArena)
+	if (pPlayer->m_pParty->m_bArena || pRequest->m_pParty->m_bArena)
 	{
 		pCon->SendMW_CORPSREPLY_REQ(
 			pPlayer->m_dwCharID,
@@ -6901,7 +6896,7 @@ DWORD CTWorldSvrModule::OnMW_CORPSREPLY_ACK(LPPACKETBUF pBUF)
 
 	CTCorps * pCorps = NULL;
 	BYTE bResult = CheckCorpsJoin(pPlayer->m_pParty, pRequest->m_pParty);
-	if(bResult)
+	if (bResult)
 	{
 		pCon->SendMW_CORPSREPLY_REQ(
 			pPlayer->m_dwCharID,
@@ -6917,7 +6912,7 @@ DWORD CTWorldSvrModule::OnMW_CORPSREPLY_ACK(LPPACKETBUF pBUF)
 
 		return EC_NOERROR;
 	}
-	else if(!pPlayer->m_pParty->m_wCorpsID &&
+	else if (!pPlayer->m_pParty->m_wCorpsID &&
 		!pRequest->m_pParty->m_wCorpsID)
 	{
 		pCorps = new CTCorps();
@@ -6928,16 +6923,16 @@ DWORD CTWorldSvrModule::OnMW_CORPSREPLY_ACK(LPPACKETBUF pBUF)
 		NotifyCorpsJoin(pCorps, pPlayer->m_pParty);
 		NotifyCorpsJoin(pCorps, pRequest->m_pParty);
 	}
-	else if(pPlayer->m_pParty->m_wCorpsID)
+	else if (pPlayer->m_pParty->m_wCorpsID)
 	{
 		pCorps = FindCorps(pPlayer->m_pParty->m_wCorpsID);
-		if(pCorps)
+		if (pCorps)
 			NotifyCorpsJoin(pCorps, pRequest->m_pParty);
 	}
 	else
 	{
 		pCorps = FindCorps(pRequest->m_pParty->m_wCorpsID);
-		if(pCorps)
+		if (pCorps)
 			NotifyCorpsJoin(pCorps, pPlayer->m_pParty);
 	}
 
@@ -6958,18 +6953,18 @@ DWORD CTWorldSvrModule::OnMW_CORPSLEAVE_ACK(LPPACKETBUF pBUF)
 		>> wSquadID;
 
 	MAPTPARTY::iterator itPt = m_mapTParty.find(wSquadID);
-	if(itPt==m_mapTParty.end())
+	if (itPt == m_mapTParty.end())
 		return EC_NOERROR;
 
-	LPTCHARACTER pChar = FindTChar(dwCharID,dwKey);
-	if(!pChar || !pChar->m_pParty || !pChar->m_pParty->IsChief(dwCharID))
+	LPTCHARACTER pChar = FindTChar(dwCharID, dwKey);
+	if (!pChar || !pChar->m_pParty || !pChar->m_pParty->IsChief(dwCharID))
 		return EC_NOERROR;
 
 	MAPTCORPS::iterator it = m_mapTCorps.find(pChar->m_pParty->m_wCorpsID);
-	if(it==m_mapTCorps.end())
+	if (it == m_mapTCorps.end())
 		return EC_NOERROR;
 
-	if(wSquadID != pChar->m_pParty->GetID() &&
+	if (wSquadID != pChar->m_pParty->GetID() &&
 		(*it).second->m_dwGeneralID != dwCharID)
 		return EC_NOERROR;
 
@@ -7004,15 +6999,15 @@ DWORD CTWorldSvrModule::OnMW_CORPSCMD_ACK(LPPACKETBUF pBUF)
 		>> wPosZ;
 
 	LPTCHARACTER pPlayer = FindTChar(dwGeneral, dwKey);
-	if(!pPlayer || !pPlayer->m_pParty)
+	if (!pPlayer || !pPlayer->m_pParty)
 		return EC_NOERROR;
 
 	LPTCHARACTER pChar = NULL;
 	MAPTCHARACTER::iterator itChar = m_mapTCHAR.find(dwCharID);
-	if(itChar != m_mapTCHAR.end())
+	if (itChar != m_mapTCHAR.end())
 		pChar = (*itChar).second;
 
-	if(pChar &&
+	if (pChar &&
 		pChar->m_pParty &&
 		pChar->m_pParty->IsChief(dwCharID))
 	{
@@ -7024,13 +7019,13 @@ DWORD CTWorldSvrModule::OnMW_CORPSCMD_ACK(LPPACKETBUF pBUF)
 	}
 
 	CTCorps * pCorps = FindCorps(pPlayer->m_pParty->m_wCorpsID);
-	if(pCorps)
+	if (pCorps)
 	{
 		MAPTPARTY::iterator itPt;
-		for(itPt=pCorps->m_mapParty.begin(); itPt!=pCorps->m_mapParty.end(); itPt++)
-			for(int i=0; i<(*itPt).second->GetSize(); i++)
+		for (itPt = pCorps->m_mapParty.begin(); itPt != pCorps->m_mapParty.end(); itPt++)
+			for (int i = 0; i<(*itPt).second->GetSize(); i++)
 				TransferCorpsCommand(
-					(*itPt).second->GetMember(i),
+				(*itPt).second->GetMember(i),
 					bCMD,
 					bTargetType,
 					dwTargetID,
@@ -7042,15 +7037,15 @@ DWORD CTWorldSvrModule::OnMW_CORPSCMD_ACK(LPPACKETBUF pBUF)
 	}
 	else
 	{
-		for(int i=0; i<pPlayer->m_pParty->GetSize(); i++)
+		for (int i = 0; i<pPlayer->m_pParty->GetSize(); i++)
 		{
 			TransferCorpsCommand(
-                pPlayer->m_pParty->GetMember(i),
+				pPlayer->m_pParty->GetMember(i),
 				bCMD,
 				bTargetType,
-                dwTargetID,
-                wPosX,
-                wPosZ,
+				dwTargetID,
+				wPosX,
+				wPosZ,
 				wSquadID,
 				dwCharID,
 				wMapID);
@@ -7070,7 +7065,7 @@ DWORD CTWorldSvrModule::OnMW_CORPSENEMYLIST_ACK(LPPACKETBUF pBUF)
 		>> dwKey;
 
 	LPTCHARACTER pChar = FindTChar(dwCharID, dwKey);
-	if(pChar && pChar->m_pParty)
+	if (pChar && pChar->m_pParty)
 		BroadcastCorps(pChar, &pBUF->m_packet, MW_CORPSENEMYLIST_REQ);
 
 	return EC_NOERROR;
@@ -7086,7 +7081,7 @@ DWORD CTWorldSvrModule::OnMW_MOVECORPSENEMY_ACK(LPPACKETBUF pBUF)
 		>> dwKey;
 
 	LPTCHARACTER pChar = FindTChar(dwCharID, dwKey);
-	if(pChar && pChar->m_pParty)
+	if (pChar && pChar->m_pParty)
 		BroadcastCorps(pChar, &pBUF->m_packet, MW_MOVECORPSENEMY_REQ);
 
 	return EC_NOERROR;
@@ -7102,7 +7097,7 @@ DWORD CTWorldSvrModule::OnMW_MOVECORPSUNIT_ACK(LPPACKETBUF pBUF)
 		>> dwKey;
 
 	LPTCHARACTER pChar = FindTChar(dwCharID, dwKey);
-	if(pChar && pChar->m_pParty)
+	if (pChar && pChar->m_pParty)
 		BroadcastCorps(pChar, &pBUF->m_packet, MW_MOVECORPSUNIT_REQ);
 
 	return EC_NOERROR;
@@ -7118,7 +7113,7 @@ DWORD CTWorldSvrModule::OnMW_ADDCORPSENEMY_ACK(LPPACKETBUF pBUF)
 		>> dwKey;
 
 	LPTCHARACTER pChar = FindTChar(dwCharID, dwKey);
-	if(pChar && pChar->m_pParty)
+	if (pChar && pChar->m_pParty)
 		BroadcastCorps(pChar, &pBUF->m_packet, MW_ADDCORPSENEMY_REQ);
 
 	return EC_NOERROR;
@@ -7134,7 +7129,7 @@ DWORD CTWorldSvrModule::OnMW_DELCORPSENEMY_ACK(LPPACKETBUF pBUF)
 		>> dwKey;
 
 	LPTCHARACTER pChar = FindTChar(dwCharID, dwKey);
-	if(pChar && pChar->m_pParty)
+	if (pChar && pChar->m_pParty)
 		BroadcastCorps(pChar, &pBUF->m_packet, MW_DELCORPSENEMY_REQ);
 
 	return EC_NOERROR;
@@ -7150,7 +7145,7 @@ DWORD CTWorldSvrModule::OnMW_CORPSHP_ACK(LPPACKETBUF pBUF)
 		>> dwKey;
 
 	LPTCHARACTER pChar = FindTChar(dwCharID, dwKey);
-	if(pChar && pChar->m_pParty)
+	if (pChar && pChar->m_pParty)
 		BroadcastCorps(pChar, &pBUF->m_packet, MW_CORPSHP_REQ);
 
 	return EC_NOERROR;
@@ -7174,7 +7169,7 @@ DWORD CTWorldSvrModule::OnMW_PARTYMOVE_ACK(LPPACKETBUF pBUF)
 		>> wTargetParty;
 
 	LPTCHARACTER pGeneral = FindTChar(dwCharID, dwKey);
-	if(!pGeneral)
+	if (!pGeneral)
 	{
 		pMain->SendMW_PARTYMOVE_REQ(
 			dwCharID,
@@ -7185,7 +7180,7 @@ DWORD CTWorldSvrModule::OnMW_PARTYMOVE_ACK(LPPACKETBUF pBUF)
 	}
 
 	LPTCHARACTER pTarget = FindTChar(strTarget);
-	if(!pTarget ||
+	if (!pTarget ||
 		!pTarget->m_pParty)
 	{
 		pMain->SendMW_PARTYMOVE_REQ(
@@ -7200,10 +7195,10 @@ DWORD CTWorldSvrModule::OnMW_PARTYMOVE_ACK(LPPACKETBUF pBUF)
 	CTParty * pDestParty = NULL;
 	LPTCHARACTER pDestChar = NULL;
 
-	if(!strDestName.IsEmpty())
+	if (!strDestName.IsEmpty())
 	{
 		pDestChar = FindTChar(strDestName);
-		if(!pDestChar ||
+		if (!pDestChar ||
 			!pDestChar->m_pParty ||
 			pDestChar->m_pParty->GetSize() <= 1 ||
 			pTarget->m_pParty->GetSize() <= 1)
@@ -7221,7 +7216,7 @@ DWORD CTWorldSvrModule::OnMW_PARTYMOVE_ACK(LPPACKETBUF pBUF)
 		LeaveParty(pTarget, TRUE, FALSE);
 
 		LPTCHARACTER pDestChief = pDestParty->GetMember(0);
-		if(!pDestChief)
+		if (!pDestChief)
 		{
 			pMain->SendMW_PARTYMOVE_REQ(
 				dwCharID,
@@ -7232,7 +7227,7 @@ DWORD CTWorldSvrModule::OnMW_PARTYMOVE_ACK(LPPACKETBUF pBUF)
 		}
 
 		LPTCHARACTER pTgChief = pTgParty->GetMember(0);
-		if(!pTgChief)
+		if (!pTgChief)
 		{
 			pMain->SendMW_PARTYMOVE_REQ(
 				dwCharID,
@@ -7248,7 +7243,7 @@ DWORD CTWorldSvrModule::OnMW_PARTYMOVE_ACK(LPPACKETBUF pBUF)
 	else
 	{
 		pDestParty = FindParty(wTargetParty);
-		if(!pDestParty ||
+		if (!pDestParty ||
 			pDestParty->GetSize() == 0 ||
 			pTarget->m_pParty->GetID() == wTargetParty)
 		{
@@ -7263,7 +7258,7 @@ DWORD CTWorldSvrModule::OnMW_PARTYMOVE_ACK(LPPACKETBUF pBUF)
 		LeaveParty(pTarget, TRUE, TRUE);
 
 		LPTCHARACTER pTgChief = pDestParty->GetMember(0);
-		if(!pTgChief)
+		if (!pTgChief)
 		{
 			pMain->SendMW_PARTYMOVE_REQ(
 				dwCharID,
@@ -7298,30 +7293,30 @@ DWORD CTWorldSvrModule::OnMW_TMSSEND_ACK(LPPACKETBUF pBUF)
 		>> strMessage;
 
 	LPTCHARACTER pTCHAR = FindTChar(dwCharID, dwKey);
-	if(!pTCHAR)
+	if (!pTCHAR)
 		return EC_NOERROR;
 
 	MAPDWORD::iterator itT = pTCHAR->m_mapTMS.find(dwTMS);
-	if(itT == pTCHAR->m_mapTMS.end())
+	if (itT == pTCHAR->m_mapTMS.end())
 		return EC_NOERROR;
 
 	MAPTMS::iterator itTMS = m_mapTMS.find(dwTMS);
-	if(itTMS == m_mapTMS.end())
+	if (itTMS == m_mapTMS.end())
 		return EC_NOERROR;
 
 	LPTMS pTMS = (*itTMS).second;
 
-	// ∏∂¡ˆ∏∑ ≥™∞£ ªÁ∂˜ø°∞‘ ∏ﬁΩ√¡ˆ
-	if(pTMS->m_mapMember.size() == 1)
+	// ÎßàÏßÄÎßâ ÎÇòÍ∞Ñ ÏÇ¨ÎûåÏóêÍ≤å Î©îÏãúÏßÄ
+	if (pTMS->m_mapMember.size() == 1)
 	{
 		LPTCHARACTER pTarget = FindTChar(pTMS->m_strLastMember);
-		if(!pTarget)
+		if (!pTarget)
 			strMessage = BuildNetString(NAME_NULL, GetSvrMsg(TMS_NORECEIVER));
 		else
 		{
-			// ≈∏∞Ÿ¿« ¬˜¥‹∏Ò∑œ¿ª ∞ÀªÁ«—¥Ÿ
+			// ÌÉÄÍ≤üÏùò Ï∞®Îã®Î™©Î°ùÏùÑ Í≤ÄÏÇ¨ÌïúÎã§
 			CTServer * pCon = FindMapSvr(pTarget->m_bMainID);
-			if(pCon)
+			if (pCon)
 			{
 				pCon->SendMW_TMSINVITEASK_REQ(
 					pTarget->m_dwCharID,
@@ -7337,10 +7332,10 @@ DWORD CTWorldSvrModule::OnMW_TMSSEND_ACK(LPPACKETBUF pBUF)
 	}
 
 	MAPTCHARACTER::iterator it;
-	for(it=pTMS->m_mapMember.begin(); it!=pTMS->m_mapMember.end(); it++)
+	for (it = pTMS->m_mapMember.begin(); it != pTMS->m_mapMember.end(); it++)
 	{
 		CTServer * pCon = FindMapSvr((*it).second->m_bMainID);
-		if(pCon)
+		if (pCon)
 		{
 			pCon->SendMW_TMSRECV_REQ(
 				(*it).second->m_dwCharID,
@@ -7374,31 +7369,31 @@ DWORD CTWorldSvrModule::OnMW_TMSINVITEASK_ACK(LPPACKETBUF pBUF)
 		>> strMessage;
 
 	LPTCHARACTER pTCHAR = FindTChar(dwCharID, dwKEY);
-	if(!pTCHAR)
+	if (!pTCHAR)
 		return EC_NOERROR;
 
 	MAPDWORD::iterator itT = pTCHAR->m_mapTMS.find(dwTMS);
-	if(itT == pTCHAR->m_mapTMS.end())
+	if (itT == pTCHAR->m_mapTMS.end())
 		return EC_NOERROR;
 
 	MAPTMS::iterator itTMS = m_mapTMS.find(dwTMS);
-	if(itTMS == m_mapTMS.end())
+	if (itTMS == m_mapTMS.end())
 		return EC_NOERROR;
 
 	LPTMS pTMS = (*itTMS).second;
 
 	LPTCHARACTER pTarget = FindTChar(dwTargetID, dwTargetKEY);
-	if(pTarget && bResult)
+	if (pTarget && bResult)
 	{
-		// ¬˜¥‹µ«æÓ ¿÷¡ˆ æ ¥Ÿ∏È INVITE
+		// Ï∞®Îã®ÎêòÏñ¥ ÏûàÏßÄ ÏïäÎã§Î©¥ INVITE
 		pTMS->m_mapMember.insert(MAPTCHARACTER::value_type(pTarget->m_dwCharID, pTarget));
 		pTarget->m_mapTMS.insert(MAPDWORD::value_type(pTMS->m_dwID, pTMS->m_dwID));
 
 		MAPTCHARACTER::iterator it;
-		for(it=pTMS->m_mapMember.begin(); it!=pTMS->m_mapMember.end(); it++)
+		for (it = pTMS->m_mapMember.begin(); it != pTMS->m_mapMember.end(); it++)
 		{
 			CTServer * pCon = FindMapSvr((*it).second->m_bMainID);
-			if(pCon)
+			if (pCon)
 			{
 				pCon->SendMW_TMSINVITE_REQ(
 					pTarget->m_dwCharID,
@@ -7412,10 +7407,10 @@ DWORD CTWorldSvrModule::OnMW_TMSINVITEASK_ACK(LPPACKETBUF pBUF)
 		strMessage = BuildNetString(NAME_NULL, GetSvrMsg(TMS_NORECEIVER));
 
 	MAPTCHARACTER::iterator it;
-	for(it=pTMS->m_mapMember.begin(); it!=pTMS->m_mapMember.end(); it++)
+	for (it = pTMS->m_mapMember.begin(); it != pTMS->m_mapMember.end(); it++)
 	{
 		CTServer * pCon = FindMapSvr((*it).second->m_bMainID);
-		if(pCon)
+		if (pCon)
 		{
 			pCon->SendMW_TMSRECV_REQ(
 				(*it).second->m_dwCharID,
@@ -7448,61 +7443,61 @@ DWORD CTWorldSvrModule::OnMW_TMSINVITE_ACK(LPPACKETBUF pBUF)
 		>> bCount;
 
 	LPTCHARACTER pTCHAR = FindTChar(dwCharID, dwKey);
-	if(!pTCHAR || !bCount)
+	if (!pTCHAR || !bCount)
 		return EC_NOERROR;
-	
-	if(dwTMS)
+
+	if (dwTMS)
 	{
 		MAPDWORD::iterator itT = pTCHAR->m_mapTMS.find(dwTMS);
-		if(itT==pTCHAR->m_mapTMS.end())
+		if (itT == pTCHAR->m_mapTMS.end())
 			return EC_NOERROR;
 
 		MAPTMS::iterator itTMS = m_mapTMS.find(dwTMS);
-		if(itTMS==m_mapTMS.end())
+		if (itTMS == m_mapTMS.end())
 			return EC_NOERROR;
 
 		pTMS = (*itTMS).second;
 	}
 
-	for(BYTE i=0; i<bCount; i++)
+	for (BYTE i = 0; i<bCount; i++)
 	{
 		pBUF->m_packet
 			>> dwTarget;
 
 		MAPTCHARACTER::iterator it = m_mapTCHAR.find(dwTarget);
-		if(it==m_mapTCHAR.end())
+		if (it == m_mapTCHAR.end())
 			continue;
 
-		if(GetWarCountry(pTCHAR) != GetWarCountry(it->second))
+		if (GetWarCountry(pTCHAR) != GetWarCountry(it->second))
 			continue;
 
 		mapMEMBER.insert(MAPTCHARACTER::value_type(dwTarget, (*it).second));
 	}
 
-	if(!mapMEMBER.size())
+	if (!mapMEMBER.size())
 		return EC_NOERROR;
 
-	// 1:1 ¥Î»≠¿œ∞ÊøÏ
-	if(!pTMS && mapMEMBER.size() == 1)
+	// 1:1 ÎåÄÌôîÏùºÍ≤ΩÏö∞
+	if (!pTMS && mapMEMBER.size() == 1)
 	{
 		LPTCHARACTER pTarget = (*mapMEMBER.begin()).second;
 
 		MAPDWORD::iterator it;
-		for(it=pTarget->m_mapTMS.begin(); it!=pTarget->m_mapTMS.end(); it++)
+		for (it = pTarget->m_mapTMS.begin(); it != pTarget->m_mapTMS.end(); it++)
 		{
 			MAPTMS::iterator itTMS = m_mapTMS.find((*it).second);
-			if(itTMS==m_mapTMS.end())
+			if (itTMS == m_mapTMS.end())
 				continue;
 
-			// ∏∂¡ˆ∏∑ ≥™∞£ ªÁ∂˜¿Ã ≥™¿œ ∞ÊøÏ
-			if( (*itTMS).second->m_mapMember.size() == 1 && 
+			// ÎßàÏßÄÎßâ ÎÇòÍ∞Ñ ÏÇ¨ÎûåÏù¥ ÎÇòÏùº Í≤ΩÏö∞
+			if ((*itTMS).second->m_mapMember.size() == 1 &&
 				(*itTMS).second->m_strLastMember == pTCHAR->m_strNAME)
 			{
 				(*itTMS).second->m_mapMember.insert(MAPTCHARACTER::value_type(dwCharID, pTCHAR));
 				pTCHAR->m_mapTMS.insert(MAPDWORD::value_type((*itTMS).second->m_dwID, (*itTMS).second->m_dwID));
 
 				CTServer * pCon = FindMapSvr(pTCHAR->m_bMainID);
-				if(pCon)
+				if (pCon)
 				{
 					pCon->SendMW_TMSINVITE_REQ(
 						pTCHAR->m_dwCharID,
@@ -7518,7 +7513,7 @@ DWORD CTWorldSvrModule::OnMW_TMSINVITE_ACK(LPPACKETBUF pBUF)
 		}
 	}
 
-	if(!pTMS)
+	if (!pTMS)
 	{
 		pTMS = new TMS();
 		pTMS->m_dwID = ++m_dwTMSIndex;
@@ -7529,17 +7524,17 @@ DWORD CTWorldSvrModule::OnMW_TMSINVITE_ACK(LPPACKETBUF pBUF)
 	}
 
 	MAPTCHARACTER::iterator itTARGET;
-	for(itTARGET=mapMEMBER.begin(); itTARGET!=mapMEMBER.end(); itTARGET++)
+	for (itTARGET = mapMEMBER.begin(); itTARGET != mapMEMBER.end(); itTARGET++)
 	{
 		pTMS->m_mapMember.insert(MAPTCHARACTER::value_type((*itTARGET).second->m_dwCharID, (*itTARGET).second));
 		(*itTARGET).second->m_mapTMS.insert(MAPDWORD::value_type(pTMS->m_dwID, pTMS->m_dwID));
 	}
 
 	MAPTCHARACTER::iterator itChar;
-	for(itChar=pTMS->m_mapMember.begin(); itChar!=pTMS->m_mapMember.end(); itChar++)
+	for (itChar = pTMS->m_mapMember.begin(); itChar != pTMS->m_mapMember.end(); itChar++)
 	{
 		CTServer * pCon = FindMapSvr((*itChar).second->m_bMainID);
-		if(pCon)
+		if (pCon)
 		{
 			pCon->SendMW_TMSINVITE_REQ(
 				(*itChar).second->m_dwCharID,
@@ -7565,26 +7560,26 @@ DWORD CTWorldSvrModule::OnMW_TMSOUT_ACK(LPPACKETBUF pBUF)
 		>> dwTMS;
 
 	LPTCHARACTER pTCHAR = FindTChar(dwCharID, dwKey);
-	if(!pTCHAR)
+	if (!pTCHAR)
 		return EC_NOERROR;
 
 	MAPDWORD::iterator itT = pTCHAR->m_mapTMS.find(dwTMS);
-	if(itT == pTCHAR->m_mapTMS.end())
+	if (itT == pTCHAR->m_mapTMS.end())
 		return EC_NOERROR;
 
 	MAPTMS::iterator itTMS = m_mapTMS.find(dwTMS);
-	if(itTMS == m_mapTMS.end())
+	if (itTMS == m_mapTMS.end())
 		return EC_NOERROR;
 
 	LPTMS pTMS = (*itTMS).second;
 
 	MAPTCHARACTER::iterator itChar;
-	for(itChar=pTMS->m_mapMember.begin(); itChar!=pTMS->m_mapMember.end(); itChar++)
+	for (itChar = pTMS->m_mapMember.begin(); itChar != pTMS->m_mapMember.end(); itChar++)
 	{
 		CTServer * pCon = FindMapSvr((*itChar).second->m_bMainID);
-		if(pCon)
+		if (pCon)
 			pCon->SendMW_TMSOUT_REQ(
-				(*itChar).second->m_dwCharID,
+			(*itChar).second->m_dwCharID,
 				(*itChar).second->m_dwKEY,
 				dwTMS,
 				pTCHAR->m_strNAME);
@@ -7594,7 +7589,7 @@ DWORD CTWorldSvrModule::OnMW_TMSOUT_ACK(LPPACKETBUF pBUF)
 	pTMS->m_strLastMember = pTCHAR->m_strNAME;
 	pTCHAR->m_mapTMS.erase(dwTMS);
 
-	if(!pTMS->m_mapMember.size())
+	if (!pTMS->m_mapMember.size())
 	{
 		delete pTMS;
 		m_mapTMS.erase(dwTMS);
@@ -7621,12 +7616,12 @@ DWORD CTWorldSvrModule::OnMW_POSTRECV_ACK(LPPACKETBUF pBUF)
 		>> bType;
 
 	LPTCHARACTER pChar = FindTChar(strTarget);
-	if(!pChar)
+	if (!pChar)
 		return EC_NOERROR;
 	else
 	{
 		CTServer * pServer = FindMapSvr(pChar->m_bMainID);
-		if(pServer)
+		if (pServer)
 			pServer->SendMW_POSTRECV_REQ(&pBUF->m_packet);
 	}
 
@@ -7649,15 +7644,15 @@ DWORD CTWorldSvrModule::OnMW_CASTLEOCCUPY_ACK(LPPACKETBUF pBUF)
 		>> dwLoseGuild;
 
 	CTGuild * pGuild = FindTGuild(dwGuildID);
-	if(pGuild)
+	if (pGuild)
 		ResetCastleApply(pGuild, wCastleID);
 
 	CTGuild * pLose = FindTGuild(dwLoseGuild);
-	if(pLose)
+	if (pLose)
 		ResetCastleApply(pLose, wCastleID);
 
 	MAPTSERVER::iterator it;
-	for(it=m_mapSERVER.begin(); it!= m_mapSERVER.end(); it++)
+	for (it = m_mapSERVER.begin(); it != m_mapSERVER.end(); it++)
 		(*it).second->SendMW_CASTLEOCCUPY_REQ(
 			bType,
 			wCastleID,
@@ -7681,7 +7676,7 @@ DWORD CTWorldSvrModule::OnMW_SKYGARDENOCCUPY_ACK(LPPACKETBUF pBUF)
 		>> bCountry;
 
 	MAPTSERVER::iterator it;
-	for(it=m_mapSERVER.begin(); it!= m_mapSERVER.end(); it++)
+	for (it = m_mapSERVER.begin(); it != m_mapSERVER.end(); it++)
 		(*it).second->SendMW_SKYGARDENOCCUPY_REQ(
 			bType,
 			wID,
@@ -7707,16 +7702,16 @@ DWORD CTWorldSvrModule::OnMW_LOCALOCCUPY_ACK(LPPACKETBUF pBUF)
 
 	CTGuild * pGuild = FindTGuild(dwGuildID);
 
-	if(pGuild && pGuild->m_bCountry == TCONTRY_B)
+	if (pGuild && pGuild->m_bCountry == TCONTRY_B)
 	{
-		if(bCurCountry != TCONTRY_N)
+		if (bCurCountry != TCONTRY_N)
 			bCountry = !bCountry;
 
-		dwGuildID= 0;
+		dwGuildID = 0;
 	}
 
 	MAPTSERVER::iterator it;
-	for(it=m_mapSERVER.begin(); it!= m_mapSERVER.end(); it++)
+	for (it = m_mapSERVER.begin(); it != m_mapSERVER.end(); it++)
 		(*it).second->SendMW_LOCALOCCUPY_REQ(bType, wLocalID, bCountry, dwGuildID, pGuild ? pGuild->m_strName : NAME_NULL);
 
 	return EC_NOERROR;
@@ -7733,7 +7728,7 @@ DWORD CTWorldSvrModule::OnMW_MISSIONOCCUPY_ACK(LPPACKETBUF pBUF)
 		>> bCountry;
 
 	MAPTSERVER::iterator it;
-	for(it=m_mapSERVER.begin(); it!= m_mapSERVER.end(); it++)
+	for (it = m_mapSERVER.begin(); it != m_mapSERVER.end(); it++)
 		(*it).second->SendMW_MISSIONOCCUPY_REQ(bType, wLocalID, bCountry);
 
 	return EC_NOERROR;
@@ -7757,7 +7752,7 @@ DWORD CTWorldSvrModule::OnMW_CASTLEAPPLY_ACK(LPPACKETBUF pBUF)
 		>> bCamp;
 
 	LPTCHARACTER pChar = FindTChar(dwCharID, dwKey);
-	if(!pChar ||
+	if (!pChar ||
 		!pChar->m_pGuild ||
 		pChar->m_pGuild->m_dwChief != dwCharID)
 		return EC_NOERROR;
@@ -7768,10 +7763,10 @@ DWORD CTWorldSvrModule::OnMW_CASTLEAPPLY_ACK(LPPACKETBUF pBUF)
 
 	LPTGUILDMEMBER pTarget = pChar->m_pGuild->FindMember(dwTarget);
 	LPTTACTICSMEMBER pTactic = NULL;
-	if(!pTarget)
+	if (!pTarget)
 	{
 		pTactic = pChar->m_pGuild->FindTactics(dwTarget);
-		if(!pTactic)
+		if (!pTactic)
 			return EC_NOERROR;
 
 		pCharTarget = pTactic->m_pChar;
@@ -7780,7 +7775,7 @@ DWORD CTWorldSvrModule::OnMW_CASTLEAPPLY_ACK(LPPACKETBUF pBUF)
 	}
 	else
 	{
-		if(pTarget->m_dwTactics)
+		if (pTarget->m_dwTactics)
 			return EC_NOERROR;
 
 		pCharTarget = pTarget->m_pChar;
@@ -7788,13 +7783,13 @@ DWORD CTWorldSvrModule::OnMW_CASTLEAPPLY_ACK(LPPACKETBUF pBUF)
 		bPrevCamp = pTarget->m_bCamp;
 	}
 
-	if(wPrevCastle == wCastle)
+	if (wPrevCastle == wCastle)
 	{
 		wCastle = 0;
 		bCamp = 0;
 	}
 
-	if(wCastle && !pChar->m_pGuild->CanApplyWar(wCastle))
+	if (wCastle && !pChar->m_pGuild->CanApplyWar(wCastle))
 	{
 		pMain->SendMW_CASTLEAPPLY_REQ(
 			dwCharID,
@@ -7807,9 +7802,9 @@ DWORD CTWorldSvrModule::OnMW_CASTLEAPPLY_ACK(LPPACKETBUF pBUF)
 		return EC_NOERROR;
 	}
 
-	if(wPrevCastle || wCastle)
+	if (wPrevCastle || wCastle)
 	{
-		if(pTarget)
+		if (pTarget)
 		{
 			pTarget->m_wCastle = wCastle;
 			pTarget->m_bCamp = bCamp;
@@ -7828,10 +7823,10 @@ DWORD CTWorldSvrModule::OnMW_CASTLEAPPLY_ACK(LPPACKETBUF pBUF)
 			dwTarget,
 			bCamp);
 
-		if(dwCharID != dwTarget && pCharTarget)
+		if (dwCharID != dwTarget && pCharTarget)
 		{
 			CTServer * pMap = FindMapSvr(pCharTarget->m_bMainID);
-			if(pMap)
+			if (pMap)
 				pMap->SendMW_CASTLEAPPLY_REQ(
 					dwTarget,
 					pCharTarget->m_dwKEY,
@@ -7843,10 +7838,10 @@ DWORD CTWorldSvrModule::OnMW_CASTLEAPPLY_ACK(LPPACKETBUF pBUF)
 
 		SendDM_CASTLEAPPLY_REQ(wCastle, dwTarget, bCamp);
 
-		if(wPrevCastle)
+		if (wPrevCastle)
 			NotifyCastleApply(wPrevCastle, pChar->m_pGuild);
 
-		if(wCastle)
+		if (wCastle)
 			NotifyCastleApply(wCastle, pChar->m_pGuild);
 	}
 
@@ -7863,12 +7858,12 @@ DWORD CTWorldSvrModule::OnMW_MONTEMPT_ACK(LPPACKETBUF pBUF)
 		>> wMonID;
 
 	MAPTCHARACTER::iterator it = m_mapTCHAR.find(dwAtkID);
-	if(it!=m_mapTCHAR.end())
+	if (it != m_mapTCHAR.end())
 	{
 		CTServer * pMain = FindMapSvr((*it).second->m_bMainID);
-		if(pMain)
+		if (pMain)
 			pMain->SendMW_MONTEMPT_REQ(
-				(*it).second->m_dwCharID,
+			(*it).second->m_dwCharID,
 				(*it).second->m_dwKEY,
 				wMonID);
 	}
@@ -7888,12 +7883,12 @@ DWORD CTWorldSvrModule::OnMW_MONTEMPTEVO_ACK(LPPACKETBUF pBUF)
 		>> bHostType;
 
 	MAPTCHARACTER::iterator it = m_mapTCHAR.find(dwAtkID);
-	if(it!=m_mapTCHAR.end())
+	if (it != m_mapTCHAR.end())
 	{
 		CTServer * pMain = FindMapSvr((*it).second->m_bMainID);
-		if(pMain)
+		if (pMain)
 			pMain->SendMW_MONTEMPTEVO_REQ(
-				(*it).second->m_dwCharID,
+			(*it).second->m_dwCharID,
 				(*it).second->m_dwKEY,
 				dwHostID,
 				bHostType);
@@ -7918,17 +7913,17 @@ DWORD CTWorldSvrModule::OnMW_GETBLOOD_ACK(LPPACKETBUF pBUF)
 		>> dwBlood;
 
 	MAPTCHARACTER::iterator it;
-	if(bAtkType == OT_PC)
-        it = m_mapTCHAR.find(dwAtkID);
+	if (bAtkType == OT_PC)
+		it = m_mapTCHAR.find(dwAtkID);
 	else
 		it = m_mapTCHAR.find(dwHostID);
 
-	if(it!=m_mapTCHAR.end())
+	if (it != m_mapTCHAR.end())
 	{
 		CTServer * pMain = FindMapSvr((*it).second->m_bMainID);
-		if(pMain)
+		if (pMain)
 			pMain->SendMW_GETBLOOD_REQ(
-				(*it).second->m_dwCharID,
+			(*it).second->m_dwCharID,
 				(*it).second->m_dwKEY,
 				dwAtkID,
 				bAtkType,
@@ -7952,10 +7947,10 @@ DWORD CTWorldSvrModule::OnMW_DEALITEMERROR_ACK(LPPACKETBUF pBUF)
 		>> bError;
 
 	LPTCHARACTER pChar = FindTChar(strTarget);
-	if(pChar)
+	if (pChar)
 	{
 		CTServer * pMap = FindMapSvr(pChar->m_bMainID);
-		if(pMap)
+		if (pMap)
 			pMap->SendMW_DEALITEMERROR_REQ(strTarget, strErrorChar, bError);
 	}
 
@@ -7979,10 +7974,10 @@ DWORD CTWorldSvrModule::OnMW_MAGICMIRROR_ACK(LPPACKETBUF pBUF)
 		>> bTargetType;
 
 	MAPTCHARACTER::iterator itCHAR = m_mapTCHAR.find(dwAttackID);
-	if( itCHAR != m_mapTCHAR.end())
+	if (itCHAR != m_mapTCHAR.end())
 	{
 		CTServer * pMap = FindMapSvr((*itCHAR).second->m_bMainID);
-		if(pMap)
+		if (pMap)
 			pMap->SendMW_MAGICMIRROR_REQ(&pBUF->m_packet);
 	}
 
@@ -8054,7 +8049,7 @@ DWORD CTWorldSvrModule::OnMW_CREATERECALLMON_ACK(LPPACKETBUF pBUF)
 		>> bTargetType
 		>> bSkillCount;
 
-	for(BYTE i=0; i< bSkillCount; i++)
+	for (BYTE i = 0; i< bSkillCount; i++)
 	{
 		pBUF->m_packet
 			>> wSkillID;
@@ -8063,22 +8058,22 @@ DWORD CTWorldSvrModule::OnMW_CREATERECALLMON_ACK(LPPACKETBUF pBUF)
 	}
 
 	LPTCHARACTER pChar = FindTChar(dwCharID, dwKey);
-	if(!pChar)
+	if (!pChar)
 	{
 		vSkill.clear();
 		return EC_NOERROR;
 	}
 
-	if(!dwMonID)
+	if (!dwMonID)
 		dwMonID = GenRecallID();
 
 	MAPTCHARCON::iterator itCON;
-	for(itCON =pChar->m_mapTCHARCON.begin(); itCON != pChar->m_mapTCHARCON.end(); itCON++)
+	for (itCON = pChar->m_mapTCHARCON.begin(); itCON != pChar->m_mapTCHARCON.end(); itCON++)
 	{
-		if((*itCON).second->m_bValid)
+		if ((*itCON).second->m_bValid)
 		{
 			CTServer *pMAP = FindMapSvr((*itCON).first);
-			if(pMAP)
+			if (pMAP)
 			{
 				pMAP->SendMW_CREATERECALLMON_REQ(
 					dwCharID,
@@ -8131,18 +8126,18 @@ DWORD CTWorldSvrModule::OnMW_RECALLMONDEL_ACK(LPPACKETBUF pBUF)
 
 	LPTCHARACTER pChar;
 	MAPTCHARACTER::iterator it = m_mapTCHAR.find(dwCharID);
-	if(it==m_mapTCHAR.end())
+	if (it == m_mapTCHAR.end())
 		return EC_NOERROR;
 
 	pChar = it->second;
 
 	MAPTCHARCON::iterator itCON;
-	for(itCON =pChar->m_mapTCHARCON.begin(); itCON != pChar->m_mapTCHARCON.end(); itCON++)
+	for (itCON = pChar->m_mapTCHARCON.begin(); itCON != pChar->m_mapTCHARCON.end(); itCON++)
 	{
-		if((*itCON).second->m_bValid)
+		if ((*itCON).second->m_bValid)
 		{
 			CTServer *pMAP = FindMapSvr((*itCON).first);
-			if(pMAP)
+			if (pMAP)
 			{
 				pMAP->SendMW_RECALLMONDEL_REQ(
 					dwCharID,
@@ -8167,23 +8162,23 @@ DWORD CTWorldSvrModule::OnMW_REGION_ACK(LPPACKETBUF pBUF)
 		>> dwRegion;
 
 	LPTCHARACTER pTCHAR = FindTChar(dwCharID, dwKEY);
-	if(!pTCHAR)
+	if (!pTCHAR)
 		return EC_NOERROR;
 
 	pTCHAR->m_dwRegion = dwRegion;
 
 	MAPTSOULMATE::iterator itSo;
-	for(itSo = pTCHAR->m_mapTSOULMATE.begin(); itSo != pTCHAR->m_mapTSOULMATE.end(); itSo++)
+	for (itSo = pTCHAR->m_mapTSOULMATE.begin(); itSo != pTCHAR->m_mapTSOULMATE.end(); itSo++)
 	{
 		LPTSOULMATE pTSOUL = (*itSo).second;
-		if(pTSOUL->m_dwCharID != pTCHAR->m_dwCharID)
+		if (pTSOUL->m_dwCharID != pTCHAR->m_dwCharID)
 		{
 			MAPTCHARACTER::iterator itCh = m_mapTCHAR.find(pTSOUL->m_dwCharID);
-			if(itCh != m_mapTCHAR.end())
+			if (itCh != m_mapTCHAR.end())
 			{
 				LPTCHARACTER pSoulChar = (*itCh).second;
 				MAPTSOULMATE::iterator itTS = pSoulChar->m_mapTSOULMATE.find(pSoulChar->m_dwCharID);
-				if(itTS != pSoulChar->m_mapTSOULMATE.end())
+				if (itTS != pSoulChar->m_mapTSOULMATE.end())
 				{
 					(*itTS).second->m_bConnected = TRUE;
 					(*itTS).second->m_dwRegion = dwRegion;
@@ -8193,18 +8188,18 @@ DWORD CTWorldSvrModule::OnMW_REGION_ACK(LPPACKETBUF pBUF)
 	}
 
 	MAPTFRIEND::iterator it;
-	for(it=pTCHAR->m_mapTFRIEND.begin(); it!=pTCHAR->m_mapTFRIEND.end(); it++)
+	for (it = pTCHAR->m_mapTFRIEND.begin(); it != pTCHAR->m_mapTFRIEND.end(); it++)
 	{
-		if((*it).second->m_bType == FT_FRIEND)
+		if ((*it).second->m_bType == FT_FRIEND)
 			continue;
 
-		if((*it).second->m_bConnected)
+		if ((*it).second->m_bConnected)
 		{
 			LPTCHARACTER pTarget = FindTChar((*it).second->m_strName);
-			if(pTarget)
+			if (pTarget)
 			{
 				MAPTFRIEND::iterator itFr = pTarget->m_mapTFRIEND.find(dwCharID);
-				if(itFr != pTarget->m_mapTFRIEND.end())
+				if (itFr != pTarget->m_mapTFRIEND.end())
 					(*itFr).second->m_dwRegion = dwRegion;
 			}
 		}
@@ -8215,7 +8210,7 @@ DWORD CTWorldSvrModule::OnMW_REGION_ACK(LPPACKETBUF pBUF)
 
 DWORD CTWorldSvrModule::OnMW_BEGINTELEPORT_ACK(LPPACKETBUF pBUF)
 {
-	CTServer *pSERVER = (CTServer *) pBUF->m_pSESSION;
+	CTServer *pSERVER = (CTServer *)pBUF->m_pSESSION;
 
 	DWORD dwCharID;
 	DWORD dwKEY;
@@ -8228,8 +8223,8 @@ DWORD CTWorldSvrModule::OnMW_BEGINTELEPORT_ACK(LPPACKETBUF pBUF)
 		>> bSameChannel
 		>> bChannel;
 
-	LPTCHARACTER pTCHAR = FindTChar( dwCharID, dwKEY);
-	if(!pTCHAR)
+	LPTCHARACTER pTCHAR = FindTChar(dwCharID, dwKEY);
+	if (!pTCHAR)
 	{
 		pSERVER->SendMW_DELCHAR_REQ(
 			dwCharID,
@@ -8240,27 +8235,27 @@ DWORD CTWorldSvrModule::OnMW_BEGINTELEPORT_ACK(LPPACKETBUF pBUF)
 		return EC_NOERROR;
 	}
 
-	if(bSameChannel)
+	if (bSameChannel)
 	{
 		pTCHAR->m_bChannel = bChannel;
 		return EC_NOERROR;
 	}
 
-	// ø¨∞·∞¸∏Æ «¡∑ŒººΩ∫ ≈•ø° µÓ∑œ «— »ƒ ¿ÃπÃ Ω««‡ ¡ﬂ¿Ã∞≈≥™ Ω««‡¥Î±‚ ¡ﬂ¿Œ ø¨∞·∞¸∏Æ «¡∑ŒººΩ∫∞° ¿÷¿∏∏È
-	// ∏’¿˙ µÓ∑œµ» ø¨∞·∞¸∏Æ «¡∑ŒººΩ∫∞° ≥°≥Ø∂ß±Ó¡ˆ ¥Î±‚
-	if(PushConCess( pTCHAR, pBUF))
+	// Ïó∞Í≤∞Í¥ÄÎ¶¨ ÌîÑÎ°úÏÑ∏Ïä§ ÌÅêÏóê Îì±Î°ù Ìïú ÌõÑ Ïù¥ÎØ∏ Ïã§Ìñâ Ï§ëÏù¥Í±∞ÎÇò Ïã§ÌñâÎåÄÍ∏∞ Ï§ëÏù∏ Ïó∞Í≤∞Í¥ÄÎ¶¨ ÌîÑÎ°úÏÑ∏Ïä§Í∞Ä ÏûàÏúºÎ©¥
+	// Î®ºÏ†Ä Îì±Î°ùÎêú Ïó∞Í≤∞Í¥ÄÎ¶¨ ÌîÑÎ°úÏÑ∏Ïä§Í∞Ä ÎÅùÎÇ†ÎïåÍπåÏßÄ ÎåÄÍ∏∞
+	if (PushConCess(pTCHAR, pBUF))
 		return EC_NOERROR;
 
-	// ¿ÃπÃ Ω««‡ ¡ﬂ¿Ã∞≈≥™ Ω««‡¥Î±‚ ¡ﬂ¿Œ ø¨∞·∞¸∏Æ «¡∑ŒººΩ∫∞° æ¯¿∏∏È ≈⁄∑π∆˜∆Æ Ω√¿€
+	// Ïù¥ÎØ∏ Ïã§Ìñâ Ï§ëÏù¥Í±∞ÎÇò Ïã§ÌñâÎåÄÍ∏∞ Ï§ëÏù∏ Ïó∞Í≤∞Í¥ÄÎ¶¨ ÌîÑÎ°úÏÑ∏Ïä§Í∞Ä ÏóÜÏúºÎ©¥ ÌÖîÎ†àÌè¨Ìä∏ ÏãúÏûë
 	pBUF->m_packet.Rewind(FALSE);
-	OnBeginTeleport( pTCHAR, pBUF);
+	OnBeginTeleport(pTCHAR, pBUF);
 
 	return EC_NOERROR;
 }
 
 DWORD CTWorldSvrModule::OnMW_PETRIDING_ACK(LPPACKETBUF pBUF)
 {
-	CTServer *pSERVER = (CTServer *) pBUF->m_pSESSION;
+	CTServer *pSERVER = (CTServer *)pBUF->m_pSESSION;
 
 	DWORD dwCharID;
 	DWORD dwKEY;
@@ -8271,18 +8266,18 @@ DWORD CTWorldSvrModule::OnMW_PETRIDING_ACK(LPPACKETBUF pBUF)
 		>> dwKEY
 		>> dwRiding;
 
-	LPTCHARACTER pTCHAR = FindTChar( dwCharID, dwKEY);
-	if(!pTCHAR)
+	LPTCHARACTER pTCHAR = FindTChar(dwCharID, dwKEY);
+	if (!pTCHAR)
 		return EC_NOERROR;
 
 	pTCHAR->m_dwRiding = dwRiding;
 
 	MAPTCHARCON::iterator itCON;
-	for( itCON = pTCHAR->m_mapTCHARCON.begin(); itCON != pTCHAR->m_mapTCHARCON.end(); itCON++)
+	for (itCON = pTCHAR->m_mapTCHARCON.begin(); itCON != pTCHAR->m_mapTCHARCON.end(); itCON++)
 	{
 		CTServer *pMAP = FindMapSvr((*itCON).first);
 
-		if(pMAP && pSERVER != pMAP)
+		if (pMAP && pSERVER != pMAP)
 		{
 			pMAP->SendMW_PETRIDING_REQ(
 				pTCHAR->m_dwCharID,
@@ -8306,7 +8301,7 @@ DWORD CTWorldSvrModule::OnSM_EVENTQUARTER_REQ(LPPACKETBUF pBUF)
 
 	BYTE bSelect = BYTE(rand() % 100);
 
-	for(MAPTSERVER::iterator it=m_mapSERVER.begin(); it!=m_mapSERVER.end(); it++)
+	for (MAPTSERVER::iterator it = m_mapSERVER.begin(); it != m_mapSERVER.end(); it++)
 		(*it).second->SendMW_EVENTQUARTER_REQ(bDay, bHour, bMinute, bSelect, strPresent);
 
 	return EC_NOERROR;
@@ -8319,19 +8314,19 @@ DWORD CTWorldSvrModule::OnSM_EVENTQUARTERNOTIFY_REQ(LPPACKETBUF pBUF)
 		>> strAnnounce;
 
 	MAPTSERVER::iterator it;
-	for(it=m_mapSERVER.begin(); it!=m_mapSERVER.end(); it++)
+	for (it = m_mapSERVER.begin(); it != m_mapSERVER.end(); it++)
 		(*it).second->SendMW_CHAT_REQ(
-		0,
-		0,
-		0,
-		0,
-		GetSvrMsg(NAME_OPERATOR),
-		TCONTRY_N,
-		TCONTRY_N,
-		CHAT_WORLD,
-		CHAT_WORLD,
-		0,
-		strAnnounce);
+			0,
+			0,
+			0,
+			0,
+			GetSvrMsg(NAME_OPERATOR),
+			TCONTRY_N,
+			TCONTRY_N,
+			CHAT_WORLD,
+			CHAT_WORLD,
+			0,
+			strAnnounce);
 
 
 	return EC_NOERROR;
@@ -8339,7 +8334,7 @@ DWORD CTWorldSvrModule::OnSM_EVENTQUARTERNOTIFY_REQ(LPPACKETBUF pBUF)
 
 DWORD CTWorldSvrModule::OnMW_HELMETHIDE_ACK(LPPACKETBUF pBUF)
 {
-	CTServer *pSERVER = (CTServer *) pBUF->m_pSESSION;
+	CTServer *pSERVER = (CTServer *)pBUF->m_pSESSION;
 
 	DWORD dwCharID;
 	DWORD dwKEY;
@@ -8350,8 +8345,8 @@ DWORD CTWorldSvrModule::OnMW_HELMETHIDE_ACK(LPPACKETBUF pBUF)
 		>> dwKEY
 		>> bHide;
 
-	LPTCHARACTER pTCHAR = FindTChar( dwCharID, dwKEY);
-	if(!pTCHAR)
+	LPTCHARACTER pTCHAR = FindTChar(dwCharID, dwKEY);
+	if (!pTCHAR)
 		return EC_NOERROR;
 
 	pTCHAR->m_bHelmetHide = bHide;
@@ -8366,7 +8361,7 @@ DWORD CTWorldSvrModule::OnMW_HELMETHIDE_ACK(LPPACKETBUF pBUF)
 
 DWORD CTWorldSvrModule::OnMW_PARTYMEMBERRECALL_ACK(LPPACKETBUF pBUF)
 {
-	CTServer *pSERVER = (CTServer *) pBUF->m_pSESSION;
+	CTServer *pSERVER = (CTServer *)pBUF->m_pSESSION;
 
 	DWORD dwCharID;
 	DWORD dwKEY;
@@ -8383,20 +8378,20 @@ DWORD CTWorldSvrModule::OnMW_PARTYMEMBERRECALL_ACK(LPPACKETBUF pBUF)
 		>> strOrigin
 		>> strTarget;
 
-	LPTCHARACTER pTCHAR = FindTChar( dwCharID, dwKEY );
-	if(!pTCHAR)
+	LPTCHARACTER pTCHAR = FindTChar(dwCharID, dwKEY);
+	if (!pTCHAR)
 		return EC_NOERROR;
 
-	if(strOrigin == pTCHAR->m_strNAME)
+	if (strOrigin == pTCHAR->m_strNAME)
 	{
-		LPTCHARACTER pTarget = FindTChar( strTarget );
-		if(pTarget &&
+		LPTCHARACTER pTarget = FindTChar(strTarget);
+		if (pTarget &&
 			pTarget->m_pParty &&
 			pTarget->m_wMapID == pTCHAR->m_wMapID &&
 			pTarget->m_pParty->GetID() == (pTCHAR->m_pParty ? pTCHAR->m_pParty->GetID() : 0))
 		{
 			CTServer * pMAP = FindMapSvr(pTarget->m_bMainID);
-			if(pMAP)
+			if (pMAP)
 			{
 				pMAP->SendMW_PARTYMEMBERRECALLANS_REQ(
 					pTarget->m_dwCharID,
@@ -8421,13 +8416,13 @@ DWORD CTWorldSvrModule::OnMW_PARTYMEMBERRECALL_ACK(LPPACKETBUF pBUF)
 	}
 	else
 	{
-		LPTCHARACTER pOrigin = FindTChar( strOrigin);
-		if(pOrigin &&
+		LPTCHARACTER pOrigin = FindTChar(strOrigin);
+		if (pOrigin &&
 			pOrigin->m_wMapID == pTCHAR->m_wMapID &&
 			GetWarCountry(pOrigin) == GetWarCountry(pTCHAR))
 		{
 			CTServer * pMAP = FindMapSvr(pOrigin->m_bMainID);
-			if(pMAP)
+			if (pMAP)
 			{
 				pMAP->SendMW_PARTYMEMBERRECALLANS_REQ(
 					pOrigin->m_dwCharID,
@@ -8480,16 +8475,16 @@ DWORD CTWorldSvrModule::OnMW_PARTYMEMBERRECALLANS_ACK(LPPACKETBUF pBUF)
 		>> fPosY
 		>> fPosZ;
 
-	LPTCHARACTER pUser = FindTChar( strUser);
-	if(pUser)
+	LPTCHARACTER pUser = FindTChar(strUser);
+	if (pUser)
 	{
 		CTServer * pMAP = FindMapSvr(pUser->m_bMainID);
-		if(pMAP)
+		if (pMAP)
 		{
-			if(pUser->m_wMapID != wMapID)
+			if (pUser->m_wMapID != wMapID)
 				bResult = IU_TARGETBUSY;
 
-			if(IsMeetingRoom(pUser->m_wMapID, TRUE))
+			if (IsMeetingRoom(pUser->m_wMapID, TRUE))
 				bResult = IU_TARGETBUSY;
 
 			pMAP->SendMW_PARTYMEMBERRECALL_REQ(
@@ -8526,11 +8521,11 @@ DWORD CTWorldSvrModule::OnDM_GUILDLOAD_REQ(LPPACKETBUF pBUF)
 	__time64_t timeEstablish;
 	LPPACKETBUF pMSG = new PACKETBUF();
 	DEFINE_QUERY(&m_db, CTBLGuildLoad)
-	query->m_dwGuildID = dwGuildID;
-	if(query->Open())
+		query->m_dwGuildID = dwGuildID;
+	if (query->Open())
 	{
 		query->Fetch();
-		if(query->m_dwChief == dwCharID)
+		if (query->m_dwChief == dwCharID)
 		{
 			bRet = TRUE;
 			timeEstablish = __DBTOTIME(query->m_timeEstablish);
@@ -8561,11 +8556,11 @@ DWORD CTWorldSvrModule::OnDM_GUILDLOAD_REQ(LPPACKETBUF pBUF)
 	}
 	UNDEFINE_QUERY()
 
-	if(!bRet)
-	{
-		delete pMSG;
-		return EC_NOERROR;
-	}
+		if (!bRet)
+		{
+			delete pMSG;
+			return EC_NOERROR;
+		}
 
 	WORD wSize = pMSG->m_packet.GetSize();
 	WORD wCount = 0;
@@ -8573,13 +8568,13 @@ DWORD CTWorldSvrModule::OnDM_GUILDLOAD_REQ(LPPACKETBUF pBUF)
 		<< wCount;
 
 	DEFINE_QUERY(&m_db, CTBLGuildItem)
-	query->m_dwOwnerID = dwGuildID;
+		query->m_dwOwnerID = dwGuildID;
 	query->m_bOwnerType = TOWNER_GUILD;
 	query->m_bStorageType = STORAGE_CABINET;
 
-	if(query->Open())
+	if (query->Open())
 	{
-		while(query->Fetch())
+		while (query->Fetch())
 		{
 			query->m_item.m_dEndTime = __DBTOTIME(query->m_dEndTime);
 			WrapItem(&(pMSG->m_packet), query->m_item);
@@ -8590,7 +8585,7 @@ DWORD CTWorldSvrModule::OnDM_GUILDLOAD_REQ(LPPACKETBUF pBUF)
 	}
 	UNDEFINE_QUERY()
 
-	memcpy(pMSG->m_packet.GetBuffer()+wSize, &wCount, sizeof(wCount));
+		memcpy(pMSG->m_packet.GetBuffer() + wSize, &wCount, sizeof(wCount));
 
 	SayToBATCH(pMSG);
 
@@ -8609,11 +8604,11 @@ DWORD CTWorldSvrModule::OnDM_GUILDLOAD_ACK(LPPACKETBUF pBUF)
 		>> dwGuildID;
 
 	LPTCHARACTER pTCHAR = FindTChar(dwCharID, dwKey);
-	if(!pTCHAR)
+	if (!pTCHAR)
 		return EC_NOERROR;
 
 	MAPTGUILD::iterator it = m_mapTGuild.find(dwGuildID);
-	if(it != m_mapTGuild.end())
+	if (it != m_mapTGuild.end())
 		return EC_NOERROR;
 
 	WORD wCount;
@@ -8642,7 +8637,7 @@ DWORD CTWorldSvrModule::OnDM_GUILDLOAD_ACK(LPPACKETBUF pBUF)
 		>> wCount;
 
 	m_mapTGuild.insert(MAPTGUILD::value_type(pGuild->m_dwID, pGuild));
-	if(pGuild->m_bDisorg)
+	if (pGuild->m_bDisorg)
 		m_mapTGuildEx.insert(MAPDWORD::value_type(pGuild->m_dwID, pGuild->m_dwTime));
 
 	pGuild->m_pTLEVEL = FindGuildLevel(pGuild->m_bLevel);
@@ -8650,7 +8645,7 @@ DWORD CTWorldSvrModule::OnDM_GUILDLOAD_ACK(LPPACKETBUF pBUF)
 	pGuild->m_dwChief = pTCHAR->m_dwCharID;
 	pGuild->m_strChief = pTCHAR->m_strNAME;
 
-	for(WORD i=0; i<wCount; i++)
+	for (WORD i = 0; i<wCount; i++)
 	{
 		LPTITEM pItem = CreateItem(&(pBUF->m_packet));
 		pGuild->PutInItem(pItem->m_dwItemID, pItem);
@@ -8670,7 +8665,7 @@ DWORD CTWorldSvrModule::OnDM_GUILDLOAD_ACK(LPPACKETBUF pBUF)
 	pTCHAR->m_pGuild = pGuild;
 
 	CTServer *pMAP = FindMapSvr(pTCHAR->m_bMainID);
-	if(!pMAP)
+	if (!pMAP)
 		return EC_NOERROR;
 
 	pMAP->SendMW_GUILDESTABLISH_REQ(
@@ -8699,15 +8694,15 @@ DWORD CTWorldSvrModule::OnDM_SOULMATELIST_REQ(LPPACKETBUF pBUF)
 		<< dwKEY;
 
 	WORD wSize = pMSG->m_packet.GetSize();
-	DWORD dwCount=0;
+	DWORD dwCount = 0;
 	pMSG->m_packet
 		<< dwCount;
 
 	DEFINE_QUERY(&m_db, CTBLSoulmate)
-	query->m_dwCharID = dwCharID;
-	if(query->Open())
+		query->m_dwCharID = dwCharID;
+	if (query->Open())
 	{
-		while(query->Fetch())
+		while (query->Fetch())
 		{
 			pMSG->m_packet
 				<< query->m_dwCharID
@@ -8723,11 +8718,11 @@ DWORD CTWorldSvrModule::OnDM_SOULMATELIST_REQ(LPPACKETBUF pBUF)
 	}
 	UNDEFINE_QUERY()
 
-	DEFINE_QUERY(&m_db, CTBLMySoulmate)
-	query->m_dwCharID = dwCharID;
-	if(query->Open())
+		DEFINE_QUERY(&m_db, CTBLMySoulmate)
+		query->m_dwCharID = dwCharID;
+	if (query->Open())
 	{
-		while(query->Fetch())
+		while (query->Fetch())
 		{
 			pMSG->m_packet
 				<< query->m_dwCharID
@@ -8743,7 +8738,7 @@ DWORD CTWorldSvrModule::OnDM_SOULMATELIST_REQ(LPPACKETBUF pBUF)
 	}
 	UNDEFINE_QUERY()
 
-	memcpy(pMSG->m_packet.GetBuffer()+wSize,&dwCount,sizeof(dwCount));
+		memcpy(pMSG->m_packet.GetBuffer() + wSize, &dwCount, sizeof(dwCount));
 
 	SayToBATCH(pMSG);
 
@@ -8760,7 +8755,7 @@ DWORD CTWorldSvrModule::OnDM_SOULMATELIST_ACK(LPPACKETBUF pBUF)
 		>> dwKEY;
 
 	LPTCHARACTER pPlayer = FindTChar(dwCharID, dwKEY);
-	if(!pPlayer)
+	if (!pPlayer)
 		return EC_NOERROR;
 
 	DWORD dwCount;
@@ -8768,7 +8763,7 @@ DWORD CTWorldSvrModule::OnDM_SOULMATELIST_ACK(LPPACKETBUF pBUF)
 	pBUF->m_packet
 		>> dwCount;
 
-	for(DWORD i=0; i<dwCount; i++)
+	for (DWORD i = 0; i<dwCount; i++)
 	{
 		LPTSOULMATE pTSOULMATE = new TSOULMATE();
 		pTSOULMATE->m_bConnected = FALSE;
@@ -8783,30 +8778,30 @@ DWORD CTWorldSvrModule::OnDM_SOULMATELIST_ACK(LPPACKETBUF pBUF)
 			>> pTSOULMATE->m_dwTime;
 
 		BYTE bSilence = FALSE;
-		if(pTSOULMATE->m_dwTime && m_timeCurrent - pTSOULMATE->m_dwTime < SOULMATE_SILENCE_DURATION)
+		if (pTSOULMATE->m_dwTime && m_timeCurrent - pTSOULMATE->m_dwTime < SOULMATE_SILENCE_DURATION)
 			bSilence = TRUE;
 
-		if(pTSOULMATE->m_dwTime && !bSilence)
+		if (pTSOULMATE->m_dwTime && !bSilence)
 		{
 			SendDM_SOULMATEDEL_REQ(pTSOULMATE->m_dwCharID, pTSOULMATE->m_dwTarget);
 			delete pTSOULMATE;
 			continue;
 		}
 
-		if(!bSilence)
+		if (!bSilence)
 		{
 			pPlayer->m_mapTSOULMATE.insert(MAPTSOULMATE::value_type(pTSOULMATE->m_dwCharID, pTSOULMATE));
 
 			LPTCHARACTER pCHAR = NULL;
 			LPTSOULMATE pSOUL = NULL;
 
-			if(pTSOULMATE->m_dwCharID == pPlayer->m_dwCharID)
+			if (pTSOULMATE->m_dwCharID == pPlayer->m_dwCharID)
 			{
 				pCHAR = pPlayer;
 				pSOUL = pTSOULMATE;
 
 				MAPTCHARACTER::iterator itSo = m_mapTCHAR.find(pTSOULMATE->m_dwTarget);
-				if(itSo!=m_mapTCHAR.end())
+				if (itSo != m_mapTCHAR.end())
 				{
 					pTSOULMATE->m_bConnected = TRUE;
 					pTSOULMATE->m_dwRegion = (*itSo).second->m_dwRegion;
@@ -8815,14 +8810,14 @@ DWORD CTWorldSvrModule::OnDM_SOULMATELIST_ACK(LPPACKETBUF pBUF)
 			else
 			{
 				MAPTCHARACTER::iterator itSo = m_mapTCHAR.find(pTSOULMATE->m_dwCharID);
-				if(itSo!=m_mapTCHAR.end())
+				if (itSo != m_mapTCHAR.end())
 				{
 					pCHAR = (*itSo).second;
 					pTSOULMATE->m_bConnected = TRUE;
 					pTSOULMATE->m_dwRegion = (*itSo).second->m_dwRegion;
 
 					MAPTSOULMATE::iterator findSOUL = pCHAR->m_mapTSOULMATE.find(pCHAR->m_dwCharID);
-					if(findSOUL!=pCHAR->m_mapTSOULMATE.end())
+					if (findSOUL != pCHAR->m_mapTSOULMATE.end())
 					{
 						pSOUL = (*findSOUL).second;
 						pSOUL->m_bConnected = TRUE;
@@ -8834,13 +8829,13 @@ DWORD CTWorldSvrModule::OnDM_SOULMATELIST_ACK(LPPACKETBUF pBUF)
 			CheckSoulmateEnd(pCHAR, pSOUL);
 		}
 
-		if(pTSOULMATE->m_dwCharID == pPlayer->m_dwCharID)
+		if (pTSOULMATE->m_dwCharID == pPlayer->m_dwCharID)
 		{
-			if(bSilence)
+			if (bSilence)
 				pPlayer->m_dwSoulSilence = pTSOULMATE->m_dwTime;
 
 			CTServer *pServer = FindMapSvr(pPlayer->m_bMainID);
-			if(pServer)
+			if (pServer)
 				pServer->SendMW_SOULMATE_REQ(
 					pPlayer->m_dwCharID,
 					pPlayer->m_dwKEY,
@@ -8859,7 +8854,7 @@ DWORD CTWorldSvrModule::OnDM_SOULMATEREG_REQ(LPPACKETBUF pBUF)
 	DWORD dwKey;
 	DWORD dwTarget;
 	BYTE bSearch;
-	BYTE bNpcInvenID;  
+	BYTE bNpcInvenID;
 	BYTE bNpcItemID;
 
 	pBUF->m_packet
@@ -8871,12 +8866,12 @@ DWORD CTWorldSvrModule::OnDM_SOULMATEREG_REQ(LPPACKETBUF pBUF)
 		>> bNpcItemID;
 
 	DEFINE_QUERY(&m_db, CSPSoulmateReg)
-	query->m_dwCharID = dwCharID;
+		query->m_dwCharID = dwCharID;
 	query->m_dwTarget = dwTarget;
 	query->Call();
 	UNDEFINE_QUERY()
 
-	LPPACKETBUF pMSG = new PACKETBUF();
+		LPPACKETBUF pMSG = new PACKETBUF();
 	pMSG->m_packet.SetID(DM_SOULMATEREG_ACK)
 		<< dwCharID
 		<< dwKey
@@ -8896,7 +8891,7 @@ DWORD CTWorldSvrModule::OnDM_SOULMATEREG_ACK(LPPACKETBUF pBUF)
 	DWORD dwKey;
 	DWORD dwTarget;
 	BYTE bSearch;
-	BYTE bNpcInvenID;  
+	BYTE bNpcInvenID;
 	BYTE bNpcItemID;
 
 	pBUF->m_packet
@@ -8908,12 +8903,12 @@ DWORD CTWorldSvrModule::OnDM_SOULMATEREG_ACK(LPPACKETBUF pBUF)
 		>> bNpcItemID;
 
 
-	LPTCHARACTER pTCHAR = FindTChar( dwCharID, dwKey);
-	if(!pTCHAR)
+	LPTCHARACTER pTCHAR = FindTChar(dwCharID, dwKey);
+	if (!pTCHAR)
 		return EC_NOERROR;
 
 	MAPTCHARACTER::iterator it = m_mapTCHAR.find(dwTarget);
-	if(it!=m_mapTCHAR.end())
+	if (it != m_mapTCHAR.end())
 		RegSoulmate(pTCHAR, (*it).second, bSearch, bNpcInvenID, bNpcItemID);
 
 	return EC_NOERROR;
@@ -8931,12 +8926,12 @@ DWORD CTWorldSvrModule::OnDM_SOULMATEEND_REQ(LPPACKETBUF pBUF)
 		>> dwTime;
 
 	DEFINE_QUERY(&m_db, CSPSoulmateEnd)
-	query->m_dwCharID = dwCharID;
+		query->m_dwCharID = dwCharID;
 	query->m_dwTime = dwTime;
 	query->Call();
 	UNDEFINE_QUERY()
 
-	LPPACKETBUF pMSG = new PACKETBUF();
+		LPPACKETBUF pMSG = new PACKETBUF();
 	pMSG->m_packet.SetID(DM_SOULMATEEND_ACK)
 		<< dwCharID
 		<< dwKey
@@ -8958,8 +8953,8 @@ DWORD CTWorldSvrModule::OnDM_SOULMATEEND_ACK(LPPACKETBUF pBUF)
 		>> dwKey
 		>> dwTime;
 
-	LPTCHARACTER pTCHAR = FindTChar( dwCharID, dwKey);
-	if(!pTCHAR)
+	LPTCHARACTER pTCHAR = FindTChar(dwCharID, dwKey);
+	if (!pTCHAR)
 		return EC_NOERROR;
 
 	SoulmateEnd(pTCHAR, dwTime);
@@ -8977,12 +8972,12 @@ DWORD CTWorldSvrModule::OnDM_SOULMATEDEL_REQ(LPPACKETBUF pBUF)
 		>> dwSoul;
 
 	DEFINE_QUERY(&m_db, CSPSoulmateDel)
-	query->m_dwCharID = dwCharID;
+		query->m_dwCharID = dwCharID;
 	query->m_dwSoul = dwSoul;
 	query->Call();
 	UNDEFINE_QUERY()
 
-	LPPACKETBUF pMSG = new PACKETBUF();
+		LPPACKETBUF pMSG = new PACKETBUF();
 	pMSG->m_packet.SetID(DM_SOULMATEDEL_ACK)
 		<< dwCharID
 		<< dwSoul;
@@ -9002,7 +8997,7 @@ DWORD CTWorldSvrModule::OnDM_SOULMATEDEL_ACK(LPPACKETBUF pBUF)
 		>> dwSoul;
 
 	MAPTCHARACTER::iterator it = m_mapTCHAR.find(dwCharID);
-	if(it!=m_mapTCHAR.end())
+	if (it != m_mapTCHAR.end())
 		SoulmateDel((*it).second, dwSoul);
 
 	return EC_NOERROR;
@@ -9010,12 +9005,12 @@ DWORD CTWorldSvrModule::OnDM_SOULMATEDEL_ACK(LPPACKETBUF pBUF)
 
 DWORD CTWorldSvrModule::OnMW_SOULMATESEARCH_ACK(LPPACKETBUF pBUF)
 {
-	CTServer *pSERVER = (CTServer *) pBUF->m_pSESSION;
+	CTServer *pSERVER = (CTServer *)pBUF->m_pSESSION;
 
 	DWORD dwCharID;
 	DWORD dwKEY;
 	BYTE bMinLevel;
-	BYTE bNpcInvenID;  
+	BYTE bNpcInvenID;
 	BYTE bNpcItemID;
 
 
@@ -9026,8 +9021,8 @@ DWORD CTWorldSvrModule::OnMW_SOULMATESEARCH_ACK(LPPACKETBUF pBUF)
 		>> bNpcInvenID
 		>> bNpcItemID;
 
-	LPTCHARACTER pTCHAR = FindTChar( dwCharID, dwKEY);
-	if(!pTCHAR)
+	LPTCHARACTER pTCHAR = FindTChar(dwCharID, dwKEY);
+	if (!pTCHAR)
 		return EC_NOERROR;
 
 	BYTE bLevel = bMinLevel;
@@ -9035,82 +9030,82 @@ DWORD CTWorldSvrModule::OnMW_SOULMATESEARCH_ACK(LPPACKETBUF pBUF)
 	VECTORTMEMBER vMember;
 	vMember.clear();
 
-	// ∑π∫ß¬˜¿Ã∞° ∞°¿Â ¿€¿∫ ¥ÎªÛ / ¿ÃøÙ¿Œ ¥ÎªÛ
+	// Î†àÎ≤®Ï∞®Ïù¥Í∞Ä Í∞ÄÏû• ÏûëÏùÄ ÎåÄÏÉÅ / Ïù¥ÏõÉÏù∏ ÎåÄÏÉÅ
 	MAPTCHARACTER::iterator itPLAYERS;
-	for(itPLAYERS=m_mapTCHAR.begin(); itPLAYERS!=m_mapTCHAR.end(); itPLAYERS++)
+	for (itPLAYERS = m_mapTCHAR.begin(); itPLAYERS != m_mapTCHAR.end(); itPLAYERS++)
 	{
-		if(dwCharID == (*itPLAYERS).second->m_dwCharID ||
+		if (dwCharID == (*itPLAYERS).second->m_dwCharID ||
 			pTCHAR->m_bCountry != (*itPLAYERS).second->m_bCountry)
 			continue;
 
-		if(abs(pTCHAR->m_bLevel - (*itPLAYERS).second->m_bLevel) < SOULMATE_LEVEL)
+		if (abs(pTCHAR->m_bLevel - (*itPLAYERS).second->m_bLevel) < SOULMATE_LEVEL)
 		{
-			if(bLevel > (*itPLAYERS).second->m_bLevel)
+			if (bLevel > (*itPLAYERS).second->m_bLevel)
 			{
 				vMember.clear();
 				vMember.push_back((*itPLAYERS).second);
 				bLevel = (*itPLAYERS).second->m_bLevel;
 			}
-			else if(bLevel == (*itPLAYERS).second->m_bLevel)
+			else if (bLevel == (*itPLAYERS).second->m_bLevel)
 				vMember.push_back((*itPLAYERS).second);
 		}
 	}
 
-	if(!vMember.size())
+	if (!vMember.size())
 	{
 		pSERVER->SendMW_SOULMATESEARCH_REQ(
 			pTCHAR->m_dwCharID,
 			pTCHAR->m_dwKEY,
 			SOULMATE_NOTFOUND,
-			0,NAME_NULL,0,bNpcInvenID,bNpcItemID);
+			0, NAME_NULL, 0, bNpcInvenID, bNpcItemID);
 		return EC_NOERROR;
 	}
 
 	VECTORTMEMBER vTemp;
 
-	// Ω«¡¶º∫∫∞¿Ã ¿Ãº∫¿Œ ¥ÎªÛ
-	if(vMember.size() != 1)
+	// Ïã§Ï†úÏÑ±Î≥ÑÏù¥ Ïù¥ÏÑ±Ïù∏ ÎåÄÏÉÅ
+	if (vMember.size() != 1)
 	{
 		vTemp.clear();
 
-		for(DWORD i=0; i<vMember.size(); i++)
-			if(pTCHAR->m_bRealSex != vMember[i]->m_bRealSex)
+		for (DWORD i = 0; i<vMember.size(); i++)
+			if (pTCHAR->m_bRealSex != vMember[i]->m_bRealSex)
 				vTemp.push_back(vMember[i]);
 
-		if(vTemp.size())
+		if (vTemp.size())
 			vMember = vTemp;
 		vTemp.clear();
 	}
 
-	// º“øÔ∏ﬁ¿Ã∆Æ∏¶ ¡ˆ¡§«œ¡ˆ æ ¿∫ ¥ÎªÛ
-	if(vMember.size() != 1)
+	// ÏÜåÏö∏Î©îÏù¥Ìä∏Î•º ÏßÄÏ†ïÌïòÏßÄ ÏïäÏùÄ ÎåÄÏÉÅ
+	if (vMember.size() != 1)
 	{
 		vTemp.clear();
 
-		for(DWORD i=0; i<vMember.size(); i++)
+		for (DWORD i = 0; i<vMember.size(); i++)
 		{
 			MAPTSOULMATE::iterator find = vMember[i]->m_mapTSOULMATE.find(vMember[i]->m_dwCharID);
-			if(find==vMember[i]->m_mapTSOULMATE.end())
+			if (find == vMember[i]->m_mapTSOULMATE.end())
 				vTemp.push_back(vMember[i]);
-			else if((*find).second->m_dwTarget == 0)
+			else if ((*find).second->m_dwTarget == 0)
 				vTemp.push_back(vMember[i]);
 		}
 
-		if(vTemp.size())
+		if (vTemp.size())
 			vMember = vTemp;
 		vTemp.clear();
 	}
 
-	// ƒ…∏Ø≈Õ¿« º∫∫∞¿Ã ¿Ãº∫¿Œ ¥ÎªÛ
-	if(vMember.size() != 1)
+	// ÏºÄÎ¶≠ÌÑ∞Ïùò ÏÑ±Î≥ÑÏù¥ Ïù¥ÏÑ±Ïù∏ ÎåÄÏÉÅ
+	if (vMember.size() != 1)
 	{
 		vTemp.clear();
 
-		for(DWORD i=0; i<vMember.size(); i++)
-			if(pTCHAR->m_bSex != vMember[i]->m_bSex)
+		for (DWORD i = 0; i<vMember.size(); i++)
+			if (pTCHAR->m_bSex != vMember[i]->m_bSex)
 				vTemp.push_back(vMember[i]);
 
-		if(vTemp.size())
+		if (vTemp.size())
 			vMember = vTemp;
 		vTemp.clear();
 	}
@@ -9123,13 +9118,13 @@ DWORD CTWorldSvrModule::OnMW_SOULMATESEARCH_ACK(LPPACKETBUF pBUF)
 }
 DWORD CTWorldSvrModule::OnMW_SOULMATEREG_ACK(LPPACKETBUF pBUF)
 {
-	CTServer *pSERVER = (CTServer *) pBUF->m_pSESSION;
+	CTServer *pSERVER = (CTServer *)pBUF->m_pSESSION;
 
 	DWORD dwCharID;
 	DWORD dwKEY;
 	CString strName;
 	BYTE bReg;
-	BYTE bNpcInvenID;  
+	BYTE bNpcInvenID;
 	BYTE bNpcItemID;
 
 	pBUF->m_packet
@@ -9140,12 +9135,12 @@ DWORD CTWorldSvrModule::OnMW_SOULMATEREG_ACK(LPPACKETBUF pBUF)
 		>> bNpcInvenID
 		>> bNpcItemID;
 
-	LPTCHARACTER pTCHAR = FindTChar( dwCharID, dwKEY);
-	if(!pTCHAR)
+	LPTCHARACTER pTCHAR = FindTChar(dwCharID, dwKEY);
+	if (!pTCHAR)
 		return EC_NOERROR;
 
 	LPTCHARACTER pTarget = FindTChar(strName);
-	if(!pTarget)
+	if (!pTarget)
 	{
 		pSERVER->SendMW_SOULMATEREG_REQ(
 			pTCHAR->m_dwCharID,
@@ -9157,7 +9152,7 @@ DWORD CTWorldSvrModule::OnMW_SOULMATEREG_ACK(LPPACKETBUF pBUF)
 		return EC_NOERROR;
 	}
 
-	if(pTarget->m_bCountry != pTCHAR->m_bCountry)
+	if (pTarget->m_bCountry != pTCHAR->m_bCountry)
 	{
 		pSERVER->SendMW_SOULMATEREG_REQ(
 			pTCHAR->m_dwCharID,
@@ -9170,7 +9165,7 @@ DWORD CTWorldSvrModule::OnMW_SOULMATEREG_ACK(LPPACKETBUF pBUF)
 		return EC_NOERROR;
 	}
 
-	if(abs(pTarget->m_bLevel - pTCHAR->m_bLevel) > SOULMATE_LEVEL)
+	if (abs(pTarget->m_bLevel - pTCHAR->m_bLevel) > SOULMATE_LEVEL)
 	{
 		pSERVER->SendMW_SOULMATEREG_REQ(
 			pTCHAR->m_dwCharID,
@@ -9187,8 +9182,8 @@ DWORD CTWorldSvrModule::OnMW_SOULMATEREG_ACK(LPPACKETBUF pBUF)
 	CString strSoulmate = pTarget->m_strNAME;
 	DWORD dwRegion = pTarget->m_dwRegion;
 
-	if(bReg)
-		SendDM_SOULMATEREG_REQ(pTCHAR->m_dwCharID, pTCHAR->m_dwKEY, pTarget->m_dwCharID, FALSE,bNpcInvenID,bNpcItemID);
+	if (bReg)
+		SendDM_SOULMATEREG_REQ(pTCHAR->m_dwCharID, pTCHAR->m_dwKEY, pTarget->m_dwCharID, FALSE, bNpcInvenID, bNpcItemID);
 	else
 		pSERVER->SendMW_SOULMATEREG_REQ(
 			pTCHAR->m_dwCharID,
@@ -9205,7 +9200,7 @@ DWORD CTWorldSvrModule::OnMW_SOULMATEREG_ACK(LPPACKETBUF pBUF)
 }
 DWORD CTWorldSvrModule::OnMW_SOULMATEEND_ACK(LPPACKETBUF pBUF)
 {
-	CTServer *pSERVER = (CTServer *) pBUF->m_pSESSION;
+	CTServer *pSERVER = (CTServer *)pBUF->m_pSESSION;
 
 	DWORD dwCharID;
 	DWORD dwKEY;
@@ -9214,12 +9209,12 @@ DWORD CTWorldSvrModule::OnMW_SOULMATEEND_ACK(LPPACKETBUF pBUF)
 		>> dwCharID
 		>> dwKEY;
 
-	LPTCHARACTER pTCHAR = FindTChar( dwCharID, dwKEY);
-	if(!pTCHAR)
+	LPTCHARACTER pTCHAR = FindTChar(dwCharID, dwKEY);
+	if (!pTCHAR)
 		return EC_NOERROR;
 
 	MAPTSOULMATE::iterator find = pTCHAR->m_mapTSOULMATE.find(dwCharID);
-	if(find==pTCHAR->m_mapTSOULMATE.end())
+	if (find == pTCHAR->m_mapTSOULMATE.end())
 	{
 		pSERVER->SendMW_SOULMATEEND_REQ(
 			pTCHAR->m_dwCharID,
@@ -9235,7 +9230,7 @@ DWORD CTWorldSvrModule::OnMW_SOULMATEEND_ACK(LPPACKETBUF pBUF)
 
 DWORD CTWorldSvrModule::OnMW_CASTLEWARINFO_ACK(LPPACKETBUF pBUF)
 {
-	CTServer *pSERVER = (CTServer *) pBUF->m_pSESSION;
+	CTServer *pSERVER = (CTServer *)pBUF->m_pSESSION;
 
 	WORD wLocalID;
 	WORD wCastle;
@@ -9245,7 +9240,7 @@ DWORD CTWorldSvrModule::OnMW_CASTLEWARINFO_ACK(LPPACKETBUF pBUF)
 	pBUF->m_packet
 		>> wCastle;
 
-	if(!wCastle)
+	if (!wCastle)
 	{
 		NotifyCastleWarInfo(pSERVER);
 		return EC_NOERROR;
@@ -9258,7 +9253,7 @@ DWORD CTWorldSvrModule::OnMW_CASTLEWARINFO_ACK(LPPACKETBUF pBUF)
 	TCASTLEWARINFO cwi;
 	cwi.m_wID = wCastle;
 
-	for(BYTE i=0; i<bLocalCnt; i++)
+	for (BYTE i = 0; i<bLocalCnt; i++)
 	{
 		pBUF->m_packet
 			>> wLocalID;
@@ -9266,7 +9261,7 @@ DWORD CTWorldSvrModule::OnMW_CASTLEWARINFO_ACK(LPPACKETBUF pBUF)
 		DWORD dwOccGuild;
 		BYTE bOccType;
 
-		for(BYTE j=0; j<6; j++)
+		for (BYTE j = 0; j<6; j++)
 		{
 			pBUF->m_packet
 				>> dwOccGuild
@@ -9274,28 +9269,28 @@ DWORD CTWorldSvrModule::OnMW_CASTLEWARINFO_ACK(LPPACKETBUF pBUF)
 
 			WORD wBonus = 0;
 
-			if(OCCUPY_DEFEND == bOccType)
+			if (OCCUPY_DEFEND == bOccType)
 				wBonus = 11;
 			else
 				wBonus = 10;
 
 			CTGuild * pGuild = FindTGuild(dwOccGuild);
-			if(pGuild)
+			if (pGuild)
 			{
 				MAPDWORD::iterator itAll = cwi.m_mapGuild.find(dwOccGuild);
-				if( itAll == cwi.m_mapGuild.end())
+				if (itAll == cwi.m_mapGuild.end())
 					cwi.m_mapGuild.insert(MAPDWORD::value_type(dwOccGuild, wBonus));
 				else
 					(*itAll).second += wBonus;
 
-				if(bOccType == OCCUPY_ACCEPT)
+				if (bOccType == OCCUPY_ACCEPT)
 				{
 					MAPARRAY::iterator itOcc = cwi.m_mapOccupy.find(dwOccGuild);
-					if( itOcc == cwi.m_mapOccupy.end())
+					if (itOcc == cwi.m_mapOccupy.end())
 					{
 						VWORD vBValue;
 						vBValue.clear();
-						while(vBValue.size() < 6)
+						while (vBValue.size() < 6)
 							vBValue.push_back(0);
 
 						vBValue[j] = wBonus;
@@ -9325,9 +9320,9 @@ DWORD CTWorldSvrModule::OnMW_ENDWAR_ACK(LPPACKETBUF pBUF)
 		>> wCastle;
 
 	MAPTSERVER::iterator it;
-	for(it=m_mapSERVER.begin(); it!=m_mapSERVER.end(); it++)
+	for (it = m_mapSERVER.begin(); it != m_mapSERVER.end(); it++)
 		(*it).second->SendMW_ENDWAR_REQ(
-				wCastle);
+			wCastle);
 
 	return EC_NOERROR;
 }
@@ -9341,17 +9336,17 @@ DWORD CTWorldSvrModule::OnMW_RECALLMONDATA_ACK(LPPACKETBUF pBUF)
 		>> dwCharID
 		>> dwKey;
 
-	LPTCHARACTER pTCHAR = FindTChar( dwCharID, dwKey);
-	if(!pTCHAR)
+	LPTCHARACTER pTCHAR = FindTChar(dwCharID, dwKey);
+	if (!pTCHAR)
 		return EC_NOERROR;
 
 	MAPTCHARCON::iterator itCON;
-	for(itCON=pTCHAR->m_mapTCHARCON.begin(); itCON!=pTCHAR->m_mapTCHARCON.end(); itCON++)
+	for (itCON = pTCHAR->m_mapTCHARCON.begin(); itCON != pTCHAR->m_mapTCHARCON.end(); itCON++)
 	{
-		if((*itCON).second->m_bValid)
+		if ((*itCON).second->m_bValid)
 		{
 			CTServer *pMAP = FindMapSvr((*itCON).first);
-			if(pMAP)
+			if (pMAP)
 				pMAP->SendMW_RECALLMONDATA_REQ(&(pBUF->m_packet));
 		}
 	}
@@ -9361,7 +9356,7 @@ DWORD CTWorldSvrModule::OnMW_RECALLMONDATA_ACK(LPPACKETBUF pBUF)
 
 DWORD CTWorldSvrModule::OnMW_CHANGECHARBASE_ACK(LPPACKETBUF pBUF)
 {
-	CTServer *pSERVER = (CTServer *) pBUF->m_pSESSION;
+	CTServer *pSERVER = (CTServer *)pBUF->m_pSESSION;
 
 	DWORD dwCharID;
 	DWORD dwKey;
@@ -9378,11 +9373,11 @@ DWORD CTWorldSvrModule::OnMW_CHANGECHARBASE_ACK(LPPACKETBUF pBUF)
 		>> wTitleID
 		>> strName;
 
-	LPTCHARACTER pTCHAR = FindTChar( dwCharID, dwKey);
-	if(!pTCHAR)
+	LPTCHARACTER pTCHAR = FindTChar(dwCharID, dwKey);
+	if (!pTCHAR)
 		return EC_NOERROR;
 
-	switch(bType)
+	switch (bType)
 	{
 	case IK_FACE:
 		pTCHAR->m_bFace = bValue;
@@ -9398,80 +9393,80 @@ DWORD CTWorldSvrModule::OnMW_CHANGECHARBASE_ACK(LPPACKETBUF pBUF)
 		break;
 	case IK_COUNTRY:
 	case IK_AIDCOUNTRY:
-		{
-			ChangeCountry(pTCHAR, bType, bValue);
-		}
-		return EC_NOERROR;
+	{
+		ChangeCountry(pTCHAR, bType, bValue);
+	}
+	return EC_NOERROR;
 	case IK_NAME:
-		{			
-			MAPTFRIEND::iterator itFr;
-			for(itFr=pTCHAR->m_mapTFRIEND.begin(); itFr!=pTCHAR->m_mapTFRIEND.end(); itFr++)
-				SendDM_FRIENDERASE_REQ((*itFr).second->m_dwID, dwCharID);
+	{
+		MAPTFRIEND::iterator itFr;
+		for (itFr = pTCHAR->m_mapTFRIEND.begin(); itFr != pTCHAR->m_mapTFRIEND.end(); itFr++)
+			SendDM_FRIENDERASE_REQ((*itFr).second->m_dwID, dwCharID);
 
-			MAPTSOULMATE::iterator itSM;
-			for(itSM=pTCHAR->m_mapTSOULMATE.begin(); itSM!=pTCHAR->m_mapTSOULMATE.end(); itSM++)
-			{
-				if((*itSM).second->m_dwCharID != pTCHAR->m_dwCharID)
-					SendDM_SOULMATEDEL_REQ((*itSM).second->m_dwCharID, (*itSM).second->m_dwTarget);
-			}
-
-			LPTGUILDWANTEDAPP pApp = FindGuildWantedApp(dwCharID);
-			if(pApp)
-				pApp->m_strName = strName;
-
-			LPTGUILDTACTICSWANTEDAPP pTacApp = FindGuildTacticsWantedApp(dwCharID);
-			if(pTacApp)
-				pTacApp->m_strName = strName;
-
-			if(pTCHAR->m_pGuild)
-			{
-				LPTGUILDMEMBER pMember = pTCHAR->m_pGuild->FindMember(dwCharID);
-				if(pMember)
-					pMember->m_strName = strName;
-			}
-
-			if(pTCHAR->m_pTactics)
-			{
-				LPTTACTICSMEMBER pMember = pTCHAR->m_pTactics->FindTactics(dwCharID);
-				if(pMember)
-					pMember->m_strName = strName;
-			}
-
-			LPTNMTPLAYER pTnmt = FindTNMTPlayer(pTCHAR->m_dwCharID);
-			if(pTnmt)
-				pTnmt->m_strName = strName;
-
-			CString strOriName = pTCHAR->m_strNAME;
-			strOriName.MakeUpper();
-			MAPTCHARACTERNAME::iterator it = m_mapTCHARNAME.find(strOriName);
-			if(it != m_mapTCHARNAME.end())
-				m_mapTCHARNAME.erase(it);
-
-			pTCHAR->m_strNAME = strName;
-			CString strChgName = strName;
-			strChgName.MakeUpper();
-			m_mapTCHARNAME.insert(MAPTCHARACTERNAME::value_type(strChgName, pTCHAR));
-			if(m_pRelay)
-				m_pRelay->SendRW_CHANGENAME_ACK(dwCharID, bType, bValue, strName);
-		}
-		break;
-	case IK_TITLE:
+		MAPTSOULMATE::iterator itSM;
+		for (itSM = pTCHAR->m_mapTSOULMATE.begin(); itSM != pTCHAR->m_mapTSOULMATE.end(); itSM++)
 		{
-			pTCHAR->m_wTitleID = wTitleID;
+			if ((*itSM).second->m_dwCharID != pTCHAR->m_dwCharID)
+				SendDM_SOULMATEDEL_REQ((*itSM).second->m_dwCharID, (*itSM).second->m_dwTarget);
 		}
-		break;
+
+		LPTGUILDWANTEDAPP pApp = FindGuildWantedApp(dwCharID);
+		if (pApp)
+			pApp->m_strName = strName;
+
+		LPTGUILDTACTICSWANTEDAPP pTacApp = FindGuildTacticsWantedApp(dwCharID);
+		if (pTacApp)
+			pTacApp->m_strName = strName;
+
+		if (pTCHAR->m_pGuild)
+		{
+			LPTGUILDMEMBER pMember = pTCHAR->m_pGuild->FindMember(dwCharID);
+			if (pMember)
+				pMember->m_strName = strName;
+		}
+
+		if (pTCHAR->m_pTactics)
+		{
+			LPTTACTICSMEMBER pMember = pTCHAR->m_pTactics->FindTactics(dwCharID);
+			if (pMember)
+				pMember->m_strName = strName;
+		}
+
+		LPTNMTPLAYER pTnmt = FindTNMTPlayer(pTCHAR->m_dwCharID);
+		if (pTnmt)
+			pTnmt->m_strName = strName;
+
+		CString strOriName = pTCHAR->m_strNAME;
+		strOriName.MakeUpper();
+		MAPTCHARACTERNAME::iterator it = m_mapTCHARNAME.find(strOriName);
+		if (it != m_mapTCHARNAME.end())
+			m_mapTCHARNAME.erase(it);
+
+		pTCHAR->m_strNAME = strName;
+		CString strChgName = strName;
+		strChgName.MakeUpper();
+		m_mapTCHARNAME.insert(MAPTCHARACTERNAME::value_type(strChgName, pTCHAR));
+		if (m_pRelay)
+			m_pRelay->SendRW_CHANGENAME_ACK(dwCharID, bType, bValue, strName);
+	}
+	break;
+	case IK_TITLE:
+	{
+		pTCHAR->m_wTitleID = wTitleID;
+	}
+	break;
 	}
 
 
-	if(bType != IK_NAME && bType != IK_TITLE)
+	if (bType != IK_NAME && bType != IK_TITLE)
 	{
 		MAPTCHARCON::iterator itCON;
-		for(itCON=pTCHAR->m_mapTCHARCON.begin(); itCON!=pTCHAR->m_mapTCHARCON.end(); itCON++)
+		for (itCON = pTCHAR->m_mapTCHARCON.begin(); itCON != pTCHAR->m_mapTCHARCON.end(); itCON++)
 		{
-			if((*itCON).second->m_bValid)
+			if ((*itCON).second->m_bValid)
 			{
 				CTServer *pMAP = FindMapSvr((*itCON).first);
-				if(pMAP)
+				if (pMAP)
 					pMAP->SendMW_CHANGECHARBASE_REQ(
 						dwCharID,
 						dwKey,
@@ -9485,7 +9480,7 @@ DWORD CTWorldSvrModule::OnMW_CHANGECHARBASE_ACK(LPPACKETBUF pBUF)
 	else
 	{
 		MAPTSERVER::iterator it;
-		for(it=m_mapSERVER.begin(); it != m_mapSERVER.end(); it++)
+		for (it = m_mapSERVER.begin(); it != m_mapSERVER.end(); it++)
 		{
 			(*it).second->SendMW_CHANGECHARBASE_REQ(
 				dwCharID,
@@ -9500,10 +9495,10 @@ DWORD CTWorldSvrModule::OnMW_CHANGECHARBASE_ACK(LPPACKETBUF pBUF)
 	return EC_NOERROR;
 }
 
- 
-DWORD CTWorldSvrModule::OnMW_HEROSELECT_ACK(LPPACKETBUF pBUF) 
+
+DWORD CTWorldSvrModule::OnMW_HEROSELECT_ACK(LPPACKETBUF pBUF)
 {
-	WORD wBattleZoneID;	
+	WORD wBattleZoneID;
 	CString strHeroName;
 	__time64_t timeHero;
 
@@ -9513,7 +9508,7 @@ DWORD CTWorldSvrModule::OnMW_HEROSELECT_ACK(LPPACKETBUF pBUF)
 		>> timeHero;
 
 	MAPTSERVER::iterator it;
-	for(it=m_mapSERVER.begin(); it != m_mapSERVER.end(); it++)
+	for (it = m_mapSERVER.begin(); it != m_mapSERVER.end(); it++)
 	{
 		(*it).second->SendMW_HEROSELECT_REQ(
 			wBattleZoneID,
@@ -9538,57 +9533,57 @@ DWORD CTWorldSvrModule::OnSM_BATTLESTATUS_REQ(LPPACKETBUF pBUF)
 		>> dwSecond;
 
 	MAPTSERVER::iterator it;
-	for(it=m_mapSERVER.begin(); it != m_mapSERVER.end(); it++)
+	for (it = m_mapSERVER.begin(); it != m_mapSERVER.end(); it++)
 	{
-		switch(bType)
+		switch (bType)
 		{
 		case BT_LOCAL:
-			{
-				(*it).second->SendMW_LOCALENABLE_REQ(
-					bStatus,
-					dwSecond,
-					0,0,0);
-			}
-			break;
+		{
+			(*it).second->SendMW_LOCALENABLE_REQ(
+				bStatus,
+				dwSecond,
+				0, 0, 0);
+		}
+		break;
 		case BT_CASTLE:
-			{
-				(*it).second->SendMW_CASTLEENABLE_REQ(
-					bStatus,
-					dwSecond);
-			}
-			break;
+		{
+			(*it).second->SendMW_CASTLEENABLE_REQ(
+				bStatus,
+				dwSecond);
+		}
+		break;
 		case BT_MISSION:
-			{
-				(*it).second->SendMW_MISSIONENABLE_REQ(
-					bStatus,
-					dwStart,
-					dwSecond);
-			}
-			break;
+		{
+			(*it).second->SendMW_MISSIONENABLE_REQ(
+				bStatus,
+				dwStart,
+				dwSecond);
+		}
+		break;
 #ifdef SKYGARDEN
 		case BT_SKYGARDEN:
-			{
-				(*it).second->SendMW_SKYGARDENENABLE_REQ(
-					bStatus,
-					dwSecond,
-					0,0);
-			}
-			break;
+		{
+			(*it).second->SendMW_SKYGARDENENABLE_REQ(
+				bStatus,
+				dwSecond,
+				0, 0);
+		}
+		break;
 #endif
 		default:
 			break;
 		}
 	}
 
-	if(bType != BT_MISSION && bStatus == BS_PEACE)
+	if (bType != BT_MISSION && bStatus == BS_PEACE)
 	{
-		m_dwRecentRecordDate = DWORD(m_timeCurrent/DAY_ONE);
+		m_dwRecentRecordDate = DWORD(m_timeCurrent / DAY_ONE);
 
 		MAPTGUILD::iterator itGD;
-		for(itGD=m_mapTGuild.begin(); itGD!=m_mapTGuild.end(); itGD++)
+		for (itGD = m_mapTGuild.begin(); itGD != m_mapTGuild.end(); itGD++)
 			(*itGD).second->CalcWeekRecord(m_dwRecentRecordDate);
 
-		if(bType == BT_CASTLE)
+		if (bType == BT_CASTLE)
 			m_mapCastleWarInfo.clear();
 	}
 
@@ -9606,8 +9601,8 @@ DWORD CTWorldSvrModule::OnDM_CLEARMAPCURRENTUSER_REQ(LPPACKETBUF pBUF)
 		>> bServerID
 		>> bSvrType;
 
-	DEFINE_QUERY(&m_db,CSPClearMapCurrentUser)
-	query->m_bGroupID = bGroupID;
+	DEFINE_QUERY(&m_db, CSPClearMapCurrentUser)
+		query->m_bGroupID = bGroupID;
 	query->m_bServerID = bServerID;
 	query->m_bSvrType = bSvrType;
 	query->Call();
@@ -9630,18 +9625,18 @@ DWORD CTWorldSvrModule::OnDM_ITEMFIND_REQ(LPPACKETBUF pBUF)
 	CPacket* pMSG = new CPacket();
 	WORD wCount = 0;
 	WORD wSize = pMSG->GetSize();
-	pMSG->SetID(CT_ITEMFIND_ACK)		
+	pMSG->SetID(CT_ITEMFIND_ACK)
 		<< wCount
 		<< dwManagerID;
 
-		
+
 	DEFINE_QUERY(&m_db, CTBLItemFind)
-	query->m_wFindID = wItemID;
-	lstrcpy(query->m_szFindName,strName);
-	
-	if(query->Open())
+		query->m_wFindID = wItemID;
+	lstrcpy(query->m_szFindName, strName);
+
+	if (query->Open())
 	{
-		while( query->Fetch() )
+		while (query->Fetch())
 		{
 			(*pMSG)
 				<< query->m_wItemID
@@ -9650,13 +9645,13 @@ DWORD CTWorldSvrModule::OnDM_ITEMFIND_REQ(LPPACKETBUF pBUF)
 
 			wCount++;
 		}
-		memcpy(pMSG->GetBuffer()+wSize, &wCount, sizeof(wCount));
+		memcpy(pMSG->GetBuffer() + wSize, &wCount, sizeof(wCount));
 		query->Close();
 	}
 	UNDEFINE_QUERY();
 
 	// to Ctrl Server
-	if(m_pCtrlSvr)
+	if (m_pCtrlSvr)
 		m_pCtrlSvr->Say(pMSG);
 
 	return EC_NOERROR;
@@ -9682,35 +9677,35 @@ DWORD CTWorldSvrModule::OnDM_ITEMSTATE_REQ(LPPACKETBUF pBUF)
 
 	WORD wSize = pMSG->m_packet.GetSize();
 	pMSG->m_packet
-		<< wSuccessCount;	
+		<< wSuccessCount;
 
-	DEFINE_QUERY(&m_db,CSPItemStateChange)	
-	for(WORD i = 0; i < wCount; i++)
-	{
-		pBUF->m_packet
-			>> wItemID
-			>> bInitState;
-
-		query->m_wItemID = wItemID;
-		query->m_bInitState = bInitState;
-
-		if( !query->Call() || query->m_nRET )
+	DEFINE_QUERY(&m_db, CSPItemStateChange)
+		for (WORD i = 0; i < wCount; i++)
 		{
-			break;
+			pBUF->m_packet
+				>> wItemID
+				>> bInitState;
+
+			query->m_wItemID = wItemID;
+			query->m_bInitState = bInitState;
+
+			if (!query->Call() || query->m_nRET)
+			{
+				break;
+			}
+			else
+			{
+				wSuccessCount++;
+				pMSG->m_packet
+					<< wItemID
+					<< bInitState;
+			}
+
 		}
-		else
-		{
-			wSuccessCount++;
-			pMSG->m_packet
-				<< wItemID
-				<< bInitState;
-		}
-	
-	}
-	memcpy(pMSG->m_packet.GetBuffer()+wSize, &wSuccessCount, sizeof(wSuccessCount));
+	memcpy(pMSG->m_packet.GetBuffer() + wSize, &wSuccessCount, sizeof(wSuccessCount));
 	UNDEFINE_QUERY()
 
-	SayToBATCH(pMSG);
+		SayToBATCH(pMSG);
 
 	return EC_NOERROR;
 }
@@ -9718,12 +9713,12 @@ DWORD CTWorldSvrModule::OnDM_ITEMSTATE_REQ(LPPACKETBUF pBUF)
 DWORD CTWorldSvrModule::OnDM_ITEMSTATE_ACK(LPPACKETBUF pBUF)
 {
 	MAPTSERVER::iterator it;
-	for(it = m_mapSERVER.begin(); it != m_mapSERVER.end(); it++)
+	for (it = m_mapSERVER.begin(); it != m_mapSERVER.end(); it++)
 	{
 		(*it).second->SendMW_ITEMSTATE_REQ(&(pBUF->m_packet));
 	}
 
-	if(m_pCtrlSvr)
+	if (m_pCtrlSvr)
 		m_pCtrlSvr->SendCT_ITEMSTATE_ACK(&(pBUF->m_packet));
 
 	return EC_NOERROR;
@@ -9753,23 +9748,23 @@ DWORD CTWorldSvrModule::OnMW_GAINPVPPOINT_ACK(LPPACKETBUF pBUF)
 		>> bClass
 		>> bLevel;
 
-	if(bOwnerType == TOWNER_CHAR)
+	if (bOwnerType == TOWNER_CHAR)
 	{
 		MAPTCHARACTER::iterator it = m_mapTCHAR.find(dwOwnerID);
-		if(it==m_mapTCHAR.end())
+		if (it == m_mapTCHAR.end())
 			return EC_NOERROR;
 
 		CTServer *pServer = FindMapSvr((*it).second->m_bMainID);
-		if(pServer)
+		if (pServer)
 			pServer->SendMW_GAINPVPPOINT_REQ(dwOwnerID, dwPoint, bEvent, bType, bGain, strName, bClass, bLevel);
 	}
 	else
 	{
 		CTGuild * pGuild = FindTGuild(dwOwnerID);
-		if(!pGuild)
+		if (!pGuild)
 			return EC_NOERROR;
 
-		if(bGain)
+		if (bGain)
 			pGuild->GainPvPoint(dwPoint, bEvent, bType);
 		else
 			pGuild->UsePvPoint(dwPoint, bType);
@@ -9793,14 +9788,14 @@ DWORD CTWorldSvrModule::OnMW_LOCALRECORD_ACK(LPPACKETBUF pBUF)
 	MAPDWORD mapAidGuild;
 	mapAidGuild.clear();
 
-	DWORD dwDate = DWORD(m_timeCurrent/DAY_ONE);
+	DWORD dwDate = DWORD(m_timeCurrent / DAY_ONE);
 
 	pBUF->m_packet
 		>> dwWinGuildID
 		>> dwGuildPoint
 		>> wGuildCount;
 
-	for(WORD g=0; g<wGuildCount; g++)
+	for (WORD g = 0; g<wGuildCount; g++)
 	{
 		pBUF->m_packet
 			>> dwGuildID
@@ -9808,7 +9803,7 @@ DWORD CTWorldSvrModule::OnMW_LOCALRECORD_ACK(LPPACKETBUF pBUF)
 
 		CTGuild * pGuild = FindTGuild(dwGuildID);
 
-		for(WORD r=0; r<wRecordCount; r++)
+		for (WORD r = 0; r<wRecordCount; r++)
 		{
 			LPTENTRYRECORD pRec = NULL;
 			TENTRYRECORD rec;
@@ -9822,12 +9817,12 @@ DWORD CTWorldSvrModule::OnMW_LOCALRECORD_ACK(LPPACKETBUF pBUF)
 			LPTGUILDMEMBER pMember = NULL;
 			LPTTACTICSMEMBER pTactics = NULL;
 
-			if(pGuild)
+			if (pGuild)
 				pMember = pGuild->FindMember(dwCharID);
 
-			if(pMember)
+			if (pMember)
 			{
-				if(!pMember->m_vRecord.empty() && pMember->m_vRecord.back().m_dwDate == dwDate)
+				if (!pMember->m_vRecord.empty() && pMember->m_vRecord.back().m_dwDate == dwDate)
 					pRec = &(pMember->m_vRecord.back());
 				else
 				{
@@ -9840,19 +9835,19 @@ DWORD CTWorldSvrModule::OnMW_LOCALRECORD_ACK(LPPACKETBUF pBUF)
 				pRec->m_wDieCount += wDieCount;
 				pRec->m_bLoad = FALSE;
 			}
-			else if(pGuild)
+			else if (pGuild)
 			{
 				pTactics = pGuild->FindTactics(dwCharID);
-				if(pTactics)
+				if (pTactics)
 				{
 					bIsTactics = TRUE;
-					if(pTactics->m_pChar && pTactics->m_pChar->m_pGuild)
+					if (pTactics->m_pChar && pTactics->m_pChar->m_pGuild)
 					{
 						pMember = pTactics->m_pChar->m_pGuild->FindMember(dwCharID);
 
-						if(pMember)
+						if (pMember)
 						{
-							if(!pMember->m_vRecord.empty() && pMember->m_vRecord.back().m_dwDate == dwDate)
+							if (!pMember->m_vRecord.empty() && pMember->m_vRecord.back().m_dwDate == dwDate)
 								pRec = &(pMember->m_vRecord.back());
 							else
 							{
@@ -9869,56 +9864,56 @@ DWORD CTWorldSvrModule::OnMW_LOCALRECORD_ACK(LPPACKETBUF pBUF)
 				}
 			}
 
-			for(BYTE e=0; e<PVPE_COUNT; e++)
+			for (BYTE e = 0; e<PVPE_COUNT; e++)
 			{
 				pBUF->m_packet
 					>> dwPoint;
 
-				if(pRec &&
+				if (pRec &&
 					(e != PVPE_ENTRY || m_mapTCHAR.find(dwCharID) != m_mapTCHAR.end()))
 				{
 					pRec->m_aGainPoint[e] += dwPoint;
-					if(pTactics)
+					if (pTactics)
 						pTactics->m_dwGainPoint += dwPoint;
 				}
 			}
 
-			if(pMember)
+			if (pMember)
 			{
-				if(bIsTactics)
+				if (bIsTactics)
 				{
-					if(pTactics &&
+					if (pTactics &&
 						pTactics->m_dwID == pMember->m_dwID &&
 						pMember->m_pChar &&
 						pMember->m_pChar->m_pGuild)
 						pMember->m_pChar->m_pGuild->CalcWeekRecord(pMember, dwDate);
 
 				}
-				else if(pGuild)
+				else if (pGuild)
 					pGuild->CalcWeekRecord(pMember, dwDate);
 
 				pMember->m_bSaveRecord = TRUE;
 			}
 
-			if(dwWinGuildID == dwGuildID &&
+			if (dwWinGuildID == dwGuildID &&
 				pTactics &&
 				pTactics->m_pChar &&
 				pTactics->m_pChar->m_pGuild &&
 				pTactics->m_pChar->m_pGuild->m_bCountry == TCONTRY_B)
 			{
 				itAid = mapAidGuild.find(pTactics->m_pChar->m_pGuild->m_dwID);
-				if(itAid == mapAidGuild.end())
+				if (itAid == mapAidGuild.end())
 					mapAidGuild.insert(MAPDWORD::value_type(pTactics->m_pChar->m_pGuild->m_dwID, 1));
 				else
 					(itAid->second)++;
 			}
 		}
 
-		for(itAid=mapAidGuild.begin(); itAid != mapAidGuild.end(); itAid++)
+		for (itAid = mapAidGuild.begin(); itAid != mapAidGuild.end(); itAid++)
 		{
 			CTGuild * pTacticsGuild = FindTGuild(itAid->first);
-			if(pTacticsGuild)
-                pTacticsGuild->GainPvPoint(min(dwGuildPoint, dwGuildPoint * itAid->second / 20), 0, PVP_USEABLE | PVP_TOTAL);
+			if (pTacticsGuild)
+				pTacticsGuild->GainPvPoint(min(dwGuildPoint, dwGuildPoint * itAid->second / 20), 0, PVP_USEABLE | PVP_TOTAL);
 		}
 	}
 
@@ -9937,7 +9932,7 @@ DWORD CTWorldSvrModule::OnMW_GUILDPOINTLOG_ACK(LPPACKETBUF pBUF)
 		>> dwKey;
 
 	LPTCHARACTER pChar = FindTChar(dwCharID, dwKey);
-	if(!pChar || !pChar->m_pGuild || pChar->m_pTactics)
+	if (!pChar || !pChar->m_pGuild || pChar->m_pTactics)
 		return EC_NOERROR;
 
 	pServer->SendMW_GUILDPOINTLOG_REQ(
@@ -9966,28 +9961,28 @@ DWORD CTWorldSvrModule::OnMW_GUILDPOINTREWARD_ACK(LPPACKETBUF pBUF)
 		>> strMessage;
 
 	LPTCHARACTER pMaster = FindTChar(dwCharID, dwKey);
-	if(!pMaster || !pMaster->m_pGuild)
+	if (!pMaster || !pMaster->m_pGuild)
 		return EC_NOERROR;
 
 	CTGuild * pGuild = pMaster->m_pGuild;
 
-	if(pGuild->m_dwChief != dwCharID)
+	if (pGuild->m_dwChief != dwCharID)
 		return EC_NOERROR;
 
-	if(pGuild->m_dwPvPUseablePoint < dwPoint)
+	if (pGuild->m_dwPvPUseablePoint < dwPoint)
 	{
 		pServer->SendMW_GUILDPOINTREWARD_REQ(GPR_NEEDPOINT, dwCharID, dwKey, pGuild->m_dwPvPUseablePoint);
 		return EC_NOERROR;
 	}
 
 	LPTGUILDMEMBER pMember = pGuild->FindMember(strTarget);
-	if(!pMember)
+	if (!pMember)
 	{
 		pServer->SendMW_GUILDPOINTREWARD_REQ(GPR_NOMEMBER, dwCharID, dwKey, pGuild->m_dwPvPUseablePoint);
 		return EC_NOERROR;
 	}
 
-	if(pMember->m_pChar && !pMember->m_pChar->m_bSave)
+	if (pMember->m_pChar && !pMember->m_pChar->m_bSave)
 	{
 		pServer->SendMW_GUILDPOINTREWARD_REQ(GPR_NOMEMBER, dwCharID, dwKey, pGuild->m_dwPvPUseablePoint);
 		return EC_NOERROR;
@@ -10009,10 +10004,10 @@ DWORD CTWorldSvrModule::OnMW_GUILDPOINTREWARD_ACK(LPPACKETBUF pBUF)
 		strTarget,
 		strMessage);
 
-	if(pMember->m_pChar)
+	if (pMember->m_pChar)
 	{
 		CTServer * pMap = FindMapSvr(pMember->m_pChar->m_bMainID);
-		if(pMap)
+		if (pMap)
 			pMap->SendMW_GAINPVPPOINT_REQ(pMember->m_dwID, dwPoint, PVPE_GUILD, PVP_USEABLE, TRUE);
 	}
 	return EC_NOERROR;
@@ -10030,7 +10025,7 @@ DWORD CTWorldSvrModule::OnMW_GUILDPVPRECORD_ACK(LPPACKETBUF pBUF)
 		>> dwKey;
 
 	LPTCHARACTER pChar = FindTChar(dwCharID, dwKey);
-	if(!pChar || (!pChar->m_pGuild && !pChar->m_pTactics))
+	if (!pChar || (!pChar->m_pGuild && !pChar->m_pTactics))
 		return EC_NOERROR;
 
 	CTGuild * pGuild = GetCurGuild(pChar);
@@ -10058,14 +10053,14 @@ DWORD CTWorldSvrModule::OnDM_GUILDPVPOINT_REQ(LPPACKETBUF pBUF)
 		>> dwMonthPoint;
 
 	DEFINE_QUERY(&m_db, CSPSaveGuildPvPoint)
-	query->m_dwGuildID = dwGuildID;
+		query->m_dwGuildID = dwGuildID;
 	query->m_dwTotalPoint = dwTotalPoint;
 	query->m_dwUseablePoint = dwUseablePoint;
 	query->m_dwMonthPoint = dwMonthPoint;
 	query->Call();
 	UNDEFINE_QUERY()
 
-	return EC_NOERROR;
+		return EC_NOERROR;
 }
 
 DWORD CTWorldSvrModule::OnDM_GUILDPOINTREWARD_REQ(LPPACKETBUF pBUF)
@@ -10084,7 +10079,7 @@ DWORD CTWorldSvrModule::OnDM_GUILDPOINTREWARD_REQ(LPPACKETBUF pBUF)
 		>> dwUseablePoint;
 
 	DEFINE_QUERY(&m_db, CSPSaveGuildPointReward)
-	query->m_dwGuildID = dwGuildID;
+		query->m_dwGuildID = dwGuildID;
 	query->m_dwPoint = dwPoint;
 	lstrcpy(query->m_szName, strName);
 	query->m_dwTotalPoint = dwTotalPoint;
@@ -10092,7 +10087,7 @@ DWORD CTWorldSvrModule::OnDM_GUILDPOINTREWARD_REQ(LPPACKETBUF pBUF)
 	query->Call();
 	UNDEFINE_QUERY()
 
-	return EC_NOERROR;
+		return EC_NOERROR;
 }
 
 DWORD CTWorldSvrModule::OnDM_PVPRECORD_REQ(LPPACKETBUF pBUF)
@@ -10100,26 +10095,26 @@ DWORD CTWorldSvrModule::OnDM_PVPRECORD_REQ(LPPACKETBUF pBUF)
 	WORD wCount;
 
 	DEFINE_QUERY(&m_db, CSPSaveGuildPvPRecord)
-	pBUF->m_packet
+		pBUF->m_packet
 		>> query->m_dwGuildID
 		>> query->m_dwMemberID
 		>> wCount;
 
-	for(WORD c=0; c<wCount; c++)
+	for (WORD c = 0; c<wCount; c++)
 	{
 		pBUF->m_packet
 			>> query->m_dwDate
 			>> query->m_wKillCount
 			>> query->m_wDieCount;
 
-		for(BYTE i=0; i<PVPE_COUNT; i++)
+		for (BYTE i = 0; i<PVPE_COUNT; i++)
 			pBUF->m_packet >> query->m_aPoint[i];
 
 		query->Call();
 	}
 	UNDEFINE_QUERY()
 
-	return EC_NOERROR;
+		return EC_NOERROR;
 }
 
 DWORD CTWorldSvrModule::OnDM_CASTLEAPPLY_REQ(LPPACKETBUF pBUF)
@@ -10134,7 +10129,7 @@ DWORD CTWorldSvrModule::OnDM_CASTLEAPPLY_REQ(LPPACKETBUF pBUF)
 		>> bCamp;
 
 	DEFINE_QUERY(&m_db, CSPSaveCastleApplicant)
-	query->m_wCastle = wCastle;
+		query->m_wCastle = wCastle;
 	query->m_dwCharID = dwTarget;
 	query->m_bCamp = bCamp;
 	query->Call();
@@ -10161,7 +10156,7 @@ DWORD CTWorldSvrModule::OnMW_MONSTERBUY_ACK(LPPACKETBUF pBUF)
 		>> dwPrice;
 
 	LPTCHARACTER pChar = FindTChar(dwCharID, dwKey);
-	if(!pChar || !pChar->m_pGuild)
+	if (!pChar || !pChar->m_pGuild)
 		return EC_NOERROR;
 
 	BYTE bRet = pChar->m_pGuild->UseMoney(dwPrice, TRUE);
@@ -10190,14 +10185,14 @@ DWORD CTWorldSvrModule::OnMW_GUILDMONEYRECOVER_ACK(LPPACKETBUF pBUF)
 		>> dwPrice;
 
 	CTGuild * pGuild = FindTGuild(dwGuildID);
-	if(!pGuild)
+	if (!pGuild)
 		return EC_NOERROR;
 
 	pGuild->GainMoney(0, 0, dwPrice);
 
 	return EC_NOERROR;
 }
- 
+
 DWORD CTWorldSvrModule::OnMW_CASHITEMSALE_ACK(LPPACKETBUF pBUF)
 {
 	CTServer * pServer = (CTServer *)pBUF->m_pSESSION;
@@ -10215,29 +10210,29 @@ DWORD CTWorldSvrModule::OnMW_CASHITEMSALE_ACK(LPPACKETBUF pBUF)
 
 	BYTE bSuccess = TRUE;
 	MAPTSERVER::iterator it;
-	for( it = m_mapSERVER.begin(); it != m_mapSERVER.end(); it++)
+	for (it = m_mapSERVER.begin(); it != m_mapSERVER.end(); it++)
 	{
-		if( (*it).second && !(*it).second->m_bCashSale )
+		if ((*it).second && !(*it).second->m_bCashSale)
 		{
 			bSuccess = FALSE;
 			break;
 		}
 	}
 
-	if(bSuccess)
-	{		
+	if (bSuccess)
+	{
 		MAPTCASHITEMSALE::iterator it = m_mapTCashItemSale.find(dwIndex);
-		if( it != m_mapTCashItemSale.end() )
-            SendDM_CASHITEMSALE_REQ( dwIndex,wValue,&((*it).second.m_vCashItemSale) );
+		if (it != m_mapTCashItemSale.end())
+			SendDM_CASHITEMSALE_REQ(dwIndex, wValue, &((*it).second.m_vCashItemSale));
 	}
-	
+
 	return EC_NOERROR;
 }
 
 DWORD CTWorldSvrModule::OnDM_CASHITEMSALE_REQ(LPPACKETBUF pBUF)
 {
 	BYTE bRet = TRUE;
-	
+
 	DWORD dwIndex;
 	WORD wValue;
 	WORD wCount;
@@ -10249,23 +10244,23 @@ DWORD CTWorldSvrModule::OnDM_CASHITEMSALE_REQ(LPPACKETBUF pBUF)
 
 
 	DEFINE_QUERY(&m_db, CSPCashItemSale)
-	
-	for(WORD i =0; i < wCount; i++)
-	{
-		pBUF->m_packet
-			>> query->m_wID
-			>> query->m_bValue;
 
-		if(!query->Call())
+		for (WORD i = 0; i < wCount; i++)
 		{
-			bRet = FALSE;
-			break;
+			pBUF->m_packet
+				>> query->m_wID
+				>> query->m_bValue;
+
+			if (!query->Call())
+			{
+				bRet = FALSE;
+				break;
+			}
 		}
-	}
-	
+
 	UNDEFINE_QUERY()
 
-	LPPACKETBUF  pMsg = new PACKETBUF();
+		LPPACKETBUF  pMsg = new PACKETBUF();
 	pMsg->m_packet.SetID(DM_CASHITEMSALE_ACK)
 		<< dwIndex
 		<< wValue
@@ -10288,21 +10283,21 @@ DWORD CTWorldSvrModule::OnDM_CASHITEMSALE_ACK(LPPACKETBUF pBUF)
 		>> bRet;
 
 
-	if(!bRet)
+	if (!bRet)
 		return EC_NOERROR;
 
 	MAPTCASHITEMSALE::iterator itC = m_mapTCashItemSale.find(dwIndex);
-	if( itC != m_mapTCashItemSale.end() && wValue==0 )
+	if (itC != m_mapTCashItemSale.end() && wValue == 0)
 		m_mapTCashItemSale.erase(itC);
 
 	MAPTSERVER::iterator it;
-	for( it = m_mapSERVER.begin(); it != m_mapSERVER.end(); it++)
-	{		
-		(*it).second->SendMW_CASHSHOPSTOP_REQ(FALSE,FALSE);
+	for (it = m_mapSERVER.begin(); it != m_mapSERVER.end(); it++)
+	{
+		(*it).second->SendMW_CASHSHOPSTOP_REQ(FALSE, FALSE);
 	}
-	
-	if(wValue == 0 && m_pCtrlSvr)
-		m_pCtrlSvr->SendCT_CASHITEMSALE_ACK(dwIndex,wValue);
+
+	if (wValue == 0 && m_pCtrlSvr)
+		m_pCtrlSvr->SendCT_CASHITEMSALE_ACK(dwIndex, wValue);
 
 	return EC_NOERROR;
 }
@@ -10320,9 +10315,9 @@ DWORD CTWorldSvrModule::OnSM_EVENTEXPIRED_REQ(LPPACKETBUF pBUF)
 		>> buf.m_dwValue_2;
 
 	VTEXPIREDBUF::iterator it;
-	for(it = m_vExpired.begin(); it != m_vExpired.end(); it++)
+	for (it = m_vExpired.begin(); it != m_vExpired.end(); it++)
 	{
-		if(!bInsert &&
+		if (!bInsert &&
 			buf.m_timeExpired == (*it).m_timeExpired &&
 			buf.m_bType == (*it).m_bType &&
 			buf.m_dwValue_1 == (*it).m_dwValue_1 &&
@@ -10332,11 +10327,11 @@ DWORD CTWorldSvrModule::OnSM_EVENTEXPIRED_REQ(LPPACKETBUF pBUF)
 			return EC_NOERROR;
 		}
 
-		if( buf.m_timeExpired < (*it).m_timeExpired )
+		if (buf.m_timeExpired < (*it).m_timeExpired)
 			break;
 	}
 
-	m_vExpired.insert(it,buf);
+	m_vExpired.insert(it, buf);
 
 	return EC_NOERROR;
 }
@@ -10354,37 +10349,37 @@ DWORD CTWorldSvrModule::OnSM_EVENTEXPIRED_ACK(LPPACKETBUF pBUF)
 		>> dwValue_1
 		>> dwValue_2;
 
-	switch(bType)
+	switch (bType)
 	{
 	case EXPIRED_GMW:
-		{
-			CTGuild * pGuild = FindTGuild(dwValue_1);
-			if(pGuild)
-				DelGuildWanted(pGuild);
+	{
+		CTGuild * pGuild = FindTGuild(dwValue_1);
+		if (pGuild)
+			DelGuildWanted(pGuild);
 
-			SendDM_GUILDWANTEDDEL_REQ(dwValue_1);
-		}
-		break;
+		SendDM_GUILDWANTEDDEL_REQ(dwValue_1);
+	}
+	break;
 	case EXPIRED_GTW:
-		{
-			CTGuild * pGuild = FindTGuild(dwValue_1);
-			if(pGuild)
-				DelGuildTacticsWanted(pGuild, dwValue_2);
+	{
+		CTGuild * pGuild = FindTGuild(dwValue_1);
+		if (pGuild)
+			DelGuildTacticsWanted(pGuild, dwValue_2);
 
-			SendDM_GUILDTACTICSWANTEDDEL_REQ(dwValue_2);
-		}
-		break;
+		SendDM_GUILDTACTICSWANTEDDEL_REQ(dwValue_2);
+	}
+	break;
 	case EXPIRED_GT:
+	{
+		CTGuild * pGuild = FindTGuild(dwValue_1);
+		if (pGuild)
 		{
-			CTGuild * pGuild = FindTGuild(dwValue_1);
-			if(pGuild)
-			{
-				LPTTACTICSMEMBER pMember = pGuild->FindTactics(dwValue_2);
-				if(pMember)
-					GuildTacticsDel(pGuild, pMember, 3);
-			}
+			LPTTACTICSMEMBER pMember = pGuild->FindTactics(dwValue_2);
+			if (pMember)
+				GuildTacticsDel(pGuild, pMember, 3);
 		}
-		break;
+	}
+	break;
 	default:
 		return EC_NOERROR;
 	}
@@ -10408,7 +10403,7 @@ DWORD CTWorldSvrModule::OnDM_GUILDWANTEDADD_REQ(LPPACKETBUF pBUF)
 		>> strText;
 
 	DEFINE_QUERY(&m_db, CSPGuildWantedAdd)
-	query->m_dwGuildID = dwGuildID;
+		query->m_dwGuildID = dwGuildID;
 	query->m_bMinLevel = bMinLevel;
 	query->m_bMaxLevel = bMaxLevel;
 	__TIMETODB(m_timeCurrent + GUILDWANTED_PERIOD, query->m_timeEnd);
@@ -10429,7 +10424,7 @@ DWORD CTWorldSvrModule::OnDM_GUILDWANTEDDEL_REQ(LPPACKETBUF pBUF)
 		>> dwGuildID;
 
 	DEFINE_QUERY(&m_db, CSPGuildWantedDel)
-	query->m_dwGuildID = dwGuildID;
+		query->m_dwGuildID = dwGuildID;
 	query->Call();
 	UNDEFINE_QUERY();
 
@@ -10448,7 +10443,7 @@ DWORD CTWorldSvrModule::OnDM_GUILDVOLUNTEERING_REQ(LPPACKETBUF pBUF)
 		>> dwID;
 
 	DEFINE_QUERY(&m_db, CSPGuildVolunteering)
-	query->m_bType = bType;
+		query->m_bType = bType;
 	query->m_dwCharID = dwCharID;
 	query->m_dwID = dwID;
 	query->Call();
@@ -10467,7 +10462,7 @@ DWORD CTWorldSvrModule::OnDM_GUILDVOLUNTEERINGDEL_REQ(LPPACKETBUF pBUF)
 		>> dwCharID;
 
 	DEFINE_QUERY(&m_db, CSPGuildVolunteeringDel)
-	query->m_bType = bType;
+		query->m_bType = bType;
 	query->m_dwCharID = dwCharID;
 	query->Call();
 	UNDEFINE_QUERY();
@@ -10478,7 +10473,7 @@ DWORD CTWorldSvrModule::OnDM_GUILDVOLUNTEERINGDEL_REQ(LPPACKETBUF pBUF)
 DWORD CTWorldSvrModule::OnDM_GUILDTACTICSWANTEDADD_REQ(LPPACKETBUF pBUF)
 {
 	DEFINE_QUERY(&m_db, CSPGuildTacticsWantedAdd)
-	CString strTitle;
+		CString strTitle;
 	CString strText;
 
 	pBUF->m_packet
@@ -10500,20 +10495,20 @@ DWORD CTWorldSvrModule::OnDM_GUILDTACTICSWANTEDADD_REQ(LPPACKETBUF pBUF)
 	query->Call();
 	UNDEFINE_QUERY()
 
-	return EC_NOERROR;
+		return EC_NOERROR;
 }
 
 DWORD CTWorldSvrModule::OnDM_GUILDTACTICSWANTEDDEL_REQ(LPPACKETBUF pBUF)
 {
 	DEFINE_QUERY(&m_db, CSPGuildTacticsWantedDel)
 
-	pBUF->m_packet
+		pBUF->m_packet
 		>> query->m_dwID;
 
 	query->Call();
 	UNDEFINE_QUERY()
 
-	return EC_NOERROR;
+		return EC_NOERROR;
 }
 
 DWORD CTWorldSvrModule::OnDM_GUILDTACTICSADD_REQ(LPPACKETBUF pBUF)
@@ -10535,7 +10530,7 @@ DWORD CTWorldSvrModule::OnDM_GUILDTACTICSADD_REQ(LPPACKETBUF pBUF)
 		>> dlEnd;
 
 	DEFINE_QUERY(&m_db, CSPGuildTacticsAdd)
-	query->m_dwGuildID = dwGuildID;
+		query->m_dwGuildID = dwGuildID;
 	query->m_dwCharID = dwCharID;
 	query->m_dwPoint = dwPoint;
 	query->m_dlMoney = dlMoney;
@@ -10546,7 +10541,7 @@ DWORD CTWorldSvrModule::OnDM_GUILDTACTICSADD_REQ(LPPACKETBUF pBUF)
 	dwCharGuildID = query->m_dwCharGuildID;
 	UNDEFINE_QUERY()
 
-	LPPACKETBUF pMSG = new PACKETBUF();
+		LPPACKETBUF pMSG = new PACKETBUF();
 	pMSG->m_packet.SetID(DM_GUILDTACTICSADD_ACK)
 		<< dwGuildID
 		<< dwCharID
@@ -10581,10 +10576,10 @@ DWORD CTWorldSvrModule::OnDM_GUILDTACTICSADD_ACK(LPPACKETBUF pBUF)
 		>> dwCharGuildID;
 
 	CTGuild * pGuild = FindTGuild(dwCharGuildID);
-	if(pGuild)
+	if (pGuild)
 	{
 		LPTGUILDMEMBER pMember = pGuild->FindMember(dwCharID);
-		if(pMember)
+		if (pMember)
 			pMember->m_dwTactics = dwGuildID;
 	}
 
@@ -10600,12 +10595,12 @@ DWORD CTWorldSvrModule::OnDM_GUILDTACTICSDEL_REQ(LPPACKETBUF pBUF)
 		>> dwCharID;
 
 	DEFINE_QUERY(&m_db, CSPGuildTacticsDel)
-	query->m_dwCharID = dwCharID;
+		query->m_dwCharID = dwCharID;
 	query->Call();
 	dwCharGuildID = query->m_dwCharGuildID;
 	UNDEFINE_QUERY()
 
-	LPPACKETBUF pMSG = new PACKETBUF();
+		LPPACKETBUF pMSG = new PACKETBUF();
 	pMSG->m_packet.SetID(DM_GUILDTACTICSDEL_ACK)
 		<< dwCharID
 		<< dwCharGuildID;
@@ -10625,10 +10620,10 @@ DWORD CTWorldSvrModule::OnDM_GUILDTACTICSDEL_ACK(LPPACKETBUF pBUF)
 		>> dwCharGuildID;
 
 	CTGuild * pGuild = FindTGuild(dwCharGuildID);
-	if(pGuild)
+	if (pGuild)
 	{
 		LPTGUILDMEMBER pMember = pGuild->FindMember(dwCharID);
-		if(pMember)
+		if (pMember)
 			pMember->m_dwTactics = 0;
 	}
 
@@ -10645,7 +10640,7 @@ DWORD CTWorldSvrModule::OnDM_TACTICSPOINT_REQ(LPPACKETBUF pBUF)
 		>> dwGainPoint;
 
 	DEFINE_QUERY(&m_db, CSPSaveTacticsGainPoint)
-	query->m_dwCharID = dwCharID;
+		query->m_dwCharID = dwCharID;
 	query->m_dwGainPoint = dwGainPoint;
 	query->Call();
 	UNDEFINE_QUERY();
@@ -10653,71 +10648,71 @@ DWORD CTWorldSvrModule::OnDM_TACTICSPOINT_REQ(LPPACKETBUF pBUF)
 	return EC_NOERROR;
 }
 
- 
+
 DWORD CTWorldSvrModule::OnSM_MONTHRANKSAVE_REQ(LPPACKETBUF pBUF)
 {
 	MAPTGUILD::iterator itGd;
-	for(itGd=m_mapTGuild.begin(); itGd!=m_mapTGuild.end(); itGd++)
+	for (itGd = m_mapTGuild.begin(); itGd != m_mapTGuild.end(); itGd++)
 	{
 		itGd->second->m_dwPvPMonthPoint = 0;
 		itGd->second->m_dwRankMonth = 0;
 	}
 
- 	m_bFameRankSave = TRUE;
+	m_bFameRankSave = TRUE;
 
 	LPPACKETBUF pMSG = new PACKETBUF();
 	pMSG->m_packet.SetID(DM_MONTHRANKSAVE_REQ);
 
 	//////////////////////////////////////////////////////////////////////////
-	// ¿¸√º º¯¿ß º±¡§
+	// Ï†ÑÏ≤¥ ÏàúÏúÑ ÏÑ†Ï†ï
 	BYTE t;
 	MONTHRANKER	arTotalRank[TOTALMONTHRANKCOUNT];
 	VMONTHRANKER vMonthRanker;
 	vMonthRanker.clear();
 
-	for(BYTE m = 0; m < COUNTRY_COUNT; m++)
-        for(BYTE n = 1; n < FIRSTGRADEGROUPCOUNT; n++)
-            vMonthRanker.push_back(m_arMonthRank[m][n]);
-		
-	std::sort(vMonthRanker.begin(), vMonthRanker.end(),MonthRankDesc());
-	for(t = 0; t < (BYTE)vMonthRanker.size(); t++)
-		arTotalRank[t+1] = vMonthRanker[t];
+	for (BYTE m = 0; m < COUNTRY_COUNT; m++)
+		for (BYTE n = 1; n < FIRSTGRADEGROUPCOUNT; n++)
+			vMonthRanker.push_back(m_arMonthRank[m][n]);
+
+	std::sort(vMonthRanker.begin(), vMonthRanker.end(), MonthRankDesc());
+	for (t = 0; t < (BYTE)vMonthRanker.size(); t++)
+		arTotalRank[t + 1] = vMonthRanker[t];
 
 	BYTE bTop = COUNTRY_DEFUGEL;
-	for(BYTE i=0; i<COUNTRY_COUNT; i++)
+	for (BYTE i = 0; i<COUNTRY_COUNT; i++)
 	{
-		if(m_arMonthRank[bTop][0].m_dwTotalPoint < m_arMonthRank[i][0].m_dwTotalPoint)
+		if (m_arMonthRank[bTop][0].m_dwTotalPoint < m_arMonthRank[i][0].m_dwTotalPoint)
 			bTop = i;
 	}
 
-	for(BYTE i=0; i<COUNTRY_COUNT; i++)
+	for (BYTE i = 0; i<COUNTRY_COUNT; i++)
 	{
-		if(bTop == i)
+		if (bTop == i)
 			arTotalRank[0] = m_arMonthRank[i][0];
 		else
-			arTotalRank[TOTALMONTHRANKCOUNT-i-1] = m_arMonthRank[i][0];
+			arTotalRank[TOTALMONTHRANKCOUNT - i - 1] = m_arMonthRank[i][0];
 	}
 
 	//////////////////////////////////////////////////////////////////////////
 
-	for(t = 0; t < FAMERANKCOUNT; t++)
+	for (t = 0; t < FAMERANKCOUNT; t++)
 		m_arLastFameRank[t] = arTotalRank[t];
 
-	
-	BYTE k = 0; 
-	for(BYTE i = 0; i < COUNTRY_COUNT; i++)
+
+	BYTE k = 0;
+	for (BYTE i = 0; i < COUNTRY_COUNT; i++)
 	{
-		for(BYTE j = 0; j <  FIRSTGRADEGROUPCOUNT; j++)			
-		{			
-			for(t = k; t < TOTALMONTHRANKCOUNT; t++)
-				if( m_arMonthRank[i][j].m_dwCharID == arTotalRank[t].m_dwCharID)
+		for (BYTE j = 0; j < FIRSTGRADEGROUPCOUNT; j++)
+		{
+			for (t = k; t < TOTALMONTHRANKCOUNT; t++)
+				if (m_arMonthRank[i][j].m_dwCharID == arTotalRank[t].m_dwCharID)
 					break;
-			
+
 			pMSG->m_packet
 				<< t;
 
-            m_arMonthRank[i][j].WrapPacketIn( &(pMSG->m_packet));
-			if(t == 0) //¥©¿˚1¿ß∞° ø˘∞£ º¯¿ß 0¿ßø° ¿÷¿ª∞ÊøÏ∏¶ ¥Î∫Ò
+			m_arMonthRank[i][j].WrapPacketIn(&(pMSG->m_packet));
+			if (t == 0) //ÎàÑÏ†Å1ÏúÑÍ∞Ä ÏõîÍ∞Ñ ÏàúÏúÑ 0ÏúÑÏóê ÏûàÏùÑÍ≤ΩÏö∞Î•º ÎåÄÎπÑ
 				k = 1;
 		}
 	}
@@ -10730,11 +10725,11 @@ DWORD CTWorldSvrModule::OnSM_MONTHRANKSAVE_REQ(LPPACKETBUF pBUF)
 DWORD CTWorldSvrModule::OnDM_MONTHRANKSAVE_REQ(LPPACKETBUF pBUF)
 {
 	DEFINE_QUERY(&m_db, CSPInitMonthRank)
-	query->m_bMonth = m_bRankMonth;	
+		query->m_bMonth = m_bRankMonth;
 	query->Call();
 	UNDEFINE_QUERY()
-	
-	BYTE	bChangeTopRanker = FALSE;
+
+		BYTE	bChangeTopRanker = FALSE;
 	DWORD	dwTopPoint = 0;
 	MONTHRANKER stTOPRANKER;
 	MONTHRANKER stMONTHRANKER;
@@ -10745,31 +10740,31 @@ DWORD CTWorldSvrModule::OnDM_MONTHRANKSAVE_REQ(LPPACKETBUF pBUF)
 
 
 	DEFINE_QUERY(&m_db, CSPSaveMonthRank)
-	query->m_bMonth = m_bRankMonth;
+		query->m_bMonth = m_bRankMonth;
 
-	for(BYTE i = 0; i < COUNTRY_COUNT; i++)
+	for (BYTE i = 0; i < COUNTRY_COUNT; i++)
 	{
-		for(BYTE j = 0; j < FIRSTGRADEGROUPCOUNT; j++)
+		for (BYTE j = 0; j < FIRSTGRADEGROUPCOUNT; j++)
 		{
 			pBUF->m_packet
 				>> query->m_bMonthRank;
 
-			stMONTHRANKER.WrapPacketOut( &(pBUF->m_packet));
-			if(!stMONTHRANKER.m_dwCharID || (j!=0 && !stMONTHRANKER.m_dwMonthPoint))
+			stMONTHRANKER.WrapPacketOut(&(pBUF->m_packet));
+			if (!stMONTHRANKER.m_dwCharID || (j != 0 && !stMONTHRANKER.m_dwMonthPoint))
 				continue;
 
-			if(query->m_bMonthRank == 0 )
+			if (query->m_bMonthRank == 0)
 				dwTopPoint = stMONTHRANKER.m_dwTotalPoint;
 
 			query->m_bRank = j;
 			query->m_dwChaID = stMONTHRANKER.m_dwCharID;
-			lstrcpy(query->m_szName,stMONTHRANKER.m_strName);
+			lstrcpy(query->m_szName, stMONTHRANKER.m_strName);
 			query->m_dwTotalPoint = stMONTHRANKER.m_dwTotalPoint;
 			query->m_dwMonthPoint = stMONTHRANKER.m_dwMonthPoint;
 			query->m_wMonthWin = stMONTHRANKER.m_wMonthWin;
 			query->m_wMonthLose = stMONTHRANKER.m_wMonthLose;
 			query->m_dwTotalWin = stMONTHRANKER.m_dwTotalWin;
-			query->m_dwTotalLose =  stMONTHRANKER.m_dwTotalLose;
+			query->m_dwTotalLose = stMONTHRANKER.m_dwTotalLose;
 			query->m_bCountry = stMONTHRANKER.m_bCountry;
 			query->m_bLevel = stMONTHRANKER.m_bLevel;
 			query->m_bClass = stMONTHRANKER.m_bClass;
@@ -10777,10 +10772,10 @@ DWORD CTWorldSvrModule::OnDM_MONTHRANKSAVE_REQ(LPPACKETBUF pBUF)
 			query->m_bSex = stMONTHRANKER.m_bSex;
 			query->m_bHair = stMONTHRANKER.m_bHair;
 			query->m_bFace = stMONTHRANKER.m_bFace;
-			lstrcpy(query->m_szSay,stMONTHRANKER.m_strSay);
-			lstrcpy(query->m_szGuild,stMONTHRANKER.m_strGuild);
+			lstrcpy(query->m_szSay, stMONTHRANKER.m_strSay);
+			lstrcpy(query->m_szGuild, stMONTHRANKER.m_strGuild);
 
-			if(!query->Call())
+			if (!query->Call())
 			{
 				bSuccess = FALSE;
 				break;
@@ -10789,44 +10784,44 @@ DWORD CTWorldSvrModule::OnDM_MONTHRANKSAVE_REQ(LPPACKETBUF pBUF)
 	}
 	UNDEFINE_QUERY()
 
-	if(bSuccess)
-	{
-		DEFINE_QUERY(&m_db, CSPInitMonthRank)
-		query->m_bMonth = m_bRankMonth+1;
-		if(query->m_bMonth > 12)
-			query->m_bMonth -= 12;
-
-		query->Call();
-		UNDEFINE_QUERY()
-
-		DEFINE_QUERY(&m_db, CSPInitMonthPvPoint)
-		query->m_bMonth = m_bRankMonth;
-		query->m_dwMTotalPoint = dwTopPoint;
-
-		if(query->Call() && query->m_nRET)
+		if (bSuccess)
 		{
-			bChangeTopRanker = TRUE;
-			stTOPRANKER.m_dwCharID = query->m_dwCharID;
-			stTOPRANKER.m_strName = query->m_szName;
-			stTOPRANKER.m_dwTotalPoint = query->m_dwTotalPoint;
-			stTOPRANKER.m_dwMonthPoint = query->m_dwMonthPoint;
-			stTOPRANKER.m_wMonthWin = query->m_wMonthWin;
-			stTOPRANKER.m_wMonthLose = query->m_wMonthLose;
-			stTOPRANKER.m_dwTotalWin = query->m_dwTotalWin;
-			stTOPRANKER.m_dwTotalLose = query->m_dwTotalLose;
-			stTOPRANKER.m_bCountry = query->m_bCountry;
-			stTOPRANKER.m_bLevel = query->m_bLevel;
-			stTOPRANKER.m_bClass = query->m_bClass;
-			stTOPRANKER.m_bRace = query->m_bRace;
-			stTOPRANKER.m_bSex = query->m_bSex;
-			stTOPRANKER.m_bHair = query->m_bHair;
-			stTOPRANKER.m_bFace = query->m_bFace;
-			stTOPRANKER.m_strGuild = query->m_szGuild;
-		}	
+			DEFINE_QUERY(&m_db, CSPInitMonthRank)
+				query->m_bMonth = m_bRankMonth + 1;
+			if (query->m_bMonth > 12)
+				query->m_bMonth -= 12;
+
+			query->Call();
+			UNDEFINE_QUERY()
+
+				DEFINE_QUERY(&m_db, CSPInitMonthPvPoint)
+				query->m_bMonth = m_bRankMonth;
+			query->m_dwMTotalPoint = dwTopPoint;
+
+			if (query->Call() && query->m_nRET)
+			{
+				bChangeTopRanker = TRUE;
+				stTOPRANKER.m_dwCharID = query->m_dwCharID;
+				stTOPRANKER.m_strName = query->m_szName;
+				stTOPRANKER.m_dwTotalPoint = query->m_dwTotalPoint;
+				stTOPRANKER.m_dwMonthPoint = query->m_dwMonthPoint;
+				stTOPRANKER.m_wMonthWin = query->m_wMonthWin;
+				stTOPRANKER.m_wMonthLose = query->m_wMonthLose;
+				stTOPRANKER.m_dwTotalWin = query->m_dwTotalWin;
+				stTOPRANKER.m_dwTotalLose = query->m_dwTotalLose;
+				stTOPRANKER.m_bCountry = query->m_bCountry;
+				stTOPRANKER.m_bLevel = query->m_bLevel;
+				stTOPRANKER.m_bClass = query->m_bClass;
+				stTOPRANKER.m_bRace = query->m_bRace;
+				stTOPRANKER.m_bSex = query->m_bSex;
+				stTOPRANKER.m_bHair = query->m_bHair;
+				stTOPRANKER.m_bFace = query->m_bFace;
+				stTOPRANKER.m_strGuild = query->m_szGuild;
+			}
 
 
-		UNDEFINE_QUERY()
-	}
+			UNDEFINE_QUERY()
+		}
 
 	LPPACKETBUF pMSG = new PACKETBUF();
 	pMSG->m_packet.SetID(DM_MONTHRANKSAVE_ACK)
@@ -10841,7 +10836,7 @@ DWORD CTWorldSvrModule::OnDM_MONTHRANKSAVE_REQ(LPPACKETBUF pBUF)
 }
 
 DWORD CTWorldSvrModule::OnDM_MONTHRANKSAVE_ACK(LPPACKETBUF pBUF)
-{		
+{
 	BYTE bRet;
 	BYTE bChangeTopRanker;
 	MONTHRANKER stTOPRANKER;
@@ -10850,54 +10845,54 @@ DWORD CTWorldSvrModule::OnDM_MONTHRANKSAVE_ACK(LPPACKETBUF pBUF)
 	pBUF->m_packet
 		>> bRet;
 
-	if(!bRet)
+	if (!bRet)
 	{
-		LogError("MONTHRANKSAVE FAILED");
+		LogEvent("MONTHRANKSAVE FAILED");
 		return EC_NOERROR;
 	}
 	pBUF->m_packet
 		>> bChangeTopRanker;
 
-	if(bChangeTopRanker)
+	if (bChangeTopRanker)
 	{
 		stTOPRANKER.WrapPacketOut(&(pBUF->m_packet));
 		m_arLastFameRank[0] = stTOPRANKER;
 	}
 
 	//////////////////////////////////////////////////////////////////////////
-	//1±∫ º±ºˆµÓ∑œ
-	
-	for(BYTE i = 0; i < COUNTRY_COUNT; i++)
-		for(BYTE j = 0; j < FIRSTGRADEGROUPCOUNT; j++)
+	//1Íµ∞ ÏÑ†ÏàòÎì±Î°ù
+
+	for (BYTE i = 0; i < COUNTRY_COUNT; i++)
+		for (BYTE j = 0; j < FIRSTGRADEGROUPCOUNT; j++)
 			m_arFirstGradeGroup[i][j] = m_arMonthRank[i][j];
-	
+
 	//////////////////////////////////////////////////////////////////////////
 
 
 	MAPTSERVER::iterator itSvr;
-	for(itSvr = m_mapSERVER.begin(); itSvr != m_mapSERVER.end(); itSvr++)
+	for (itSvr = m_mapSERVER.begin(); itSvr != m_mapSERVER.end(); itSvr++)
 	{
-		(*itSvr).second->SendMW_MONTHRANKRESET_REQ(m_arLastFameRank,m_bRankMonth);
-		(*itSvr).second->SendMW_FIRSTGRADEGROUP_REQ(m_arFirstGradeGroup,m_bRankMonth);
+		(*itSvr).second->SendMW_MONTHRANKRESET_REQ(m_arLastFameRank, m_bRankMonth);
+		(*itSvr).second->SendMW_FIRSTGRADEGROUP_REQ(m_arFirstGradeGroup, m_bRankMonth);
 	}
 
 	MonthRankReset();
 
 	m_bRankMonth++;
-	if(m_bRankMonth > 12)
+	if (m_bRankMonth > 12)
 		m_bRankMonth -= 12;
 
-	m_bFameRankSave = FALSE;	
+	m_bFameRankSave = FALSE;
 
 	return EC_NOERROR;
 }
 
 DWORD CTWorldSvrModule::OnMW_FAMERANKUPDATE_ACK(LPPACKETBUF pBUF)
 {
-	CTServer *pServer = (CTServer *) pBUF->m_pSESSION;
+	CTServer *pServer = (CTServer *)pBUF->m_pSESSION;
 
 	MAPTSERVER::iterator it;
-	for(it = m_mapSERVER.begin(); it != m_mapSERVER.end(); it++)
+	for (it = m_mapSERVER.begin(); it != m_mapSERVER.end(); it++)
 		(*it).second->SendMW_FAMERANKUPDATE_REQ(pBUF);
 
 	return EC_NOERROR;
@@ -10905,125 +10900,125 @@ DWORD CTWorldSvrModule::OnMW_FAMERANKUPDATE_ACK(LPPACKETBUF pBUF)
 
 DWORD CTWorldSvrModule::OnMW_MONTHRANKUPDATE_ACK(LPPACKETBUF pBUF)
 {
-	BYTE bMonth;	
+	BYTE bMonth;
 	BYTE bCountry;
 	BYTE bNewRank;
 	BYTE bOldRank;
 	BYTE bStartRank;
-	BYTE bEndRank;	
+	BYTE bEndRank;
 	BYTE bNewWarlord = FALSE;
 	MONTHRANKER stMONTHRANKER;
-	
+
 	pBUF->m_packet
 		>> bMonth
 		>> bCountry;
 
-	if(bMonth != m_bRankMonth || bCountry >= COUNTRY_COUNT)
+	if (bMonth != m_bRankMonth || bCountry >= COUNTRY_COUNT)
 		return EC_NOERROR;
 
 	stMONTHRANKER.WrapPacketOut(&(pBUF->m_packet));
 
-	//¥©¿˚ 1¿ß ¿Áº±¡§
-	if(m_arMonthRank[bCountry][0].m_dwTotalPoint < stMONTHRANKER.m_dwTotalPoint ||
+	//ÎàÑÏ†Å 1ÏúÑ Ïû¨ÏÑ†Ï†ï
+	if (m_arMonthRank[bCountry][0].m_dwTotalPoint < stMONTHRANKER.m_dwTotalPoint ||
 		m_arMonthRank[bCountry][0].m_dwCharID == stMONTHRANKER.m_dwCharID)
 	{
 		m_arMonthRank[bCountry][0] = stMONTHRANKER;
 		bNewWarlord = TRUE;
 
-		for(BYTE w =1 ; w< MONTHRANKCOUNT; w++)	// ¥©¿˚ 1¿ß∞° ∏Ì¡°¿Ã ±ø¥¿ª ∞ÊøÏ º¯¿ß ¿Áº±¡§
-			if(m_arMonthRank[bCountry][w].m_dwTotalPoint > m_arMonthRank[bCountry][0].m_dwTotalPoint)			
-				m_arMonthRank[bCountry][0] = m_arMonthRank[bCountry][w];		
+		for (BYTE w = 1; w< MONTHRANKCOUNT; w++)	// ÎàÑÏ†Å 1ÏúÑÍ∞Ä Î™ÖÏ†êÏù¥ ÍπéÏòÄÏùÑ Í≤ΩÏö∞ ÏàúÏúÑ Ïû¨ÏÑ†Ï†ï
+			if (m_arMonthRank[bCountry][w].m_dwTotalPoint > m_arMonthRank[bCountry][0].m_dwTotalPoint)
+				m_arMonthRank[bCountry][0] = m_arMonthRank[bCountry][w];
 	}
 
 	bOldRank = 0;
-	for(BYTE b = 1; b < MONTHRANKCOUNT; b++)
+	for (BYTE b = 1; b < MONTHRANKCOUNT; b++)
 	{
-		if(m_arMonthRank[bCountry][b].m_dwCharID == stMONTHRANKER.m_dwCharID)
+		if (m_arMonthRank[bCountry][b].m_dwCharID == stMONTHRANKER.m_dwCharID)
 		{
 			bOldRank = b;
 			break;
 		}
 	}
-	
+
 	bNewRank = 0;
-	for(BYTE i = 1; i < MONTHRANKCOUNT; i++)	
+	for (BYTE i = 1; i < MONTHRANKCOUNT; i++)
 	{
-		if(m_arMonthRank[bCountry][i].m_dwMonthPoint <= stMONTHRANKER.m_dwMonthPoint)
-		{			
-			if( m_arMonthRank[bCountry][i].m_dwMonthPoint < stMONTHRANKER.m_dwMonthPoint)
-				bNewRank = i;			
+		if (m_arMonthRank[bCountry][i].m_dwMonthPoint <= stMONTHRANKER.m_dwMonthPoint)
+		{
+			if (m_arMonthRank[bCountry][i].m_dwMonthPoint < stMONTHRANKER.m_dwMonthPoint)
+				bNewRank = i;
 			else
 			{
-				if(m_arMonthRank[bCountry][i].m_wMonthWin < stMONTHRANKER.m_wMonthWin)
+				if (m_arMonthRank[bCountry][i].m_wMonthWin < stMONTHRANKER.m_wMonthWin)
 					bNewRank = i;
-				else if(m_arMonthRank[bCountry][i].m_wMonthWin > stMONTHRANKER.m_wMonthWin)
-					bNewRank = i+1;
+				else if (m_arMonthRank[bCountry][i].m_wMonthWin > stMONTHRANKER.m_wMonthWin)
+					bNewRank = i + 1;
 				else
 				{
-					if(m_arMonthRank[bCountry][i].m_wMonthLose < stMONTHRANKER.m_wMonthLose)
+					if (m_arMonthRank[bCountry][i].m_wMonthLose < stMONTHRANKER.m_wMonthLose)
 						bNewRank = i;
-					else if(m_arMonthRank[bCountry][i].m_wMonthLose > stMONTHRANKER.m_wMonthLose)
-						bNewRank = i+1;
+					else if (m_arMonthRank[bCountry][i].m_wMonthLose > stMONTHRANKER.m_wMonthLose)
+						bNewRank = i + 1;
 					else
-                        bNewRank = m_arMonthRank[bCountry][i].m_dwCharID < stMONTHRANKER.m_dwCharID ? i : i+1;
-				}				
+						bNewRank = m_arMonthRank[bCountry][i].m_dwCharID < stMONTHRANKER.m_dwCharID ? i : i + 1;
+				}
 			}
 			break;
 		}
 	}
 
-	if(bOldRank || bNewRank)
+	if (bOldRank || bNewRank)
 	{
-		if(!bOldRank)
+		if (!bOldRank)
 			bOldRank = MONTHRANKCOUNT - 1;
-		else if(!bNewRank)
+		else if (!bNewRank)
 			bNewRank = MONTHRANKCOUNT;
 	}
 	else
 		return EC_NOERROR;
 
-	if(bOldRank == bNewRank)
+	if (bOldRank == bNewRank)
 	{
 		m_arMonthRank[bCountry][bNewRank] = stMONTHRANKER;
 		bStartRank = bEndRank = bNewRank;
 	}
-	else if( bOldRank < bNewRank)
-	{		
-		for(BYTE j = bOldRank  ; j < bNewRank-1 ; j++)	
-			m_arMonthRank[bCountry][j] = m_arMonthRank[bCountry][j+1];	
-		m_arMonthRank[bCountry][bNewRank-1] = stMONTHRANKER;
+	else if (bOldRank < bNewRank)
+	{
+		for (BYTE j = bOldRank; j < bNewRank - 1; j++)
+			m_arMonthRank[bCountry][j] = m_arMonthRank[bCountry][j + 1];
+		m_arMonthRank[bCountry][bNewRank - 1] = stMONTHRANKER;
 
 		bStartRank = bOldRank;
-		bEndRank = bNewRank-1;
+		bEndRank = bNewRank - 1;
 	}
 	else
 	{
-		for(BYTE j = bOldRank  ; j > bNewRank ; j--)	
-			m_arMonthRank[bCountry][j] = m_arMonthRank[bCountry][j-1];	
+		for (BYTE j = bOldRank; j > bNewRank; j--)
+			m_arMonthRank[bCountry][j] = m_arMonthRank[bCountry][j - 1];
 		m_arMonthRank[bCountry][bNewRank] = stMONTHRANKER;
 
 		bStartRank = bNewRank;
 		bEndRank = bOldRank;
 	}
-	
-	//¥©¿˚ 1¿ß ¿Áº±¡§
-	if(m_arMonthRank[bCountry][0].m_dwTotalPoint < stMONTHRANKER.m_dwTotalPoint ||
+
+	//ÎàÑÏ†Å 1ÏúÑ Ïû¨ÏÑ†Ï†ï
+	if (m_arMonthRank[bCountry][0].m_dwTotalPoint < stMONTHRANKER.m_dwTotalPoint ||
 		m_arMonthRank[bCountry][0].m_dwCharID == stMONTHRANKER.m_dwCharID)
 	{
 		m_arMonthRank[bCountry][0] = stMONTHRANKER;
 		bNewWarlord = TRUE;
 
-		for(BYTE w =1 ; w< MONTHRANKCOUNT; w++)		// ¥©¿˚ 1¿ß∞° ∏Ì¡°¿Ã ±ø¥¿ª ∞ÊøÏ º¯¿ß ¿Áº±¡§
-			if(m_arMonthRank[bCountry][w].m_dwTotalPoint > m_arMonthRank[bCountry][0].m_dwTotalPoint)			
-				m_arMonthRank[bCountry][0] = m_arMonthRank[bCountry][w];		
+		for (BYTE w = 1; w< MONTHRANKCOUNT; w++)		// ÎàÑÏ†Å 1ÏúÑÍ∞Ä Î™ÖÏ†êÏù¥ ÍπéÏòÄÏùÑ Í≤ΩÏö∞ ÏàúÏúÑ Ïû¨ÏÑ†Ï†ï
+			if (m_arMonthRank[bCountry][w].m_dwTotalPoint > m_arMonthRank[bCountry][0].m_dwTotalPoint)
+				m_arMonthRank[bCountry][0] = m_arMonthRank[bCountry][w];
 	}
 
 	MAPTSERVER::iterator it;
-	for(it = m_mapSERVER.begin(); it != m_mapSERVER.end(); it++)	
-		(*it).second->SendMW_MONTHRANKUPDATE_REQ(m_bRankMonth,bCountry,bStartRank,bEndRank,m_arMonthRank,bNewWarlord);
-	
+	for (it = m_mapSERVER.begin(); it != m_mapSERVER.end(); it++)
+		(*it).second->SendMW_MONTHRANKUPDATE_REQ(m_bRankMonth, bCountry, bStartRank, bEndRank, m_arMonthRank, bNewWarlord);
+
 	return EC_NOERROR;
-		
+
 }
 
 DWORD CTWorldSvrModule::OnMW_WARLORDSAY_ACK(LPPACKETBUF pBUF)
@@ -11040,8 +11035,8 @@ DWORD CTWorldSvrModule::OnMW_WARLORDSAY_ACK(LPPACKETBUF pBUF)
 		>> strSay;
 
 	MAPTSERVER::iterator itSvr;
-	for(itSvr = m_mapSERVER.begin(); itSvr != m_mapSERVER.end(); itSvr++)
-		(*itSvr).second->SendMW_WARLORDSAY_REQ(bType,bRankMonth,dwCharID,strSay);
+	for (itSvr = m_mapSERVER.begin(); itSvr != m_mapSERVER.end(); itSvr++)
+		(*itSvr).second->SendMW_WARLORDSAY_REQ(bType, bRankMonth, dwCharID, strSay);
 
 	return EC_NOERROR;
 }
@@ -11060,16 +11055,16 @@ DWORD CTWorldSvrModule::OnSM_TOURNAMENT_REQ(LPPACKETBUF pBUF)
 		>> dwPeriod;
 
 	MAPTOURNAMENT::iterator it = m_mapTournament.find(wTournamentID);
-	if(it == m_mapTournament.end() || (*it).second.empty())
+	if (it == m_mapTournament.end() || (*it).second.empty())
 		return EC_NOERROR;
 
-	if(m_tournament.m_bGroup != bGroup)
+	if (m_tournament.m_bGroup != bGroup)
 	{
 		m_tournament.m_bGroup = bGroup;
 		m_tournament.m_dwSum = 0;
 
 		BYTE bEC = TournamentGetEntryCount();
-		if(bEC)
+		if (bEC)
 			m_tournament.m_bBase = BYTE(TOURNAMENT_BASEPRIZE / bEC);
 		else
 			m_tournament.m_bBase = 0;
@@ -11079,25 +11074,25 @@ DWORD CTWorldSvrModule::OnSM_TOURNAMENT_REQ(LPPACKETBUF pBUF)
 
 	INT64 dlNextStep = 0;
 	MAPTSERVER::iterator itSvr;
-	MAPTOURNAMENTSTEP::iterator itSt = m_tournament.m_mapStep.find(MAKEWORD(bStep+1, bGroup));
-	if(itSt!=m_tournament.m_mapStep.end())
+	MAPTOURNAMENTSTEP::iterator itSt = m_tournament.m_mapStep.find(MAKEWORD(bStep + 1, bGroup));
+	if (itSt != m_tournament.m_mapStep.end())
 		dlNextStep = itSt->second.m_dStart;
 
-	for(itSvr = m_mapSERVER.begin(); itSvr != m_mapSERVER.end(); itSvr++)
+	for (itSvr = m_mapSERVER.begin(); itSvr != m_mapSERVER.end(); itSvr++)
 		(*itSvr).second->SendMW_TOURNAMENTENABLE_REQ(bGroup, bStep, dwPeriod, dlNextStep);
 
-	if(!m_tournament.m_bSelected &&
+	if (!m_tournament.m_bSelected &&
 		(bStep == TNMTSTEP_PARTY || bStep == TNMTSTEP_MATCH))
 		TournamentSelectPlayer();
 
-	if(bStep == TNMTSTEP_MATCH)
+	if (bStep == TNMTSTEP_MATCH)
 	{
-		for(BYTE i=0; i<=bGroup; i++)
+		for (BYTE i = 0; i <= bGroup; i++)
 		{
 			itSt = m_tournament.m_mapStep.find(MAKEWORD(bStep, i));
-			if(itSt!=m_tournament.m_mapStep.end())
+			if (itSt != m_tournament.m_mapStep.end())
 			{
-				if(bGroup == itSt->second.m_bGroup)
+				if (bGroup == itSt->second.m_bGroup)
 					TournamentMatch();
 
 				break;
@@ -11120,7 +11115,7 @@ DWORD CTWorldSvrModule::OnSM_TOURNAMENTUPDATE_REQ(LPPACKETBUF pBUF)
 	TournamentClear();
 
 	LPMAPTOURNAMENTENTRY pEntry = GetTournament(wTournamentID);
-	if(pEntry)
+	if (pEntry)
 	{
 		m_tournament.m_wID = wTournamentID;
 		m_tournament.m_bGroup = 0;
@@ -11137,7 +11132,7 @@ DWORD CTWorldSvrModule::OnSM_TOURNAMENTUPDATE_REQ(LPPACKETBUF pBUF)
 		return EC_NOERROR;
 	}
 
-	for(BYTE i=0; i<bCount; i++)
+	for (BYTE i = 0; i<bCount; i++)
 	{
 		TOURNAMENTSTEP step;
 		pBUF->m_packet
@@ -11150,7 +11145,7 @@ DWORD CTWorldSvrModule::OnSM_TOURNAMENTUPDATE_REQ(LPPACKETBUF pBUF)
 	}
 
 	BYTE bEC = TournamentGetEntryCount();
-	if(bEC)
+	if (bEC)
 		m_tournament.m_bBase = BYTE(TOURNAMENT_BASEPRIZE / bEC);
 	else
 		m_tournament.m_bBase = 0;
@@ -11162,7 +11157,7 @@ DWORD CTWorldSvrModule::OnSM_TOURNAMENTUPDATE_REQ(LPPACKETBUF pBUF)
 
 DWORD CTWorldSvrModule::OnMW_TOURNAMENT_ACK(LPPACKETBUF pBUF)
 {
-	CTServer *pServer = (CTServer *) pBUF->m_pSESSION;
+	CTServer *pServer = (CTServer *)pBUF->m_pSESSION;
 
 	DWORD dwCharID;
 	DWORD dwKey;
@@ -11177,10 +11172,10 @@ DWORD CTWorldSvrModule::OnMW_TOURNAMENT_ACK(LPPACKETBUF pBUF)
 		dwCharID,
 		dwKey);
 
-    if(!pChar)
+	if (!pChar)
 		return EC_NOERROR;
 
-	switch(wProtocol)
+	switch (wProtocol)
 	{
 	case MW_TOURNAMENTSCHEDULE_ACK:
 		TournamentSchedule(pChar, pServer);
@@ -11189,48 +11184,48 @@ DWORD CTWorldSvrModule::OnMW_TOURNAMENT_ACK(LPPACKETBUF pBUF)
 		TournamentApplyInfo(pChar, pServer);
 		break;
 	case MW_TOURNAMENTAPPLY_ACK:
-		{
-			BYTE bEntryID;
-			pBUF->m_packet
-				>> bEntryID;
+	{
+		BYTE bEntryID;
+		pBUF->m_packet
+			>> bEntryID;
 
-			TournamentApply(pChar, pServer, bEntryID);
-		}
-		break;
+		TournamentApply(pChar, pServer, bEntryID);
+	}
+	break;
 	case MW_TOURNAMENTJOINLIST_ACK:
 		TournamentJoinList(pChar, pServer);
 		break;
 	case MW_TOURNAMENTPARTYLIST_ACK:
-		{
-			DWORD dwChiefID;
-			pBUF->m_packet
-				>> dwChiefID;
-			
-			TournamentPartyList(pChar, pServer, dwChiefID);
-		}
-		break;
+	{
+		DWORD dwChiefID;
+		pBUF->m_packet
+			>> dwChiefID;
+
+		TournamentPartyList(pChar, pServer, dwChiefID);
+	}
+	break;
 	case MW_TOURNAMENTPARTYADD_ACK:
-		{
-			CString strTarget;
-			pBUF->m_packet
-				>> strTarget;
+	{
+		CString strTarget;
+		pBUF->m_packet
+			>> strTarget;
 
-			LPTCHARACTER pTarget = FindTChar(strTarget);
-			if(pTarget)
-				TournamentPartyAdd(pChar, pServer, pTarget->m_dwCharID, pTarget->m_bCountry, pTarget->m_strNAME, pTarget->m_bLevel, pTarget->m_bClass);
-			else
-				SendDM_GETCHARINFO_REQ(dwCharID, dwKey, MW_TOURNAMENTPARTYADD_ACK, strTarget);
-		}
-		break;
+		LPTCHARACTER pTarget = FindTChar(strTarget);
+		if (pTarget)
+			TournamentPartyAdd(pChar, pServer, pTarget->m_dwCharID, pTarget->m_bCountry, pTarget->m_strNAME, pTarget->m_bLevel, pTarget->m_bClass);
+		else
+			SendDM_GETCHARINFO_REQ(dwCharID, dwKey, MW_TOURNAMENTPARTYADD_ACK, strTarget);
+	}
+	break;
 	case MW_TOURNAMENTPARTYDEL_ACK:
-		{
-			DWORD dwTarget;
-			pBUF->m_packet
-				>> dwTarget;
+	{
+		DWORD dwTarget;
+		pBUF->m_packet
+			>> dwTarget;
 
-			TournamentPartyDel(pChar, pServer, dwTarget);
-		}
-		break;
+		TournamentPartyDel(pChar, pServer, dwTarget);
+	}
+	break;
 	case MW_TOURNAMENTMATCHLIST_ACK:
 		TournamentMatchList(pChar, pServer);
 		break;
@@ -11238,26 +11233,26 @@ DWORD CTWorldSvrModule::OnMW_TOURNAMENT_ACK(LPPACKETBUF pBUF)
 		TournamentEventList(pChar, pServer);
 		break;
 	case MW_TOURNAMENTEVENTINFO_ACK:
-		{
-			BYTE bEntryID;
-			pBUF->m_packet
-				>> bEntryID;
+	{
+		BYTE bEntryID;
+		pBUF->m_packet
+			>> bEntryID;
 
-			TournamentEventInfo(pChar, pServer, bEntryID);
-		}
-		break;
+		TournamentEventInfo(pChar, pServer, bEntryID);
+	}
+	break;
 	case MW_TOURNAMENTEVENTJOIN_ACK:
-		{
-			BYTE bEntryID;
-			DWORD dwTargetID;
+	{
+		BYTE bEntryID;
+		DWORD dwTargetID;
 
-			pBUF->m_packet
-				>> bEntryID
-				>> dwTargetID;
+		pBUF->m_packet
+			>> bEntryID
+			>> dwTargetID;
 
-			TournamentEventJoin(pChar, pServer, bEntryID, dwTargetID);
-		}
-		break;
+		TournamentEventJoin(pChar, pServer, bEntryID, dwTargetID);
+	}
+	break;
 	default:
 		break;
 	}
@@ -11286,10 +11281,10 @@ DWORD CTWorldSvrModule::OnDM_GETCHARINFO_REQ(LPPACKETBUF pBUF)
 
 	BYTE bGet = 0;
 	DEFINE_QUERY(&m_db, CTBLGetCharInfo)
-	lstrcpy(query->m_szFindName, strTarget);
-	if(query->Open())
+		lstrcpy(query->m_szFindName, strTarget);
+	if (query->Open())
 	{
-		while(query->Fetch())
+		while (query->Fetch())
 		{
 			pMSG->m_packet
 				<< query->m_dwCharID
@@ -11305,18 +11300,18 @@ DWORD CTWorldSvrModule::OnDM_GETCHARINFO_REQ(LPPACKETBUF pBUF)
 	}
 	UNDEFINE_QUERY()
 
-	if(bGet>1)
-	{
-		delete pMSG;
-		return EC_NOERROR;
+		if (bGet>1)
+		{
+			delete pMSG;
+			return EC_NOERROR;
 
-	}
-	else if(!bGet)
-	{
-		pMSG->m_packet
-			<< DWORD(0);
+		}
+		else if (!bGet)
+		{
+			pMSG->m_packet
+				<< DWORD(0);
 
-	}
+		}
 
 	SayToBATCH(pMSG);
 
@@ -11341,7 +11336,7 @@ DWORD CTWorldSvrModule::OnDM_GETCHARINFO_ACK(LPPACKETBUF pBUF)
 		>> dwTargetID;
 
 	LPTCHARACTER pChar = FindTChar(dwCharID, dwKey);
-	if(!pChar)
+	if (!pChar)
 		return EC_NOERROR;
 
 	pBUF->m_packet
@@ -11350,13 +11345,13 @@ DWORD CTWorldSvrModule::OnDM_GETCHARINFO_ACK(LPPACKETBUF pBUF)
 		>> bLevel
 		>> bClass;
 
-	if(wProtocol == MW_TOURNAMENTPARTYADD_ACK)
+	if (wProtocol == MW_TOURNAMENTPARTYADD_ACK)
 	{
 		CTServer * pServer = FindMapSvr(pChar->m_bMainID);
-		if(!pServer)
+		if (!pServer)
 			return EC_NOERROR;
 
-		if(dwTargetID)
+		if (dwTargetID)
 			TournamentPartyAdd(pChar, pServer, dwTargetID, bCountry, strTarget, bLevel, bClass);
 		else
 			pServer->SendMW_TOURNAMENT_REQ(pChar->m_dwCharID, pChar->m_dwKEY, MW_TOURNAMENTPARTYADD_REQ, TOURNAMENT_NOTFOUND);
@@ -11389,10 +11384,10 @@ DWORD CTWorldSvrModule::OnDM_TOURNAMENTEVENTCHARINFO_REQ(LPPACKETBUF pBUF)
 
 	BYTE bGet = 0;
 	DEFINE_QUERY(&m_db, CTBLGetCharInfo)
-	lstrcpy(query->m_szFindName, strTarget);
-	if(query->Open())
+		lstrcpy(query->m_szFindName, strTarget);
+	if (query->Open())
 	{
-		while(query->Fetch())
+		while (query->Fetch())
 		{
 			pMSG->m_packet
 				<< query->m_dwCharID
@@ -11407,16 +11402,16 @@ DWORD CTWorldSvrModule::OnDM_TOURNAMENTEVENTCHARINFO_REQ(LPPACKETBUF pBUF)
 	}
 	UNDEFINE_QUERY()
 
-	if(bGet>1)
-	{
-		delete pMSG;
-		return EC_NOERROR;
-	}
-	else if(!bGet)
-	{
-		pMSG->m_packet
-			<< DWORD(0);
-	}
+		if (bGet>1)
+		{
+			delete pMSG;
+			return EC_NOERROR;
+		}
+		else if (!bGet)
+		{
+			pMSG->m_packet
+				<< DWORD(0);
+		}
 
 	SayToBATCH(pMSG);
 
@@ -11437,7 +11432,7 @@ DWORD CTWorldSvrModule::OnMW_TOURNAMENTENTERGATE_ACK(LPPACKETBUF pBUF)
 		>> bEnter;
 
 	LPTCHARACTER pChar = FindTChar(dwCharID, dwKey);
-	if(!pChar)
+	if (!pChar)
 		return EC_NOERROR;
 
 	TNMTEnterGate(pChar, dwMoney, bEnter);
@@ -11462,10 +11457,10 @@ DWORD CTWorldSvrModule::OnMW_TOURNAMENTRESULT_ACK(LPPACKETBUF pBUF)
 		>> dwBlueHideTick
 		>> dwRedHideTick;
 
-	if(bStep != TNMTSTEP_QFINAL &&
+	if (bStep != TNMTSTEP_QFINAL &&
 		bStep != TNMTSTEP_SFINAL &&
 		bStep != TNMTSTEP_FINAL)
-		return EC_NOERROR; 
+		return EC_NOERROR;
 
 	LPTNMTPLAYER pWin = FindTNMTPlayer(dwWin);
 	LPTNMTPLAYER pLose = FindTNMTPlayer(dwLose);
@@ -11475,13 +11470,13 @@ DWORD CTWorldSvrModule::OnMW_TOURNAMENTRESULT_ACK(LPPACKETBUF pBUF)
 	MAPTNMTPLAYER::iterator itTP;
 
 	BYTE bID;
-	if(bStep == TNMTSTEP_FINAL)	bID = MATCH_FINAL;
-	else if(bStep == TNMTSTEP_SFINAL) bID = MATCH_SFINAL;
+	if (bStep == TNMTSTEP_FINAL)	bID = MATCH_FINAL;
+	else if (bStep == TNMTSTEP_SFINAL) bID = MATCH_SFINAL;
 	else bID = MATCH_QFINAL;
 
-	if(pWin)
+	if (pWin)
 	{
-		for(itTP=pWin->m_mapParty.begin(); itTP!=pWin->m_mapParty.end(); itTP++)
+		for (itTP = pWin->m_mapParty.begin(); itTP != pWin->m_mapParty.end(); itTP++)
 		{
 			(*itTP).second->m_bResult[bID] = bRet ? TNMTWIN_WIN : TNMTWIN_LOSE;
 			vPlayer.push_back((*itTP).second->m_dwCharID);
@@ -11489,9 +11484,9 @@ DWORD CTWorldSvrModule::OnMW_TOURNAMENTRESULT_ACK(LPPACKETBUF pBUF)
 
 		pWin->m_bResult[bID] = bRet ? TNMTWIN_WIN : TNMTWIN_LOSE;
 	}
-	if(pLose)
+	if (pLose)
 	{
-		for(itTP=pLose->m_mapParty.begin(); itTP!=pLose->m_mapParty.end(); itTP++)
+		for (itTP = pLose->m_mapParty.begin(); itTP != pLose->m_mapParty.end(); itTP++)
 		{
 			(*itTP).second->m_bResult[bID] = TNMTWIN_LOSE;
 			vPlayer.push_back((*itTP).second->m_dwCharID);
@@ -11501,26 +11496,26 @@ DWORD CTWorldSvrModule::OnMW_TOURNAMENTRESULT_ACK(LPPACKETBUF pBUF)
 	}
 
 	MAPTSERVER::iterator it;
-	for(it=m_mapSERVER.begin(); it!=m_mapSERVER.end(); it++)
+	for (it = m_mapSERVER.begin(); it != m_mapSERVER.end(); it++)
 		(*it).second->SendMW_TOURNAMENTRESULT_REQ(m_tournament.m_wID, bStep, bRet, dwWin, dwLose, dwBlueHideTick, dwRedHideTick, vPlayer);
 
-	if(bStep == TNMTSTEP_FINAL &&
+	if (bStep == TNMTSTEP_FINAL &&
 		pWin && bRet)
 	{
 		MAPDWORD::iterator itBt;
-		for(itBt=pWin->m_mapBatting.begin(); itBt != pWin->m_mapBatting.end(); itBt++)
+		for (itBt = pWin->m_mapBatting.begin(); itBt != pWin->m_mapBatting.end(); itBt++)
 		{
 			MAPTCHARACTER::iterator itC = m_mapTCHAR.find((*itBt).first);
-			if(itC!=m_mapTCHAR.end())
+			if (itC != m_mapTCHAR.end())
 			{
 				FLOAT fRate;
 				DWORD dwAmount;
 				GetBattingAmount(pWin, (*itBt).first, fRate, dwAmount);
 
-				if(dwAmount)
+				if (dwAmount)
 				{
 					CTServer * pMain = FindMapSvr((*itC).second->m_bMainID);
-					if(pMain)
+					if (pMain)
 						pMain->SendMW_TOURNAMENTBATPOINT_REQ((*itBt).first, (*itC).second->m_strNAME, dwAmount);
 				}
 			}
@@ -11550,26 +11545,26 @@ DWORD CTWorldSvrModule::OnDM_TOURNAMENTPAYBACK_REQ(LPPACKETBUF pBUF)
 	CalcMoney(dwBack, dwGold, dwSilver, dwCooper);
 
 	DEFINE_QUERY(&m_db, CSPTournamentPayback)
-	query->m_dwCharID = dwCharID;
+		query->m_dwCharID = dwCharID;
 	query->m_dwGold = dwGold;
 	query->m_dwSilver = dwSilver;
 	query->m_dwCooper = dwCooper;
-	if(query->Call())
+	if (query->Call())
 		dwPostID = query->m_dwPostID;
 	UNDEFINE_QUERY()
 
-	if(dwPostID)
-	{
-		LPPACKETBUF  pMsg = new PACKETBUF();
-		pMsg->m_packet.SetID(DM_TOURNAMENTPAYBACK_ACK)
-			<< dwPostID
-			<< dwCharID
-			<< dwGold
-			<< dwSilver
-			<< dwCooper;
+		if (dwPostID)
+		{
+			LPPACKETBUF  pMsg = new PACKETBUF();
+			pMsg->m_packet.SetID(DM_TOURNAMENTPAYBACK_ACK)
+				<< dwPostID
+				<< dwCharID
+				<< dwGold
+				<< dwSilver
+				<< dwCooper;
 
-		SayToBATCH(pMsg);
-	}
+			SayToBATCH(pMsg);
+		}
 
 	return EC_NOERROR;
 }
@@ -11589,15 +11584,15 @@ DWORD CTWorldSvrModule::OnDM_TOURNAMENTPAYBACK_ACK(LPPACKETBUF pBUF)
 		>> dwSilver
 		>> dwCooper;
 
-	if(!dwPostID)
+	if (!dwPostID)
 		return EC_NOERROR;
 
 	MAPTCHARACTER::iterator it = m_mapTCHAR.find(dwCharID);
-	if(it==m_mapTCHAR.end())
+	if (it == m_mapTCHAR.end())
 		return EC_NOERROR;
 
 	CTServer * pServer = FindMapSvr((*it).second->m_bMainID);
-	if(pServer)
+	if (pServer)
 	{
 		CPacket * pMsg = new CPacket();
 		(*pMsg)
@@ -11634,14 +11629,14 @@ DWORD CTWorldSvrModule::OnDM_TOURNAMENTRESULT_REQ(LPPACKETBUF pBUF)
 		>> dwLose;
 
 	DEFINE_QUERY(&m_db, CSPTournamentResult)
-	query->m_bStep = bStep;
+		query->m_bStep = bStep;
 	query->m_bRet = bRet;
 	query->m_dwWin = dwWin;
 	query->m_dwLose = dwLose;
 	query->Call();
 	UNDEFINE_QUERY()
 
-	return EC_NOERROR;
+		return EC_NOERROR;
 }
 
 DWORD CTWorldSvrModule::OnDM_TOURNAMENTAPPLY_REQ(LPPACKETBUF pBUF)
@@ -11658,24 +11653,24 @@ DWORD CTWorldSvrModule::OnDM_TOURNAMENTAPPLY_REQ(LPPACKETBUF pBUF)
 		>> dwChiefID;
 
 	DEFINE_QUERY(&m_db, CSPTournamentApply)
-	query->m_bAdd = bAdd;
+		query->m_bAdd = bAdd;
 	query->m_dwCharID = dwCharID;
 	query->m_bEntry = bEntry;
 	query->m_dwChiefID = dwChiefID;
 	query->Call();
 	UNDEFINE_QUERY()
 
-	return EC_NOERROR;
+		return EC_NOERROR;
 }
 
 DWORD CTWorldSvrModule::OnDM_TOURNAMENTCLEAR_REQ(LPPACKETBUF pBUF)
 {
 	DEFINE_QUERY(&m_db, CSPTournamentClear)
-	query->m_bClear = TRUE;
+		query->m_bClear = TRUE;
 	query->Call();
 	UNDEFINE_QUERY()
 
-	return EC_NOERROR;
+		return EC_NOERROR;
 }
 
 DWORD CTWorldSvrModule::OnDM_TOURNAMENTSTATUS_REQ(LPPACKETBUF pBUF)
@@ -11690,13 +11685,13 @@ DWORD CTWorldSvrModule::OnDM_TOURNAMENTSTATUS_REQ(LPPACKETBUF pBUF)
 		>> bStep;
 
 	DEFINE_QUERY(&m_db, CSPTournamentStatus)
-	query->m_wID = wID;
+		query->m_wID = wID;
 	query->m_bGroup = bGroup;
 	query->m_bStep = bStep;
 	query->Call();
 	UNDEFINE_QUERY()
 
-	return EC_NOERROR;
+		return EC_NOERROR;
 }
 
 DWORD CTWorldSvrModule::OnCT_TOURNAMENTEVENT_REQ(LPPACKETBUF pBUF)
@@ -11709,209 +11704,209 @@ DWORD CTWorldSvrModule::OnCT_TOURNAMENTEVENT_REQ(LPPACKETBUF pBUF)
 		>> dwMgID
 		>> bType;
 
-	switch(bType)
+	switch (bType)
 	{
 	case TET_LIST:
 	case TET_SCHEDULEADD:
 	case TET_SCHEDULEDEL:
-		{
-			LPPACKETBUF pMSG = new PACKETBUF();
-			pMSG->m_packet.Copy(&pBUF->m_packet);
-			pMSG->m_packet.SetID(SM_TOURNAMENTEVENT_REQ);
-			SayToTIMER(pMSG);
-		}
-		break;
+	{
+		LPPACKETBUF pMSG = new PACKETBUF();
+		pMSG->m_packet.Copy(&pBUF->m_packet);
+		pMSG->m_packet.SetID(SM_TOURNAMENTEVENT_REQ);
+		SayToTIMER(pMSG);
+	}
+	break;
 	case TET_ENTRYADD:
+	{
+		WORD wTID;
+		BYTE bCount;
+		pBUF->m_packet
+			>> wTID
+			>> bCount;
+
+		MAPTOURNAMENTENTRY mapTNMTE;
+		mapTNMTE.clear();
+		BYTE bRewardCount;
+		for (BYTE i = 0; i<bCount; i++)
 		{
-			WORD wTID;
-			BYTE bCount;
+			LPTOURNAMENTENTRY pTour = new TOURNAMENTENTRY();
+
 			pBUF->m_packet
-				>> wTID
-				>> bCount;
+				>> pTour->m_bEntryID
+				>> pTour->m_strName
+				>> pTour->m_bType
+				>> pTour->m_dwClass
+				>> pTour->m_dwFee
+				>> pTour->m_dwFeeBack
+				>> pTour->m_wPermitItemID
+				>> pTour->m_bPermitCount
+				>> pTour->m_bMinLevel
+				>> pTour->m_bMaxLevel
+				>> bRewardCount;
 
-			MAPTOURNAMENTENTRY mapTNMTE;
-			mapTNMTE.clear();
-			BYTE bRewardCount;
-			for(BYTE i=0; i<bCount; i++)
+			for (BYTE j = 0; j<bRewardCount; j++)
 			{
-				LPTOURNAMENTENTRY pTour = new TOURNAMENTENTRY();
-
+				TNMTREWARD reward;
 				pBUF->m_packet
-					>> pTour->m_bEntryID
-					>> pTour->m_strName
-					>> pTour->m_bType
-					>> pTour->m_dwClass
-					>> pTour->m_dwFee
-					>> pTour->m_dwFeeBack
-					>> pTour->m_wPermitItemID
-					>> pTour->m_bPermitCount
-					>> pTour->m_bMinLevel
-					>> pTour->m_bMaxLevel
-					>> bRewardCount;
+					>> reward.m_bChartType
+					>> reward.m_wItemID
+					>> reward.m_bCount
+					>> reward.m_dwClass
+					>> reward.m_bCheckShield;
 
-				for(BYTE j=0; j<bRewardCount; j++)
-				{
-					TNMTREWARD reward;
-					pBUF->m_packet
-						>> reward.m_bChartType
-						>> reward.m_wItemID
-						>> reward.m_bCount
-						>> reward.m_dwClass
-						>> reward.m_bCheckShield;
-
-					pTour->m_vReward.push_back(reward);
-				}
-
-				pTour->m_map1st.clear();
-				pTour->m_mapNormal.clear();
-				pTour->m_mapPlayer.clear();
-
-				mapTNMTE.insert(MAPTOURNAMENTENTRY::value_type(pTour->m_bEntryID, pTour));
+				pTour->m_vReward.push_back(reward);
 			}
 
-			MAPTOURNAMENT::iterator itT = m_mapTournament.find(wTID);
-			if(itT != m_mapTournament.end())
-			{
-				while(!(*itT).second.empty())
-					TNMTEntryDelete(wTID, (*(*itT).second.begin()).second->m_bEntryID);
+			pTour->m_map1st.clear();
+			pTour->m_mapNormal.clear();
+			pTour->m_mapPlayer.clear();
 
-				m_mapTournament.erase(itT);
-			}
+			mapTNMTE.insert(MAPTOURNAMENTENTRY::value_type(pTour->m_bEntryID, pTour));
+		}
 
-			m_mapTournament.insert(MAPTOURNAMENT::value_type(wTID, mapTNMTE));
+		MAPTOURNAMENT::iterator itT = m_mapTournament.find(wTID);
+		if (itT != m_mapTournament.end())
+		{
+			while (!(*itT).second.empty())
+				TNMTEntryDelete(wTID, (*(*itT).second.begin()).second->m_bEntryID);
 
-			LPPACKETBUF pMSG = new PACKETBUF();
-			pMSG->m_packet.SetID(SM_TOURNAMENTEVENT_REQ)
+			m_mapTournament.erase(itT);
+		}
+
+		m_mapTournament.insert(MAPTOURNAMENT::value_type(wTID, mapTNMTE));
+
+		LPPACKETBUF pMSG = new PACKETBUF();
+		pMSG->m_packet.SetID(SM_TOURNAMENTEVENT_REQ)
+			<< dwMgID
+			<< bType
+			<< wTID;
+
+		SayToTIMER(pMSG);
+
+		SendDM_TNMTEVENTENTRYADD_REQ(&pBUF->m_packet);
+	}
+	break;
+	case TET_ENTRYDEL:
+	{
+		WORD wTID;
+		BYTE bEntryID;
+
+		pBUF->m_packet
+			>> wTID
+			>> bEntryID;
+
+		TNMTEntryDelete(wTID, bEntryID);
+	}
+	break;
+	case TET_PLAYERADD:
+	{
+		WORD wTourID;
+		BYTE bEntryID;
+
+		pBUF->m_packet
+			>> wTourID
+			>> bEntryID;
+
+		BYTE bError = FALSE;
+		if (wTourID != m_tournament.m_wID ||
+			m_tournament.m_bStep >= TNMTSTEP_ENTER)
+			bError = TRUE;
+
+		LPTOURNAMENTENTRY pEt = GetCurrentTournamentEntry(bEntryID);
+		if (!pEt)
+			bError = TRUE;
+
+		if (bError)
+		{
+			CPacket * pMSG = new CPacket();
+			pMSG->SetID(CT_TOURNAMENTEVENT_ACK)
 				<< dwMgID
 				<< bType
-				<< wTID;
+				<< bEntryID
+				<< DWORD(0)
+				<< NAME_NULL
+				<< BYTE(0)
+				<< BYTE(TCLASS_COUNT)
+				<< BYTE(TCONTRY_N);
 
-			SayToTIMER(pMSG);
+			if (m_pCtrlSvr)
+				m_pCtrlSvr->Say(pMSG);
+			else
+				delete pMSG;
 
-			SendDM_TNMTEVENTENTRYADD_REQ(&pBUF->m_packet);
+			return EC_NOERROR;
 		}
-		break;
-	case TET_ENTRYDEL:
-		{
-			WORD wTID;
-			BYTE bEntryID;
 
-			pBUF->m_packet
-				>> wTID
-				>> bEntryID;
-
-			TNMTEntryDelete(wTID, bEntryID);
-		}
-		break;
-	case TET_PLAYERADD:
-		{
-			WORD wTourID;
-			BYTE bEntryID;
-
-			pBUF->m_packet
-				>> wTourID
-				>> bEntryID;
-
-			BYTE bError = FALSE;
-			if(wTourID != m_tournament.m_wID ||
-				m_tournament.m_bStep >= TNMTSTEP_ENTER)
-				bError = TRUE;
-
-			LPTOURNAMENTENTRY pEt = GetCurrentTournamentEntry(bEntryID);
-			if(!pEt)
-				bError = TRUE;
-
-			if(bError)
-			{
-				CPacket * pMSG = new CPacket();
-				pMSG->SetID(CT_TOURNAMENTEVENT_ACK)
-					<< dwMgID
-					<< bType
-					<< bEntryID
-					<< DWORD(0)
-					<< NAME_NULL
-					<< BYTE(0)
-					<< BYTE(TCLASS_COUNT)
-					<< BYTE(TCONTRY_N);
-
-				if(m_pCtrlSvr)
-					m_pCtrlSvr->Say(pMSG);
-				else
-					delete pMSG;
-
-				return EC_NOERROR;
-			}
-
-			LPPACKETBUF pMSG = new PACKETBUF();
-			pMSG->m_packet.Copy(&pBUF->m_packet);
-			pMSG->m_packet.SetID(DM_TOURNAMENTEVENTCHARINFO_REQ);
-			SayToDB(pMSG);
-		}
-		break;
+		LPPACKETBUF pMSG = new PACKETBUF();
+		pMSG->m_packet.Copy(&pBUF->m_packet);
+		pMSG->m_packet.SetID(DM_TOURNAMENTEVENTCHARINFO_REQ);
+		SayToDB(pMSG);
+	}
+	break;
 	case TET_PLAYERDEL:
+	{
+		WORD wTID;
+		BYTE bEntry;
+		CString strTarget;
+		pBUF->m_packet
+			>> wTID
+			>> bEntry
+			>> strTarget;
+
+		DWORD dwCharID = 0;
+
+		if (wTID == m_tournament.m_wID)
 		{
-			WORD wTID;
-			BYTE bEntry;
-			CString strTarget;
-			pBUF->m_packet
-				>> wTID
-				>> bEntry
-				>> strTarget;
+			LPTOURNAMENTENTRY pEt = GetCurrentTournamentEntry(bEntry);
 
-			DWORD dwCharID = 0;
-
-			if(wTID == m_tournament.m_wID)
+			if (pEt)
 			{
-				LPTOURNAMENTENTRY pEt = GetCurrentTournamentEntry(bEntry);
-	
-				if(pEt)
+				MAPTNMTPLAYER::iterator it;
+				for (it = m_mapTNMTPlayer.begin(); it != m_mapTNMTPlayer.end(); it++)
 				{
-					MAPTNMTPLAYER::iterator it;
-					for(it=m_mapTNMTPlayer.begin(); it!=m_mapTNMTPlayer.end(); it++)
+					if ((*it).second->m_strName == strTarget)
 					{
-						if((*it).second->m_strName == strTarget)
-						{
-							dwCharID = (*it).second->m_dwCharID;
-							SendDM_TOURNAMENTAPPLY_REQ(FALSE, (*it).second->m_dwCharID);
-							DelTNMTPlayer(pEt, (*it).second);
-							break;
-						}
+						dwCharID = (*it).second->m_dwCharID;
+						SendDM_TOURNAMENTAPPLY_REQ(FALSE, (*it).second->m_dwCharID);
+						DelTNMTPlayer(pEt, (*it).second);
+						break;
 					}
 				}
 			}
-
-			CPacket * pMSG = new CPacket();
-			pMSG->SetID(CT_TOURNAMENTEVENT_ACK)
-				<< dwMgID
-				<< bType
-				<< bEntry
-				<< dwCharID;
-
-			if(m_pCtrlSvr)
-				m_pCtrlSvr->Say(pMSG);
-			else
-				delete pMSG;
 		}
-		break;
+
+		CPacket * pMSG = new CPacket();
+		pMSG->SetID(CT_TOURNAMENTEVENT_ACK)
+			<< dwMgID
+			<< bType
+			<< bEntry
+			<< dwCharID;
+
+		if (m_pCtrlSvr)
+			m_pCtrlSvr->Say(pMSG);
+		else
+			delete pMSG;
+	}
+	break;
 	case TET_PLAYEREND:
-		{
-			if(m_tournament.m_bStep >= TNMTSTEP_PARTY)
-				TournamentSelectPlayer();
+	{
+		if (m_tournament.m_bStep >= TNMTSTEP_PARTY)
+			TournamentSelectPlayer();
 
-			if(m_tournament.m_bStep >= TNMTSTEP_MATCH)
-				TournamentMatch();
+		if (m_tournament.m_bStep >= TNMTSTEP_MATCH)
+			TournamentMatch();
 
-			CPacket * pMSG = new CPacket();
-			pMSG->SetID(CT_TOURNAMENTEVENT_ACK)
-				<< dwMgID
-				<< bType;
+		CPacket * pMSG = new CPacket();
+		pMSG->SetID(CT_TOURNAMENTEVENT_ACK)
+			<< dwMgID
+			<< bType;
 
-			if(m_pCtrlSvr)
-				m_pCtrlSvr->Say(pMSG);
-			else
-				delete pMSG;
-		}
-		break;
+		if (m_pCtrlSvr)
+			m_pCtrlSvr->Say(pMSG);
+		else
+			delete pMSG;
+	}
+	break;
 	default:
 		return EC_NOERROR;
 	}
@@ -11927,142 +11922,142 @@ DWORD CTWorldSvrModule::OnSM_TOURNAMENTEVENT_REQ(LPPACKETBUF pBUF)
 		>> dwMgID
 		>> bType;
 
-	switch(bType)
+	switch (bType)
 	{
 	case TET_LIST:
-		{
-			LPPACKETBUF pMSG = new PACKETBUF();
-			pMSG->m_packet.SetID(SM_TOURNAMENTEVENT_ACK)
-				<< dwMgID
-				<< bType
-				<< (BYTE)m_mapTournamentTime.size();
+	{
+		LPPACKETBUF pMSG = new PACKETBUF();
+		pMSG->m_packet.SetID(SM_TOURNAMENTEVENT_ACK)
+			<< dwMgID
+			<< bType
+			<< (BYTE)m_mapTournamentTime.size();
 
-			MAPTOURNAMENTTIME::iterator itTT;
-			for(itTT=m_mapTournamentTime.begin(); itTT!=m_mapTournamentTime.end(); itTT++)
+		MAPTOURNAMENTTIME::iterator itTT;
+		for (itTT = m_mapTournamentTime.begin(); itTT != m_mapTournamentTime.end(); itTT++)
+		{
+			WORD wTID = WORD((*itTT).first);
+			LPTBATTLETIME bt = &((*itTT).second);
+			pMSG->m_packet
+				<< wTID
+				<< bt->m_bWeek
+				<< bt->m_bDay
+				<< bt->m_dwBattleStart;
+
+			MAPTOURNAMENTSCHEDULE::iterator itTS = m_mapTournamentSchedule.find(wTID);
+			if (itTS != m_mapTournamentSchedule.end())
 			{
-				WORD wTID = WORD((*itTT).first);
-				LPTBATTLETIME bt = &((*itTT).second);
+				LPMAPTOURNAMENTSTEP pTournament = (*itTS).second.m_mapStep;
+				MAPTOURNAMENTSTEP::iterator itTStep;
+
 				pMSG->m_packet
-					<< wTID
-					<< bt->m_bWeek
-					<< bt->m_bDay
-					<< bt->m_dwBattleStart;
+					<< (BYTE)pTournament->size();
 
-				MAPTOURNAMENTSCHEDULE::iterator itTS = m_mapTournamentSchedule.find(wTID);
-				if(itTS != m_mapTournamentSchedule.end())
+				for (itTStep = pTournament->begin(); itTStep != pTournament->end(); itTStep++)
 				{
-					LPMAPTOURNAMENTSTEP pTournament = (*itTS).second.m_mapStep;
-					MAPTOURNAMENTSTEP::iterator itTStep;
-
+					LPTOURNAMENTSTEP pStep = &((*itTStep).second);
 					pMSG->m_packet
-						<< (BYTE)pTournament->size();
-
-					for(itTStep=pTournament->begin(); itTStep!=pTournament->end(); itTStep++)
-					{
-						LPTOURNAMENTSTEP pStep = &((*itTStep).second);
-						pMSG->m_packet
-							<< pStep->m_bStep
-							<< pStep->m_dwPeriod
-							<< pStep->m_dStart;
-					}
+						<< pStep->m_bStep
+						<< pStep->m_dwPeriod
+						<< pStep->m_dStart;
 				}
-				else
-				{
-					pMSG->m_packet
-						<< (BYTE)0;
-				}
-			}
-
-			SayToBATCH(pMSG);
-		}
-		break;
-	case TET_SCHEDULEADD:
-		{
-			WORD wTID;
-			TBATTLETIME bt;
-			BYTE bCount;
-			pBUF->m_packet
-				>> wTID
-				>> bt.m_bWeek
-				>> bt.m_bDay
-				>> bt.m_dwBattleStart
-				>> bCount;
-
-			LPMAPTOURNAMENTSTEP pTS = NULL;
-
-			MAPTOURNAMENTSCHEDULE::iterator it = m_mapTournamentSchedule.find(wTID);
-			if(it!=m_mapTournamentSchedule.end())
-			{
-				pTS = (*it).second.m_mapStep;
-				m_mapTournamentTime.erase(wTID);
-				m_mapTournamentTime.insert(MAPTOURNAMENTTIME::value_type(wTID, bt));
 			}
 			else
-				pTS = new MAPTOURNAMENTSTEP();
-
-			pTS->clear();
-
-			for(BYTE i=0; i<bCount; i++)
 			{
-				TOURNAMENTSTEP tour;
-				pBUF->m_packet
-					>> tour.m_bStep
-					>> tour.m_dwPeriod;
-
-				pTS->insert(MAPTOURNAMENTSTEP::value_type(tour.m_bStep, tour));
+				pMSG->m_packet
+					<< (BYTE)0;
 			}
-
-			WORD wNewID = SetTournamentTime(pTS, bt, wTID, FALSE, FALSE);
-			if(wTID)
-				TournamentUpdate(wNewID);
-
-			LPPACKETBUF pMSG = new PACKETBUF();
-			pMSG->m_packet.SetID(SM_TOURNAMENTEVENT_ACK)
-				<< dwMgID
-				<< bType
-				<< wNewID;
-
-			SayToBATCH(pMSG);
-
-			if(wNewID)
-				SendDM_TNMTEVENTSCHEDULEADD_REQ(&pBUF->m_packet, wNewID);
 		}
-		break;
+
+		SayToBATCH(pMSG);
+	}
+	break;
+	case TET_SCHEDULEADD:
+	{
+		WORD wTID;
+		TBATTLETIME bt;
+		BYTE bCount;
+		pBUF->m_packet
+			>> wTID
+			>> bt.m_bWeek
+			>> bt.m_bDay
+			>> bt.m_dwBattleStart
+			>> bCount;
+
+		LPMAPTOURNAMENTSTEP pTS = NULL;
+
+		MAPTOURNAMENTSCHEDULE::iterator it = m_mapTournamentSchedule.find(wTID);
+		if (it != m_mapTournamentSchedule.end())
+		{
+			pTS = (*it).second.m_mapStep;
+			m_mapTournamentTime.erase(wTID);
+			m_mapTournamentTime.insert(MAPTOURNAMENTTIME::value_type(wTID, bt));
+		}
+		else
+			pTS = new MAPTOURNAMENTSTEP();
+
+		pTS->clear();
+
+		for (BYTE i = 0; i<bCount; i++)
+		{
+			TOURNAMENTSTEP tour;
+			pBUF->m_packet
+				>> tour.m_bStep
+				>> tour.m_dwPeriod;
+
+			pTS->insert(MAPTOURNAMENTSTEP::value_type(tour.m_bStep, tour));
+		}
+
+		WORD wNewID = SetTournamentTime(pTS, bt, wTID, FALSE, FALSE);
+		if (wTID)
+			TournamentUpdate(wNewID);
+
+		LPPACKETBUF pMSG = new PACKETBUF();
+		pMSG->m_packet.SetID(SM_TOURNAMENTEVENT_ACK)
+			<< dwMgID
+			<< bType
+			<< wNewID;
+
+		SayToBATCH(pMSG);
+
+		if (wNewID)
+			SendDM_TNMTEVENTSCHEDULEADD_REQ(&pBUF->m_packet, wNewID);
+	}
+	break;
 	case TET_SCHEDULEDEL:
-		{
-			WORD wTID;
-			pBUF->m_packet
-				>> wTID;
+	{
+		WORD wTID;
+		pBUF->m_packet
+			>> wTID;
 
-			DelTournamentSchedule(wTID);
+		DelTournamentSchedule(wTID);
 
-			LPPACKETBUF pMSG = new PACKETBUF();
-			pMSG->m_packet.SetID(SM_TOURNAMENTEVENT_ACK)
-				<< dwMgID
-				<< bType
-				<< wTID;
+		LPPACKETBUF pMSG = new PACKETBUF();
+		pMSG->m_packet.SetID(SM_TOURNAMENTEVENT_ACK)
+			<< dwMgID
+			<< bType
+			<< wTID;
 
-			SayToBATCH(pMSG);
-		}
-		break;
+		SayToBATCH(pMSG);
+	}
+	break;
 	case TET_ENTRYADD:
-		{
-			WORD wTID;
-			pBUF->m_packet
-				>> wTID;
+	{
+		WORD wTID;
+		pBUF->m_packet
+			>> wTID;
 
-			MAPTOURNAMENTSCHEDULE::iterator it = m_mapTournamentSchedule.find(wTID);
-			if(it!=m_mapTournamentSchedule.end())
-				TournamentUpdate(wTID);
+		MAPTOURNAMENTSCHEDULE::iterator it = m_mapTournamentSchedule.find(wTID);
+		if (it != m_mapTournamentSchedule.end())
+			TournamentUpdate(wTID);
 
-			LPPACKETBUF pMSG = new PACKETBUF();
-			pMSG->m_packet.SetID(SM_TOURNAMENTEVENT_ACK)
-				<< dwMgID
-				<< bType;
+		LPPACKETBUF pMSG = new PACKETBUF();
+		pMSG->m_packet.SetID(SM_TOURNAMENTEVENT_ACK)
+			<< dwMgID
+			<< bType;
 
-			SayToBATCH(pMSG);
-		}
-		break;
+		SayToBATCH(pMSG);
+	}
+	break;
 	default:
 		return EC_NOERROR;
 	}
@@ -12077,228 +12072,228 @@ DWORD CTWorldSvrModule::OnSM_TOURNAMENTEVENT_ACK(LPPACKETBUF pBUF)
 		>> dwMgID
 		>> bType;
 
-	switch(bType)
+	switch (bType)
 	{
 	case TET_LIST:
+	{
+		CPacket * pMSG = new CPacket();
+		pMSG->Copy(&pBUF->m_packet);
+		pMSG->SetID(CT_TOURNAMENTEVENT_ACK)
+			<< (BYTE)m_mapTournament.size();
+
+		MAPTOURNAMENT::iterator it;
+		for (it = m_mapTournament.begin(); it != m_mapTournament.end(); it++)
 		{
-			CPacket * pMSG = new CPacket();
-			pMSG->Copy(&pBUF->m_packet);
-			pMSG->SetID(CT_TOURNAMENTEVENT_ACK)
-				<< (BYTE)m_mapTournament.size();
+			LPMAPTOURNAMENTENTRY entry = &(*it).second;
+			(*pMSG)
+				<< (*it).first
+				<< (BYTE)entry->size();
 
-			MAPTOURNAMENT::iterator it;
-			for(it=m_mapTournament.begin(); it!=m_mapTournament.end(); it++)
+			MAPTOURNAMENTENTRY::iterator itEr;
+			for (itEr = entry->begin(); itEr != entry->end(); itEr++)
 			{
-				LPMAPTOURNAMENTENTRY entry = &(*it).second;
+				LPTOURNAMENTENTRY pEntry = (*itEr).second;
 				(*pMSG)
-					<< (*it).first
-					<< (BYTE)entry->size();
+					<< pEntry->m_bEntryID
+					<< pEntry->m_strName
+					<< pEntry->m_bType
+					<< pEntry->m_dwClass
+					<< pEntry->m_dwFee
+					<< pEntry->m_dwFeeBack
+					<< pEntry->m_wPermitItemID
+					<< pEntry->m_bPermitCount
+					<< pEntry->m_bMinLevel
+					<< pEntry->m_bMaxLevel
+					<< (BYTE)pEntry->m_vReward.size();
 
-				MAPTOURNAMENTENTRY::iterator itEr;
-				for(itEr=entry->begin(); itEr!=entry->end(); itEr++)
+				for (BYTE i = 0; i<pEntry->m_vReward.size(); i++)
 				{
-					LPTOURNAMENTENTRY pEntry = (*itEr).second;
 					(*pMSG)
-						<< pEntry->m_bEntryID
-						<< pEntry->m_strName
-						<< pEntry->m_bType
-						<< pEntry->m_dwClass
-						<< pEntry->m_dwFee
-						<< pEntry->m_dwFeeBack
-						<< pEntry->m_wPermitItemID
-						<< pEntry->m_bPermitCount
-						<< pEntry->m_bMinLevel
-						<< pEntry->m_bMaxLevel
-						<< (BYTE)pEntry->m_vReward.size();
+						<< pEntry->m_vReward[i].m_bChartType
+						<< pEntry->m_vReward[i].m_wItemID
+						<< pEntry->m_vReward[i].m_bCount
+						<< pEntry->m_vReward[i].m_dwClass
+						<< pEntry->m_vReward[i].m_bCheckShield;
+				}
 
-					for(BYTE i=0; i<pEntry->m_vReward.size(); i++)
+				if (m_tournament.m_bStep < TNMTSTEP_PARTY)
+				{
+					(*pMSG)
+						<< BYTE(pEntry->m_map1st.size());
+
+					MAPTNMTPLAYER::iterator itTP;
+					for (itTP = pEntry->m_map1st.begin(); itTP != pEntry->m_map1st.end(); itTP++)
 					{
+						LPTNMTPLAYER pTP = (*itTP).second;
 						(*pMSG)
-							<< pEntry->m_vReward[i].m_bChartType
-							<< pEntry->m_vReward[i].m_wItemID
-							<< pEntry->m_vReward[i].m_bCount
-							<< pEntry->m_vReward[i].m_dwClass
-							<< pEntry->m_vReward[i].m_bCheckShield;
+							<< pTP->m_dwCharID
+							<< pTP->m_strName
+							<< pTP->m_bLevel
+							<< pTP->m_bClass
+							<< pTP->m_bCountry;
 					}
+				}
+				else
+				{
+					WORD wSize = pMSG->GetSize();
+					BYTE bCount = 0;
+					(*pMSG)
+						<< bCount;
 
-					if(m_tournament.m_bStep < TNMTSTEP_PARTY)
+					MAPTNMTPLAYER::iterator itTP;
+					for (itTP = pEntry->m_mapPlayer.begin(); itTP != pEntry->m_mapPlayer.end(); itTP++)
 					{
-						(*pMSG)
-							<< BYTE(pEntry->m_map1st.size());
-
-						MAPTNMTPLAYER::iterator itTP;
-						for(itTP=pEntry->m_map1st.begin(); itTP!=pEntry->m_map1st.end(); itTP++)
+						LPTNMTPLAYER pTP = (*itTP).second;
+						if (pTP->m_dwCharID == pTP->m_dwChiefID)
 						{
-							LPTNMTPLAYER pTP = (*itTP).second;
 							(*pMSG)
 								<< pTP->m_dwCharID
 								<< pTP->m_strName
 								<< pTP->m_bLevel
 								<< pTP->m_bClass
 								<< pTP->m_bCountry;
+
+							bCount++;
 						}
 					}
-					else
-					{
-						WORD wSize = pMSG->GetSize();
-						BYTE bCount=0;
-						(*pMSG)
-							<< bCount;
-
-						MAPTNMTPLAYER::iterator itTP;
-						for(itTP=pEntry->m_mapPlayer.begin(); itTP!=pEntry->m_mapPlayer.end(); itTP++)
-						{
-							LPTNMTPLAYER pTP = (*itTP).second;
-							if(pTP->m_dwCharID == pTP->m_dwChiefID)
-							{
-								(*pMSG)
-									<< pTP->m_dwCharID
-									<< pTP->m_strName
-									<< pTP->m_bLevel
-									<< pTP->m_bClass
-									<< pTP->m_bCountry;
-
-								bCount++;
-							}
-						}
-						memcpy(pMSG->GetBuffer()+wSize,&bCount,sizeof(bCount));
-					}
+					memcpy(pMSG->GetBuffer() + wSize, &bCount, sizeof(bCount));
 				}
 			}
-
-			if(m_pCtrlSvr)
-				m_pCtrlSvr->Say(pMSG);
-			else
-				delete pMSG;
 		}
-		break;
+
+		if (m_pCtrlSvr)
+			m_pCtrlSvr->Say(pMSG);
+		else
+			delete pMSG;
+	}
+	break;
 	case TET_SCHEDULEADD:
-		{
-			CPacket * pMSG = new CPacket();
-			pMSG->Copy(&pBUF->m_packet);
-			pMSG->SetID(CT_TOURNAMENTEVENT_ACK);
-			if(m_pCtrlSvr)
-				m_pCtrlSvr->Say(pMSG);
-			else
-				delete pMSG;
-		}
-		break;
+	{
+		CPacket * pMSG = new CPacket();
+		pMSG->Copy(&pBUF->m_packet);
+		pMSG->SetID(CT_TOURNAMENTEVENT_ACK);
+		if (m_pCtrlSvr)
+			m_pCtrlSvr->Say(pMSG);
+		else
+			delete pMSG;
+	}
+	break;
 	case TET_SCHEDULEDEL:
+	{
+		WORD wTID;
+		pBUF->m_packet
+			>> wTID;
+
+		MAPTOURNAMENT::iterator it = m_mapTournament.find(wTID);
+		if (it != m_mapTournament.end())
 		{
-			WORD wTID;
-			pBUF->m_packet
-				>> wTID;
+			MAPTOURNAMENTENTRY::iterator itTNMTE;
+			for (itTNMTE = (*it).second.begin(); itTNMTE != (*it).second.end(); itTNMTE++)
+				delete (*itTNMTE).second;
 
-			MAPTOURNAMENT::iterator it = m_mapTournament.find(wTID);
-			if(it!=m_mapTournament.end())
-			{
-				MAPTOURNAMENTENTRY::iterator itTNMTE;
-				for(itTNMTE=(*it).second.begin(); itTNMTE!=(*it).second.end(); itTNMTE++)
-					delete (*itTNMTE).second;
-
-				m_mapTournament.erase(it);
-			}
-
-			if(dwMgID)
-			{
-				CPacket * pMSG = new CPacket();
-				pMSG->SetID(CT_TOURNAMENTEVENT_ACK)
-					<< dwMgID
-					<< bType
-					<< wTID;
-
-				if(m_pCtrlSvr)
-					m_pCtrlSvr->Say(pMSG);
-				else
-					delete pMSG;
-			}
+			m_mapTournament.erase(it);
 		}
-		break;
-	case TET_ENTRYADD:
+
+		if (dwMgID)
 		{
-			CPacket * pMSG = new CPacket();
-			pMSG->SetID(CT_TOURNAMENTEVENT_ACK)
-				<< dwMgID
-				<< bType;
-
-			if(m_pCtrlSvr)
-				m_pCtrlSvr->Say(pMSG);
-			else
-				delete pMSG;
-		}
-		break;
-	case TET_ENTRYDEL:
-		break;
-	case TET_PLAYERADD:
-		{
-			WORD wTID;
-			BYTE bEntry;
-			DWORD dwCharID;
-			BYTE bCountry=TCONTRY_N;
-			CString strTarget=NAME_NULL;
-			BYTE bLevel=0;
-			BYTE bClass=TCLASS_COUNT;
-
-			pBUF->m_packet
-				>> wTID
-				>> bEntry
-				>> dwCharID;
-
-			if(dwCharID)
-			{
-				LPTOURNAMENTENTRY pEt = GetCurrentTournamentEntry(bEntry);
-
-				if(pEt && !FindTNMTPlayer(dwCharID))
-				{
-					pBUF->m_packet
-						>> bCountry
-						>> strTarget
-						>> bLevel
-						>> bClass;
-
-					LPTNMTPLAYER pTarget = new TNMTPLAYER();
-
-					pTarget->m_bEntryID = bEntry;
-					pTarget->m_bClass = bClass;
-					pTarget->m_bCountry = bCountry;
-					pTarget->m_bLevel = bLevel;
-					pTarget->m_dwCharID = dwCharID;
-					pTarget->m_strName = strTarget;
-					pTarget->m_dwChiefID = dwCharID;
-
-					MAPDWORD::iterator itGM = m_mapCharGuild.find(pTarget->m_dwCharID);
-					if(itGM != m_mapCharGuild.end())
-					{
-						CTGuild * pGuild = FindTGuild((*itGM).second);
-						if(pGuild)
-							pTarget->m_strGuildName = pGuild->m_strName;
-					}
-
-					GetRanking(pTarget->m_dwCharID, pTarget->m_dwRank, pTarget->m_dwMonthRank);
-					AddTNMTPlayer(pEt, pTarget, TNMTSTEP_1st, pTarget);
-					SendDM_TOURNAMENTAPPLY_REQ(TRUE, pTarget->m_dwCharID, bEntry, pTarget->m_dwCharID);
-				}
-				else
-					dwCharID = 0;
-			}
-
 			CPacket * pMSG = new CPacket();
 			pMSG->SetID(CT_TOURNAMENTEVENT_ACK)
 				<< dwMgID
 				<< bType
-				<< bEntry
-				<< dwCharID
-				<< strTarget
-				<< bLevel
-				<< bClass
-				<< bCountry;
+				<< wTID;
 
-			if(m_pCtrlSvr)
+			if (m_pCtrlSvr)
 				m_pCtrlSvr->Say(pMSG);
 			else
 				delete pMSG;
 		}
+	}
+	break;
+	case TET_ENTRYADD:
+	{
+		CPacket * pMSG = new CPacket();
+		pMSG->SetID(CT_TOURNAMENTEVENT_ACK)
+			<< dwMgID
+			<< bType;
+
+		if (m_pCtrlSvr)
+			m_pCtrlSvr->Say(pMSG);
+		else
+			delete pMSG;
+	}
+	break;
+	case TET_ENTRYDEL:
 		break;
+	case TET_PLAYERADD:
+	{
+		WORD wTID;
+		BYTE bEntry;
+		DWORD dwCharID;
+		BYTE bCountry = TCONTRY_N;
+		CString strTarget = NAME_NULL;
+		BYTE bLevel = 0;
+		BYTE bClass = TCLASS_COUNT;
+
+		pBUF->m_packet
+			>> wTID
+			>> bEntry
+			>> dwCharID;
+
+		if (dwCharID)
+		{
+			LPTOURNAMENTENTRY pEt = GetCurrentTournamentEntry(bEntry);
+
+			if (pEt && !FindTNMTPlayer(dwCharID))
+			{
+				pBUF->m_packet
+					>> bCountry
+					>> strTarget
+					>> bLevel
+					>> bClass;
+
+				LPTNMTPLAYER pTarget = new TNMTPLAYER();
+
+				pTarget->m_bEntryID = bEntry;
+				pTarget->m_bClass = bClass;
+				pTarget->m_bCountry = bCountry;
+				pTarget->m_bLevel = bLevel;
+				pTarget->m_dwCharID = dwCharID;
+				pTarget->m_strName = strTarget;
+				pTarget->m_dwChiefID = dwCharID;
+
+				MAPDWORD::iterator itGM = m_mapCharGuild.find(pTarget->m_dwCharID);
+				if (itGM != m_mapCharGuild.end())
+				{
+					CTGuild * pGuild = FindTGuild((*itGM).second);
+					if (pGuild)
+						pTarget->m_strGuildName = pGuild->m_strName;
+				}
+
+				GetRanking(pTarget->m_dwCharID, pTarget->m_dwRank, pTarget->m_dwMonthRank);
+				AddTNMTPlayer(pEt, pTarget, TNMTSTEP_1st, pTarget);
+				SendDM_TOURNAMENTAPPLY_REQ(TRUE, pTarget->m_dwCharID, bEntry, pTarget->m_dwCharID);
+			}
+			else
+				dwCharID = 0;
+		}
+
+		CPacket * pMSG = new CPacket();
+		pMSG->SetID(CT_TOURNAMENTEVENT_ACK)
+			<< dwMgID
+			<< bType
+			<< bEntry
+			<< dwCharID
+			<< strTarget
+			<< bLevel
+			<< bClass
+			<< bCountry;
+
+		if (m_pCtrlSvr)
+			m_pCtrlSvr->Say(pMSG);
+		else
+			delete pMSG;
+	}
+	break;
 	default:
 		return EC_NOERROR;
 	}
@@ -12326,16 +12321,16 @@ DWORD CTWorldSvrModule::OnDM_TNMTEVENTSCHEDULEADD_REQ(LPPACKETBUF pBUF)
 		>> bCount;
 
 	DEFINE_QUERY(&m_db, CSPTnmtEventTime)
-	query->m_wTourID = wTID;
+		query->m_wTourID = wTID;
 	query->m_bWeek = bWeek;
 	query->m_bDay = bDay;
 	query->m_dwStart = dwStart;
 	query->Call();
 	UNDEFINE_QUERY()
 
-	DEFINE_QUERY(&m_db, CSPTnmtEventSchedule)
-	query->m_wTourID = wTID;
-	for(BYTE i=0; i<bCount; i++)
+		DEFINE_QUERY(&m_db, CSPTnmtEventSchedule)
+		query->m_wTourID = wTID;
+	for (BYTE i = 0; i<bCount; i++)
 	{
 		pBUF->m_packet
 			>> query->m_bStep
@@ -12345,7 +12340,7 @@ DWORD CTWorldSvrModule::OnDM_TNMTEVENTSCHEDULEADD_REQ(LPPACKETBUF pBUF)
 	}
 	UNDEFINE_QUERY()
 
-	return EC_NOERROR;
+		return EC_NOERROR;
 }
 
 DWORD CTWorldSvrModule::OnDM_TNMTEVENTSCHEDULEDEL_REQ(LPPACKETBUF pBUF)
@@ -12355,11 +12350,11 @@ DWORD CTWorldSvrModule::OnDM_TNMTEVENTSCHEDULEDEL_REQ(LPPACKETBUF pBUF)
 		>> wTID;
 
 	DEFINE_QUERY(&m_db, CSPTnmtEventDel)
-	query->m_wTourID = wTID;
+		query->m_wTourID = wTID;
 	query->Call();
 	UNDEFINE_QUERY()
 
-	return EC_NOERROR;
+		return EC_NOERROR;
 }
 
 DWORD CTWorldSvrModule::OnDM_TNMTEVENTENTRYADD_REQ(LPPACKETBUF pBUF)
@@ -12376,7 +12371,7 @@ DWORD CTWorldSvrModule::OnDM_TNMTEVENTENTRYADD_REQ(LPPACKETBUF pBUF)
 		>> bCount;
 
 	DEFINE_QUERY(&m_db, CSPTnmtEventEntry)
-	query->m_wTourID = wTID;
+		query->m_wTourID = wTID;
 	query->m_bEntryID = 0;
 	memset(query->m_szName, 0, sizeof(TCHAR) * MAX_NAME);
 	query->Call();
@@ -12386,10 +12381,10 @@ DWORD CTWorldSvrModule::OnDM_TNMTEVENTENTRYADD_REQ(LPPACKETBUF pBUF)
 	CString strName;
 	BYTE bEntryID;
 
-	for(BYTE i=0; i<bCount; i++)
+	for (BYTE i = 0; i<bCount; i++)
 	{
 		DEFINE_QUERY(&m_db, CSPTnmtEventEntry)
-		query->m_wTourID = wTID;
+			query->m_wTourID = wTID;
 
 		pBUF->m_packet
 			>> bEntryID
@@ -12410,22 +12405,22 @@ DWORD CTWorldSvrModule::OnDM_TNMTEVENTENTRYADD_REQ(LPPACKETBUF pBUF)
 		query->Call();
 		UNDEFINE_QUERY()
 
-		for(BYTE j=0; j<bRewardCount; j++)
-		{
-			DEFINE_QUERY(&m_db, CSPTnmtEventReward)
-			query->m_wTourID = wTID;
-			query->m_bEntryID = bEntryID;
+			for (BYTE j = 0; j<bRewardCount; j++)
+			{
+				DEFINE_QUERY(&m_db, CSPTnmtEventReward)
+					query->m_wTourID = wTID;
+				query->m_bEntryID = bEntryID;
 
-			pBUF->m_packet
-				>> query->m_bChartType
-				>> query->m_wItemID
-				>> query->m_bCount
-				>> query->m_dwClass
-				>> query->m_bCheckShield;
+				pBUF->m_packet
+					>> query->m_bChartType
+					>> query->m_wItemID
+					>> query->m_bCount
+					>> query->m_dwClass
+					>> query->m_bCheckShield;
 
-			query->Call();
-			UNDEFINE_QUERY()
-		}
+				query->Call();
+				UNDEFINE_QUERY()
+			}
 	}
 
 	return EC_NOERROR;
@@ -12438,11 +12433,11 @@ DWORD CTWorldSvrModule::OnMW_TERMINATE_ACK(LPPACKETBUF pBUF)
 	pBUF->m_packet
 		>> dwKey;
 
-	if(dwKey != 720809425)
+	if (dwKey != 720809425)
 		return EC_NOERROR;
 
 	MAPTSERVER::iterator itSvr;
-	for(itSvr = m_mapSERVER.begin(); itSvr != m_mapSERVER.end(); itSvr++)
+	for (itSvr = m_mapSERVER.begin(); itSvr != m_mapSERVER.end(); itSvr++)
 		(*itSvr).second->SendMW_TERMINATE_REQ(dwKey);
 
 	SendDM_CLEARDATA_REQ(dwKey);
@@ -12457,7 +12452,7 @@ DWORD CTWorldSvrModule::OnDM_CLEARDATA_REQ(LPPACKETBUF pBUF)
 	pBUF->m_packet
 		>> dwKey;
 
-	if(dwKey != 720809425)
+	if (dwKey != 720809425)
 		return EC_NOERROR;
 
 
@@ -12477,13 +12472,13 @@ DWORD CTWorldSvrModule::OnDM_CLEARDATA_ACK(LPPACKETBUF pBUF)
 	pBUF->m_packet
 		>> dwKey;
 
-	if(dwKey != 720809425)
+	if (dwKey != 720809425)
 		return EC_NOERROR;
 
 	return EC_NOERROR;
 }
 
- 
+
 DWORD CTWorldSvrModule::OnDM_EVENTQUARTERLIST_REQ(LPPACKETBUF pBUF)
 {
 	DWORD dwManagerID;
@@ -12497,10 +12492,10 @@ DWORD CTWorldSvrModule::OnDM_EVENTQUARTERLIST_REQ(LPPACKETBUF pBUF)
 	vLuckyEvent.clear();
 
 	DEFINE_QUERY(&m_db, CTBLEventQuarterList)
-	query->m_bFindDay = bDay;
-	if(query->Open())
+		query->m_bFindDay = bDay;
+	if (query->Open())
 	{
-		while(query->Fetch())
+		while (query->Fetch())
 		{
 			LUCKYEVENT stLKEVENT;
 			stLKEVENT.Reset();
@@ -12526,37 +12521,37 @@ DWORD CTWorldSvrModule::OnDM_EVENTQUARTERLIST_REQ(LPPACKETBUF pBUF)
 	}
 	UNDEFINE_QUERY()
 
-	DEFINE_QUERY(&m_db,CSPGetItemName)
-	for(WORD i = 0; i < (WORD)vLuckyEvent.size(); i++)
-	{		
-		query->m_wItemID1 = vLuckyEvent[i].m_wItemID1;
-		query->m_wItemID2 = vLuckyEvent[i].m_wItemID2;
-		query->m_wItemID3 = vLuckyEvent[i].m_wItemID3;
-		query->m_wItemID4 = vLuckyEvent[i].m_wItemID4;
-		query->m_wItemID5 = vLuckyEvent[i].m_wItemID5;
-
-		if(query->Call())
+		DEFINE_QUERY(&m_db, CSPGetItemName)
+		for (WORD i = 0; i < (WORD)vLuckyEvent.size(); i++)
 		{
-			vLuckyEvent[i].m_strItem1 = query->m_szName1;
-			vLuckyEvent[i].m_strItem2 = query->m_szName2;
-			vLuckyEvent[i].m_strItem3 = query->m_szName3;
-			vLuckyEvent[i].m_strItem4 = query->m_szName4;
-			vLuckyEvent[i].m_strItem5 = query->m_szName5;
+			query->m_wItemID1 = vLuckyEvent[i].m_wItemID1;
+			query->m_wItemID2 = vLuckyEvent[i].m_wItemID2;
+			query->m_wItemID3 = vLuckyEvent[i].m_wItemID3;
+			query->m_wItemID4 = vLuckyEvent[i].m_wItemID4;
+			query->m_wItemID5 = vLuckyEvent[i].m_wItemID5;
+
+			if (query->Call())
+			{
+				vLuckyEvent[i].m_strItem1 = query->m_szName1;
+				vLuckyEvent[i].m_strItem2 = query->m_szName2;
+				vLuckyEvent[i].m_strItem3 = query->m_szName3;
+				vLuckyEvent[i].m_strItem4 = query->m_szName4;
+				vLuckyEvent[i].m_strItem5 = query->m_szName5;
+			}
 		}
-	}
 	UNDEFINE_QUERY()
 
-	CPacket* pMSG = new CPacket();
+		CPacket* pMSG = new CPacket();
 	pMSG->SetID(CT_EVENTQUARTERLIST_ACK)
 		<< dwManagerID
 		<< (WORD)vLuckyEvent.size();
 
-	for(WORD i = 0; i < (WORD)vLuckyEvent.size(); i++)
+	for (WORD i = 0; i < (WORD)vLuckyEvent.size(); i++)
 		vLuckyEvent[i].WrapPacketIn(pMSG);
 
-	if(m_pCtrlSvr)
+	if (m_pCtrlSvr)
 		m_pCtrlSvr->Say(pMSG);
-    
+
 	return EC_NOERROR;
 }
 
@@ -12574,9 +12569,9 @@ DWORD CTWorldSvrModule::OnDM_EVENTQUARTERUPDATE_REQ(LPPACKETBUF pBUF)
 
 	stLKEVENT.WrapPacketOut(&(pBUF->m_packet));
 
-	DEFINE_QUERY(&m_db,CSPEventQuarterUpdate)
-	
-	query->m_bType = bType;
+	DEFINE_QUERY(&m_db, CSPEventQuarterUpdate)
+
+		query->m_bType = bType;
 	query->m_wID = stLKEVENT.m_wID;
 	query->m_bDay = stLKEVENT.m_bDay;
 	query->m_bHour = stLKEVENT.m_bHour;
@@ -12591,8 +12586,8 @@ DWORD CTWorldSvrModule::OnDM_EVENTQUARTERUPDATE_REQ(LPPACKETBUF pBUF)
 	lstrcpy(query->m_szAnnounce, stLKEVENT.m_strAnnounce);
 	lstrcpy(query->m_szTitle, stLKEVENT.m_strTitle);
 	lstrcpy(query->m_szMessage, stLKEVENT.m_strMessage);
-	
-	if(query->Call())
+
+	if (query->Call())
 	{
 		bRet = query->m_nRET;
 		stLKEVENT.m_strItem1 = query->m_szName1;
@@ -12601,13 +12596,13 @@ DWORD CTWorldSvrModule::OnDM_EVENTQUARTERUPDATE_REQ(LPPACKETBUF pBUF)
 		stLKEVENT.m_strItem4 = query->m_szName4;
 		stLKEVENT.m_strItem5 = query->m_szName5;
 
-		if(bType == EK_ADD)
+		if (bType == EK_ADD)
 			stLKEVENT.m_wID = query->m_wOutID;
 	}
 
 	UNDEFINE_QUERY()
 
-	LPPACKETBUF pMSG = new PACKETBUF();
+		LPPACKETBUF pMSG = new PACKETBUF();
 	pMSG->m_packet.SetID(DM_EVENTQUARTERUPDATE_ACK)
 		<< bRet
 		<< dwManagerID
@@ -12634,68 +12629,68 @@ DWORD CTWorldSvrModule::OnDM_EVENTQUARTERUPDATE_ACK(LPPACKETBUF pBUF)
 		>> bType;
 
 	stLKEVENT.WrapPacketOut(&(pBUF->m_packet));
-	
-	if(!bRet)
+
+	if (!bRet)
 	{
-		switch(bType)
+		switch (bType)
 		{
 		case EK_DEL:	//	Delete
+		{
+			MAPTEVENTQUARTER::iterator itEV = m_mapEVQT.find(stLKEVENT.m_wID);
+			if (itEV != m_mapEVQT.end())
 			{
-				MAPTEVENTQUARTER::iterator itEV = m_mapEVQT.find(stLKEVENT.m_wID);
-				if( itEV != m_mapEVQT.end())
-				{
-					LPTEVENTQUARTER pQT = (*itEV).second;
-					MAPTIMEQUARTER::iterator itTime = m_mapTimeEVQT.find(pQT->m_nTime);
-					if(itTime != m_mapTimeEVQT.end())
-						m_mapTimeEVQT.erase(itTime);
+				LPTEVENTQUARTER pQT = (*itEV).second;
+				MAPTIMEQUARTER::iterator itTime = m_mapTimeEVQT.find(pQT->m_nTime);
+				if (itTime != m_mapTimeEVQT.end())
+					m_mapTimeEVQT.erase(itTime);
 
-					delete (*itEV).second;
-					m_mapEVQT.erase(itEV);
-				}
+				delete (*itEV).second;
+				m_mapEVQT.erase(itEV);
 			}
-			break;
+		}
+		break;
 		case EK_ADD:	//	Insert
+		{
+			LPTEVENTQUARTER pQT = new TEVENTQUARTER();
+			pQT->m_wID = stLKEVENT.m_wID;
+			pQT->m_bDay = stLKEVENT.m_bDay;
+			pQT->m_bHour = stLKEVENT.m_bHour;
+			pQT->m_bMinute = stLKEVENT.m_bMin;
+			pQT->m_strPresent = stLKEVENT.m_strPresent;
+			pQT->m_strAnnounce = BuildNetString(NAME_NULL, stLKEVENT.m_strAnnounce);
+			pQT->m_bNotice = FALSE;
+			pQT->m_nTime = GetNextEventTime(pQT->m_bDay, pQT->m_bHour, pQT->m_bMinute);
+
+			m_mapEVQT.insert(MAPTEVENTQUARTER::value_type(pQT->m_wID, pQT));
+			m_mapTimeEVQT.insert(MAPTIMEQUARTER::value_type(pQT->m_nTime, pQT->m_wID));
+		}
+		break;
+		case EK_UPDATE:	//	Update
+		{
+			MAPTEVENTQUARTER::iterator itEV = m_mapEVQT.find(stLKEVENT.m_wID);
+			if (itEV != m_mapEVQT.end())
 			{
-				LPTEVENTQUARTER pQT = new TEVENTQUARTER();
+				LPTEVENTQUARTER pQT = (*itEV).second;
+
+				MAPTIMEQUARTER::iterator itTime = m_mapTimeEVQT.find(pQT->m_nTime);
+				if (itTime != m_mapTimeEVQT.end())
+					m_mapTimeEVQT.erase(itTime);
+
 				pQT->m_wID = stLKEVENT.m_wID;
 				pQT->m_bDay = stLKEVENT.m_bDay;
 				pQT->m_bHour = stLKEVENT.m_bHour;
 				pQT->m_bMinute = stLKEVENT.m_bMin;
 				pQT->m_strPresent = stLKEVENT.m_strPresent;
 				pQT->m_strAnnounce = BuildNetString(NAME_NULL, stLKEVENT.m_strAnnounce);
+
 				pQT->m_bNotice = FALSE;
 				pQT->m_nTime = GetNextEventTime(pQT->m_bDay, pQT->m_bHour, pQT->m_bMinute);
 
 				m_mapEVQT.insert(MAPTEVENTQUARTER::value_type(pQT->m_wID, pQT));
 				m_mapTimeEVQT.insert(MAPTIMEQUARTER::value_type(pQT->m_nTime, pQT->m_wID));
 			}
-			break;
-		case EK_UPDATE:	//	Update
-			{
-				MAPTEVENTQUARTER::iterator itEV = m_mapEVQT.find(stLKEVENT.m_wID);
-				if( itEV != m_mapEVQT.end())
-				{
-					LPTEVENTQUARTER pQT = (*itEV).second;
-
-					MAPTIMEQUARTER::iterator itTime = m_mapTimeEVQT.find(pQT->m_nTime);
-					if(itTime != m_mapTimeEVQT.end())
-						m_mapTimeEVQT.erase(itTime);
-
-					pQT->m_wID = stLKEVENT.m_wID;
-					pQT->m_bDay = stLKEVENT.m_bDay;
-					pQT->m_bHour = stLKEVENT.m_bHour;
-					pQT->m_bMinute = stLKEVENT.m_bMin;
-					pQT->m_strPresent = stLKEVENT.m_strPresent;
-					pQT->m_strAnnounce = BuildNetString(NAME_NULL, stLKEVENT.m_strAnnounce);
-
-					pQT->m_bNotice = FALSE;
-					pQT->m_nTime = GetNextEventTime(pQT->m_bDay, pQT->m_bHour, pQT->m_bMinute);
-
-					m_mapEVQT.insert(MAPTEVENTQUARTER::value_type(pQT->m_wID, pQT));
-					m_mapTimeEVQT.insert(MAPTIMEQUARTER::value_type(pQT->m_nTime, pQT->m_wID));					
-				}
-			}
-			break;
+		}
+		break;
 		}
 	}
 
@@ -12703,8 +12698,8 @@ DWORD CTWorldSvrModule::OnDM_EVENTQUARTERUPDATE_ACK(LPPACKETBUF pBUF)
 	pMSG->Copy(&(pBUF->m_packet));
 	pMSG->SetID(CT_EVENTQUARTERUPDATE_ACK);
 
-	if(m_pCtrlSvr)
-		m_pCtrlSvr->Say(pMSG);		
+	if (m_pCtrlSvr)
+		m_pCtrlSvr->Say(pMSG);
 
 	return EC_NOERROR;
 }
@@ -12725,36 +12720,36 @@ DWORD CTWorldSvrModule::OnMW_CHATBAN_ACK(LPPACKETBUF pBUF)
 		>> dwKEY;
 
 	LPTCHARACTER pTarget = FindTChar(strTarget);
-	if(!pTarget)
+	if (!pTarget)
 	{
-		pServer->SendMW_CHATBAN_REQ(strTarget,0,CHATBAN_INVALIDCHAR,dwCharID,dwKEY);		
+		pServer->SendMW_CHATBAN_REQ(strTarget, 0, CHATBAN_INVALIDCHAR, dwCharID, dwKEY);
 		return EC_NOERROR;
 	}
 
-	if(wMin)
+	if (wMin)
 	{
 		CTime t(CTime::GetCurrentTime());
-		if(t.GetTime() < pTarget->m_nChatBanTime)
-			pTarget->m_nChatBanTime += (wMin*60);
+		if (t.GetTime() < pTarget->m_nChatBanTime)
+			pTarget->m_nChatBanTime += (wMin * 60);
 		else
-			pTarget->m_nChatBanTime = t.GetTime() + (wMin*60);
+			pTarget->m_nChatBanTime = t.GetTime() + (wMin * 60);
 	}
 	else
 		pTarget->m_nChatBanTime = 0;
-	
+
 	//pTarget->m_nChatBanTime = BanTime.GetTime();
 
 	CTServer* pTargetServer = FindMapSvr(pTarget->m_bMainID);
-	if(pTargetServer)	
-		pTargetServer->SendMW_CHATBAN_REQ(strTarget,pTarget->m_nChatBanTime,CHATBAN_SUCCESS,0,0);
+	if (pTargetServer)
+		pTargetServer->SendMW_CHATBAN_REQ(strTarget, pTarget->m_nChatBanTime, CHATBAN_SUCCESS, 0, 0);
 
-	if(m_pRelay)
-		m_pRelay->SendRW_CHATBAN_ACK(strTarget,pTarget->m_nChatBanTime);
+	if (m_pRelay)
+		m_pRelay->SendRW_CHATBAN_ACK(strTarget, pTarget->m_nChatBanTime);
 
 	AddChatBan(strTarget, pTarget->m_nChatBanTime);
 
-	if(dwCharID && dwKEY)
-		pServer->SendMW_CHATBAN_REQ(strTarget,pTarget->m_nChatBanTime,CHATBAN_SUCCESS,dwCharID,dwKEY);
+	if (dwCharID && dwKEY)
+		pServer->SendMW_CHATBAN_REQ(strTarget, pTarget->m_nChatBanTime, CHATBAN_SUCCESS, dwCharID, dwKEY);
 
 	return EC_NOERROR;
 
@@ -12774,14 +12769,14 @@ DWORD CTWorldSvrModule::OnDM_HELPMESSAGE_REQ(LPPACKETBUF pBUF)
 		>> strMessage;
 
 	DEFINE_QUERY(&m_db, CSPHelpMessage)
-	query->m_bID = bID;
+		query->m_bID = bID;
 	__TIMETODB(dlStart, query->m_timeStart);
 	__TIMETODB(dlEnd, query->m_timeEnd);
 	lstrcpy(query->m_szMessage, strMessage);
 	query->Call();
 	UNDEFINE_QUERY()
 
-	return EC_NOERROR;
+		return EC_NOERROR;
 }
 
 DWORD CTWorldSvrModule::OnMW_RPSGAME_ACK(LPPACKETBUF pBUF)
@@ -12804,22 +12799,22 @@ DWORD CTWorldSvrModule::OnMW_RPSGAME_ACK(LPPACKETBUF pBUF)
 	BYTE bResult = TRUE;
 
 	MAPRPSGAME::iterator it = m_mapRPSGame.find(MAKEWORD(bType, bWinCount));
-	if(it==m_mapRPSGame.end())
+	if (it == m_mapRPSGame.end())
 		bResult = FALSE;
 	else
 	{
 		TRPSGAME rps = (*it).second;
-		if(rps.m_wWinKeep)
+		if (rps.m_wWinKeep)
 		{
 			WORD wCWK = 0;
-			for(WORD i=0; i<rps.m_vWinDate.size();)
+			for (WORD i = 0; i<rps.m_vWinDate.size();)
 			{
-				if(m_timeCurrent - rps.m_vWinDate[i] < rps.m_wWinPeriod * DAY_ONE)
+				if (m_timeCurrent - rps.m_vWinDate[i] < rps.m_wWinPeriod * DAY_ONE)
 				{
 					wCWK++;
 					i++;
 				}
-				else if(m_timeCurrent - rps.m_vWinDate[i] > DAY_ONE * 30)
+				else if (m_timeCurrent - rps.m_vWinDate[i] > DAY_ONE * 30)
 				{
 					SendDM_RPSGAMERECORD_REQ(FALSE, 0, bType, bWinCount, rps.m_vWinDate[i]);
 					(*it).second.m_vWinDate.erase((*it).second.m_vWinDate.begin() + i);
@@ -12828,7 +12823,7 @@ DWORD CTWorldSvrModule::OnMW_RPSGAME_ACK(LPPACKETBUF pBUF)
 					i++;
 			}
 
-			if(wCWK >= rps.m_wWinKeep)
+			if (wCWK >= rps.m_wWinKeep)
 				bResult = FALSE;
 			else
 			{
@@ -12859,7 +12854,7 @@ DWORD CTWorldSvrModule::OnDM_RPSGAMERECORD_REQ(LPPACKETBUF pBUF)
 		>> dDate;
 
 	DEFINE_QUERY(&m_db, CSPRPSGameRecord)
-	query->m_bRecord = bRecord;
+		query->m_bRecord = bRecord;
 	query->m_dwCharID = dwCharID;
 	query->m_bType = bType;
 	query->m_bWinCount = bWinCount;
@@ -12867,7 +12862,7 @@ DWORD CTWorldSvrModule::OnDM_RPSGAMERECORD_REQ(LPPACKETBUF pBUF)
 	query->Call();
 	UNDEFINE_QUERY()
 
-	return EC_NOERROR;
+		return EC_NOERROR;
 }
 
 DWORD CTWorldSvrModule::OnCT_RPSGAMEDATA_REQ(LPPACKETBUF pBUF)
@@ -12901,7 +12896,7 @@ DWORD CTWorldSvrModule::OnCT_RPSGAMECHANGE_REQ(LPPACKETBUF pBUF)
 		>> bGroup
 		>> wCount;
 
-	for(WORD i=0; i<wCount; i++)
+	for (WORD i = 0; i<wCount; i++)
 	{
 		pBUF->m_packet
 			>> bType
@@ -12913,7 +12908,7 @@ DWORD CTWorldSvrModule::OnCT_RPSGAMECHANGE_REQ(LPPACKETBUF pBUF)
 			>> wWinPeriod;
 
 		MAPRPSGAME::iterator it = m_mapRPSGame.find(MAKEWORD(bType, bWinCount));
-		if(it == m_mapRPSGame.end())
+		if (it == m_mapRPSGame.end())
 			continue;
 
 		(*it).second.m_bProb[0] = bWinProb;
@@ -12923,12 +12918,12 @@ DWORD CTWorldSvrModule::OnCT_RPSGAMECHANGE_REQ(LPPACKETBUF pBUF)
 		(*it).second.m_wWinPeriod = wWinPeriod;
 	}
 
-	if(wCount)
+	if (wCount)
 	{
 		pServer->SendCT_RPSGAMEDATA_ACK(TRUE, bGroup, &m_mapRPSGame);
 
 		MAPTSERVER::iterator itS;
-		for(itS = m_mapSERVER.begin(); itS != m_mapSERVER.end(); itS++)
+		for (itS = m_mapSERVER.begin(); itS != m_mapSERVER.end(); itS++)
 			(*itS).second->SendMW_RPSGAMECHANGE_REQ(pBUF);
 	}
 
@@ -12945,16 +12940,16 @@ DWORD CTWorldSvrModule::OnMW_MONTHRANKRESETCHAR_ACK(LPPACKETBUF pBUF)
 		>> dwCharID;
 
 	MAPTCHARACTER::iterator it = m_mapTCHAR.find(dwCharID);
-	if(it!=m_mapTCHAR.end())
+	if (it != m_mapTCHAR.end())
 	{
 		LPTCHARACTER pChar = it->second;
 
 		MAPTCHARCON::iterator itTCON;
-		for(itTCON=pChar->m_mapTCHARCON.begin(); itTCON!=pChar->m_mapTCHARCON.end(); itTCON++)
+		for (itTCON = pChar->m_mapTCHARCON.begin(); itTCON != pChar->m_mapTCHARCON.end(); itTCON++)
 		{
 			CTServer *pMAP = FindMapSvr((*itTCON).first);
 
-			if(pMAP && pMAP->m_bValid && pServer != pMAP)
+			if (pMAP && pMAP->m_bValid && pServer != pMAP)
 				pMAP->SendMW_MONTHRANKRESETCHAR_REQ(dwCharID);
 		}
 	}
@@ -12974,12 +12969,12 @@ DWORD CTWorldSvrModule::OnMW_WARCOUNTRYBALANCE_ACK(LPPACKETBUF pBUF)
 		>> dwKey;
 
 	LPTCHARACTER pChar = FindTChar(dwCharID, dwKey);
-	if(!pChar)
+	if (!pChar)
 		return EC_NOERROR;
 
 	BYTE bGap = GetWarCountryGap(pChar->m_bLevel);
 
-	if(bGap < WARCOUNTRY_MAXGAP)
+	if (bGap < WARCOUNTRY_MAXGAP)
 	{
 		pServer->SendMW_WARCOUNTRYBALANCE_REQ(
 			dwCharID,
@@ -13012,37 +13007,37 @@ DWORD CTWorldSvrModule::OnMW_MEETINGROOM_ACK(LPPACKETBUF pBUF)
 	LPTCHARACTER pChar = FindTChar(dwCharID, dwKey);
 	LPTCHARACTER pTarget = FindTChar(strName);
 
-	if(!pChar && !pTarget)
+	if (!pChar && !pTarget)
 		return EC_NOERROR;
 
-	if(pChar && !pTarget)
+	if (pChar && !pTarget)
 	{
 		pServer->SendMW_MEETINGROOM_REQ(dwCharID, dwKey, bType, MTR_NOTARGET, strName);
 		return EC_NOERROR;
 	}
 
 	CTServer * pTargetMap = FindMapSvr(pTarget->m_bMainID);
-	if(!pTargetMap)
+	if (!pTargetMap)
 	{
 		pServer->SendMW_MEETINGROOM_REQ(dwCharID, dwKey, bType, MTR_NOTARGET, strName);
 		return EC_NOERROR;
 	}
 
-	if(!pChar && pTarget)
+	if (!pChar && pTarget)
 	{
 		pTargetMap->SendMW_MEETINGROOM_REQ(pTarget->m_dwCharID, pTarget->m_dwKEY, bType, MTR_NOTARGET, strName);
 		return EC_NOERROR;
 	}
 
-	if(!bType)
+	if (!bType)
 	{
-		if(BYTE(pTarget->m_fPosX / UNIT_SIZE) != 3 || BYTE(pTarget->m_fPosZ / UNIT_SIZE) != 0)
+		if (BYTE(pTarget->m_fPosX / UNIT_SIZE) != 3 || BYTE(pTarget->m_fPosZ / UNIT_SIZE) != 0)
 		{
 			pServer->SendMW_MEETINGROOM_REQ(dwCharID, dwKey, bType, MTR_NOTARGET, strName);
 			return EC_NOERROR;
 		}
 
-		if(pTarget->m_wMapID)
+		if (pTarget->m_wMapID)
 		{
 			pServer->SendMW_MEETINGROOM_REQ(dwCharID, dwKey, bType, MTR_BUSY, strName);
 			return EC_NOERROR;
@@ -13057,7 +13052,7 @@ DWORD CTWorldSvrModule::OnMW_MEETINGROOM_ACK(LPPACKETBUF pBUF)
 	}
 	else
 	{
-		if(bValue != MTR_SUCCESS)
+		if (bValue != MTR_SUCCESS)
 		{
 			pTargetMap->SendMW_MEETINGROOM_REQ(
 				pTarget->m_dwCharID,
@@ -13069,7 +13064,7 @@ DWORD CTWorldSvrModule::OnMW_MEETINGROOM_ACK(LPPACKETBUF pBUF)
 			return EC_NOERROR;
 		}
 
-		if(!IsMeetingRoom(pTarget->m_wMapID, TRUE))
+		if (!IsMeetingRoom(pTarget->m_wMapID, TRUE))
 		{
 			pServer->SendMW_MEETINGROOM_REQ(dwCharID, dwKey, bType, MTR_NOTARGET, strName);
 			return EC_NOERROR;
@@ -13103,25 +13098,25 @@ DWORD CTWorldSvrModule::OnMW_ARENAJOIN_ACK(LPPACKETBUF pBUF)
 		>> dwCount;
 
 	LPTCHARACTER pChar = FindTChar(dwCharID, dwKey);
-	if(!pChar || !pChar->m_pParty)
+	if (!pChar || !pChar->m_pParty)
 		return EC_NOERROR;
 
 	pChar->m_pParty->m_bArena = bJoin;
 
-	if(!bJoin)
+	if (!bJoin)
 		return EC_NOERROR;
 
 	MAPTCORPS::iterator itCorps = m_mapTCorps.find(pChar->m_pParty->m_wCorpsID);
-	if(itCorps!=m_mapTCorps.end())
+	if (itCorps != m_mapTCorps.end())
 		NotifyCorpsLeave((*itCorps).second, pChar->m_pParty);
 
 	MAPTCHARACTER mapChar;
 	mapChar.clear();
 
-	for(int i=0; i<pChar->m_pParty->GetSize(); i++)
+	for (int i = 0; i<pChar->m_pParty->GetSize(); i++)
 		mapChar.insert(MAPTCHARACTER::value_type(pChar->m_pParty->GetMember(i)->m_dwCharID, pChar->m_pParty->GetMember(i)));
 
-	for(DWORD i=0; i<dwCount; i++)
+	for (DWORD i = 0; i<dwCount; i++)
 	{
 		pBUF->m_packet
 			>> dwMember;
@@ -13130,7 +13125,7 @@ DWORD CTWorldSvrModule::OnMW_ARENAJOIN_ACK(LPPACKETBUF pBUF)
 	}
 
 	MAPTCHARACTER::iterator it;
-	for(it=mapChar.begin(); it!=mapChar.end(); it++)
+	for (it = mapChar.begin(); it != mapChar.end(); it++)
 		LeaveParty(it->second, TRUE);
 
 	return EC_NOERROR;
@@ -13148,37 +13143,37 @@ DWORD CTWorldSvrModule::OnDM_ACTIVECHARUPDATE_REQ(LPPACKETBUF pBUF)
 		<< dwCount;
 
 	DEFINE_QUERY(&m_db, CTBLActiveCharDel)
-	__TIMETODB(m_timeCurrent - WEEK_ONE, query->m_dDate);
+		__TIMETODB(m_timeCurrent - WEEK_ONE, query->m_dDate);
 	query->Open();
 	query->Close();
 	UNDEFINE_QUERY()
 
-	DEFINE_QUERY(&m_db, CTBLActiveCharTable)
-	if(query->Open())
-	{
-		BYTE bWarCountry;
-		while(query->Fetch())
+		DEFINE_QUERY(&m_db, CTBLActiveCharTable)
+		if (query->Open())
 		{
-			bWarCountry = query->m_bCountry < TCONTRY_B ? query->m_bCountry : (query->IsNull(2) ? TCONTRY_N : query->m_bAidCountry);
-			if(bWarCountry >= TCONTRY_B)
-				continue;
+			BYTE bWarCountry;
+			while (query->Fetch())
+			{
+				bWarCountry = query->m_bCountry < TCONTRY_B ? query->m_bCountry : (query->IsNull(2) ? TCONTRY_N : query->m_bAidCountry);
+				if (bWarCountry >= TCONTRY_B)
+					continue;
 
-			BYTE bGap = GetWarCountryGap(query->m_bLevel);
-			if(bGap >= WARCOUNTRY_MAXGAP)
-				continue;
+				BYTE bGap = GetWarCountryGap(query->m_bLevel);
+				if (bGap >= WARCOUNTRY_MAXGAP)
+					continue;
 
-			pMsg->m_packet
-				<< bWarCountry
-				<< bGap
-				<< query->m_dwCharID;
+				pMsg->m_packet
+					<< bWarCountry
+					<< bGap
+					<< query->m_dwCharID;
 
-			dwCount++;
+				dwCount++;
+			}
+			query->Close();
 		}
-		query->Close();
-	}
 	UNDEFINE_QUERY()
 
-	memcpy(pMsg->m_packet.GetBuffer()+wSize, &dwCount, sizeof(dwCount));
+		memcpy(pMsg->m_packet.GetBuffer() + wSize, &dwCount, sizeof(dwCount));
 
 	SayToBATCH(pMsg);
 
@@ -13196,13 +13191,13 @@ DWORD CTWorldSvrModule::OnDM_ACTIVECHARUPDATE_ACK(LPPACKETBUF pBUF)
 		>> dwCount;
 
 	MAPINT64::iterator it;
-	for(BYTE c=0; c<2; c++)
+	for (BYTE c = 0; c<2; c++)
 	{
-		for(BYTE g=0; g<WARCOUNTRY_MAXGAP; g++)
+		for (BYTE g = 0; g<WARCOUNTRY_MAXGAP; g++)
 			m_mapWarCountry[c][g].clear();
 	}
 
-	for(DWORD i=0; i<dwCount; i++)
+	for (DWORD i = 0; i<dwCount; i++)
 	{
 		pBUF->m_packet
 			>> bCountry
@@ -13233,15 +13228,15 @@ DWORD CTWorldSvrModule::OnMW_CMGIFT_ACK(LPPACKETBUF pBUF)
 		>> dwGMCharID;
 
 	MAPCMGIFT::iterator it = m_mapCMGift.find(wGiftID);
-	if(it != m_mapCMGift.end())
+	if (it != m_mapCMGift.end())
 	{
-		if(it->second->m_bTakeType)
+		if (it->second->m_bTakeType)
 			SendDM_CMGIFT_REQ(strTarget, wGiftID, FALSE, dwGMCharID);
 		else
-			SendDM_CMGIFT_ACK(CMGIFT_SUCCESS, strTarget, wGiftID, FALSE, dwGMCharID); 
+			SendDM_CMGIFT_ACK(CMGIFT_SUCCESS, strTarget, wGiftID, FALSE, dwGMCharID);
 		return EC_NOERROR;
 	}
-	SendDM_CMGIFT_ACK(CMGIFT_ID, strTarget, wGiftID, FALSE, dwGMCharID); 
+	SendDM_CMGIFT_ACK(CMGIFT_ID, strTarget, wGiftID, FALSE, dwGMCharID);
 	return EC_NOERROR;
 }
 
@@ -13258,7 +13253,7 @@ DWORD CTWorldSvrModule::OnDM_CMGIFT_REQ(LPPACKETBUF pBUF)
 		>> dwGMID;
 
 	DEFINE_QUERY(&m_db, CSPCMGiftCanTake)
-	query->m_bRET = CMGIFT_FAIL;
+		query->m_bRET = CMGIFT_FAIL;
 	lstrcpy(query->m_szName, strTarget);
 	query->m_wGiftID = wGiftID;
 
@@ -13267,7 +13262,7 @@ DWORD CTWorldSvrModule::OnDM_CMGIFT_REQ(LPPACKETBUF pBUF)
 
 	UNDEFINE_QUERY()
 
-	LPPACKETBUF pMsg = new PACKETBUF();
+		LPPACKETBUF pMsg = new PACKETBUF();
 
 	pMsg->m_packet.SetID(DM_CMGIFT_ACK)
 		<< bRet
@@ -13294,19 +13289,19 @@ DWORD CTWorldSvrModule::OnDM_CMGIFT_ACK(LPPACKETBUF pBUF)
 		>> wGiftID
 		>> bTool
 		>> dwGMID;
-	
-	if(CMGIFT_SUCCESS == bRet || CMGIFT_DUPLICATE == bRet)
+
+	if (CMGIFT_SUCCESS == bRet || CMGIFT_DUPLICATE == bRet)
 	{
 		MAPCMGIFT::iterator it = m_mapCMGift.find(wGiftID);
-		if(it != m_mapCMGift.end())
+		if (it != m_mapCMGift.end())
 		{
 			LPCMGIFT pGift = it->second;
-			if(CMGIFT_DUPLICATE == bRet)
+			if (CMGIFT_DUPLICATE == bRet)
 			{
 				it = m_mapCMGift.find(pGift->m_wErrGiftID);
-				if(it == m_mapCMGift.end())
+				if (it == m_mapCMGift.end())
 				{
-					if(bTool)
+					if (bTool)
 					{
 						CPacket * pMsg = new CPacket();
 						pMsg->SetID(CT_CMGIFT_ACK)
@@ -13317,11 +13312,11 @@ DWORD CTWorldSvrModule::OnDM_CMGIFT_ACK(LPPACKETBUF pBUF)
 					else
 					{
 						MAPTCHARACTER::iterator itCHAR = m_mapTCHAR.find(dwGMID);
-						if( itCHAR != m_mapTCHAR.end())
+						if (itCHAR != m_mapTCHAR.end())
 						{
 							LPTCHARACTER pGM = itCHAR->second;
 							CTServer * pTargetMap = FindMapSvr(pGM->m_bMainID);
-							if(pTargetMap)
+							if (pTargetMap)
 							{
 								CPacket * pMsg = new CPacket();
 								pMsg->SetID(MW_CMGIFTRESULT_REQ)
@@ -13337,13 +13332,13 @@ DWORD CTWorldSvrModule::OnDM_CMGIFT_ACK(LPPACKETBUF pBUF)
 				bRet = CMGIFT_ERRPOST;
 			}
 
-			if(pGift->m_bToolOnly <= bTool)
+			if (pGift->m_bToolOnly <= bTool)
 			{
 				LPTCHARACTER pTarget = FindTChar(strTarget);
-				if(pTarget)
+				if (pTarget)
 				{
 					CTServer * pTargetMap = FindMapSvr(pTarget->m_bMainID);
-					if(pTargetMap)
+					if (pTargetMap)
 					{
 						CPacket * pMsg = new CPacket();
 						pMsg->SetID(MW_CMGIFT_REQ)
@@ -13370,8 +13365,8 @@ DWORD CTWorldSvrModule::OnDM_CMGIFT_ACK(LPPACKETBUF pBUF)
 		}
 		else bRet = CMGIFT_ID;
 	}
-	if(bTool)
-	{		
+	if (bTool)
+	{
 		CPacket * pMsg = new CPacket();
 		pMsg->SetID(CT_CMGIFT_ACK)
 			<< bRet
@@ -13381,12 +13376,12 @@ DWORD CTWorldSvrModule::OnDM_CMGIFT_ACK(LPPACKETBUF pBUF)
 	else
 	{
 		MAPTCHARACTER::iterator itCHAR = m_mapTCHAR.find(dwGMID);
-		if( itCHAR != m_mapTCHAR.end())
+		if (itCHAR != m_mapTCHAR.end())
 		{
 			LPTCHARACTER pGM = itCHAR->second;
 			CTServer * pTargetMap = FindMapSvr(pGM->m_bMainID);
-			if(pTargetMap)
-			{		
+			if (pTargetMap)
+			{
 				CPacket * pMsg = new CPacket();
 				pMsg->SetID(MW_CMGIFTRESULT_REQ)
 					<< bRet
@@ -13410,124 +13405,124 @@ DWORD CTWorldSvrModule::OnDM_CMGIFTCHARTUPDATE_REQ(LPPACKETBUF pBUF)
 	pMsg->m_packet.SetID(DM_CMGIFTCHARTUPDATE_ACK)
 		<< wCount;
 
-	for(WORD i = 0; i < wCount; i++)
+	for (WORD i = 0; i < wCount; i++)
 	{
 		BYTE bType;
 		pBUF->m_packet
 			>> bType;
 
-		switch(bType)
+		switch (bType)
 		{
 		case CGU_ADD:
+		{
+			TCMGIFT tGift;
+			pBUF->m_packet
+				>> tGift.m_wGiftID
+				>> tGift.m_bGiftType
+				>> tGift.m_dwValue
+				>> tGift.m_bCount
+				>> tGift.m_bTakeType
+				>> tGift.m_bMaxTakeCount
+				>> tGift.m_bToolOnly
+				>> tGift.m_wErrGiftID
+				>> tGift.m_strTitle
+				>> tGift.m_strMsg;
+
+			DEFINE_QUERY(&m_db, CSPCMGiftAdd)
+				query->m_bGiftType = tGift.m_bGiftType;
+			query->m_dwValue = tGift.m_dwValue;
+			query->m_bCount = tGift.m_bCount;
+			query->m_bTakeType = tGift.m_bTakeType;
+			query->m_bMaxTakeCount = tGift.m_bMaxTakeCount;
+			query->m_bToolOnly = tGift.m_bToolOnly;
+			query->m_wErrGiftID = tGift.m_wErrGiftID;
+			lstrcpy(query->m_szTitle, tGift.m_strTitle);
+			lstrcpy(query->m_szMsg, tGift.m_strMsg);
+
+			if (query->Call())
 			{
-				TCMGIFT tGift;
-				pBUF->m_packet
-					>> tGift.m_wGiftID
-					>> tGift.m_bGiftType
-					>> tGift.m_dwValue
-					>> tGift.m_bCount
-					>> tGift.m_bTakeType
-					>> tGift.m_bMaxTakeCount
-					>> tGift.m_bToolOnly
-					>> tGift.m_wErrGiftID
-					>> tGift.m_strTitle
-					>> tGift.m_strMsg;
-
-				DEFINE_QUERY(&m_db,CSPCMGiftAdd)
-				query->m_bGiftType		= tGift.m_bGiftType;
-				query->m_dwValue		= tGift.m_dwValue;
-				query->m_bCount			= tGift.m_bCount;
-				query->m_bTakeType		= tGift.m_bTakeType;
-				query->m_bMaxTakeCount	= tGift.m_bMaxTakeCount;
-				query->m_bToolOnly		= tGift.m_bToolOnly;
-				query->m_wErrGiftID		= tGift.m_wErrGiftID;
-				lstrcpy(query->m_szTitle, tGift.m_strTitle);
-				lstrcpy(query->m_szMsg, tGift.m_strMsg);
-
-				if(query->Call())
-				{
-					pMsg->m_packet
-						<< bType
-						<< query->m_wGiftID
-						<< tGift.m_bGiftType
-						<< tGift.m_dwValue
-						<< tGift.m_bCount
-						<< tGift.m_bTakeType
-						<< tGift.m_bMaxTakeCount
-						<< tGift.m_bToolOnly
-						<< tGift.m_wErrGiftID
-						<< tGift.m_strTitle
-						<< tGift.m_strMsg;
-				}
-				UNDEFINE_QUERY()
+				pMsg->m_packet
+					<< bType
+					<< query->m_wGiftID
+					<< tGift.m_bGiftType
+					<< tGift.m_dwValue
+					<< tGift.m_bCount
+					<< tGift.m_bTakeType
+					<< tGift.m_bMaxTakeCount
+					<< tGift.m_bToolOnly
+					<< tGift.m_wErrGiftID
+					<< tGift.m_strTitle
+					<< tGift.m_strMsg;
 			}
-			break;
+			UNDEFINE_QUERY()
+		}
+		break;
 		case CGU_UPDATE:
+		{
+			TCMGIFT tGift;
+			pBUF->m_packet
+				>> tGift.m_wGiftID
+				>> tGift.m_bGiftType
+				>> tGift.m_dwValue
+				>> tGift.m_bCount
+				>> tGift.m_bTakeType
+				>> tGift.m_bMaxTakeCount
+				>> tGift.m_bToolOnly
+				>> tGift.m_wErrGiftID
+				>> tGift.m_strTitle
+				>> tGift.m_strMsg;
+
+			DEFINE_QUERY(&m_db, CSPCMGiftSet)
+				query->m_wGiftID = tGift.m_wGiftID;
+			query->m_bGiftType = tGift.m_bGiftType;
+			query->m_dwValue = tGift.m_dwValue;
+			query->m_bCount = tGift.m_bCount;
+			query->m_bTakeType = tGift.m_bTakeType;
+			query->m_bMaxTakeCount = tGift.m_bMaxTakeCount;
+			query->m_bToolOnly = tGift.m_bToolOnly;
+			query->m_wErrGiftID = tGift.m_wErrGiftID;
+			lstrcpy(query->m_szTitle, tGift.m_strTitle);
+			lstrcpy(query->m_szMsg, tGift.m_strMsg);
+
+			if (query->Call())
 			{
-				TCMGIFT tGift;
-				pBUF->m_packet
-					>> tGift.m_wGiftID
-					>> tGift.m_bGiftType
-					>> tGift.m_dwValue
-					>> tGift.m_bCount
-					>> tGift.m_bTakeType
-					>> tGift.m_bMaxTakeCount
-					>> tGift.m_bToolOnly
-					>> tGift.m_wErrGiftID
-					>> tGift.m_strTitle
-					>> tGift.m_strMsg;
-
-				DEFINE_QUERY(&m_db,CSPCMGiftSet)
-				query->m_wGiftID		= tGift.m_wGiftID;
-				query->m_bGiftType		= tGift.m_bGiftType;
-				query->m_dwValue		= tGift.m_dwValue;
-				query->m_bCount			= tGift.m_bCount;
-				query->m_bTakeType		= tGift.m_bTakeType;
-				query->m_bMaxTakeCount	= tGift.m_bMaxTakeCount;
-				query->m_bToolOnly		= tGift.m_bToolOnly;
-				query->m_wErrGiftID		= tGift.m_wErrGiftID;
-				lstrcpy(query->m_szTitle, tGift.m_strTitle);
-				lstrcpy(query->m_szMsg, tGift.m_strMsg);
-
-				if(query->Call())
-				{
-					pMsg->m_packet
-						<< bType
-						<< tGift.m_wGiftID
-						<< tGift.m_bGiftType
-						<< tGift.m_dwValue
-						<< tGift.m_bCount
-						<< tGift.m_bTakeType
-						<< tGift.m_bMaxTakeCount
-						<< tGift.m_bToolOnly
-						<< tGift.m_wErrGiftID
-						<< tGift.m_strTitle
-						<< tGift.m_strMsg;
-				}
-				UNDEFINE_QUERY()
-
-
+				pMsg->m_packet
+					<< bType
+					<< tGift.m_wGiftID
+					<< tGift.m_bGiftType
+					<< tGift.m_dwValue
+					<< tGift.m_bCount
+					<< tGift.m_bTakeType
+					<< tGift.m_bMaxTakeCount
+					<< tGift.m_bToolOnly
+					<< tGift.m_wErrGiftID
+					<< tGift.m_strTitle
+					<< tGift.m_strMsg;
 			}
-			break;
-		case CGU_DEL:
-			{
-				WORD wGiftID;
-				pBUF->m_packet
-					>> wGiftID;
+			UNDEFINE_QUERY()
 
-				DEFINE_QUERY(&m_db,CSPCMGiftDel)
+
+		}
+		break;
+		case CGU_DEL:
+		{
+			WORD wGiftID;
+			pBUF->m_packet
+				>> wGiftID;
+
+			DEFINE_QUERY(&m_db, CSPCMGiftDel)
 				query->m_wGiftID = wGiftID;
-				if(query->Call())
-				{
-					pMsg->m_packet
+			if (query->Call())
+			{
+				pMsg->m_packet
 					<< bType
 					<< wGiftID;
-				}
-				UNDEFINE_QUERY()
-
-				
 			}
-			break;
+			UNDEFINE_QUERY()
+
+
+		}
+		break;
 		}
 	}
 	DWORD dwManagerID;
@@ -13548,13 +13543,13 @@ DWORD CTWorldSvrModule::OnDM_CMGIFTCHARTUPDATE_ACK(LPPACKETBUF pBUF)
 	pBUF->m_packet
 		>> wCount;
 
-	for(WORD i = 0; i < wCount; i++)
+	for (WORD i = 0; i < wCount; i++)
 	{
 		BYTE bType;
 		pBUF->m_packet
 			>> bType;
 
-		if(CGU_ADD == bType || CGU_UPDATE == bType)
+		if (CGU_ADD == bType || CGU_UPDATE == bType)
 		{
 			LPCMGIFT pGift = new TCMGIFT;
 
@@ -13571,33 +13566,33 @@ DWORD CTWorldSvrModule::OnDM_CMGIFTCHARTUPDATE_ACK(LPPACKETBUF pBUF)
 				>> pGift->m_strMsg;
 
 			MAPCMGIFT::iterator it = m_mapCMGift.find(pGift->m_wGiftID);
-			if(it != m_mapCMGift.end() && CGU_UPDATE == bType)
+			if (it != m_mapCMGift.end() && CGU_UPDATE == bType)
 			{
 				delete it->second;
 				it->second = pGift;
 			}
-			else if(CGU_ADD == bType)
+			else if (CGU_ADD == bType)
 				m_mapCMGift.insert(MAPCMGIFT::value_type(pGift->m_wGiftID, pGift));
 		}
-		else if(CGU_DEL == bType)
+		else if (CGU_DEL == bType)
 		{
 			WORD wGiftID;
 			pBUF->m_packet
 				>> wGiftID;
 
 			MAPCMGIFT::iterator it = m_mapCMGift.find(wGiftID);
-			if(it != m_mapCMGift.end())
-				m_mapCMGift.erase(it);            
+			if (it != m_mapCMGift.end())
+				m_mapCMGift.erase(it);
 		}
 	}
 	DWORD dwManagerID;
 	pBUF->m_packet
 		>> dwManagerID;
 
-	if(m_pCtrlSvr)
+	if (m_pCtrlSvr)
 		m_pCtrlSvr->SendCT_CMGIFTLIST_ACK(dwManagerID, &m_mapCMGift);
 
-	return EC_NOERROR;	
+	return EC_NOERROR;
 }
 DWORD CTWorldSvrModule::OnMW_CMGIFTRESULT_ACK(LPPACKETBUF pBUF)
 {
@@ -13609,7 +13604,7 @@ DWORD CTWorldSvrModule::OnMW_CMGIFTRESULT_ACK(LPPACKETBUF pBUF)
 		>> bTool
 		>> dwGMID;
 
-	if(bTool)
+	if (bTool)
 	{
 		CPacket* packet = new CPacket;
 		packet->SetID(CT_CMGIFT_ACK)
@@ -13620,11 +13615,11 @@ DWORD CTWorldSvrModule::OnMW_CMGIFTRESULT_ACK(LPPACKETBUF pBUF)
 	else
 	{
 		MAPTCHARACTER::iterator itCHAR = m_mapTCHAR.find(dwGMID);
-		if( itCHAR != m_mapTCHAR.end())
+		if (itCHAR != m_mapTCHAR.end())
 		{
 			LPTCHARACTER pGM = itCHAR->second;
 			CTServer * pTargetMap = FindMapSvr(pGM->m_bMainID);
-			if(pTargetMap)
+			if (pTargetMap)
 			{
 				CPacket* packet = new CPacket;
 				packet->SetID(MW_CMGIFTRESULT_REQ)
@@ -13644,7 +13639,7 @@ DWORD CTWorldSvrModule::OnSM_APEXDATA_REQ(LPPACKETBUF pBUF)
 	DWORD dwCharID;
 	int nLen;
 	char BufRecv[MAX_APEXPACKET];
-	
+
 	pBUF->m_packet
 		>> dwCharID
 		>> nLen;
@@ -13652,11 +13647,11 @@ DWORD CTWorldSvrModule::OnSM_APEXDATA_REQ(LPPACKETBUF pBUF)
 	pBUF->m_packet.DetachBinary((LPVOID)BufRecv);
 
 	MAPTCHARACTER::iterator it = m_mapTCHAR.find(dwCharID);
-	if(it!=m_mapTCHAR.end())
+	if (it != m_mapTCHAR.end())
 	{
 		LPTCHARACTER pChar = (*it).second;
 		CTServer * pMap = FindMapSvr(pChar->m_bMainID);
-		if(pMap)
+		if (pMap)
 			pMap->SendMW_APEXDATA_REQ(pChar->m_dwCharID, pChar->m_dwKEY, BufRecv, nLen);
 	}
 #endif
@@ -13674,7 +13669,7 @@ DWORD CTWorldSvrModule::OnSM_APEXKILLUSER_REQ(LPPACKETBUF pBUF)
 		>> nAction;
 
 	MAPTCHARACTER::iterator it = m_mapTCHAR.find(dwCharID);
-	if(it!=m_mapTCHAR.end())
+	if (it != m_mapTCHAR.end())
 		CloseChar((*it).second);
 #endif
 	return EC_NOERROR;
@@ -13715,4 +13710,3 @@ DWORD CTWorldSvrModule::OnMW_APEXSTART_ACK(LPPACKETBUF pBUF)
 #endif
 	return EC_NOERROR;
 }
-

@@ -1,118 +1,126 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="소스 파일">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="헤더 파일">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
-    <Filter Include="리소스 파일">
+    <Filter Include="Ressources">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx</Extensions>
     </Filter>
-    <Filter Include="생성 파일">
+    <Filter Include="Generated">
       <UniqueIdentifier>{3cb8b041-7d6f-417d-90fb-451cf4653aae}</UniqueIdentifier>
       <SourceControlFiles>False</SourceControlFiles>
+    </Filter>
+    <Filter Include="Sources">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Headers">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CSHandler.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="CSSender.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="SSHandler.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="SSSender.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="TCorps.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="TGuild.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="TMiniDump.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="TParty.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="TPlayer.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="TRelaySession.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="TRelaySvr.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="UdpSocket.cpp">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </ClCompile>
     <ClCompile Include="TRelaySvr_i.c">
-      <Filter>생성 파일</Filter>
+      <Filter>Generated</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Midl Include="TRelaySvr.idl">
-      <Filter>소스 파일</Filter>
+      <Filter>Sources</Filter>
     </Midl>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Resource.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="stdafx.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="TCorps.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="TGuild.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="TMiniDump.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="TParty.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="TPlayer.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="TRelaySession.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="TRelaySvrModule.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="TRelayType.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="UdpSocket.h">
-      <Filter>헤더 파일</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="TRelaySvr.rc">
-      <Filter>리소스 파일</Filter>
+      <Filter>Ressources</Filter>
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="TRelaySvr.rgs">
-      <Filter>리소스 파일</Filter>
+      <Filter>Ressources</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\TServerSystem\res\TServer_Debug.ico">
+      <Filter>Ressources</Filter>
+    </Image>
+    <Image Include="..\TServerSystem\res\TServer_Release.ico">
+      <Filter>Ressources</Filter>
+    </Image>
   </ItemGroup>
 </Project>

@@ -1,38 +1,19 @@
-// TWorldSvr.cpp : WinMain¿« ±∏«ˆ¿‘¥œ¥Ÿ.
+Ôªø// TWorldSvr.cpp : WinMainÏùò Íµ¨ÌòÑÏûÖÎãàÎã§.
 
 #include "stdafx.h"
 #include "TWorldSvr.h"
 #include "TWorldSvrModule.h"
-#include "SimpleIni.h"
-#include <iostream>
-
-using namespace std;
 
 CTWorldSvrModule _AtlModule;
 
+//extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/,
+//	LPTSTR /*lpCmdLine*/, int nShowCmd)
+//{
+//	return _AtlModule.WinMain(nShowCmd);
+//}
+
 void main()
 {
-	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-	SetConsoleTextAttribute(hConsole, 14);
-	cout << endl;
-	cout << " #################################################################### " << endl;
-	cout << " #         .o    .oooooo..o     .                                   # " << endl;
-	cout << " #       .d88   d8P'    `Y8   .o8                                   # " << endl;
-	cout << " #     .d'888   Y88bo.      .o888oo  .ooooo.  oooo d8b oooo    ooo  # " << endl;
-	cout << " #   .d'  888    `\"Y8888o.    888   d88' `88b `888\"\"8P  `88.  .8'   # " << endl;
-	cout << " #   88ooo888oo      `\"Y88b   888   888   888  888       `88..8'    # " << endl;
-	cout << " #        888   oo     .d8P   888 . 888   888  888        `888'     # " << endl;
-	cout << " #       o888o  8\"\"88888P'    \"888\" `Y8bod8P' d888b        .8'      # " << endl;
-	SetConsoleTextAttribute(hConsole, 13);
-	cout << " #       TWORLD SERVER";
-	SetConsoleTextAttribute(hConsole, 14);
-	cout << "                                 .o..P'       # " << endl;
-	SetConsoleTextAttribute(hConsole, 11);
-	cout << " #       Version: 1.0.1";
-	SetConsoleTextAttribute(hConsole, 14);
-	cout << "                                `Y8P'        # " << endl;
-	cout << " #################################################################### " << endl << endl;
-
 	_AtlModule.StartServer();
 
 	int i;
@@ -40,12 +21,8 @@ void main()
 }
 
 
-CTWorldSvrModule::CTWorldSvrModule()
+CTWorldSvrModule::CTWorldSvrModule() : TServerSystem("TWorld", TWORLD_VERSION)
 {
-	timeNow = time(0);
-	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-	LogInfo("Welcome on TWorld Server !");
-
 	m_wPort = DEF_WORLDPORT;
 	m_bNumWorker = 0;
 	m_bServerID = 0;
@@ -58,7 +35,7 @@ CTWorldSvrModule::CTWorldSvrModule()
 
 	m_bFirstGroupCount = FIRSTGRADEGROUPCOUNT;
 
-	for( int i=0; i<MAX_THREAD; i++)
+	for (int i = 0; i<MAX_THREAD; i++)
 		m_hWorker[i] = NULL;
 
 	m_bThreadRun = FALSE;
@@ -93,7 +70,7 @@ CTWorldSvrModule::CTWorldSvrModule()
 	m_mapTGuildTacticsWantedApp.clear();
 	m_mapCMGift.clear();
 
-	for(BYTE i=0; i<WARCOUNTRY_MAXGAP; i++)
+	for (BYTE i = 0; i<WARCOUNTRY_MAXGAP; i++)
 	{
 		m_mapWarCountry[TCONTRY_D][i].clear();
 		m_mapWarCountry[TCONTRY_C][i].clear();
@@ -116,22 +93,22 @@ CTWorldSvrModule::CTWorldSvrModule()
 	m_pRelay = NULL;
 	m_pCtrlSvr = NULL;
 
-	m_bCashItemSale = FALSE;  
+	m_bCashItemSale = FALSE;
 	m_mapEVENT.clear();
 
 	m_mapCharGuild.clear();
 	m_mapCharTactics.clear();
 
-	 
-	for(BYTE i = 0; i < COUNTRY_COUNT; i++)	
-		for(BYTE j = 0; j < MONTHRANKCOUNT; j++)		
+
+	for (BYTE i = 0; i < COUNTRY_COUNT; i++)
+		for (BYTE j = 0; j < MONTHRANKCOUNT; j++)
 			m_arMonthRank[i][j].Reset();
-			
-	
-	for(BYTE i = 0; i < COUNTRY_COUNT; i++)	
-		for(BYTE j = 0; j < FIRSTGRADEGROUPCOUNT; j++)			
-			m_arFirstGradeGroup[i][j].Reset();		
-	
+
+
+	for (BYTE i = 0; i < COUNTRY_COUNT; i++)
+		for (BYTE j = 0; j < FIRSTGRADEGROUPCOUNT; j++)
+			m_arFirstGradeGroup[i][j].Reset();
+
 	m_bFameRankSave = FALSE;
 
 #ifdef __TW_APEX
@@ -142,75 +119,61 @@ CTWorldSvrModule::CTWorldSvrModule()
 CTWorldSvrModule::~CTWorldSvrModule()
 {
 #ifdef __TW_APEX
-	if(m_bNation == NATION_TAIWAN)
+	if (m_bNation == NATION_TAIWAN)
 		CHSEnd();
 #endif
 }
 
-void CTWorldSvrModule::LogInfo(string text)
+void CTWorldSvrModule::OnERROR(DWORD dwErrorCode)
 {
-	tm *ltm = localtime(&timeNow);
-	SetConsoleTextAttribute(hConsole, 10);
-	cout << "[" << ltm->tm_hour << ":" << ltm->tm_min << ":" << ltm->tm_sec << "] ==> " << text << endl;
+	LogEvent("ErrorCode %d", dwErrorCode);
 }
 
-void CTWorldSvrModule::LogError(string text)
+DWORD CTWorldSvrModule::_ControlThread(LPVOID lpParam)
 {
-	tm *ltm = localtime(&timeNow);
-	SetConsoleTextAttribute(hConsole, 4);
-	cout << "[" << ltm->tm_hour << ":" << ltm->tm_min << ":" << ltm->tm_sec << "] ==> " << text << endl;
-}
-
-void CTWorldSvrModule::OnERROR( DWORD dwErrorCode)
-{
-	LogError("ErrorCode " + to_string(dwErrorCode));
-}
-
-DWORD CTWorldSvrModule::_ControlThread( LPVOID lpParam)
-{
-	CTWorldSvrModule *pModule = (CTWorldSvrModule *) lpParam;
+	CTWorldSvrModule *pModule = (CTWorldSvrModule *)lpParam;
 	return pModule->ControlThread();
 }
 
-DWORD CTWorldSvrModule::_WorkThread( LPVOID lpParam)
+DWORD CTWorldSvrModule::_WorkThread(LPVOID lpParam)
 {
-	CTWorldSvrModule *pModule = (CTWorldSvrModule *) lpParam;
+	CTWorldSvrModule *pModule = (CTWorldSvrModule *)lpParam;
 	return pModule->WorkThread();
 }
 
-DWORD CTWorldSvrModule::_BatchThread( LPVOID lpParam)
+DWORD CTWorldSvrModule::_BatchThread(LPVOID lpParam)
 {
-	CTWorldSvrModule *pModule = (CTWorldSvrModule *) lpParam;
+	CTWorldSvrModule *pModule = (CTWorldSvrModule *)lpParam;
 	return pModule->BatchThread();
 }
 
-DWORD CTWorldSvrModule::_DBThread( LPVOID lpParam)
+DWORD CTWorldSvrModule::_DBThread(LPVOID lpParam)
 {
-	CTWorldSvrModule *pModule = (CTWorldSvrModule *) lpParam;
+	CTWorldSvrModule *pModule = (CTWorldSvrModule *)lpParam;
 	return pModule->DBThread();
 }
 
-DWORD CTWorldSvrModule::_TimerThread( LPVOID lpParam)
+DWORD CTWorldSvrModule::_TimerThread(LPVOID lpParam)
 {
-	CTWorldSvrModule *pModule = (CTWorldSvrModule *) lpParam;
+	CTWorldSvrModule *pModule = (CTWorldSvrModule *)lpParam;
 	return pModule->TimerThread();
 }
 
-DWORD CTWorldSvrModule::StartUp()
+DWORD CTWorldSvrModule::OnEnter()
 {
-	while(!m_qBATCHJOB.empty())
+	while (!m_qBATCHJOB.empty())
 	{
 		delete m_qBATCHJOB.front();
 		m_qBATCHJOB.pop();
 	}
 
-	while(!m_qDBJOB.empty())
+	while (!m_qDBJOB.empty())
 	{
 		delete m_qDBJOB.front();
 		m_qDBJOB.pop();
 	}
 
-	while(!m_qTIMERJOB.empty())
+	while (!m_qTIMERJOB.empty())
 	{
 		delete m_qTIMERJOB.front();
 		m_qTIMERJOB.pop();
@@ -242,98 +205,77 @@ DWORD CTWorldSvrModule::StartUp()
 		FALSE,
 		NULL);
 
+	LogInfo("Load configuration...", 1);
 	DWORD dwResult = LoadConfig();
-	if(dwResult)
+	if (dwResult)
 		return dwResult;
 
-	LogInfo("Database connection...");
+	LogInfo("Database initialization...", 1);
 	dwResult = InitDB();
-	if (dwResult) {
-		if (dwResult == EC_INITSERVICE_DBOPENFAILED) {
-			LogError("Connection error ! Check your DSN, DBUser and DBPasswd !");
-			cout << endl;
-			LogError("1: Start the 'SQL Server' service");
-			LogError("2: check your ODBC configuration (64 bits AND 32 bits)");
-			LogError("3: check if you have... a database in your server ? :)");
-		}
-
-		if (dwResult == EC_INITSERVICE_PREPAREQUERY) {
-			LogError("Connection error ! Can't init query on database connection !");
-		}
+	if (dwResult)
 		return dwResult;
-	}
-	else {
-		LogInfo("Database OK !");
-	}
 
-	LogInfo("Loading data from DB...");
+	LogInfo("Loading data...", 1);
 	dwResult = LoadData();
-	if(dwResult)
+	if (dwResult)
 		return dwResult;
-	LogInfo("Data from DB loaded !");
 
-	cout << endl;
+	LogInfo("Create threads...", 1);
 	dwResult = CreateThreads();
-	if(dwResult)
+	if (dwResult)
 		return dwResult;
-	LogInfo("All threads created !");
 
-	cout << endl;
-	LogInfo("Init network...");
+	LogInfo("Init network...", 1);
 	dwResult = InitNetwork();
-	if (dwResult) {
-		LogError("Can't open the server ! Please, check firewall and if port " + to_string(m_wPort) + " is open !");
+	if (dwResult)
 		return dwResult;
-	}
 
-	if(!ResumeThreads())
+	if (!ResumeThreads())
 		return EC_INITSERVICE_RESUMETHREAD;
 
-	if(!m_tournament.m_wID)
+	if (!m_tournament.m_wID)
 		TournamentUpdate();
 
 #ifdef __TW_APEX
-	if(m_bNation == NATION_TAIWAN)
+	if (m_bNation == NATION_TAIWAN)
 	{
 		CHSStart(ApexSendToMap, m_pApexRecv);
-		CHSSetFunc(ApexKillUser,FLAG_KILLUSER);
+		CHSSetFunc(ApexKillUser, FLAG_KILLUSER);
 	}
 #endif
 
 	// Dump
 	CTMiniDump::SetOption(MiniDumpWithFullMemory);
 
-	cout << endl << endl;
-	LogInfo("Ready !");
-
+	LogInfo("Ready !", 1);
 	return 0;
 }
 
 void CTWorldSvrModule::OnExit()
 {
-	if( m_accept != INVALID_SOCKET )
+	if (m_accept != INVALID_SOCKET)
 		closesocket(m_accept);
 
 	m_listen.Close();
 
 	SaveAllPvPRecord();
 
-	if(m_bThreadRun)
+	if (m_bThreadRun)
 		ClearThread();
 
-	while(!m_qBATCHJOB.empty())
+	while (!m_qBATCHJOB.empty())
 	{
 		delete m_qBATCHJOB.front();
 		m_qBATCHJOB.pop();
 	}
 
-	while(!m_qDBJOB.empty())
+	while (!m_qDBJOB.empty())
 	{
 		delete m_qDBJOB.front();
 		m_qDBJOB.pop();
 	}
 
-	while(!m_qTIMERJOB.empty())
+	while (!m_qTIMERJOB.empty())
 	{
 		delete m_qTIMERJOB.front();
 		m_qTIMERJOB.pop();
@@ -360,48 +302,14 @@ void CTWorldSvrModule::OnExit()
 
 DWORD CTWorldSvrModule::LoadConfig()
 {
-	LogInfo("Load config from TWorld.ini file");
+	LoadStringFromIni("DSN", string("TGLOBAL_GSP"), &m_szDSN);
+	LoadStringFromIni("DBUser", string("sa"), &m_szDBUserID);
+	LoadStringFromIni("DBPasswd", string("1234"), &m_szDBPasswd);
+	LoadIntFromIni("WorldPort", DEF_WORLDPORT, &m_wPort);
+	LoadIntFromIni("ServerID", 1, &m_bServerID);
+	LoadIntFromIni("GroupID", 1, &m_bGroupID);
 
-	CSimpleIniA ini;
-	ini.SetUnicode();
-	ini.LoadFile(".\\TWorld.ini");
-
-	m_szDBPasswd = ini.GetValue("TWorldConfig", "DBPasswd", "popo1234");
-	m_szDBUserID = ini.GetValue("TWorldConfig", "DBUser", "4Admin");
-	m_szDSN = ini.GetValue("TWorldConfig", "DSN", "TGAME_GSP");
-	m_wPort = ini.GetLongValue("TWorldConfig", "WorldPort", 5336);
-	m_bServerID = ini.GetLongValue("TWorldConfig", "ServerID", 1);
-	m_bGroupID = ini.GetLongValue("TWorldConfig", "GroupID", 1);
-
-	
-	LogInfo("Data from TWorld.ini:");
-	SetConsoleTextAttribute(hConsole, 11);
-	cout << "  ###################################" << endl;
-	cout << "  # + DSN:       ";
-	SetConsoleTextAttribute(hConsole, 7);
-	cout << m_szDSN << endl;
-	SetConsoleTextAttribute(hConsole, 11);
-	cout << "  # + DBUser:    ";
-	SetConsoleTextAttribute(hConsole, 7);
-	cout << m_szDBUserID << endl;
-	SetConsoleTextAttribute(hConsole, 11);
-	cout << "  # + DBPasswd:  ";
-	SetConsoleTextAttribute(hConsole, 7);
-	cout << m_szDBPasswd << endl;
-	SetConsoleTextAttribute(hConsole, 11);
-	cout << "  # + LoginPort: ";
-	SetConsoleTextAttribute(hConsole, 7);
-	cout << m_wPort << endl;
-	SetConsoleTextAttribute(hConsole, 11);
-	cout << "  # + ServerID:  ";
-	SetConsoleTextAttribute(hConsole, 7);
-	cout << m_bServerID << endl;
-	SetConsoleTextAttribute(hConsole, 11);
-	cout << "  # + GroupID:   ";
-	SetConsoleTextAttribute(hConsole, 7);
-	cout << m_bGroupID << endl;
-	SetConsoleTextAttribute(hConsole, 11);
-	cout << "  ###################################" << endl;
+	DisplayIni();
 
 	return EC_NOERROR;
 }
@@ -414,64 +322,60 @@ DWORD CTWorldSvrModule::CreateThreads()
 	m_hControl = CreateThread(
 		NULL, 0,
 		_ControlThread,
-		(LPVOID) this,
+		(LPVOID)this,
 		CREATE_SUSPENDED,
 		&dwThread);
 
-	if(!m_hControl)
+	if (!m_hControl)
 		return EC_INITSERVICE_CREATETHREAD;
 
 	m_hBatch = CreateThread(
 		NULL, 0,
 		_BatchThread,
-		(LPVOID) this,
+		(LPVOID)this,
 		CREATE_SUSPENDED,
 		&dwThread);
 	m_bBatchRun = TRUE;
 
-	if(!m_hBatch)
+	if (!m_hBatch)
 		return EC_INITSERVICE_CREATETHREAD;
 
 	m_hDB = CreateThread(
 		NULL, 0,
 		_DBThread,
-		(LPVOID) this,
+		(LPVOID)this,
 		CREATE_SUSPENDED,
 		&dwThread);
 	m_bDBRun = TRUE;
 
-	if(!m_hDB)
+	if (!m_hDB)
 		return EC_INITSERVICE_CREATETHREAD;
 
 	m_hTimer = CreateThread(
 		NULL, 0,
 		_TimerThread,
-		(LPVOID) this,
+		(LPVOID)this,
 		CREATE_SUSPENDED,
 		&dwThread);
 	m_bTimerRun = TRUE;
 
-	if(!m_hTimer)
+	if (!m_hTimer)
 		return EC_INITSERVICE_CREATETHREAD;
 
 	GetSystemInfo(&vINFO);
-	m_bNumWorker = (BYTE) (2 * vINFO.dwNumberOfProcessors);
+	m_bNumWorker = (BYTE)(2 * vINFO.dwNumberOfProcessors);
 
-	LogInfo("Starting " + to_string(m_bNumWorker) + " threads...");
-
-	for( BYTE i=0; i<m_bNumWorker; i++)
+	for (BYTE i = 0; i<m_bNumWorker; i++)
 	{
 		m_hWorker[i] = CreateThread(
 			NULL, 0,
 			_WorkThread,
-			(LPVOID) this,
+			(LPVOID)this,
 			CREATE_SUSPENDED,
 			&dwThread);
 
-		if(!m_hWorker[i])
+		if (!m_hWorker[i])
 			return EC_INITSERVICE_CREATETHREAD;
-
-		LogInfo("  Thread #" + to_string(i) + " started !");
 	}
 
 	return EC_NOERROR;
@@ -479,20 +383,20 @@ DWORD CTWorldSvrModule::CreateThreads()
 
 BYTE CTWorldSvrModule::ResumeThreads()
 {
-	if( ResumeThread(m_hControl) < 0 )
+	if (ResumeThread(m_hControl) < 0)
 		return FALSE;
 
-	if( ResumeThread(m_hBatch) < 0 )
+	if (ResumeThread(m_hBatch) < 0)
 		return FALSE;
 
-	if( ResumeThread(m_hDB) < 0 )
+	if (ResumeThread(m_hDB) < 0)
 		return FALSE;
 
-	if( ResumeThread(m_hTimer) < 0 )
+	if (ResumeThread(m_hTimer) < 0)
 		return FALSE;
 
-	for( BYTE i=0; i<m_bNumWorker; i++)
-		if( ResumeThread(m_hWorker[i]) < 0 )
+	for (BYTE i = 0; i<m_bNumWorker; i++)
+		if (ResumeThread(m_hWorker[i]) < 0)
 			return FALSE;
 	m_bThreadRun = TRUE;
 
@@ -502,42 +406,42 @@ BYTE CTWorldSvrModule::ResumeThreads()
 DWORD CTWorldSvrModule::InitNetwork()
 {
 	WSADATA wsaDATA;
-	WORD wVersionRequested = MAKEWORD( 2, 2);
+	WORD wVersionRequested = MAKEWORD(2, 2);
 
-	int nERROR = WSAStartup( wVersionRequested, &wsaDATA);
-	if(nERROR)
+	int nERROR = WSAStartup(wVersionRequested, &wsaDATA);
+	if (nERROR)
 		return EC_INITSERVICE_SOCKLIBFAILED;
 
-	if( LOBYTE(wsaDATA.wVersion) != 2 ||
-		HIBYTE(wsaDATA.wVersion) != 2 )
+	if (LOBYTE(wsaDATA.wVersion) != 2 ||
+		HIBYTE(wsaDATA.wVersion) != 2)
 		return EC_INITSERVICE_INVALIDSOCKLIB;
 
 	m_hIocpControl = CreateIoCompletionPort(
 		INVALID_HANDLE_VALUE,
 		NULL, 0, 0);
 
-	if(!m_hIocpControl)
+	if (!m_hIocpControl)
 		return EC_INITSERVICE_CREATEIOCP;
 
 	m_hIocpWork = CreateIoCompletionPort(
 		INVALID_HANDLE_VALUE,
 		NULL, 0, 0);
 
-	if(!m_hIocpWork)
+	if (!m_hIocpWork)
 		return EC_INITSERVICE_CREATEIOCP;
 
-	if(!m_listen.Listen(m_wPort))
+	if (!m_listen.Listen(m_wPort))
 		return EC_INITSERVICE_LISTENFAILED;
 
 	m_hIocpControl = CreateIoCompletionPort(
-		(HANDLE) m_listen.m_sock,
+		(HANDLE)m_listen.m_sock,
 		m_hIocpControl,
 		COMP_ACCEPT, 0);
 
-	if(!m_hIocpControl)
+	if (!m_hIocpControl)
 		return EC_INITSERVICE_CREATEIOCP;
 
-	if(!WaitForConnect())
+	if (!WaitForConnect())
 		return EC_INITSERVICE_WAITFORCONNECT;
 
 	return EC_NOERROR;
@@ -547,18 +451,18 @@ BYTE CTWorldSvrModule::WaitForConnect()
 {
 	DWORD dwRead = 0;
 
-	if(!CSession::CreateSocket(m_accept))
+	if (!CSession::CreateSocket(m_accept))
 		return FALSE;
 
-	if(!AcceptEx(
+	if (!AcceptEx(
 		m_listen.m_sock,
 		m_accept,
 		m_vAccept.GetBuffer(), 0,
 		sizeof(SOCKADDR) + 16,
 		sizeof(SOCKADDR) + 16,
 		&dwRead,
-		(LPOVERLAPPED) &m_ovAccept) &&
-		WSAGetLastError() != ERROR_IO_PENDING )
+		(LPOVERLAPPED)&m_ovAccept) &&
+		WSAGetLastError() != ERROR_IO_PENDING)
 		return FALSE;
 
 	return TRUE;
@@ -566,7 +470,7 @@ BYTE CTWorldSvrModule::WaitForConnect()
 
 BYTE CTWorldSvrModule::Accept()
 {
-	if(m_accept == INVALID_SOCKET)
+	if (m_accept == INVALID_SOCKET)
 	{
 		m_vAccept.Clear();
 		return FALSE;
@@ -574,26 +478,26 @@ BYTE CTWorldSvrModule::Accept()
 
 	CTServer *pSERVER = new CTServer();
 
-	pSERVER->Open( m_accept, m_vAccept);
+	pSERVER->Open(m_accept, m_vAccept);
 	pSERVER->m_Recv.ExpandIoBuffer(RECV_SVR_SIZE);
-	
+
 	m_accept = INVALID_SOCKET;
 	m_vAccept.Clear();
 
 	HANDLE hIocpWork = CreateIoCompletionPort(
-		(HANDLE) pSERVER->m_sock,
+		(HANDLE)pSERVER->m_sock,
 		m_hIocpWork,
 		COMP_SESSION, 0);
 
 	SMART_LOCKCS(&m_csBATCH);
 
-	m_mapSESSION.insert( MAPTSERVER::value_type( (DWORD_PTR) pSERVER, pSERVER));
+	m_mapSESSION.insert(MAPTSERVER::value_type((DWORD_PTR)pSERVER, pSERVER));
 	ATLTRACE2("SESSION INSERT %s, %d\n", inet_ntoa(pSERVER->m_addr.sin_addr), m_mapSESSION.size());
 
-	if( !hIocpWork || !pSERVER->WaitForMessage() )
+	if (!hIocpWork || !pSERVER->WaitForMessage())
 	{
 		pSERVER->Close();
-		m_mapSESSION.erase((DWORD_PTR) pSERVER);
+		m_mapSESSION.erase((DWORD_PTR)pSERVER);
 		delete pSERVER;
 
 		return FALSE;
@@ -613,33 +517,33 @@ void CTWorldSvrModule::ClearThread()
 		m_hWorker,
 		TRUE, INFINITE);
 
-	for( BYTE i=0; i<m_bNumWorker; i++)
+	for (BYTE i = 0; i<m_bNumWorker; i++)
 		CloseHandle(m_hWorker[i]);
 
 	PostQueuedCompletionStatus(
 		m_hIocpControl, 0,
 		COMP_EXIT, NULL);
 
-	WaitForSingleObject( m_hControl, INFINITE);
+	WaitForSingleObject(m_hControl, INFINITE);
 	CloseHandle(m_hControl);
 
 	EnterCriticalSection(&m_csQUEUE);
 	m_bBatchRun = FALSE;
 	LeaveCriticalSection(&m_csQUEUE);
 	SetEvent(m_hBatchEvent);
-	WaitForSingleObject( m_hBatch, INFINITE);
+	WaitForSingleObject(m_hBatch, INFINITE);
 
 	EnterCriticalSection(&m_csDBQUEUE);
 	m_bDBRun = FALSE;
 	LeaveCriticalSection(&m_csDBQUEUE);
 	SetEvent(m_hDBEvent);
-	WaitForSingleObject( m_hDB, INFINITE);
+	WaitForSingleObject(m_hDB, INFINITE);
 
 	EnterCriticalSection(&m_csTIMERQUEUE);
 	m_bTimerRun = FALSE;
 	LeaveCriticalSection(&m_csTIMERQUEUE);
 	SetEvent(m_hTimerEvent);
-	WaitForSingleObject( m_hTimer, INFINITE);
+	WaitForSingleObject(m_hTimer, INFINITE);
 
 	CloseHandle(m_hIocpControl);
 	CloseHandle(m_hIocpWork);
@@ -661,53 +565,53 @@ void CTWorldSvrModule::UpdateData()
 	MAPTOURNAMENTSCHEDULE::iterator itTNMTS;
 	MAPCMGIFT::iterator itCMGift;
 
-	for(itEQT = m_mapEVQT.begin(); itEQT != m_mapEVQT.end(); itEQT++)
+	for (itEQT = m_mapEVQT.begin(); itEQT != m_mapEVQT.end(); itEQT++)
 		delete (*itEQT).second;
 
-	for(itTMS = m_mapTMS.begin(); itTMS != m_mapTMS.end(); itTMS++)
+	for (itTMS = m_mapTMS.begin(); itTMS != m_mapTMS.end(); itTMS++)
 		delete (*itTMS).second;
 
-	for( itSERVER = m_mapSESSION.begin(); itSERVER != m_mapSESSION.end(); itSERVER++)
+	for (itSERVER = m_mapSESSION.begin(); itSERVER != m_mapSESSION.end(); itSERVER++)
 		delete (*itSERVER).second;
 
-	for( itCHAR = m_mapTCHAR.begin(); itCHAR != m_mapTCHAR.end(); itCHAR++)
+	for (itCHAR = m_mapTCHAR.begin(); itCHAR != m_mapTCHAR.end(); itCHAR++)
 		delete (*itCHAR).second;
 
-	for( itParty = m_mapTParty.begin(); itParty != m_mapTParty.end(); itParty++)
+	for (itParty = m_mapTParty.begin(); itParty != m_mapTParty.end(); itParty++)
 		delete (*itParty).second;
 
-	for( itGuildLevel = m_mapTGuildLevel.begin(); itGuildLevel != m_mapTGuildLevel.end(); itGuildLevel++)
+	for (itGuildLevel = m_mapTGuildLevel.begin(); itGuildLevel != m_mapTGuildLevel.end(); itGuildLevel++)
 		delete (*itGuildLevel).second;
 
-	for( itGuild = m_mapTGuild.begin(); itGuild != m_mapTGuild.end(); itGuild++)
+	for (itGuild = m_mapTGuild.begin(); itGuild != m_mapTGuild.end(); itGuild++)
 		delete (*itGuild).second;
 
-	for( itCorps = m_mapTCorps.begin(); itCorps != m_mapTCorps.end(); itCorps++)
+	for (itCorps = m_mapTCorps.begin(); itCorps != m_mapTCorps.end(); itCorps++)
 		delete (*itCorps).second;
 
-	for(itGWA = m_mapTGuildWantedApp.begin(); itGWA != m_mapTGuildWantedApp.end(); itGWA++)
+	for (itGWA = m_mapTGuildWantedApp.begin(); itGWA != m_mapTGuildWantedApp.end(); itGWA++)
 		delete (*itGWA).second;
 
-	for(itGTWA = m_mapTGuildTacticsWantedApp.begin(); itGTWA != m_mapTGuildTacticsWantedApp.end(); itGTWA++)
+	for (itGTWA = m_mapTGuildTacticsWantedApp.begin(); itGTWA != m_mapTGuildTacticsWantedApp.end(); itGTWA++)
 		delete (*itGTWA).second;
 
-	for(itTNMT = m_mapTournament.begin(); itTNMT != m_mapTournament.end(); itTNMT++)
+	for (itTNMT = m_mapTournament.begin(); itTNMT != m_mapTournament.end(); itTNMT++)
 	{
 		MAPTOURNAMENTENTRY::iterator itTNMTE;
-		for(itTNMTE=(*itTNMT).second.begin(); itTNMTE!=(*itTNMT).second.end(); itTNMTE++)
+		for (itTNMTE = (*itTNMT).second.begin(); itTNMTE != (*itTNMT).second.end(); itTNMTE++)
 			delete (*itTNMTE).second;
 	}
 
-	for(itTNMTS = m_mapTournamentSchedule.begin(); itTNMTS!=m_mapTournamentSchedule.end(); itTNMTS++)
+	for (itTNMTS = m_mapTournamentSchedule.begin(); itTNMTS != m_mapTournamentSchedule.end(); itTNMTS++)
 		delete (*itTNMTS).second.m_mapStep;
 
-	for(BYTE i=0; i<WARCOUNTRY_MAXGAP; i++)
+	for (BYTE i = 0; i<WARCOUNTRY_MAXGAP; i++)
 	{
 		m_mapWarCountry[TCONTRY_D][i].clear();
 		m_mapWarCountry[TCONTRY_C][i].clear();
 	}
-	
-	for( itCMGift = m_mapCMGift.begin(); itCMGift != m_mapCMGift.end(); itCMGift++)
+
+	for (itCMGift = m_mapCMGift.begin(); itCMGift != m_mapCMGift.end(); itCMGift++)
 		delete (*itCMGift).second;
 
 	m_vTOPERATOR.clear();
@@ -739,50 +643,50 @@ void CTWorldSvrModule::UpdateData()
 	m_mapCMGift.clear();
 }
 
-void CTWorldSvrModule::OnInvalidSession( CTWorldSession *pSession)
+void CTWorldSvrModule::OnInvalidSession(CTWorldSession *pSession)
 {
-	if(pSession->OnInvalidSession())
+	if (pSession->OnInvalidSession())
 		ClosingSession(pSession);
 }
 
-void CTWorldSvrModule::OnCloseSession( CTWorldSession *pSession)
+void CTWorldSvrModule::OnCloseSession(CTWorldSession *pSession)
 {
-	CTServer *pSERVER = (CTServer *) pSession;
+	CTServer *pSERVER = (CTServer *)pSession;
 	SMART_LOCKCS(&m_csBATCH);
 
-	MAPTSERVER::iterator finder = m_mapSESSION.find((DWORD_PTR) pSERVER);
-	if( finder == m_mapSESSION.end() )
+	MAPTSERVER::iterator finder = m_mapSESSION.find((DWORD_PTR)pSERVER);
+	if (finder == m_mapSESSION.end())
 		return;
 	m_mapSESSION.erase(finder);
 	ATLTRACE2("SESSION DELETE %d, %d\n", pSERVER->m_wID, m_mapSESSION.size());
 
 	finder = m_mapSERVER.find(pSERVER->m_wID);
-	if( finder != m_mapSERVER.end() )
+	if (finder != m_mapSERVER.end())
 		m_mapSERVER.erase(finder);
 
-	if((CTWorldSession *)m_pRelay == pSession)
+	if ((CTWorldSession *)m_pRelay == pSession)
 	{
 		m_pRelay = NULL;
 
 		MAPTSERVER::iterator it;
-		for(it=m_mapSERVER.begin(); it!=m_mapSERVER.end(); it++)
+		for (it = m_mapSERVER.begin(); it != m_mapSERVER.end(); it++)
 			(*it).second->SendMW_RELAYCONNECT_REQ(0, FALSE);
 	}
-	else if( (CTWorldSession *)m_pCtrlSvr == pSession)	
-		m_pCtrlSvr = NULL;	
+	else if ((CTWorldSession *)m_pCtrlSvr == pSession)
+		m_pCtrlSvr = NULL;
 
 	delete pSERVER;
 }
 
-void CTWorldSvrModule::ClosingSession( CTWorldSession *pSession)
+void CTWorldSvrModule::ClosingSession(CTWorldSession *pSession)
 {
-	// pSessionø° ¥Î«— ∆–≈∂√≥∏Æ∞° øœ∑·µ«¥¬ Ω√¡°¿ª æÀ∏≤
-	// pSessionø° ¥Î«— ø¿πˆ∑¶ ø¿∆€∑°¿Ãº«¿Ã øœ∑·µ» ∞Õ¿ª »Æ¿Œ»ƒ »£√‚ «œø©æﬂ «‘.
+	// pSessionÏóê ÎåÄÌïú Ìå®ÌÇ∑Ï≤òÎ¶¨Í∞Ä ÏôÑÎ£åÎêòÎäî ÏãúÏ†êÏùÑ ÏïåÎ¶º
+	// pSessionÏóê ÎåÄÌïú Ïò§Î≤ÑÎû© Ïò§ÌçºÎûòÏù¥ÏÖòÏù¥ ÏôÑÎ£åÎêú Í≤ÉÏùÑ ÌôïÏù∏ÌõÑ Ìò∏Ï∂ú ÌïòÏó¨Ïïº Ìï®.
 	EnterCriticalSection(&m_csBATCH);
-	MAPTSERVER::iterator finder = m_mapSESSION.find((DWORD_PTR) pSession);
+	MAPTSERVER::iterator finder = m_mapSESSION.find((DWORD_PTR)pSession);
 
-	if( finder == m_mapSESSION.end() ||
-		pSession->m_bClosing )
+	if (finder == m_mapSESSION.end() ||
+		pSession->m_bClosing)
 	{
 		LeaveCriticalSection(&m_csBATCH);
 		return;
@@ -801,17 +705,17 @@ void CTWorldSvrModule::ClosingSession( CTWorldSession *pSession)
 	SetEvent(m_hBatchEvent);
 }
 
-void CTWorldSvrModule::CloseSession( CTWorldSession *pSession)
+void CTWorldSvrModule::CloseSession(CTWorldSession *pSession)
 {
 	pSession->CloseSession();
 }
 
 DWORD CTWorldSvrModule::InitDB()
 {
-	if(!m_db.Open( m_szDSN.c_str(), m_szDBUserID.c_str(), m_szDBPasswd.c_str()))
+	if (!m_db.Open(m_szDSN.c_str(), m_szDBUserID.c_str(), m_szDBPasswd.c_str()))
 		return EC_INITSERVICE_DBOPENFAILED;
 
-	if(!InitQueryTWorldSvr(&m_db))
+	if (!InitQueryTWorldSvr(&m_db))
 		return EC_INITSERVICE_PREPAREQUERY;
 
 	return EC_NOERROR;
@@ -822,105 +726,105 @@ DWORD CTWorldSvrModule::LoadData()
 	m_mapTSvrMsg.clear();
 
 	DEFINE_QUERY(&m_db, CSPGetNation)
-	if(!query->Call())
-		return EC_INITSERVICE_NATION;
+		if (!query->Call())
+			return EC_INITSERVICE_NATION;
 	m_bNation = query->m_bNation;
-	if(!m_bNation)
+	if (!m_bNation)
 		return EC_INITSERVICE_NATION;
 	UNDEFINE_QUERY()
 
-	DEFINE_QUERY(&m_db, CSPGetRecallID)
-	if(!query->Call())
-		return EC_INITSERVICE_NATION;
+		DEFINE_QUERY(&m_db, CSPGetRecallID)
+		if (!query->Call())
+			return EC_INITSERVICE_NATION;
 	m_dwGenRecallID = query->m_dwGenID;
 	UNDEFINE_QUERY()
 
-	DEFINE_QUERY(&m_db, CTBLActiveCharTable)
-	if(query->Open())
-	{
-		BYTE bWarCountry;
-		while(query->Fetch())
+		DEFINE_QUERY(&m_db, CTBLActiveCharTable)
+		if (query->Open())
 		{
-			bWarCountry = query->m_bCountry < TCONTRY_B ? query->m_bCountry : (query->IsNull(2) ? TCONTRY_N : query->m_bAidCountry);
-			if(bWarCountry >= TCONTRY_B)
-				continue;
+			BYTE bWarCountry;
+			while (query->Fetch())
+			{
+				bWarCountry = query->m_bCountry < TCONTRY_B ? query->m_bCountry : (query->IsNull(2) ? TCONTRY_N : query->m_bAidCountry);
+				if (bWarCountry >= TCONTRY_B)
+					continue;
 
-			BYTE bGap = GetWarCountryGap(query->m_bLevel);
-			if(bGap >= WARCOUNTRY_MAXGAP)
-				continue;
-            
-			m_mapWarCountry[bWarCountry][bGap].insert(MAPDWORD::value_type(query->m_dwCharID, 0));
+				BYTE bGap = GetWarCountryGap(query->m_bLevel);
+				if (bGap >= WARCOUNTRY_MAXGAP)
+					continue;
+
+				m_mapWarCountry[bWarCountry][bGap].insert(MAPDWORD::value_type(query->m_dwCharID, 0));
+			}
+			query->Close();
 		}
-		query->Close();
-	}
 	UNDEFINE_QUERY()
 
-	DEFINE_QUERY(&m_db, CTBLRPSGame)
-	if(query->Open())
-	{
-		while(query->Fetch())
+		DEFINE_QUERY(&m_db, CTBLRPSGame)
+		if (query->Open())
 		{
-			TRPSGAME rps;
-			rps.m_bType = query->m_bType;
-			rps.m_bWinCount = query->m_bWinCount;
-			rps.m_wWinKeep = query->m_wWinKeep;
-			rps.m_wWinPeriod = query->m_wWinPeriod;
-			memcpy(rps.m_bProb, query->m_bProb, sizeof(rps.m_bProb));
+			while (query->Fetch())
+			{
+				TRPSGAME rps;
+				rps.m_bType = query->m_bType;
+				rps.m_bWinCount = query->m_bWinCount;
+				rps.m_wWinKeep = query->m_wWinKeep;
+				rps.m_wWinPeriod = query->m_wWinPeriod;
+				memcpy(rps.m_bProb, query->m_bProb, sizeof(rps.m_bProb));
 
-			m_mapRPSGame.insert(MAPRPSGAME::value_type(MAKEWORD(rps.m_bType, rps.m_bWinCount), rps));
+				m_mapRPSGame.insert(MAPRPSGAME::value_type(MAKEWORD(rps.m_bType, rps.m_bWinCount), rps));
+			}
+			query->Close();
 		}
-		query->Close();
-	}
 	UNDEFINE_QUERY()
 
-	DEFINE_QUERY(&m_db, CTBLRPSGameRecord)
-	if(query->Open())
-	{
-		while(query->Fetch())
+		DEFINE_QUERY(&m_db, CTBLRPSGameRecord)
+		if (query->Open())
 		{
-			MAPRPSGAME::iterator it = m_mapRPSGame.find(MAKEWORD(query->m_bType, query->m_bWinCount));
-			if(it!=m_mapRPSGame.end())
-				(*it).second.m_vWinDate.push_back(__DBTOTIME(query->m_dWinDate));
+			while (query->Fetch())
+			{
+				MAPRPSGAME::iterator it = m_mapRPSGame.find(MAKEWORD(query->m_bType, query->m_bWinCount));
+				if (it != m_mapRPSGame.end())
+					(*it).second.m_vWinDate.push_back(__DBTOTIME(query->m_dWinDate));
+			}
+			query->Close();
 		}
-		query->Close();
-	}
 	UNDEFINE_QUERY()
 
-	DEFINE_QUERY(&m_db, CTBLSvrMsg)
-	if(query->Open())
-	{
-		while(query->Fetch())
-			m_mapTSvrMsg.insert(MAPTSTRING::value_type(query->m_dwID, query->m_szMessage));
-		query->Close();
-	}
-	UNDEFINE_QUERY()
-
-	DEFINE_QUERY(&m_db, CTBLEventQuarterChart)
-	if(query->Open())
-	{
-		while(query->Fetch())
+		DEFINE_QUERY(&m_db, CTBLSvrMsg)
+		if (query->Open())
 		{
-			LPTEVENTQUARTER pQT = new TEVENTQUARTER();
-			pQT->m_wID = query->m_wID;
-			pQT->m_bDay = query->m_bDay;
-			pQT->m_bHour = query->m_bHour;
-			pQT->m_bMinute = query->m_bMinute;
-			pQT->m_strPresent = query->m_szPresent;
-			pQT->m_strAnnounce = BuildNetString(NAME_NULL, query->m_szAnnounce);
-			pQT->m_bNotice = FALSE;
-			pQT->m_nTime = GetNextEventTime(pQT->m_bDay, pQT->m_bHour, pQT->m_bMinute);
-
-			m_mapEVQT.insert(MAPTEVENTQUARTER::value_type(pQT->m_wID, pQT));
-			m_mapTimeEVQT.insert(MAPTIMEQUARTER::value_type(pQT->m_nTime, pQT->m_wID));
+			while (query->Fetch())
+				m_mapTSvrMsg.insert(MAPTSTRING::value_type(query->m_dwID, query->m_szMessage));
+			query->Close();
 		}
-		query->Close();
-	}
 	UNDEFINE_QUERY()
 
-	DEFINE_QUERY(&m_db, CTBLGuildChart);
-	if(query->Open())
+		DEFINE_QUERY(&m_db, CTBLEventQuarterChart)
+		if (query->Open())
+		{
+			while (query->Fetch())
+			{
+				LPTEVENTQUARTER pQT = new TEVENTQUARTER();
+				pQT->m_wID = query->m_wID;
+				pQT->m_bDay = query->m_bDay;
+				pQT->m_bHour = query->m_bHour;
+				pQT->m_bMinute = query->m_bMinute;
+				pQT->m_strPresent = query->m_szPresent;
+				pQT->m_strAnnounce = BuildNetString(NAME_NULL, query->m_szAnnounce);
+				pQT->m_bNotice = FALSE;
+				pQT->m_nTime = GetNextEventTime(pQT->m_bDay, pQT->m_bHour, pQT->m_bMinute);
+
+				m_mapEVQT.insert(MAPTEVENTQUARTER::value_type(pQT->m_wID, pQT));
+				m_mapTimeEVQT.insert(MAPTIMEQUARTER::value_type(pQT->m_nTime, pQT->m_wID));
+			}
+			query->Close();
+		}
+	UNDEFINE_QUERY()
+
+		DEFINE_QUERY(&m_db, CTBLGuildChart);
+	if (query->Open())
 	{
-		while(query->Fetch())
+		while (query->Fetch())
 		{
 			LPTGUILDLEVEL pLevel = new TGUILDLEVEL();
 			pLevel->m_bLevel = query->m_bLevel;
@@ -933,7 +837,7 @@ DWORD CTWorldSvrModule::LoadData()
 			pLevel->m_bGuardCnt = query->m_bGuardCnt;
 			pLevel->m_bRoyalGuardCnt = query->m_bRoyalGuardCnt;
 			pLevel->m_bTurretCnt = query->m_bTurretCnt;
-			for(BYTE i=0; i<MAX_GUILD_PEER_COUNT; i++)
+			for (BYTE i = 0; i<MAX_GUILD_PEER_COUNT; i++)
 				pLevel->m_bPeer[i] = query->m_bPeer[i];
 
 			m_mapTGuildLevel.insert(MAPTGUILDLEVEL::value_type(pLevel->m_bLevel, pLevel));
@@ -943,9 +847,9 @@ DWORD CTWorldSvrModule::LoadData()
 	UNDEFINE_QUERY();
 
 	DEFINE_QUERY(&m_db, CTBLGuild);
-	if(query->Open())
+	if (query->Open())
 	{
-		while(query->Fetch())
+		while (query->Fetch())
 		{
 			CTGuild * pGuild = new CTGuild();
 			pGuild->m_dwID = query->m_dwID;
@@ -970,7 +874,7 @@ DWORD CTWorldSvrModule::LoadData()
 			pGuild->m_dwPvPMonthPoint = query->m_dwPvPMonthPoint;
 
 			m_mapTGuild.insert(MAPTGUILD::value_type(pGuild->m_dwID, pGuild));
-			if(pGuild->m_bDisorg)
+			if (pGuild->m_bDisorg)
 				m_mapTGuildEx.insert(MAPDWORD::value_type(pGuild->m_dwID, pGuild->m_dwTime));
 
 			pGuild->m_pTLEVEL = FindGuildLevel(pGuild->m_bLevel);
@@ -983,14 +887,14 @@ DWORD CTWorldSvrModule::LoadData()
 	m_mapCharGuild.clear();
 	m_mapCharTactics.clear();
 
-	for(it=m_mapTGuild.begin(); it!=m_mapTGuild.end(); it++)
+	for (it = m_mapTGuild.begin(); it != m_mapTGuild.end(); it++)
 	{
 		CTGuild * pGuild = (*it).second;
 		DEFINE_QUERY(&m_db, CTBLGuildArticle)
-		query->m_dwGuildID = pGuild->m_dwID;
-		if(query->Open())
+			query->m_dwGuildID = pGuild->m_dwID;
+		if (query->Open())
 		{
-			while(query->Fetch())
+			while (query->Fetch())
 			{
 				DWORD dwID = query->m_dwID;
 				BYTE bDuty = query->m_bDuty;
@@ -1004,14 +908,14 @@ DWORD CTWorldSvrModule::LoadData()
 		}
 		UNDEFINE_QUERY()
 
-		DEFINE_QUERY(&m_db, CTBLGuildItem)
-		query->m_dwOwnerID = pGuild->m_dwID;
+			DEFINE_QUERY(&m_db, CTBLGuildItem)
+			query->m_dwOwnerID = pGuild->m_dwID;
 		query->m_bOwnerType = TOWNER_GUILD;
 		query->m_bStorageType = STORAGE_CABINET;
 
-		if(query->Open())
+		if (query->Open())
 		{
-			while(query->Fetch())
+			while (query->Fetch())
 			{
 				query->m_item.m_dEndTime = __DBTOTIME(query->m_dEndTime);
 				LPTITEM pItem = CreateItem(query->m_item);
@@ -1021,11 +925,11 @@ DWORD CTWorldSvrModule::LoadData()
 		}
 		UNDEFINE_QUERY()
 
-		DEFINE_QUERY(&m_db, CTBLGuildMember)
-		query->m_dwGuildID = pGuild->m_dwID;
-		if(query->Open())
+			DEFINE_QUERY(&m_db, CTBLGuildMember)
+			query->m_dwGuildID = pGuild->m_dwID;
+		if (query->Open())
 		{
-			while(query->Fetch())
+			while (query->Fetch())
 			{
 				LPTGUILDMEMBER pMember = new TGUILDMEMBER();
 				pMember->m_dwGuildID = pGuild->m_dwID;
@@ -1043,7 +947,7 @@ DWORD CTWorldSvrModule::LoadData()
 				pMember->m_dlConnectedDate = __DBTOTIME(query->m_dConnectedDate);
 
 				pGuild->m_mapTMember.insert(MAPTGUILDMEMBER::value_type(pMember->m_dwID, pMember));
-				if(pMember->m_bDuty==GUILD_DUTY_CHIEF)
+				if (pMember->m_bDuty == GUILD_DUTY_CHIEF)
 				{
 					pGuild->m_dwChief = pMember->m_dwID;
 					pGuild->m_strChief = pMember->m_strName;
@@ -1055,11 +959,11 @@ DWORD CTWorldSvrModule::LoadData()
 		}
 		UNDEFINE_QUERY()
 
-		DEFINE_QUERY(&m_db, CTBLGuildTactics)
-		query->m_dwGuildID = pGuild->m_dwID;
-		if(query->Open())
+			DEFINE_QUERY(&m_db, CTBLGuildTactics)
+			query->m_dwGuildID = pGuild->m_dwID;
+		if (query->Open())
 		{
-			while(query->Fetch())
+			while (query->Fetch())
 			{
 				LPTTACTICSMEMBER pMember = new TTACTICSMEMBER();
 				pMember->m_dwID = query->m_dwMemberID;
@@ -1079,11 +983,11 @@ DWORD CTWorldSvrModule::LoadData()
 		}
 		UNDEFINE_QUERY()
 
-		DEFINE_QUERY(&m_db, CTBLGuildPvPointReward)
-		query->m_dwGuildID = pGuild->m_dwID;
-		if(query->Open())
+			DEFINE_QUERY(&m_db, CTBLGuildPvPointReward)
+			query->m_dwGuildID = pGuild->m_dwID;
+		if (query->Open())
 		{
-			while(query->Fetch())
+			while (query->Fetch())
 			{
 				TGUILDPOINTREWARD log;
 				log.m_strName = query->m_szName;
@@ -1095,28 +999,28 @@ DWORD CTWorldSvrModule::LoadData()
 		}
 		UNDEFINE_QUERY()
 
-		DEFINE_QUERY(&m_db, CTBLGuildPvPRecord)
-		query->m_dwGuildID = pGuild->m_dwID;
-		if(query->Open())
+			DEFINE_QUERY(&m_db, CTBLGuildPvPRecord)
+			query->m_dwGuildID = pGuild->m_dwID;
+		if (query->Open())
 		{
-			while(query->Fetch())
+			while (query->Fetch())
 			{
 				LPTGUILDMEMBER pMember = pGuild->FindMember(query->m_dwCharID);
-				if(pMember)
+				if (pMember)
 				{
 					TENTRYRECORD rec;
 					rec.m_dwDate = query->m_dwDate;
 					rec.m_wKillCount = query->m_wKillCount;
 					rec.m_wDieCount = query->m_wDieCount;
 					rec.m_bLoad = TRUE;
-					for(BYTE e=0; e<PVPE_COUNT; e++)
+					for (BYTE e = 0; e<PVPE_COUNT; e++)
 					{
 						rec.m_aGainPoint[e] = query->m_aPoint[e];
 					}
 
 					pMember->m_vRecord.push_back(rec);
 
-					if(m_dwRecentRecordDate < query->m_dwDate)
+					if (m_dwRecentRecordDate < query->m_dwDate)
 						m_dwRecentRecordDate = query->m_dwDate;
 				}
 			}
@@ -1125,301 +1029,301 @@ DWORD CTWorldSvrModule::LoadData()
 		UNDEFINE_QUERY()
 	}
 
-	for(it=m_mapTGuild.begin(); it!=m_mapTGuild.end(); it++)
+	for (it = m_mapTGuild.begin(); it != m_mapTGuild.end(); it++)
 		(*it).second->CalcWeekRecord(m_dwRecentRecordDate);
 
 	MAPDWORD::iterator itGM;
 	MAPDWORD::iterator itTM;
 
-	for(itTM = m_mapCharTactics.begin(); itTM != m_mapCharTactics.end(); itTM++)
+	for (itTM = m_mapCharTactics.begin(); itTM != m_mapCharTactics.end(); itTM++)
 	{
 		itGM = m_mapCharGuild.find((*itTM).first);
-		if(itGM != m_mapCharGuild.end())
+		if (itGM != m_mapCharGuild.end())
 		{
 			CTGuild * pGuild = FindTGuild((*itTM).second);
-			if(pGuild)
+			if (pGuild)
 			{
 				LPTGUILDMEMBER pGm = pGuild->FindMember((*itTM).first);
-				if(pGm)
+				if (pGm)
 					pGm->m_dwTactics = (*itTM).second;
 			}
 		}
 	}
 
 	DEFINE_QUERY(&m_db, CTBLCastleApplicant)
-	if(query->Open())
-	{
-		while(query->Fetch())
+		if (query->Open())
 		{
-			itTM = m_mapCharTactics.find(query->m_dwCharID);
-			if(itTM != m_mapCharTactics.end())
+			while (query->Fetch())
 			{
-				CTGuild * pGuild = FindTGuild((*itTM).second);
-				if(pGuild)
+				itTM = m_mapCharTactics.find(query->m_dwCharID);
+				if (itTM != m_mapCharTactics.end())
 				{
-					LPTTACTICSMEMBER pTactics = pGuild->FindTactics(query->m_dwCharID);
-					if(pTactics)
+					CTGuild * pGuild = FindTGuild((*itTM).second);
+					if (pGuild)
 					{
-						pTactics->m_wCastle = query->m_wCastle;
-						pTactics->m_bCamp = query->m_bCamp;
+						LPTTACTICSMEMBER pTactics = pGuild->FindTactics(query->m_dwCharID);
+						if (pTactics)
+						{
+							pTactics->m_wCastle = query->m_wCastle;
+							pTactics->m_bCamp = query->m_bCamp;
+						}
 					}
 				}
-			}
-			else
-			{
-				itGM = m_mapCharGuild.find(query->m_dwCharID);
-				if(itGM != m_mapCharGuild.end())
+				else
 				{
-					CTGuild * pGuild = FindTGuild((*itGM).second);
-					if(pGuild)
+					itGM = m_mapCharGuild.find(query->m_dwCharID);
+					if (itGM != m_mapCharGuild.end())
 					{
-						LPTGUILDMEMBER pGm = pGuild->FindMember((*itGM).first);
-						if(pGm)
+						CTGuild * pGuild = FindTGuild((*itGM).second);
+						if (pGuild)
 						{
-							pGm->m_wCastle = query->m_wCastle;
-							pGm->m_bCamp = query->m_bCamp;
+							LPTGUILDMEMBER pGm = pGuild->FindMember((*itGM).first);
+							if (pGm)
+							{
+								pGm->m_wCastle = query->m_wCastle;
+								pGm->m_bCamp = query->m_bCamp;
+							}
 						}
 					}
 				}
 			}
+			query->Close();
 		}
-		query->Close();
-	}
 	UNDEFINE_QUERY()
 
-	DEFINE_QUERY(&m_db, CTBLGuildRelation)
-	if(query->Open())
-	{
-		while(query->Fetch())
+		DEFINE_QUERY(&m_db, CTBLGuildRelation)
+		if (query->Open())
 		{
-			switch(query->m_bType)
+			while (query->Fetch())
 			{
-			case RELATION_ALLIENCE:
-				it = m_mapTGuild.find(query->m_dwGuildOne);
-				if(it!=m_mapTGuild.end())
-					(*it).second->m_vAllience.push_back(query->m_dwGuildTwo);
-				it = m_mapTGuild.find(query->m_dwGuildTwo);
-				if(it!=m_mapTGuild.end())
-					(*it).second->m_vAllience.push_back(query->m_dwGuildOne);
-				break;
-			case RELATION_ENEMY:
-				it = m_mapTGuild.find(query->m_dwGuildOne);
-				if(it!=m_mapTGuild.end())
-					(*it).second->m_vEnemy.push_back(query->m_dwGuildTwo);
-				it = m_mapTGuild.find(query->m_dwGuildTwo);
-				if(it!=m_mapTGuild.end())
-					(*it).second->m_vEnemy.push_back(query->m_dwGuildOne);
-				break;
-			default:
-				break;
-			}
-		}
-		query->Close();
-	}
-	UNDEFINE_QUERY()
-
-	DEFINE_QUERY( &m_db, CTBLOperatorChart)
-	if(query->Open())
-	{
-		while(query->Fetch())
-            m_vTOPERATOR.push_back(query->m_dwOperator);
-
-		query->Close();
-	}
-	UNDEFINE_QUERY()
-
-	DEFINE_QUERY(&m_db, CTBLBattleTimeChart)
-	if(query->Open())
-	{
-		while(query->Fetch())
-		{
-			if(query->m_bType < BT_COUNT)
-			{
-				m_battletime[query->m_bType].m_bType = query->m_bType;
-				m_battletime[query->m_bType].m_bStatus = BS_NORMAL;
-				m_battletime[query->m_bType].m_dwBattleDur = query->m_dwBattleDur;
-				m_battletime[query->m_bType].m_dwBattleStart = query->m_dwBattleStart;
-				m_battletime[query->m_bType].m_dwAlarmStart = query->m_dwAlarmStart;
-				m_battletime[query->m_bType].m_dwAlarmEnd = query->m_dwAlarmEnd;
-				m_battletime[query->m_bType].m_dwPeaceDur = query->m_dwPeaceDur;
-				m_battletime[query->m_bType].m_bDay = query->m_bDay;
-				m_battletime[query->m_bType].m_bWeek = query->m_bWeek;
-
-				if(query->m_bType == BT_MISSION && query->m_dwBattleStart)
+				switch (query->m_bType)
 				{
-					CTime curtime(CTime::GetCurrentTime());
-					DWORD dwCH = curtime.GetHour();
-					DWORD dwCM = curtime.GetMinute();
-
-					if(dwCM * 60 > query->m_dwBattleStart)
-						m_battletime[query->m_bType].m_dwBattleStart = dwCH * 60*60 + HOUR_ONE + query->m_dwBattleStart;
-					else
-						m_battletime[query->m_bType].m_dwBattleStart = dwCH * 60*60 + query->m_dwBattleStart;
-
-					if(m_battletime[query->m_bType].m_dwBattleStart > DAY_ONE)
-						m_battletime[query->m_bType].m_dwBattleStart = m_battletime[query->m_bType].m_dwBattleStart % DAY_ONE;
+				case RELATION_ALLIENCE:
+					it = m_mapTGuild.find(query->m_dwGuildOne);
+					if (it != m_mapTGuild.end())
+						(*it).second->m_vAllience.push_back(query->m_dwGuildTwo);
+					it = m_mapTGuild.find(query->m_dwGuildTwo);
+					if (it != m_mapTGuild.end())
+						(*it).second->m_vAllience.push_back(query->m_dwGuildOne);
+					break;
+				case RELATION_ENEMY:
+					it = m_mapTGuild.find(query->m_dwGuildOne);
+					if (it != m_mapTGuild.end())
+						(*it).second->m_vEnemy.push_back(query->m_dwGuildTwo);
+					it = m_mapTGuild.find(query->m_dwGuildTwo);
+					if (it != m_mapTGuild.end())
+						(*it).second->m_vEnemy.push_back(query->m_dwGuildOne);
+					break;
+				default:
+					break;
 				}
-			}
-		}
-
-		query->Close();
-	}
-	UNDEFINE_QUERY()
-
-	if(m_battletime[BT_MISSION].m_dwBattleStart)
-	{
-		LPTBATTLETIME pLocal;
-		CTime curtime(CTime::GetCurrentTime());
-
-		INT nCH = curtime.GetHour();
-		INT nCM = curtime.GetMinute();
-		INT nCS = curtime.GetSecond();
-		INT nCD = curtime.GetDayOfWeek();
-		INT bCurDay = curtime.GetDay();
-		INT bCurMonth = curtime.GetMonth();
-
-		DWORD dwCLT = nCH*60*60+nCM*60+nCS;
-
-		if(m_battletime[BT_CASTLE].m_bDay == nCD)
-			pLocal = &(m_battletime[BT_CASTLE]);
-		else
-			pLocal = &(m_battletime[BT_LOCAL]);
-
-		if(pLocal->m_dwBattleStart && m_battletime[BT_MISSION].m_dwBattleStart / HOUR_ONE == pLocal->m_dwBattleStart / HOUR_ONE)
-			m_battletime[BT_MISSION].m_dwBattleStart += HOUR_ONE * 2;
-
-		if(m_battletime[BT_SKYGARDEN].m_bDay == nCD && m_battletime[BT_MISSION].m_dwBattleStart / HOUR_ONE == m_battletime[BT_SKYGARDEN].m_dwBattleStart / HOUR_ONE)
-			m_battletime[BT_MISSION].m_dwBattleStart += HOUR_ONE * 2;
-
-		if(m_battletime[BT_MISSION].m_dwBattleStart > DAY_ONE)
-			m_battletime[BT_MISSION].m_dwBattleStart = m_battletime[BT_MISSION].m_dwBattleStart % DAY_ONE;
-	}
-
-	DEFINE_QUERY(&m_db, CTBLGuildWanted)
-	if(query->Open())
-	{
-		while(query->Fetch())
-		{
-			CTGuild * pGuild = FindTGuild(query->m_dwGuildID);
-			if(pGuild)
-				AddGuildWanted(pGuild, query->m_bMinLevel, query->m_bMaxLevel, query->m_szTitle, query->m_szText, __DBTOTIME(query->m_timeEnd));
-		}
-		query->Close();
-	}
-	UNDEFINE_QUERY()
-
-	DEFINE_QUERY(&m_db, CTBLGuildTacticsWanted)
-	if(query->Open())
-	{
-		while(query->Fetch())
-		{
-			CTGuild * pGuild = FindTGuild(query->m_dwGuildID);
-			if(pGuild)
-				AddGuildTacticsWanted(
-					pGuild,
-					query->m_dwID,
-					query->m_dwPvPoint,
-					query->m_dwGold,
-					query->m_dwSilver,
-					query->m_dwCooper,
-					query->m_bDay,
-					query->m_bMinLevel,
-					query->m_bMaxLevel,
-					query->m_szTitle,
-					query->m_szText,
-					__DBTOTIME(query->m_timeEnd));
-
-			m_dwTacticsIndex = query->m_dwID;
-		}
-		query->Close();
-	}
-	UNDEFINE_QUERY()
-
-	DEFINE_QUERY(&m_db, CTBLGuildVolunteer)
-	if(query->Open())
-	{
-		while(query->Fetch())
-		{
-			if(query->m_bType == GUILDAPP_MEMBER)
-				AddGuildWantedApp(query->m_dwID, query->m_dwCharID, query->m_szName, query->m_bLevel, query->m_bClass);
-			else
-			{
-				LPTGUILDTACTICSWANTED pWanted = FindGuildTacticsWanted(query->m_dwID);
-				if(pWanted)
-					AddGuildTacticsWantedApp(query->m_dwID, query->m_dwCharID, query->m_szName, query->m_bLevel, query->m_bClass, pWanted->m_dwGuildID);
-			}
-		}
-		query->Close();
-	}
-	UNDEFINE_QUERY()
-
-	for(WORD gp=0x100; gp<0xFFFF; gp++)
-		m_qGenPartyID.push(gp);
-
-	DEFINE_QUERY(&m_db, CTBLTotalRank)
-	if(query->Open())
-	{
-		while(query->Fetch())
-			m_mapRank.insert(MAPDWORD::value_type(query->m_dwCharID, query->m_dwRank));
-
-		query->Close();
-	}
-	UNDEFINE_QUERY()
-
-	DEFINE_QUERY(&m_db, CTBLMonthRank)
-	if(query->Open())
-	{
-		while(query->Fetch())
-			m_mapMonthRank.insert(MAPDWORD::value_type(query->m_dwCharID, query->m_dwRank));
-
-		query->Close();
-	}
-	UNDEFINE_QUERY()
-
-	for(BYTE i=0; i<COUNTRY_COUNT; i++)
-	{
-		DEFINE_QUERY(&m_db, CTBLPvPointTable)
-		query->m_bCountry = i;
-		if(query->Open())
-		{
-			if(query->Fetch())
-			{
-				MONTHRANKER stMONTHRANKER;
-				stMONTHRANKER.m_dwCharID = query->m_dwCharID;
-				stMONTHRANKER.m_strName = query->m_szName;
-				stMONTHRANKER.m_dwTotalPoint = query->m_dwTotalPoint;
-				stMONTHRANKER.m_dwMonthPoint = 0;
-				stMONTHRANKER.m_wMonthWin = 0;
-				stMONTHRANKER.m_wMonthLose = 0;
-				stMONTHRANKER.m_dwTotalWin = query->m_dwTotalWin;
-				stMONTHRANKER.m_dwTotalLose = query->m_dwTotalLose;
-				stMONTHRANKER.m_bCountry = query->m_bCountry;
-				stMONTHRANKER.m_bLevel = query->m_bLevel;
-				stMONTHRANKER.m_bClass = query->m_bClass;			
-				stMONTHRANKER.m_bRace = query->m_bRace;
-				stMONTHRANKER.m_bSex = query->m_bSex;
-				stMONTHRANKER.m_bFace = query->m_bFace;
-				stMONTHRANKER.m_bHair = query->m_bHair;
-				stMONTHRANKER.m_strSay = NAME_NULL;
-				if(!query->IsNull(11))
-					stMONTHRANKER.m_strGuild = query->m_szGuild;
-				else
-					stMONTHRANKER.m_strGuild = NAME_NULL;
-
-				m_arMonthRank[i][0] = stMONTHRANKER;
 			}
 			query->Close();
 		}
-		UNDEFINE_QUERY()
-	}
+	UNDEFINE_QUERY()
 
-	for(BYTE i=0; i<COUNTRY_COUNT; i++)
-	{
-		DEFINE_QUERY(&m_db,CTBLMonthPvPointChar)
-		query->m_dwCharID = m_arMonthRank[i][0].m_dwCharID;
-		if(query->Open())
+		DEFINE_QUERY(&m_db, CTBLOperatorChart)
+		if (query->Open())
 		{
-			if(query->Fetch())
+			while (query->Fetch())
+				m_vTOPERATOR.push_back(query->m_dwOperator);
+
+			query->Close();
+		}
+	UNDEFINE_QUERY()
+
+		DEFINE_QUERY(&m_db, CTBLBattleTimeChart)
+		if (query->Open())
+		{
+			while (query->Fetch())
+			{
+				if (query->m_bType < BT_COUNT)
+				{
+					m_battletime[query->m_bType].m_bType = query->m_bType;
+					m_battletime[query->m_bType].m_bStatus = BS_NORMAL;
+					m_battletime[query->m_bType].m_dwBattleDur = query->m_dwBattleDur;
+					m_battletime[query->m_bType].m_dwBattleStart = query->m_dwBattleStart;
+					m_battletime[query->m_bType].m_dwAlarmStart = query->m_dwAlarmStart;
+					m_battletime[query->m_bType].m_dwAlarmEnd = query->m_dwAlarmEnd;
+					m_battletime[query->m_bType].m_dwPeaceDur = query->m_dwPeaceDur;
+					m_battletime[query->m_bType].m_bDay = query->m_bDay;
+					m_battletime[query->m_bType].m_bWeek = query->m_bWeek;
+
+					if (query->m_bType == BT_MISSION && query->m_dwBattleStart)
+					{
+						CTime curtime(CTime::GetCurrentTime());
+						DWORD dwCH = curtime.GetHour();
+						DWORD dwCM = curtime.GetMinute();
+
+						if (dwCM * 60 > query->m_dwBattleStart)
+							m_battletime[query->m_bType].m_dwBattleStart = dwCH * 60 * 60 + HOUR_ONE + query->m_dwBattleStart;
+						else
+							m_battletime[query->m_bType].m_dwBattleStart = dwCH * 60 * 60 + query->m_dwBattleStart;
+
+						if (m_battletime[query->m_bType].m_dwBattleStart > DAY_ONE)
+							m_battletime[query->m_bType].m_dwBattleStart = m_battletime[query->m_bType].m_dwBattleStart % DAY_ONE;
+					}
+				}
+			}
+
+			query->Close();
+		}
+	UNDEFINE_QUERY()
+
+		if (m_battletime[BT_MISSION].m_dwBattleStart)
+		{
+			LPTBATTLETIME pLocal;
+			CTime curtime(CTime::GetCurrentTime());
+
+			INT nCH = curtime.GetHour();
+			INT nCM = curtime.GetMinute();
+			INT nCS = curtime.GetSecond();
+			INT nCD = curtime.GetDayOfWeek();
+			INT bCurDay = curtime.GetDay();
+			INT bCurMonth = curtime.GetMonth();
+
+			DWORD dwCLT = nCH * 60 * 60 + nCM * 60 + nCS;
+
+			if (m_battletime[BT_CASTLE].m_bDay == nCD)
+				pLocal = &(m_battletime[BT_CASTLE]);
+			else
+				pLocal = &(m_battletime[BT_LOCAL]);
+
+			if (pLocal->m_dwBattleStart && m_battletime[BT_MISSION].m_dwBattleStart / HOUR_ONE == pLocal->m_dwBattleStart / HOUR_ONE)
+				m_battletime[BT_MISSION].m_dwBattleStart += HOUR_ONE * 2;
+
+			if (m_battletime[BT_SKYGARDEN].m_bDay == nCD && m_battletime[BT_MISSION].m_dwBattleStart / HOUR_ONE == m_battletime[BT_SKYGARDEN].m_dwBattleStart / HOUR_ONE)
+				m_battletime[BT_MISSION].m_dwBattleStart += HOUR_ONE * 2;
+
+			if (m_battletime[BT_MISSION].m_dwBattleStart > DAY_ONE)
+				m_battletime[BT_MISSION].m_dwBattleStart = m_battletime[BT_MISSION].m_dwBattleStart % DAY_ONE;
+		}
+
+	DEFINE_QUERY(&m_db, CTBLGuildWanted)
+		if (query->Open())
+		{
+			while (query->Fetch())
+			{
+				CTGuild * pGuild = FindTGuild(query->m_dwGuildID);
+				if (pGuild)
+					AddGuildWanted(pGuild, query->m_bMinLevel, query->m_bMaxLevel, query->m_szTitle, query->m_szText, __DBTOTIME(query->m_timeEnd));
+			}
+			query->Close();
+		}
+	UNDEFINE_QUERY()
+
+		DEFINE_QUERY(&m_db, CTBLGuildTacticsWanted)
+		if (query->Open())
+		{
+			while (query->Fetch())
+			{
+				CTGuild * pGuild = FindTGuild(query->m_dwGuildID);
+				if (pGuild)
+					AddGuildTacticsWanted(
+						pGuild,
+						query->m_dwID,
+						query->m_dwPvPoint,
+						query->m_dwGold,
+						query->m_dwSilver,
+						query->m_dwCooper,
+						query->m_bDay,
+						query->m_bMinLevel,
+						query->m_bMaxLevel,
+						query->m_szTitle,
+						query->m_szText,
+						__DBTOTIME(query->m_timeEnd));
+
+				m_dwTacticsIndex = query->m_dwID;
+			}
+			query->Close();
+		}
+	UNDEFINE_QUERY()
+
+		DEFINE_QUERY(&m_db, CTBLGuildVolunteer)
+		if (query->Open())
+		{
+			while (query->Fetch())
+			{
+				if (query->m_bType == GUILDAPP_MEMBER)
+					AddGuildWantedApp(query->m_dwID, query->m_dwCharID, query->m_szName, query->m_bLevel, query->m_bClass);
+				else
+				{
+					LPTGUILDTACTICSWANTED pWanted = FindGuildTacticsWanted(query->m_dwID);
+					if (pWanted)
+						AddGuildTacticsWantedApp(query->m_dwID, query->m_dwCharID, query->m_szName, query->m_bLevel, query->m_bClass, pWanted->m_dwGuildID);
+				}
+			}
+			query->Close();
+		}
+	UNDEFINE_QUERY()
+
+		for (WORD gp = 0x100; gp<0xFFFF; gp++)
+			m_qGenPartyID.push(gp);
+
+	DEFINE_QUERY(&m_db, CTBLTotalRank)
+		if (query->Open())
+		{
+			while (query->Fetch())
+				m_mapRank.insert(MAPDWORD::value_type(query->m_dwCharID, query->m_dwRank));
+
+			query->Close();
+		}
+	UNDEFINE_QUERY()
+
+		DEFINE_QUERY(&m_db, CTBLMonthRank)
+		if (query->Open())
+		{
+			while (query->Fetch())
+				m_mapMonthRank.insert(MAPDWORD::value_type(query->m_dwCharID, query->m_dwRank));
+
+			query->Close();
+		}
+	UNDEFINE_QUERY()
+
+		for (BYTE i = 0; i<COUNTRY_COUNT; i++)
+		{
+			DEFINE_QUERY(&m_db, CTBLPvPointTable)
+				query->m_bCountry = i;
+			if (query->Open())
+			{
+				if (query->Fetch())
+				{
+					MONTHRANKER stMONTHRANKER;
+					stMONTHRANKER.m_dwCharID = query->m_dwCharID;
+					stMONTHRANKER.m_strName = query->m_szName;
+					stMONTHRANKER.m_dwTotalPoint = query->m_dwTotalPoint;
+					stMONTHRANKER.m_dwMonthPoint = 0;
+					stMONTHRANKER.m_wMonthWin = 0;
+					stMONTHRANKER.m_wMonthLose = 0;
+					stMONTHRANKER.m_dwTotalWin = query->m_dwTotalWin;
+					stMONTHRANKER.m_dwTotalLose = query->m_dwTotalLose;
+					stMONTHRANKER.m_bCountry = query->m_bCountry;
+					stMONTHRANKER.m_bLevel = query->m_bLevel;
+					stMONTHRANKER.m_bClass = query->m_bClass;
+					stMONTHRANKER.m_bRace = query->m_bRace;
+					stMONTHRANKER.m_bSex = query->m_bSex;
+					stMONTHRANKER.m_bFace = query->m_bFace;
+					stMONTHRANKER.m_bHair = query->m_bHair;
+					stMONTHRANKER.m_strSay = NAME_NULL;
+					if (!query->IsNull(11))
+						stMONTHRANKER.m_strGuild = query->m_szGuild;
+					else
+						stMONTHRANKER.m_strGuild = NAME_NULL;
+
+					m_arMonthRank[i][0] = stMONTHRANKER;
+				}
+				query->Close();
+			}
+			UNDEFINE_QUERY()
+		}
+
+	for (BYTE i = 0; i<COUNTRY_COUNT; i++)
+	{
+		DEFINE_QUERY(&m_db, CTBLMonthPvPointChar)
+			query->m_dwCharID = m_arMonthRank[i][0].m_dwCharID;
+		if (query->Open())
+		{
+			if (query->Fetch())
 			{
 				m_arMonthRank[i][0].m_dwMonthPoint = query->m_dwMonthPoint;
 				m_arMonthRank[i][0].m_wMonthWin = query->m_wMonthWin;
@@ -1431,14 +1335,14 @@ DWORD CTWorldSvrModule::LoadData()
 		UNDEFINE_QUERY()
 	}
 
-	for(BYTE i=0; i<COUNTRY_COUNT; i++)
+	for (BYTE i = 0; i<COUNTRY_COUNT; i++)
 	{
 		DEFINE_QUERY(&m_db, CTBLMonthPvPointTable)
-		query->m_bCountry = i;
-		if(query->Open())
+			query->m_bCountry = i;
+		if (query->Open())
 		{
 			BYTE bOrder = 1;
-			while(query->Fetch())
+			while (query->Fetch())
 			{
 				m_arMonthRank[i][bOrder].m_dwCharID = query->m_dwCharID;
 				m_arMonthRank[i][bOrder].m_strName = query->m_szName;
@@ -1456,30 +1360,30 @@ DWORD CTWorldSvrModule::LoadData()
 				m_arMonthRank[i][bOrder].m_bFace = query->m_bFace;
 				m_arMonthRank[i][bOrder].m_bHair = query->m_bHair;
 				m_arMonthRank[i][bOrder].m_strSay = query->m_szSay;
-				if(!query->IsNull(16))
+				if (!query->IsNull(16))
 					m_arMonthRank[query->m_bCountry][bOrder].m_strGuild = query->m_szGuild;
 				else
 					m_arMonthRank[query->m_bCountry][bOrder].m_strGuild = NAME_NULL;
 
-				bOrder++;			
+				bOrder++;
 			}
 			query->Close();
 		}
 		UNDEFINE_QUERY()
 	}
 
-	DEFINE_QUERY(&m_db,CTBLFirstGradeGroup)
-	CTime t(CTime::GetCurrentTime());
+	DEFINE_QUERY(&m_db, CTBLFirstGradeGroup)
+		CTime t(CTime::GetCurrentTime());
 	BYTE bRankMonth = t.GetMonth();
 	bRankMonth--;
-	if(bRankMonth == 0)
+	if (bRankMonth == 0)
 		bRankMonth = 12;
 
 	query->m_bMonth = bRankMonth;
-	
-	if(query->Open())
+
+	if (query->Open())
 	{
-		while(query->Fetch())
+		while (query->Fetch())
 		{
 			m_arFirstGradeGroup[query->m_bCountry][query->m_bRank].m_dwCharID = query->m_dwCharID;
 			m_arFirstGradeGroup[query->m_bCountry][query->m_bRank].m_strName = query->m_szName;
@@ -1503,108 +1407,108 @@ DWORD CTWorldSvrModule::LoadData()
 	}
 	UNDEFINE_QUERY()
 
-	DEFINE_QUERY(&m_db, CSPGetLimitedLevel)
-	if(!query->Call())
-		return EC_INITSERVICE_LIMITEDLEVEL;
+		DEFINE_QUERY(&m_db, CSPGetLimitedLevel)
+		if (!query->Call())
+			return EC_INITSERVICE_LIMITEDLEVEL;
 	m_bMaxLevel = query->m_bMaxLevel;
 	UNDEFINE_QUERY()
 
-	WORD wTnmtID = 0;
+		WORD wTnmtID = 0;
 	BYTE bTnmtGroup = 0;
 	BYTE bTnmtStep = TNMTSTEP_READY;
 	DEFINE_QUERY(&m_db, CTBLTournamentCurrentStep)
-	if(query->Open())
-	{
-		if(query->Fetch())
+		if (query->Open())
 		{
-			wTnmtID = query->m_wID;
-			bTnmtGroup = query->m_bGroup;
-			bTnmtStep = query->m_bStep;
-		}
+			if (query->Fetch())
+			{
+				wTnmtID = query->m_wID;
+				bTnmtGroup = query->m_bGroup;
+				bTnmtStep = query->m_bStep;
+			}
 
-		query->Close();
-	}
+			query->Close();
+		}
 	UNDEFINE_QUERY()
 
-	LPMAPTOURNAMENTSTEP pTS = NULL;
+		LPMAPTOURNAMENTSTEP pTS = NULL;
 	DEFINE_QUERY(&m_db, CTBLTournamentSchedule)
-	if(query->Open())
-	{
-		pTS = new MAPTOURNAMENTSTEP();
-
-		while(query->Fetch())
+		if (query->Open())
 		{
-			TOURNAMENTSTEP tour;
-			tour.m_bGroup = query->m_bGroup;
-			tour.m_bStep = query->m_bStep;
-			tour.m_dwPeriod = query->m_dwPeriod;
+			pTS = new MAPTOURNAMENTSTEP();
 
-			pTS->insert(MAPTOURNAMENTSTEP::value_type(MAKEWORD(tour.m_bStep, tour.m_bGroup), tour));
+			while (query->Fetch())
+			{
+				TOURNAMENTSTEP tour;
+				tour.m_bGroup = query->m_bGroup;
+				tour.m_bStep = query->m_bStep;
+				tour.m_dwPeriod = query->m_dwPeriod;
+
+				pTS->insert(MAPTOURNAMENTSTEP::value_type(MAKEWORD(tour.m_bStep, tour.m_bGroup), tour));
+			}
+			query->Close();
 		}
-		query->Close();
-	}
 	UNDEFINE_QUERY()
 
-	WORD wTourID = SetTournamentTime(pTS, m_battletime[BT_TOURNAMENT], 1, FALSE, TRUE, wTnmtID, bTnmtGroup, bTnmtStep);
-	if(wTourID)
+		WORD wTourID = SetTournamentTime(pTS, m_battletime[BT_TOURNAMENT], 1, FALSE, TRUE, wTnmtID, bTnmtGroup, bTnmtStep);
+	if (wTourID)
 	{
 		MAPTOURNAMENTENTRY mapTNMTE;
 		mapTNMTE.clear();
 
 		DEFINE_QUERY(&m_db, CTBLTournament)
-		if(query->Open())
-		{
-			while(query->Fetch())
+			if (query->Open())
 			{
-				LPTOURNAMENTENTRY pTour = new TOURNAMENTENTRY();
-				pTour->m_bGroup = query->m_bGroup;
-				pTour->m_bEntryID = query->m_bEntryID;
-				pTour->m_strName = query->m_szName;
-				pTour->m_bType = query->m_bType;
-				pTour->m_dwClass = query->m_dwClass;
-				pTour->m_dwFee = query->m_dwFee;
-				pTour->m_dwFeeBack = query->m_dwFeeBack;
-				pTour->m_wPermitItemID = query->m_wPermitItemID;
-				pTour->m_bPermitCount = query->m_bPermitCount;
-				pTour->m_bMinLevel = 0;
-				pTour->m_bMaxLevel = 0xFF;
-				pTour->m_map1st.clear();
-				pTour->m_mapNormal.clear();
-				pTour->m_mapPlayer.clear();
+				while (query->Fetch())
+				{
+					LPTOURNAMENTENTRY pTour = new TOURNAMENTENTRY();
+					pTour->m_bGroup = query->m_bGroup;
+					pTour->m_bEntryID = query->m_bEntryID;
+					pTour->m_strName = query->m_szName;
+					pTour->m_bType = query->m_bType;
+					pTour->m_dwClass = query->m_dwClass;
+					pTour->m_dwFee = query->m_dwFee;
+					pTour->m_dwFeeBack = query->m_dwFeeBack;
+					pTour->m_wPermitItemID = query->m_wPermitItemID;
+					pTour->m_bPermitCount = query->m_bPermitCount;
+					pTour->m_bMinLevel = 0;
+					pTour->m_bMaxLevel = 0xFF;
+					pTour->m_map1st.clear();
+					pTour->m_mapNormal.clear();
+					pTour->m_mapPlayer.clear();
 
-				mapTNMTE.insert(MAPTOURNAMENTENTRY::value_type(pTour->m_bEntryID, pTour));
+					mapTNMTE.insert(MAPTOURNAMENTENTRY::value_type(pTour->m_bEntryID, pTour));
+				}
+				query->Close();
 			}
-			query->Close();
-		}
 		UNDEFINE_QUERY()
 
-		if(!mapTNMTE.empty())
-			m_bFirstGroupCount = BYTE(min(mapTNMTE.size() * 4.0f / 3.0f + 1.999f, FIRSTGRADEGROUPCOUNT));
+			if (!mapTNMTE.empty())
+				m_bFirstGroupCount = BYTE(min(mapTNMTE.size() * 4.0f / 3.0f + 1.999f, FIRSTGRADEGROUPCOUNT));
 
 		m_mapTournament.insert(MAPTOURNAMENT::value_type(wTourID, mapTNMTE));
 
 		DEFINE_QUERY(&m_db, CTBLTournamentReward)
-		if(query->Open())
-		{
-			while(query->Fetch())
+			if (query->Open())
 			{
-				MAPTOURNAMENTENTRY::iterator itEt = mapTNMTE.find(query->m_bEntryID);
-				if(itEt!=mapTNMTE.end())
+				while (query->Fetch())
 				{
-					LPTOURNAMENTENTRY pEntry = (*itEt).second;
+					MAPTOURNAMENTENTRY::iterator itEt = mapTNMTE.find(query->m_bEntryID);
+					if (itEt != mapTNMTE.end())
+					{
+						LPTOURNAMENTENTRY pEntry = (*itEt).second;
 
-					TNMTREWARD reward;
-					reward.m_bChartType = query->m_bChartType;
-					reward.m_wItemID = query->m_wItemID;
-					reward.m_bCount = query->m_bCount;
-					reward.m_dwClass = query->m_dwClass;
-					reward.m_bCheckShield = query->m_bCheckShield;
-					pEntry->m_vReward.push_back(reward);
+						TNMTREWARD reward;
+						reward.m_bChartType = query->m_bChartType;
+						reward.m_wItemID = query->m_wItemID;
+						reward.m_bCount = query->m_bCount;
+						reward.m_dwClass = query->m_dwClass;
+						reward.m_bCheckShield = query->m_bCheckShield;
+						pEntry->m_vReward.push_back(reward);
+					}
 				}
-			}
 
-			query->Close();
-		}
+				query->Close();
+			}
 		UNDEFINE_QUERY()
 	}
 	else
@@ -1613,34 +1517,34 @@ DWORD CTWorldSvrModule::LoadData()
 	MAPTOURNAMENTTIME mapte;
 	mapte.clear();
 	DEFINE_QUERY(&m_db, CTBLTnmtEventTime)
-	if(query->Open())
-	{
-		while(query->Fetch())
+		if (query->Open())
 		{
-			TBATTLETIME bt;
-			bt.m_bWeek = query->m_bWeek;
-			bt.m_bDay = query->m_bDay;
-			bt.m_dwBattleStart = query->m_dwStart;
+			while (query->Fetch())
+			{
+				TBATTLETIME bt;
+				bt.m_bWeek = query->m_bWeek;
+				bt.m_bDay = query->m_bDay;
+				bt.m_dwBattleStart = query->m_dwStart;
 
-			mapte.insert(MAPTOURNAMENTTIME::value_type(query->m_wTourID, bt));
+				mapte.insert(MAPTOURNAMENTTIME::value_type(query->m_wTourID, bt));
+			}
+			query->Close();
 		}
-		query->Close();
-	}
 	UNDEFINE_QUERY()
 
-	MAPTOURNAMENTTIME::iterator itTT;
-	for(itTT=mapte.begin(); itTT!=mapte.end(); itTT++)
+		MAPTOURNAMENTTIME::iterator itTT;
+	for (itTT = mapte.begin(); itTT != mapte.end(); itTT++)
 	{
 		WORD wTEID = (*itTT).first;
 
 		LPMAPTOURNAMENTSTEP pTES = NULL;
 		DEFINE_QUERY(&m_db, CTBLTnmtEventSchedule)
-		query->m_wTourID = wTEID;
-		if(query->Open())
+			query->m_wTourID = wTEID;
+		if (query->Open())
 		{
 			pTES = new MAPTOURNAMENTSTEP();
 
-			while(query->Fetch())
+			while (query->Fetch())
 			{
 				TOURNAMENTSTEP tour;
 				tour.m_bStep = query->m_bStep;
@@ -1652,17 +1556,17 @@ DWORD CTWorldSvrModule::LoadData()
 		}
 		UNDEFINE_QUERY()
 
-		WORD wTourID = SetTournamentTime(pTES, (*itTT).second, wTEID, FALSE, TRUE, wTnmtID, bTnmtGroup, bTnmtStep);
-		if(wTourID)
+			WORD wTourID = SetTournamentTime(pTES, (*itTT).second, wTEID, FALSE, TRUE, wTnmtID, bTnmtGroup, bTnmtStep);
+		if (wTourID)
 		{
 			MAPTOURNAMENTENTRY mapTNMTE;
 			mapTNMTE.clear();
 
 			DEFINE_QUERY(&m_db, CTBLTournamentEvent)
-			query->m_wTourID = wTEID;
-			if(query->Open())
+				query->m_wTourID = wTEID;
+			if (query->Open())
 			{
-				while(query->Fetch())
+				while (query->Fetch())
 				{
 					LPTOURNAMENTENTRY pTour = new TOURNAMENTENTRY();
 					pTour->m_bEntryID = query->m_bEntryID;
@@ -1685,16 +1589,16 @@ DWORD CTWorldSvrModule::LoadData()
 			}
 			UNDEFINE_QUERY()
 
-			m_mapTournament.insert(MAPTOURNAMENT::value_type(wTourID, mapTNMTE));
+				m_mapTournament.insert(MAPTOURNAMENT::value_type(wTourID, mapTNMTE));
 
 			DEFINE_QUERY(&m_db, CTBLTnmtEventReward)
-			query->m_wTourID = wTEID;
-			if(query->Open())
+				query->m_wTourID = wTEID;
+			if (query->Open())
 			{
-				while(query->Fetch())
+				while (query->Fetch())
 				{
 					MAPTOURNAMENTENTRY::iterator itEt = mapTNMTE.find(query->m_bEntryID);
-					if(itEt!=mapTNMTE.end())
+					if (itEt != mapTNMTE.end())
 					{
 						LPTOURNAMENTENTRY pEntry = (*itEt).second;
 
@@ -1716,104 +1620,104 @@ DWORD CTWorldSvrModule::LoadData()
 			delete pTES;
 	}
 
-	if(m_tournament.m_wID)
+	if (m_tournament.m_wID)
 	{
 		LPMAPTOURNAMENTENTRY pEntry = GetTournament(m_tournament.m_wID);
-		if(pEntry)
+		if (pEntry)
 		{
 			m_tournament.m_mapEntry = pEntry;
 
 			BYTE bEC = TournamentGetEntryCount();
-			if(bEC)
+			if (bEC)
 				m_tournament.m_bBase = BYTE(TOURNAMENT_BASEPRIZE / bEC);
 			else
 				m_tournament.m_bBase = 0;
 
 			BYTE b1St;
 			MAPTOURNAMENTSTEP::iterator itStep = m_tournament.m_mapStep.find(TNMTSTEP_1st);
-			if(itStep != m_tournament.m_mapStep.end() && (*itStep).second.m_dwPeriod)
+			if (itStep != m_tournament.m_mapStep.end() && (*itStep).second.m_dwPeriod)
 				b1St = TRUE;
 			else
 				b1St = FALSE;
 
 			DEFINE_QUERY(&m_db, CTBLTournamentPlayer)
-			if(query->Open())
-			{
-				MAPTNMTPLAYER mapTP;
-				mapTP.clear();
-				BYTE bStep;
-
-				while(query->Fetch())
+				if (query->Open())
 				{
-					LPTOURNAMENTENTRY pEt = GetCurrentTournamentEntry(query->m_bEntry);
-					if(!pEt) continue;
+					MAPTNMTPLAYER mapTP;
+					mapTP.clear();
+					BYTE bStep;
 
-					LPTNMTPLAYER pTarget = new TNMTPLAYER();
-
-					pTarget->m_bEntryID = query->m_bEntry;
-					pTarget->m_bClass = query->m_bClass;
-					pTarget->m_bCountry = query->m_bCountry;
-					pTarget->m_bLevel = query->m_bLevel;
-					pTarget->m_dwCharID = query->m_dwCharID;
-					pTarget->m_strName = query->m_szName;
-					pTarget->m_dwChiefID = query->m_dwChiefID;
-
-					if(query->m_bStep == TNMTSTEP_QFINAL)
-						pTarget->m_bResult[MATCH_QFINAL] = query->m_bResult;
-					else if(query->m_bStep == TNMTSTEP_SFINAL)
+					while (query->Fetch())
 					{
-						pTarget->m_bResult[MATCH_QFINAL] = TNMTWIN_WIN;
-						pTarget->m_bResult[MATCH_SFINAL] = query->m_bResult;
+						LPTOURNAMENTENTRY pEt = GetCurrentTournamentEntry(query->m_bEntry);
+						if (!pEt) continue;
+
+						LPTNMTPLAYER pTarget = new TNMTPLAYER();
+
+						pTarget->m_bEntryID = query->m_bEntry;
+						pTarget->m_bClass = query->m_bClass;
+						pTarget->m_bCountry = query->m_bCountry;
+						pTarget->m_bLevel = query->m_bLevel;
+						pTarget->m_dwCharID = query->m_dwCharID;
+						pTarget->m_strName = query->m_szName;
+						pTarget->m_dwChiefID = query->m_dwChiefID;
+
+						if (query->m_bStep == TNMTSTEP_QFINAL)
+							pTarget->m_bResult[MATCH_QFINAL] = query->m_bResult;
+						else if (query->m_bStep == TNMTSTEP_SFINAL)
+						{
+							pTarget->m_bResult[MATCH_QFINAL] = TNMTWIN_WIN;
+							pTarget->m_bResult[MATCH_SFINAL] = query->m_bResult;
+						}
+						else if (query->m_bStep == TNMTSTEP_FINAL)
+						{
+							pTarget->m_bResult[MATCH_QFINAL] = TNMTWIN_WIN;
+							pTarget->m_bResult[MATCH_SFINAL] = TNMTWIN_WIN;
+							pTarget->m_bResult[MATCH_FINAL] = query->m_bResult;
+						}
+
+						MAPDWORD::iterator itGM = m_mapCharGuild.find(pTarget->m_dwCharID);
+						if (itGM != m_mapCharGuild.end())
+						{
+							CTGuild * pGuild = FindTGuild((*itGM).second);
+							if (pGuild)
+								pTarget->m_strGuildName = pGuild->m_strName;
+						}
+
+						GetRanking(pTarget->m_dwCharID, pTarget->m_dwRank, pTarget->m_dwMonthRank);
+
+						if (b1St && IsFirstGroup(pTarget->m_bCountry, pTarget->m_dwCharID))
+							bStep = TNMTSTEP_1st;
+						else
+							bStep = TNMTSTEP_NORMAL;
+
+						if (query->m_dwCharID == query->m_dwChiefID)
+							AddTNMTPlayer(pEt, pTarget, bStep, pTarget);
+						else
+							mapTP.insert(MAPTNMTPLAYER::value_type(pTarget->m_dwCharID, pTarget));
 					}
-					else if(query->m_bStep == TNMTSTEP_FINAL)
+					query->Close();
+
+					if (m_tournament.m_bStep >= TNMTSTEP_PARTY)
+						TournamentSelectPlayer();
+
+					MAPTNMTPLAYER::iterator itTP;
+					for (itTP = mapTP.begin(); itTP != mapTP.end(); itTP++)
 					{
-						pTarget->m_bResult[MATCH_QFINAL] = TNMTWIN_WIN;
-						pTarget->m_bResult[MATCH_SFINAL] = TNMTWIN_WIN;
-						pTarget->m_bResult[MATCH_FINAL] = query->m_bResult;
-					}
-
-					MAPDWORD::iterator itGM = m_mapCharGuild.find(pTarget->m_dwCharID);
-					if(itGM != m_mapCharGuild.end())
-					{
-						CTGuild * pGuild = FindTGuild((*itGM).second);
-						if(pGuild)
-							pTarget->m_strGuildName = pGuild->m_strName;
-					}
-
-					GetRanking(pTarget->m_dwCharID, pTarget->m_dwRank, pTarget->m_dwMonthRank);
-
-					if(b1St && IsFirstGroup(pTarget->m_bCountry, pTarget->m_dwCharID))
-						bStep = TNMTSTEP_1st;
-					else
-						bStep = TNMTSTEP_NORMAL;
-
-					if(query->m_dwCharID == query->m_dwChiefID)
-						AddTNMTPlayer(pEt, pTarget, bStep, pTarget);
-					else
-						mapTP.insert(MAPTNMTPLAYER::value_type(pTarget->m_dwCharID, pTarget));
-				}
-				query->Close();
-
-				if(m_tournament.m_bStep >= TNMTSTEP_PARTY)
-					TournamentSelectPlayer();
-
-				MAPTNMTPLAYER::iterator itTP;
-				for(itTP=mapTP.begin(); itTP != mapTP.end(); itTP++)
-				{
-					LPTOURNAMENTENTRY pEt = GetCurrentTournamentEntry((*itTP).second->m_bEntryID);
-					if(pEt)
-					{
-						LPTNMTPLAYER pChief = FindTNMTPlayer((*itTP).second->m_dwChiefID);
-						if(pChief)
-							AddTNMTPlayer(pEt, (*itTP).second, TNMTSTEP_PARTY, pChief);
+						LPTOURNAMENTENTRY pEt = GetCurrentTournamentEntry((*itTP).second->m_bEntryID);
+						if (pEt)
+						{
+							LPTNMTPLAYER pChief = FindTNMTPlayer((*itTP).second->m_dwChiefID);
+							if (pChief)
+								AddTNMTPlayer(pEt, (*itTP).second, TNMTSTEP_PARTY, pChief);
+							else
+								delete (*itTP).second;
+						}
 						else
 							delete (*itTP).second;
 					}
-					else
-						delete (*itTP).second;
+					mapTP.clear();
 				}
-				mapTP.clear();
-			}
 			UNDEFINE_QUERY()
 		}
 	}
@@ -1821,78 +1725,78 @@ DWORD CTWorldSvrModule::LoadData()
 	CalcGuildRanking();
 
 	CTime t = CTime::GetCurrentTime().GetTime();
-	m_bRankMonth = t.GetMonth();	
+	m_bRankMonth = t.GetMonth();
 
 	DEFINE_QUERY(&m_db, CTBLCMGiftChart)
 
-	if(query->Open())
-	{
-		while(query->Fetch())
+		if (query->Open())
 		{
-			LPCMGIFT pGift = new TCMGIFT();
+			while (query->Fetch())
+			{
+				LPCMGIFT pGift = new TCMGIFT();
 
-			pGift->m_wGiftID		= query->m_wGiftID;
-			pGift->m_bGiftType		= query->m_bGiftType;
-			pGift->m_dwValue		= query->m_dwValue;
-			pGift->m_bCount			= query->m_bCount;
-			pGift->m_bTakeType		= query->m_bTakeType;
-			pGift->m_bMaxTakeCount	= query->m_bMaxTakeCount;
-			pGift->m_bToolOnly		= query->m_bToolOnly;
-			pGift->m_wErrGiftID		= query->m_wErrGiftID;
-			pGift->m_strTitle		= query->m_szTitle;
-			pGift->m_strMsg			= query->m_szMsg;
+				pGift->m_wGiftID = query->m_wGiftID;
+				pGift->m_bGiftType = query->m_bGiftType;
+				pGift->m_dwValue = query->m_dwValue;
+				pGift->m_bCount = query->m_bCount;
+				pGift->m_bTakeType = query->m_bTakeType;
+				pGift->m_bMaxTakeCount = query->m_bMaxTakeCount;
+				pGift->m_bToolOnly = query->m_bToolOnly;
+				pGift->m_wErrGiftID = query->m_wErrGiftID;
+				pGift->m_strTitle = query->m_szTitle;
+				pGift->m_strMsg = query->m_szMsg;
 
-			m_mapCMGift.insert(MAPCMGIFT::value_type(pGift->m_wGiftID, pGift));
+				m_mapCMGift.insert(MAPCMGIFT::value_type(pGift->m_wGiftID, pGift));
+			}
 		}
-	}
 
-	UNDEFINE_QUERY()	
+	UNDEFINE_QUERY()
 
-	return EC_NOERROR;
+		return EC_NOERROR;
 }
 
 DWORD CTWorldSvrModule::ControlThread()
 {
-	while(TRUE)
+	while (TRUE)
 	{
 		DWORD dwCompKey = COMP_NULL;
 		DWORD dwIoBytes = 0;
 
 		LPOVERLAPPED pOV = NULL;
 
-		if(!GetQueuedCompletionStatus(
+		if (!GetQueuedCompletionStatus(
 			m_hIocpControl,
 			&dwIoBytes,
 			&dwCompKey,
 			&pOV, INFINITE) &&
-			GetLastError() != WAIT_TIMEOUT )
+			GetLastError() != WAIT_TIMEOUT)
 		{
-			switch(dwCompKey)
+			switch (dwCompKey)
 			{
-			case COMP_ACCEPT	:
-				if(!WaitForConnect())
-					LogError(_T("WaitForConnect : Error"));
+			case COMP_ACCEPT:
+				if (!WaitForConnect())
+					LogEvent(_T("WaitForConnect : Error"));
 
 				break;
 			}
 		}
-		else if(pOV)
+		else if (pOV)
 		{
-			switch(dwCompKey)
+			switch (dwCompKey)
 			{
-			case COMP_ACCEPT	:
-				if(!Accept())
-					LogError(_T("Accept : Error"));
+			case COMP_ACCEPT:
+				if (!Accept())
+					LogEvent(_T("Accept : Error"));
 
-				if(!WaitForConnect())
-					LogError(_T("WaitForConnect : Error"));
+				if (!WaitForConnect())
+					LogEvent(_T("WaitForConnect : Error"));
 
 				break;
 
-			case COMP_CLOSE		: OnCloseSession((CTWorldSession *) pOV); break;
+			case COMP_CLOSE: OnCloseSession((CTWorldSession *)pOV); break;
 			}
 		}
-		else if( dwCompKey == COMP_EXIT )
+		else if (dwCompKey == COMP_EXIT)
 			return 0;
 	}
 
@@ -1903,43 +1807,43 @@ DWORD CTWorldSvrModule::WorkThread()
 {
 	BOOL bRun = TRUE;
 
-	while(bRun)
+	while (bRun)
 	{
 		DWORD dwCompKey = COMP_NULL;
 		DWORD dwIoBytes = 0;
 
 		LPOVERLAPPED pOV = NULL;
 
-		if(!GetQueuedCompletionStatus(
+		if (!GetQueuedCompletionStatus(
 			m_hIocpWork,
 			&dwIoBytes,
 			&dwCompKey,
 			&pOV, INFINITE) &&
-			GetLastError() != WAIT_TIMEOUT )
+			GetLastError() != WAIT_TIMEOUT)
 		{
-			switch(dwCompKey)
+			switch (dwCompKey)
 			{
-			case COMP_SESSION	:
-				if(pOV)
+			case COMP_SESSION:
+				if (pOV)
 				{
-					CTWorldSession *pSession = (CTWorldSession *) ((COverlappedEx *) pOV)->m_pOBJ;
-					BYTE bTYPE = ((COverlappedEx *) pOV)->m_bTYPE;
+					CTWorldSession *pSession = (CTWorldSession *)((COverlappedEx *)pOV)->m_pOBJ;
+					BYTE bTYPE = ((COverlappedEx *)pOV)->m_bTYPE;
 
-					switch(bTYPE)
+					switch (bTYPE)
 					{
-					case TOV_SSN_RECV	:
+					case TOV_SSN_RECV:
 						OnInvalidSession(pSession);
 						break;
-						// ***** IOCP ªÁøÎπ˝ ¡ﬂ æÀæ∆≥ª±‚ »˚µÁ √ππ¯¬∞ ±∏πÆ (º≠πˆ√¯ ººº« ¡æ∑·) *****
+						// ***** IOCP ÏÇ¨Ïö©Î≤ï Ï§ë ÏïåÏïÑÎÇ¥Í∏∞ ÌûòÎì† Ï≤´Î≤àÏß∏ Íµ¨Î¨∏ (ÏÑúÎ≤ÑÏ∏° ÏÑ∏ÏÖò Ï¢ÖÎ£å) *****
 						//
-						// º≠πˆ∞° ∏’¿˙ closesocket()¿ª »£√‚«œø© ººº«¿ª ¡æ∑·«— ∞ÊøÏ¿Ã∏Á
-						// WSARecv()∞° »£√‚µ» ªÛ≈¬ø°º≠∏∏ ¿Ã ƒ⁄µÂ∑Œ µÈæÓø¿∏Á
-						// ∏µÁ ø¿πˆ∑¶ ø¿∆€∑°¿Ãº«¿Ã ¡æ∑·µ» ªÛ≈¬¿Ã±‚ ∂ßπÆø°
-						// ¿Ã º“ƒœ «⁄µÈ∞˙ ∞¸∑√µ» µ•¿Ã≈∏¥¬ IOCP≈•ø° ≥≤æ∆¿÷¡ˆ æ ¥Ÿ.
-						// µ˚∂Ûº≠ ¿Ã Ω∫∑πµÂø°º≠¥¬ «ÿ¥Á ººº«ø° ∞¸∑√µ» ¿€æ˜ ∏Ì∑…¿ª ¥ı¿ÃªÛ ºˆ«‡«œ¡ˆ æ ±‚ ∂ßπÆø°
-						// ¥Ÿ∏• Ω∫∑πµÂ∞° «„∂Ù«—¥Ÿ∏È ¿Ã ±∏πÆø°º≠ ººº« ∆˜¿Œ≈Õ∏¶ ªË¡¶«ÿµµ π´πÊ«œ¥Ÿ.
-						// ººº«¿ª ªË¡¶ «œ¥¬µ• ∞°¿Â ¡¡¿∫ ¡ˆ¡°¿Ãπ«∑Œ ¿¸√º Ω√Ω∫≈€ º≥∞ËΩ√
-						// ¡§ªÛ¿˚¿Œ ººº« ¡æ∑·¥¬ º≠πˆ√¯ø°º≠ ∏’¿˙ ººº«¿ª ¡æ∑·Ω√≈∞µµ∑œ º≥∞Ë«œ¥¬ ∞Õ¿Ã æ»¿¸«œ¥Ÿ.
+						// ÏÑúÎ≤ÑÍ∞Ä Î®ºÏ†Ä closesocket()ÏùÑ Ìò∏Ï∂úÌïòÏó¨ ÏÑ∏ÏÖòÏùÑ Ï¢ÖÎ£åÌïú Í≤ΩÏö∞Ïù¥Î©∞
+						// WSARecv()Í∞Ä Ìò∏Ï∂úÎêú ÏÉÅÌÉúÏóêÏÑúÎßå Ïù¥ ÏΩîÎìúÎ°ú Îì§Ïñ¥Ïò§Î©∞
+						// Î™®Îì† Ïò§Î≤ÑÎû© Ïò§ÌçºÎûòÏù¥ÏÖòÏù¥ Ï¢ÖÎ£åÎêú ÏÉÅÌÉúÏù¥Í∏∞ ÎïåÎ¨∏Ïóê
+						// Ïù¥ ÏÜåÏºì Ìï∏Îì§Í≥º Í¥ÄÎ†®Îêú Îç∞Ïù¥ÌÉÄÎäî IOCPÌÅêÏóê ÎÇ®ÏïÑÏûàÏßÄ ÏïäÎã§.
+						// Îî∞ÎùºÏÑú Ïù¥ Ïä§Î†àÎìúÏóêÏÑúÎäî Ìï¥Îãπ ÏÑ∏ÏÖòÏóê Í¥ÄÎ†®Îêú ÏûëÏóÖ Î™ÖÎ†πÏùÑ ÎçîÏù¥ÏÉÅ ÏàòÌñâÌïòÏßÄ ÏïäÍ∏∞ ÎïåÎ¨∏Ïóê
+						// Îã§Î•∏ Ïä§Î†àÎìúÍ∞Ä ÌóàÎùΩÌïúÎã§Î©¥ Ïù¥ Íµ¨Î¨∏ÏóêÏÑú ÏÑ∏ÏÖò Ìè¨Ïù∏ÌÑ∞Î•º ÏÇ≠Ï†úÌï¥ÎèÑ Î¨¥Î∞©ÌïòÎã§.
+						// ÏÑ∏ÏÖòÏùÑ ÏÇ≠Ï†ú ÌïòÎäîÎç∞ Í∞ÄÏû• Ï¢ãÏùÄ ÏßÄÏ†êÏù¥ÎØÄÎ°ú Ï†ÑÏ≤¥ ÏãúÏä§ÌÖú ÏÑ§Í≥ÑÏãú
+						// Ï†ïÏÉÅÏ†ÅÏù∏ ÏÑ∏ÏÖò Ï¢ÖÎ£åÎäî ÏÑúÎ≤ÑÏ∏°ÏóêÏÑú Î®ºÏ†Ä ÏÑ∏ÏÖòÏùÑ Ï¢ÖÎ£åÏãúÌÇ§ÎèÑÎ°ù ÏÑ§Í≥ÑÌïòÎäî Í≤ÉÏù¥ ÏïàÏ†ÑÌïòÎã§.
 					case TOV_SSN_SEND:
 						OnSendComplete(pSession, 0);
 						break;
@@ -1949,48 +1853,48 @@ DWORD CTWorldSvrModule::WorkThread()
 				break;
 			}
 		}
-		else if(pOV)
+		else if (pOV)
 		{
-			BYTE bTYPE = ((COverlappedEx *) pOV)->m_bTYPE;
+			BYTE bTYPE = ((COverlappedEx *)pOV)->m_bTYPE;
 
-			switch(dwCompKey)
+			switch (dwCompKey)
 			{
-			case COMP_SESSION	:
+			case COMP_SESSION:
+			{
+				CTWorldSession *pSession = (CTWorldSession *)((COverlappedEx *)pOV)->m_pOBJ;
+
+				switch (bTYPE)
 				{
-					CTWorldSession *pSession = (CTWorldSession *) ((COverlappedEx *) pOV)->m_pOBJ;
+				case TOV_SSN_RECV:
+					if (pSession)
+						ProcessSession(pSession, dwIoBytes);
 
-					switch(bTYPE)
-					{
-					case TOV_SSN_RECV	:
-						if(pSession)
-							ProcessSession( pSession, dwIoBytes);
+					break;
 
-						break;
+				case TOV_SSN_SEND:
+					if (pSession)
+						OnSendComplete(pSession, dwIoBytes);
 
-					case TOV_SSN_SEND	:
-						if(pSession)
-							OnSendComplete( pSession, dwIoBytes);
-
-						break;
-					}
+					break;
 				}
-				break;
+			}
+			break;
 			}
 		}
 		else
 		{
-			switch(dwCompKey)
+			switch (dwCompKey)
 			{
-			case COMP_EXIT		:
-				{
-					PostQueuedCompletionStatus(
-						m_hIocpWork, 0,
-						COMP_EXIT, NULL);
+			case COMP_EXIT:
+			{
+				PostQueuedCompletionStatus(
+					m_hIocpWork, 0,
+					COMP_EXIT, NULL);
 
-					bRun = FALSE;
-				}
+				bRun = FALSE;
+			}
 
-				break;
+			break;
 			}
 		}
 	}
@@ -2000,21 +1904,21 @@ DWORD CTWorldSvrModule::WorkThread()
 
 DWORD CTWorldSvrModule::BatchThread()
 {
-	srand( (unsigned)CTime::GetCurrentTime().GetTime() );
+	srand((unsigned)CTime::GetCurrentTime().GetTime());
 
-	while(TRUE)
+	while (TRUE)
 	{
 		EnterCriticalSection(&m_csQUEUE);
-		if(!m_bBatchRun)
+		if (!m_bBatchRun)
 		{
 			LeaveCriticalSection(&m_csQUEUE);
 			break;
 		}
 
-		if(m_qBATCHJOB.empty())
+		if (m_qBATCHJOB.empty())
 		{
 			LeaveCriticalSection(&m_csQUEUE);
-			WaitForSingleObject( m_hBatchEvent, INFINITE);
+			WaitForSingleObject(m_hBatchEvent, INFINITE);
 		}
 		else
 		{
@@ -2028,8 +1932,8 @@ DWORD CTWorldSvrModule::BatchThread()
 
 			/*if(dwResult)
 			{
-				CloseSession((CTWorldSession *) pBUF->m_pSESSION);
-				OnERROR(dwResult);
+			CloseSession((CTWorldSession *) pBUF->m_pSESSION);
+			OnERROR(dwResult);
 			}*/
 
 			delete pBUF;
@@ -2041,19 +1945,19 @@ DWORD CTWorldSvrModule::BatchThread()
 
 DWORD CTWorldSvrModule::DBThread()
 {
-	while(TRUE)
+	while (TRUE)
 	{
 		EnterCriticalSection(&m_csDBQUEUE);
-		if(!m_bDBRun && m_qDBJOB.empty())
+		if (!m_bDBRun && m_qDBJOB.empty())
 		{
 			LeaveCriticalSection(&m_csDBQUEUE);
 			break;
 		}
 
-		if(m_qDBJOB.empty())
+		if (m_qDBJOB.empty())
 		{
 			LeaveCriticalSection(&m_csDBQUEUE);
-			WaitForSingleObject( m_hDBEvent, INFINITE);
+			WaitForSingleObject(m_hDBEvent, INFINITE);
 		}
 		else
 		{
@@ -2062,7 +1966,7 @@ DWORD CTWorldSvrModule::DBThread()
 			LeaveCriticalSection(&m_csDBQUEUE);
 
 			DWORD dwResult = OnReceive(pBUF);
-			if(dwResult)
+			if (dwResult)
 				OnERROR(dwResult);
 
 			delete pBUF;
@@ -2074,21 +1978,21 @@ DWORD CTWorldSvrModule::DBThread()
 
 DWORD CTWorldSvrModule::TimerThread()
 {
-	while(TRUE)
+	while (TRUE)
 	{
 		m_timeCurrent = CTime::GetCurrentTime().GetTime();
 
 		EnterCriticalSection(&m_csTIMERQUEUE);
-		if(!m_bTimerRun)
+		if (!m_bTimerRun)
 		{
 			LeaveCriticalSection(&m_csTIMERQUEUE);
 			break;
 		}
 
-		if(m_qTIMERJOB.empty())
+		if (m_qTIMERJOB.empty())
 		{
 			LeaveCriticalSection(&m_csTIMERQUEUE);
-			WaitForSingleObject( m_hTimerEvent, WORLD_TIMER);
+			WaitForSingleObject(m_hTimerEvent, WORLD_TIMER);
 			CheckTGuildExtinction((DWORD)m_timeCurrent);
 			CheckEventExpired();
 			OnTimer();
@@ -2100,7 +2004,7 @@ DWORD CTWorldSvrModule::TimerThread()
 			LeaveCriticalSection(&m_csTIMERQUEUE);
 
 			DWORD dwResult = OnReceive(pBUF);
-			if(dwResult)
+			if (dwResult)
 				OnERROR(dwResult);
 
 			delete pBUF;
@@ -2110,401 +2014,419 @@ DWORD CTWorldSvrModule::TimerThread()
 	return 0;
 }
 
-void CTWorldSvrModule::OnSendComplete( CTWorldSession *pSession, DWORD dwIoBytes)
+void CTWorldSvrModule::OnSendComplete(CTWorldSession *pSession, DWORD dwIoBytes)
 {
-	if(pSession->SendComplete(dwIoBytes))
+	if (pSession->SendComplete(dwIoBytes))
 		ClosingSession(pSession);
 }
 
-void CTWorldSvrModule::ProcessSession( CTWorldSession *pSession, DWORD dwIoBytes)
+void CTWorldSvrModule::ProcessSession(CTWorldSession *pSession, DWORD dwIoBytes)
 {
 	BOOL bContinue = TRUE;
 
-	if(!pSession->Read(dwIoBytes))
+	if (!pSession->Read(dwIoBytes))
 	{
-		// ***** IOCP ªÁøÎπ˝ ¡ﬂ æÀæ∆≥ª±‚ »˚µÁ µŒπ¯¬∞ ±∏πÆ (≈¨∂Û¿Ãæ∆Æ√¯ ººº« ¡æ∑·) *****
+		// ***** IOCP ÏÇ¨Ïö©Î≤ï Ï§ë ÏïåÏïÑÎÇ¥Í∏∞ ÌûòÎì† ÎëêÎ≤àÏß∏ Íµ¨Î¨∏ (ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏Ï∏° ÏÑ∏ÏÖò Ï¢ÖÎ£å) *****
 		//
-		// ≈¨∂Û¿Ãæ∆Æ∞° ∏’¿˙ closesocket()¿ª »£√‚«œø© ººº«¿ª ¡æ∑·«— ∞ÊøÏ¿Ã∏Á
-		// WSARecv()∞° »£√‚µ» ªÛ≈¬ø°º≠∏∏ ¿Ã ƒ⁄µÂ∑Œ µÈæÓø¿∏Á
-		// ∏µÁ ø¿πˆ∑¶ ø¿∆€∑°¿Ãº«¿Ã ¡æ∑· µ«æ˙¥Ÿ∞Ì ∫º ºˆ æ¯¥Ÿ.
-		// µ˚∂Ûº≠ ¿Ã»ƒø° ¿Ã Ω∫∑πµÂø°º≠ ¿Ã ººº«∞˙ ∞¸∑√µ» ¿€æ˜∏Ì∑…¿Ã Ω««‡ µ… ºˆ ¿÷¿∏π«∑Œ
-		// ø©±‚º≠ ººº« ∆˜¿Œ≈Õ∏¶ ªË¡¶«œ∏È º≠πˆ∞° ¥ŸøÓµ… ºˆ ¿÷¥Ÿ.
-		// ReceiveøÕ ∞¸∑√µ» ø¿πˆ∑¶ ø¿∆€∑π¿Ãº«¿∫ »ÆΩ«»˜ ¡æ∑· µ«æ˙¿∏π«∑Œ
-		// SendøÕ ∞¸∑√µ» ø¿πˆ∑¶ ø¿∆€∑π¿Ãº«¿Ã ¡æ∑·µ«æ˙¥¬¡ˆ∏¶
-		// »Æ¿Œ«— »ƒ ¥Ÿ∏• Ω∫∑πµÂ¿« ººº« ªË¡¶ ºˆ∂Ù∞˙¡§¿ª ∞≈ƒ°∞Ì ººº«¿ª ªË¡¶ «ÿæﬂ «—¥Ÿ.
+		// ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏Í∞Ä Î®ºÏ†Ä closesocket()ÏùÑ Ìò∏Ï∂úÌïòÏó¨ ÏÑ∏ÏÖòÏùÑ Ï¢ÖÎ£åÌïú Í≤ΩÏö∞Ïù¥Î©∞
+		// WSARecv()Í∞Ä Ìò∏Ï∂úÎêú ÏÉÅÌÉúÏóêÏÑúÎßå Ïù¥ ÏΩîÎìúÎ°ú Îì§Ïñ¥Ïò§Î©∞
+		// Î™®Îì† Ïò§Î≤ÑÎû© Ïò§ÌçºÎûòÏù¥ÏÖòÏù¥ Ï¢ÖÎ£å ÎêòÏóàÎã§Í≥† Î≥º Ïàò ÏóÜÎã§.
+		// Îî∞ÎùºÏÑú Ïù¥ÌõÑÏóê Ïù¥ Ïä§Î†àÎìúÏóêÏÑú Ïù¥ ÏÑ∏ÏÖòÍ≥º Í¥ÄÎ†®Îêú ÏûëÏóÖÎ™ÖÎ†πÏù¥ Ïã§Ìñâ Îê† Ïàò ÏûàÏúºÎØÄÎ°ú
+		// Ïó¨Í∏∞ÏÑú ÏÑ∏ÏÖò Ìè¨Ïù∏ÌÑ∞Î•º ÏÇ≠Ï†úÌïòÎ©¥ ÏÑúÎ≤ÑÍ∞Ä Îã§Ïö¥Îê† Ïàò ÏûàÎã§.
+		// ReceiveÏôÄ Í¥ÄÎ†®Îêú Ïò§Î≤ÑÎû© Ïò§ÌçºÎ†àÏù¥ÏÖòÏùÄ ÌôïÏã§Ìûà Ï¢ÖÎ£å ÎêòÏóàÏúºÎØÄÎ°ú
+		// SendÏôÄ Í¥ÄÎ†®Îêú Ïò§Î≤ÑÎû© Ïò§ÌçºÎ†àÏù¥ÏÖòÏù¥ Ï¢ÖÎ£åÎêòÏóàÎäîÏßÄÎ•º
+		// ÌôïÏù∏Ìïú ÌõÑ Îã§Î•∏ Ïä§Î†àÎìúÏùò ÏÑ∏ÏÖò ÏÇ≠Ï†ú ÏàòÎùΩÍ≥ºÏ†ïÏùÑ Í±∞ÏπòÍ≥† ÏÑ∏ÏÖòÏùÑ ÏÇ≠Ï†ú Ìï¥Ïïº ÌïúÎã§.
 		OnInvalidSession(pSession);
 		return;
 	}
 
-	while(bContinue)
+	while (bContinue)
 	{
 		DWORD dwResult = pSession->CheckMessage();
 
-		switch(dwResult)
+		switch (dwResult)
 		{
-		//case PACKET_INVALID		:
-		case PACKET_INCOMPLETE	: bContinue = FALSE; break;
-		case PACKET_COMPLETE	:
+			//case PACKET_INVALID		:
+		case PACKET_INCOMPLETE: bContinue = FALSE; break;
+		case PACKET_COMPLETE:
+		{
+			LPPACKETBUF pBUF = new PACKETBUF();
+
+			pBUF->m_packet.Copy(&pSession->m_Recv);
+			pBUF->m_pSESSION = pSession;
+
+			SayToBATCH(pBUF);
+			pSession->Flush();
+		}
+
+		break;
+
+		default:
+		{
+			if (pSession->m_Recv.GetSize() == MAX_PACKET_SIZE)
 			{
-				LPPACKETBUF pBUF = new PACKETBUF();
-
-				pBUF->m_packet.Copy(&pSession->m_Recv);
-				pBUF->m_pSESSION = pSession;
-
-				SayToBATCH(pBUF);
+				LogEvent("Check Message Overflow");
 				pSession->Flush();
 			}
-
-			break;
-
-		default					:
+			else
 			{
-				if(pSession->m_Recv.GetSize() == MAX_PACKET_SIZE)
-				{
-					LogInfo("Check Message Overflow");
-					pSession->Flush();
-				}
-				else
-				{
-					OnInvalidSession(pSession);
-					return;
-				}
+				OnInvalidSession(pSession);
+				return;
 			}
-			break;
+		}
+		break;
+		// ***** IOCP ÏÇ¨Ïö©Î≤ï Ï§ë ÏïåÏïÑÎÇ¥Í∏∞ ÌûòÎì† ÏÑ∏Î≤àÏß∏ Íµ¨Î¨∏ (ÎπÑ Ï†ïÏÉÅÏ†ÅÏù∏ ÏÑ∏ÏÖò Ï¢ÖÎ£å) *****
+		//
+		// ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏Í∞Ä Ìå®ÌÇ∑ÏùÑ Î≥ÄÏ°∞Ìï¥ÏÑú Î≥¥ÎÇ∏Îã§Í±∞ÎÇò ÎÑ§Ìä∏¬üp Ïò§Î•òÎ°ú Ïù∏Ìï¥ ÏÑ∏ÏÖòÏù¥ ÎπÑ Ï†ïÏÉÅÏ†ÅÏù∏ ÏÉÅÌÉúÍ∞Ä Îêú Í≤ΩÏö∞Ïù¥Î©∞
+		// WSARecv()Í∞Ä Ìò∏Ï∂úÎêú ÏÉÅÌÉúÏóêÏÑúÎßå Ïù¥ ÏΩîÎìúÎ°ú Îì§Ïñ¥Ïò§Î©∞
+		// Î™®Îì† Ïò§Î≤ÑÎû© Ïò§ÌçºÎûòÏù¥ÏÖòÏù¥ Ï¢ÖÎ£å ÎêòÏóàÎã§Í≥† Î≥º Ïàò ÏóÜÎã§.
+		// Îî∞ÎùºÏÑú Ïù¥ÌõÑÏóê Ïù¥ Ïä§Î†àÎìúÏóêÏÑú Ïù¥ ÏÑ∏ÏÖòÍ≥º Í¥ÄÎ†®Îêú ÏûëÏóÖÎ™ÖÎ†πÏù¥ Ïã§Ìñâ Îê† Ïàò ÏûàÏúºÎØÄÎ°ú
+		// Ïó¨Í∏∞ÏÑú ÏÑ∏ÏÖò Ìè¨Ïù∏ÌÑ∞Î•º ÏÇ≠Ï†úÌïòÎ©¥ ÏÑúÎ≤ÑÍ∞Ä Îã§Ïö¥Îê† Ïàò ÏûàÎã§.
+		// ReceiveÏôÄ Í¥ÄÎ†®Îêú Ïò§Î≤ÑÎû© Ïò§ÌçºÎ†àÏù¥ÏÖòÏùÄ ÌôïÏã§Ìûà Ï¢ÖÎ£å ÎêòÏóàÏúºÎØÄÎ°ú
+		// SendÏôÄ Í¥ÄÎ†®Îêú Ïò§Î≤ÑÎû© Ïò§ÌçºÎ†àÏù¥ÏÖòÏù¥ Ï¢ÖÎ£åÎêòÏóàÎäîÏßÄÎ•º
+		// ÌôïÏù∏Ìïú ÌõÑ Îã§Î•∏ Ïä§Î†àÎìúÏùò ÏÑ∏ÏÖò ÏÇ≠Ï†ú ÏàòÎùΩÍ≥ºÏ†ïÏùÑ Í±∞ÏπòÍ≥† ÏÑ∏ÏÖòÏùÑ ÏÇ≠Ï†ú Ìï¥Ïïº ÌïúÎã§.
+		//
+		// *** Í∂åÏû•ÌïòÏßÄ ÏïäÎäî Ìé∏Î≤ï ***
+		// ÌòπÏãúÎÇò Ïó¨Í∏∞ÏÑú closesocket()ÏùÑ Ìò∏Ï∂ú ÌïòÏó¨
+		// ÏÑúÎ≤ÑÏ∏° ÏÑ∏ÏÖòÏ¢ÖÎ£å ÌîÑÎ°úÏÑ∏Ïä§Î°ú Îì§Ïñ¥Í∞ÄÎ†§Îäî ÏãúÎèÑÎäî ÌïòÏßÄ ÏïäÎäî Í≤ÉÏù¥ Ï¢ãÎã§.
+		// closesocket()ÏùÑ Ìò∏Ï∂úÌï¥ÎèÑ WSARecv()Í∞Ä Ìò∏Ï∂úÎêòÏßÄ ÏïäÏùÄ ÏÉÅÌÉúÏù¥Í∏∞ ÎïåÎ¨∏Ïóê
+		// ÏÑúÎ≤ÑÏ∏° ÏÑ∏ÏÖòÏ¢ÖÎ£å ÌîÑÎ°úÏÑ∏Ïä§Î°ú Îì§Ïñ¥Í∞ÄÏßÄ Î™ªÌïúÎã§. ÎßåÏïΩ WSARecv()Î•º Î®ºÏ†Ä
+		// Ìò∏Ï∂úÌïòÍ≥† Î∞îÎ°ú closesocket()ÏùÑ Ìò∏Ï∂úÌïòÎ©¥ ÌîÑÎ°úÏÑ∏Ïä§Î°úÏùò ÏßÑÏûÖÏùÄ Í∞ÄÎä• Ìï† ÏàòÎèÑ ÏûàÏúºÎÇò
+		// ÎπÑ Ï†ïÏÉÅÏ†ÅÏù∏ ÏÑ∏ÏÖòÏùÑ ÎåÄÏÉÅÏúºÎ°ú Í∑∏Îü∞ Ïï°ÏÖòÏùÑ ÌïòÎäî Í≤ÉÏùÄ ÏúÑÌóòÌïòÎã§.
 		}
 	}
 
-	if(!pSession->WaitForMessage())
+	if (!pSession->WaitForMessage())
 	{
-		// ***** IOCP ªÁøÎπ˝ ¡ﬂ æÀæ∆≥ª±‚ »˚µÁ ≥◊π¯¬∞ ±∏πÆ (∫Ò ¡§ªÛ¿˚¿Œ ººº« ¡æ∑·) *****
+		// ***** IOCP ÏÇ¨Ïö©Î≤ï Ï§ë ÏïåÏïÑÎÇ¥Í∏∞ ÌûòÎì† ÎÑ§Î≤àÏß∏ Íµ¨Î¨∏ (ÎπÑ Ï†ïÏÉÅÏ†ÅÏù∏ ÏÑ∏ÏÖò Ï¢ÖÎ£å) *****
 		//
-		// ≥◊∆Æüp ø¿∑˘∑Œ ¿Œ«ÿ ººº«¿Ã ∫Ò ¡§ªÛ¿˚¿Œ ªÛ≈¬ø°º≠ WSARecv()«‘ºˆ »£√‚¿Ã Ω«∆–«— ∞ÊøÏ¿Ã∏Á
-		// WSARecv()∞° »£√‚µ» ªÛ≈¬ø°º≠∏∏ ¿Ã ƒ⁄µÂ∑Œ µÈæÓø¿∏Á
-		// ∏µÁ ø¿πˆ∑¶ ø¿∆€∑°¿Ãº«¿Ã ¡æ∑· µ«æ˙¥Ÿ∞Ì ∫º ºˆ æ¯¥Ÿ.
-		// µ˚∂Ûº≠ ¿Ã»ƒø° ¿Ã Ω∫∑πµÂø°º≠ ¿Ã ººº«∞˙ ∞¸∑√µ» ¿€æ˜∏Ì∑…¿Ã Ω««‡ µ… ºˆ ¿÷¿∏π«∑Œ
-		// ø©±‚º≠ ººº« ∆˜¿Œ≈Õ∏¶ ªË¡¶«œ∏È º≠πˆ∞° ¥ŸøÓµ… ºˆ ¿÷¥Ÿ.
-		// ReceiveøÕ ∞¸∑√µ» ø¿πˆ∑¶ ø¿∆€∑π¿Ãº«¿∫ »ÆΩ«»˜ ¡æ∑· µ«æ˙¿∏π«∑Œ
-		// SendøÕ ∞¸∑√µ» ø¿πˆ∑¶ ø¿∆€∑π¿Ãº«¿Ã ¡æ∑·µ«æ˙¥¬¡ˆ∏¶
-		// »Æ¿Œ«— »ƒ ¥Ÿ∏• Ω∫∑πµÂ¿« ººº« ªË¡¶ ºˆ∂Ù∞˙¡§¿ª ∞≈ƒ°∞Ì ººº«¿ª ªË¡¶ «ÿæﬂ «—¥Ÿ.
+		// ÎÑ§Ìä∏¬üp Ïò§Î•òÎ°ú Ïù∏Ìï¥ ÏÑ∏ÏÖòÏù¥ ÎπÑ Ï†ïÏÉÅÏ†ÅÏù∏ ÏÉÅÌÉúÏóêÏÑú WSARecv()Ìï®Ïàò Ìò∏Ï∂úÏù¥ Ïã§Ìå®Ìïú Í≤ΩÏö∞Ïù¥Î©∞
+		// WSARecv()Í∞Ä Ìò∏Ï∂úÎêú ÏÉÅÌÉúÏóêÏÑúÎßå Ïù¥ ÏΩîÎìúÎ°ú Îì§Ïñ¥Ïò§Î©∞
+		// Î™®Îì† Ïò§Î≤ÑÎû© Ïò§ÌçºÎûòÏù¥ÏÖòÏù¥ Ï¢ÖÎ£å ÎêòÏóàÎã§Í≥† Î≥º Ïàò ÏóÜÎã§.
+		// Îî∞ÎùºÏÑú Ïù¥ÌõÑÏóê Ïù¥ Ïä§Î†àÎìúÏóêÏÑú Ïù¥ ÏÑ∏ÏÖòÍ≥º Í¥ÄÎ†®Îêú ÏûëÏóÖÎ™ÖÎ†πÏù¥ Ïã§Ìñâ Îê† Ïàò ÏûàÏúºÎØÄÎ°ú
+		// Ïó¨Í∏∞ÏÑú ÏÑ∏ÏÖò Ìè¨Ïù∏ÌÑ∞Î•º ÏÇ≠Ï†úÌïòÎ©¥ ÏÑúÎ≤ÑÍ∞Ä Îã§Ïö¥Îê† Ïàò ÏûàÎã§.
+		// ReceiveÏôÄ Í¥ÄÎ†®Îêú Ïò§Î≤ÑÎû© Ïò§ÌçºÎ†àÏù¥ÏÖòÏùÄ ÌôïÏã§Ìûà Ï¢ÖÎ£å ÎêòÏóàÏúºÎØÄÎ°ú
+		// SendÏôÄ Í¥ÄÎ†®Îêú Ïò§Î≤ÑÎû© Ïò§ÌçºÎ†àÏù¥ÏÖòÏù¥ Ï¢ÖÎ£åÎêòÏóàÎäîÏßÄÎ•º
+		// ÌôïÏù∏Ìïú ÌõÑ Îã§Î•∏ Ïä§Î†àÎìúÏùò ÏÑ∏ÏÖò ÏÇ≠Ï†ú ÏàòÎùΩÍ≥ºÏ†ïÏùÑ Í±∞ÏπòÍ≥† ÏÑ∏ÏÖòÏùÑ ÏÇ≠Ï†ú Ìï¥Ïïº ÌïúÎã§.
 		OnInvalidSession(pSession);
 	}
 }
 
-DWORD CTWorldSvrModule::OnReceive( LPPACKETBUF pBUF)
+DWORD CTWorldSvrModule::OnReceive(LPPACKETBUF pBUF)
 {
-	if(pBUF->m_packet.GetSize() == MAX_PACKET_SIZE)
+	if (pBUF->m_packet.GetSize() == MAX_PACKET_SIZE)
 	{
-		LogError("Overflow Message "  + pBUF->m_packet.GetID());
+		LogEvent("Overflow Message %d", pBUF->m_packet.GetID());
 		return EC_SESSION_INVALIDMSG;
 	}
 
-	switch(pBUF->m_packet.GetID())
+	switch (pBUF->m_packet.GetID())
 	{
-	//Apex
-	ON_RECEIVE(SM_APEXDATA_REQ)
-	ON_RECEIVE(SM_APEXKILLUSER_REQ)
-	ON_RECEIVE(MW_APEXDATA_ACK)
-	ON_RECEIVE(MW_APEXSTART_ACK)
+		//Apex
+		ON_RECEIVE(SM_APEXDATA_REQ)
+			ON_RECEIVE(SM_APEXKILLUSER_REQ)
+			ON_RECEIVE(MW_APEXDATA_ACK)
+			ON_RECEIVE(MW_APEXSTART_ACK)
 
-	// Control Server Message
-	ON_RECEIVE(CT_SERVICEMONITOR_ACK)
-	ON_RECEIVE(CT_USERMOVE_ACK)
-	ON_RECEIVE(CT_USERPOSITION_ACK)
-	ON_RECEIVE(CT_CHATBAN_REQ)
-	ON_RECEIVE(CT_CHARMSG_ACK)
-	ON_RECEIVE(CT_SERVICEDATACLEAR_ACK)
-	ON_RECEIVE(CT_ITEMFIND_REQ)
-	ON_RECEIVE(CT_ITEMSTATE_REQ)
-	ON_RECEIVE(CT_CTRLSVR_REQ)
-	ON_RECEIVE(CT_CASTLEGUILDCHG_REQ)
-	ON_RECEIVE(CT_EVENTUPDATE_REQ)  
-	ON_RECEIVE(CT_EVENTMSG_REQ)
-	ON_RECEIVE(CT_CASHSHOPSTOP_REQ)
-	ON_RECEIVE(CT_CASHITEMSALE_REQ)
-	ON_RECEIVE(CT_EVENTQUARTERLIST_REQ) 
-	ON_RECEIVE(CT_EVENTQUARTERUPDATE_REQ)
-	ON_RECEIVE(CT_TOURNAMENTEVENT_REQ)	
-	ON_RECEIVE(CT_HELPMESSAGE_REQ)
-	ON_RECEIVE(CT_RPSGAMEDATA_REQ)
-	ON_RECEIVE(CT_RPSGAMECHANGE_REQ)
-	ON_RECEIVE(CT_CMGIFT_REQ)
-	ON_RECEIVE(CT_CMGIFTCHARTUPDATE_REQ)
-	ON_RECEIVE(CT_CMGIFTLIST_REQ)
+			// Control Server Message
+			ON_RECEIVE(CT_SERVICEMONITOR_ACK)
+			ON_RECEIVE(CT_USERMOVE_ACK)
+			ON_RECEIVE(CT_USERPOSITION_ACK)
+			ON_RECEIVE(CT_CHATBAN_REQ)
+			ON_RECEIVE(CT_CHARMSG_ACK)
+			ON_RECEIVE(CT_SERVICEDATACLEAR_ACK)
+			ON_RECEIVE(CT_ITEMFIND_REQ)
+			ON_RECEIVE(CT_ITEMSTATE_REQ)
+			ON_RECEIVE(CT_CTRLSVR_REQ)
+			ON_RECEIVE(CT_CASTLEGUILDCHG_REQ)
+			ON_RECEIVE(CT_EVENTUPDATE_REQ)
+			ON_RECEIVE(CT_EVENTMSG_REQ)
+			ON_RECEIVE(CT_CASHSHOPSTOP_REQ)
+			ON_RECEIVE(CT_CASHITEMSALE_REQ)
+			ON_RECEIVE(CT_EVENTQUARTERLIST_REQ)
+			ON_RECEIVE(CT_EVENTQUARTERUPDATE_REQ)
+			ON_RECEIVE(CT_TOURNAMENTEVENT_REQ)
+			ON_RECEIVE(CT_HELPMESSAGE_REQ)
+			ON_RECEIVE(CT_RPSGAMEDATA_REQ)
+			ON_RECEIVE(CT_RPSGAMECHANGE_REQ)
+			ON_RECEIVE(CT_CMGIFT_REQ)
+			ON_RECEIVE(CT_CMGIFTCHARTUPDATE_REQ)
+			ON_RECEIVE(CT_CMGIFTLIST_REQ)
 
-	// System message handler - Implemented on SSHandler.cpp
-	ON_RECEIVE(SM_QUITSERVICE_REQ)
-	ON_RECEIVE(SM_DELSESSION_REQ)
-	ON_RECEIVE(SM_EVENTQUARTER_REQ)
-	ON_RECEIVE(SM_EVENTQUARTERNOTIFY_REQ)
-	ON_RECEIVE(SM_BATTLESTATUS_REQ)
-	ON_RECEIVE(SM_EVENTEXPIRED_ACK)
-	ON_RECEIVE(SM_MONTHRANKSAVE_REQ)  
-	ON_RECEIVE(SM_TOURNAMENT_REQ)
-	ON_RECEIVE(SM_TOURNAMENTUPDATE_REQ)
-	ON_RECEIVE(SM_CHANGEDAY_REQ)
-	// Timer message handler - (Execute on Timer thread)
-	ON_RECEIVE(SM_GUILDDISORGANIZATION_REQ)
-	ON_RECEIVE(SM_EVENTEXPIRED_REQ)
-	ON_RECEIVE(SM_TOURNAMENTEVENT_REQ)
-	ON_RECEIVE(SM_TOURNAMENTEVENT_ACK)
+			// System message handler - Implemented on SSHandler.cpp
+			ON_RECEIVE(SM_QUITSERVICE_REQ)
+			ON_RECEIVE(SM_DELSESSION_REQ)
+			ON_RECEIVE(SM_EVENTQUARTER_REQ)
+			ON_RECEIVE(SM_EVENTQUARTERNOTIFY_REQ)
+			ON_RECEIVE(SM_BATTLESTATUS_REQ)
+			ON_RECEIVE(SM_EVENTEXPIRED_ACK)
+			ON_RECEIVE(SM_MONTHRANKSAVE_REQ)
+			ON_RECEIVE(SM_TOURNAMENT_REQ)
+			ON_RECEIVE(SM_TOURNAMENTUPDATE_REQ)
+			ON_RECEIVE(SM_CHANGEDAY_REQ)
+			// Timer message handler - (Execute on Timer thread)
+			ON_RECEIVE(SM_GUILDDISORGANIZATION_REQ)
+			ON_RECEIVE(SM_EVENTEXPIRED_REQ)
+			ON_RECEIVE(SM_TOURNAMENTEVENT_REQ)
+			ON_RECEIVE(SM_TOURNAMENTEVENT_ACK)
 
-	// Server message handler
-	ON_RECEIVE(MW_MONTHRANKRESETCHAR_ACK)
-	ON_RECEIVE(MW_CHECKCONNECT_ACK)
-	ON_RECEIVE(MW_RELEASEMAIN_ACK)
-	ON_RECEIVE(MW_MAPSVRLIST_ACK)
-	ON_RECEIVE(MW_ENTERCHAR_ACK)
-	ON_RECEIVE(MW_CLOSECHAR_ACK)
-	ON_RECEIVE(MW_CHECKMAIN_ACK)
-	ON_RECEIVE(MW_ENTERSVR_ACK)
-	ON_RECEIVE(MW_CHARDATA_ACK)
-	ON_RECEIVE(MW_ADDCHAR_ACK)
-	ON_RECEIVE(MW_CONNECT_ACK)
-	ON_RECEIVE(MW_CONLIST_ACK)
-	ON_RECEIVE(MW_ROUTE_ACK)
-	ON_RECEIVE(MW_CHGPARTYCHIEF_ACK)
-	ON_RECEIVE(MW_CHGPARTYTYPE_ACK)
-	ON_RECEIVE(MW_PARTYADD_ACK)
-	ON_RECEIVE(MW_PARTYJOIN_ACK)
-	ON_RECEIVE(MW_PARTYDEL_ACK)
-	ON_RECEIVE(MW_PARTYMANSTAT_ACK)
-	ON_RECEIVE(MW_LEVELUP_ACK)
-	//////////////////////////////////////////////////////////////
-	// ±ÊµÂ
-	ON_RECEIVE(MW_GUILDESTABLISH_ACK)
-	ON_RECEIVE(MW_GUILDDISORGANIZATION_ACK)
-	ON_RECEIVE(MW_GUILDINVITE_ACK)
-	ON_RECEIVE(MW_GUILDINVITEANSWER_ACK)
-	ON_RECEIVE(MW_GUILDLEAVE_ACK)
-	ON_RECEIVE(MW_GUILDDUTY_ACK)
-	ON_RECEIVE(MW_GUILDPEER_ACK)
-	ON_RECEIVE(MW_GUILDKICKOUT_ACK)
-	ON_RECEIVE(MW_GUILDMEMBERLIST_ACK)
-	ON_RECEIVE(MW_GUILDINFO_ACK)
-	
-	ON_RECEIVE(MW_GUILDCABINETLIST_ACK)
-	ON_RECEIVE(MW_GUILDCABINETPUTIN_ACK)
-	ON_RECEIVE(MW_GUILDCABINETTAKEOUT_ACK)
-	ON_RECEIVE(MW_GUILDCONTRIBUTION_ACK)
-	ON_RECEIVE(MW_GUILDARTICLELIST_ACK)
-	ON_RECEIVE(MW_GUILDARTICLEADD_ACK)
-	ON_RECEIVE(MW_GUILDARTICLEDEL_ACK)
-	ON_RECEIVE(MW_GUILDARTICLEUPDATE_ACK)
-	ON_RECEIVE(MW_GUILDFAME_ACK)
-	ON_RECEIVE(MW_GUILDWANTEDADD_ACK)
-	ON_RECEIVE(MW_GUILDWANTEDDEL_ACK)
-	ON_RECEIVE(MW_GUILDWANTEDLIST_ACK)
-	ON_RECEIVE(MW_GUILDVOLUNTEERING_ACK)
-	ON_RECEIVE(MW_GUILDVOLUNTEERINGDEL_ACK)
-	ON_RECEIVE(MW_GUILDVOLUNTEERLIST_ACK)
-	ON_RECEIVE(MW_GUILDVOLUNTEERREPLY_ACK)
-	ON_RECEIVE(MW_GUILDTACTICSWANTEDADD_ACK)
-	ON_RECEIVE(MW_GUILDTACTICSWANTEDDEL_ACK)
-	ON_RECEIVE(MW_GUILDTACTICSWANTEDLIST_ACK)
-	ON_RECEIVE(MW_GUILDTACTICSVOLUNTEERING_ACK)
-	ON_RECEIVE(MW_GUILDTACTICSVOLUNTEERINGDEL_ACK)
-	ON_RECEIVE(MW_GUILDTACTICSVOLUNTEERLIST_ACK)
-	ON_RECEIVE(MW_GUILDTACTICSREPLY_ACK)
-	ON_RECEIVE(MW_GUILDTACTICSKICKOUT_ACK)
-	ON_RECEIVE(MW_GUILDTACTICSINVITE_ACK)
-	ON_RECEIVE(MW_GUILDTACTICSANSWER_ACK)
-	ON_RECEIVE(MW_GUILDTACTICSLIST_ACK)
+			// Server message handler
+			ON_RECEIVE(MW_MONTHRANKRESETCHAR_ACK)
+			ON_RECEIVE(MW_CHECKCONNECT_ACK)
+			ON_RECEIVE(MW_RELEASEMAIN_ACK)
+			ON_RECEIVE(MW_MAPSVRLIST_ACK)
+			ON_RECEIVE(MW_ENTERCHAR_ACK)
+			ON_RECEIVE(MW_CLOSECHAR_ACK)
+			ON_RECEIVE(MW_CHECKMAIN_ACK)
+			ON_RECEIVE(MW_ENTERSVR_ACK)
+			ON_RECEIVE(MW_CHARDATA_ACK)
+			ON_RECEIVE(MW_ADDCHAR_ACK)
+			ON_RECEIVE(MW_CONNECT_ACK)
+			ON_RECEIVE(MW_CONLIST_ACK)
+			ON_RECEIVE(MW_ROUTE_ACK)
+			ON_RECEIVE(MW_CHGPARTYCHIEF_ACK)
+			ON_RECEIVE(MW_CHGPARTYTYPE_ACK)
+			ON_RECEIVE(MW_PARTYADD_ACK)
+			ON_RECEIVE(MW_PARTYJOIN_ACK)
+			ON_RECEIVE(MW_PARTYDEL_ACK)
+			ON_RECEIVE(MW_PARTYMANSTAT_ACK)
+			ON_RECEIVE(MW_LEVELUP_ACK)
+			//////////////////////////////////////////////////////////////
+			// Í∏∏Îìú
+			ON_RECEIVE(MW_GUILDESTABLISH_ACK)
+			ON_RECEIVE(MW_GUILDDISORGANIZATION_ACK)
+			ON_RECEIVE(MW_GUILDINVITE_ACK)
+			ON_RECEIVE(MW_GUILDINVITEANSWER_ACK)
+			ON_RECEIVE(MW_GUILDLEAVE_ACK)
+			ON_RECEIVE(MW_GUILDDUTY_ACK)
+			ON_RECEIVE(MW_GUILDPEER_ACK)
+			ON_RECEIVE(MW_GUILDKICKOUT_ACK)
+			ON_RECEIVE(MW_GUILDMEMBERLIST_ACK)
+			ON_RECEIVE(MW_GUILDINFO_ACK)
 
-	//////////////////////////////////////////////////////////////
-	ON_RECEIVE(MW_CHAT_ACK)
-	ON_RECEIVE(MW_TAKEMONMONEY_ACK)
-	ON_RECEIVE(MW_MONSTERDIE_ACK)
-	ON_RECEIVE(MW_ADDITEM_ACK)
-	ON_RECEIVE(MW_FRIENDASK_ACK)
-	ON_RECEIVE(MW_FRIENDREPLY_ACK)
-	ON_RECEIVE(MW_FRIENDERASE_ACK)
-	ON_RECEIVE(MW_ADDITEMRESULT_ACK)
-	ON_RECEIVE(MW_ENTERSOLOMAP_ACK)
-	ON_RECEIVE(MW_LEAVESOLOMAP_ACK)
-	ON_RECEIVE(MW_CHARSTATINFO_ACK)
-	ON_RECEIVE(MW_CHARSTATINFOANS_ACK)
-	ON_RECEIVE(MW_CHGCORPSCOMMANDER_ACK)
-	ON_RECEIVE(MW_CORPSLEAVE_ACK)
-	ON_RECEIVE(MW_CORPSASK_ACK)
-	ON_RECEIVE(MW_CORPSREPLY_ACK)
-	ON_RECEIVE(MW_CORPSCMD_ACK)
-	ON_RECEIVE(MW_CORPSENEMYLIST_ACK)
-	ON_RECEIVE(MW_MOVECORPSENEMY_ACK)
-	ON_RECEIVE(MW_MOVECORPSUNIT_ACK)
-	ON_RECEIVE(MW_ADDCORPSENEMY_ACK)
-	ON_RECEIVE(MW_DELCORPSENEMY_ACK)
-	ON_RECEIVE(MW_CORPSHP_ACK)
-	ON_RECEIVE(MW_PARTYMOVE_ACK)
-	ON_RECEIVE(MW_TMSSEND_ACK)
-	ON_RECEIVE(MW_TMSINVITEASK_ACK)
-	ON_RECEIVE(MW_TMSINVITE_ACK)
-	ON_RECEIVE(MW_TMSOUT_ACK)
-	ON_RECEIVE(MW_POSTRECV_ACK)
-	ON_RECEIVE(MW_LOCALOCCUPY_ACK)
-	ON_RECEIVE(MW_CASTLEOCCUPY_ACK)
+			ON_RECEIVE(MW_GUILDCABINETLIST_ACK)
+			ON_RECEIVE(MW_GUILDCABINETPUTIN_ACK)
+			ON_RECEIVE(MW_GUILDCABINETTAKEOUT_ACK)
+			ON_RECEIVE(MW_GUILDCONTRIBUTION_ACK)
+			ON_RECEIVE(MW_GUILDARTICLELIST_ACK)
+			ON_RECEIVE(MW_GUILDARTICLEADD_ACK)
+			ON_RECEIVE(MW_GUILDARTICLEDEL_ACK)
+			ON_RECEIVE(MW_GUILDARTICLEUPDATE_ACK)
+			ON_RECEIVE(MW_GUILDFAME_ACK)
+			ON_RECEIVE(MW_GUILDWANTEDADD_ACK)
+			ON_RECEIVE(MW_GUILDWANTEDDEL_ACK)
+			ON_RECEIVE(MW_GUILDWANTEDLIST_ACK)
+			ON_RECEIVE(MW_GUILDVOLUNTEERING_ACK)
+			ON_RECEIVE(MW_GUILDVOLUNTEERINGDEL_ACK)
+			ON_RECEIVE(MW_GUILDVOLUNTEERLIST_ACK)
+			ON_RECEIVE(MW_GUILDVOLUNTEERREPLY_ACK)
+			ON_RECEIVE(MW_GUILDTACTICSWANTEDADD_ACK)
+			ON_RECEIVE(MW_GUILDTACTICSWANTEDDEL_ACK)
+			ON_RECEIVE(MW_GUILDTACTICSWANTEDLIST_ACK)
+			ON_RECEIVE(MW_GUILDTACTICSVOLUNTEERING_ACK)
+			ON_RECEIVE(MW_GUILDTACTICSVOLUNTEERINGDEL_ACK)
+			ON_RECEIVE(MW_GUILDTACTICSVOLUNTEERLIST_ACK)
+			ON_RECEIVE(MW_GUILDTACTICSREPLY_ACK)
+			ON_RECEIVE(MW_GUILDTACTICSKICKOUT_ACK)
+			ON_RECEIVE(MW_GUILDTACTICSINVITE_ACK)
+			ON_RECEIVE(MW_GUILDTACTICSANSWER_ACK)
+			ON_RECEIVE(MW_GUILDTACTICSLIST_ACK)
+
+			//////////////////////////////////////////////////////////////
+			ON_RECEIVE(MW_CHAT_ACK)
+			ON_RECEIVE(MW_TAKEMONMONEY_ACK)
+			ON_RECEIVE(MW_MONSTERDIE_ACK)
+			ON_RECEIVE(MW_ADDITEM_ACK)
+			ON_RECEIVE(MW_FRIENDASK_ACK)
+			ON_RECEIVE(MW_FRIENDREPLY_ACK)
+			ON_RECEIVE(MW_FRIENDERASE_ACK)
+			ON_RECEIVE(MW_ADDITEMRESULT_ACK)
+			ON_RECEIVE(MW_ENTERSOLOMAP_ACK)
+			ON_RECEIVE(MW_LEAVESOLOMAP_ACK)
+			ON_RECEIVE(MW_CHARSTATINFO_ACK)
+			ON_RECEIVE(MW_CHARSTATINFOANS_ACK)
+			ON_RECEIVE(MW_CHGCORPSCOMMANDER_ACK)
+			ON_RECEIVE(MW_CORPSLEAVE_ACK)
+			ON_RECEIVE(MW_CORPSASK_ACK)
+			ON_RECEIVE(MW_CORPSREPLY_ACK)
+			ON_RECEIVE(MW_CORPSCMD_ACK)
+			ON_RECEIVE(MW_CORPSENEMYLIST_ACK)
+			ON_RECEIVE(MW_MOVECORPSENEMY_ACK)
+			ON_RECEIVE(MW_MOVECORPSUNIT_ACK)
+			ON_RECEIVE(MW_ADDCORPSENEMY_ACK)
+			ON_RECEIVE(MW_DELCORPSENEMY_ACK)
+			ON_RECEIVE(MW_CORPSHP_ACK)
+			ON_RECEIVE(MW_PARTYMOVE_ACK)
+			ON_RECEIVE(MW_TMSSEND_ACK)
+			ON_RECEIVE(MW_TMSINVITEASK_ACK)
+			ON_RECEIVE(MW_TMSINVITE_ACK)
+			ON_RECEIVE(MW_TMSOUT_ACK)
+			ON_RECEIVE(MW_POSTRECV_ACK)
+			ON_RECEIVE(MW_LOCALOCCUPY_ACK)
+			ON_RECEIVE(MW_CASTLEOCCUPY_ACK)
 #ifdef SKYGARDEN
-	ON_RECEIVE(MW_SKYGARDENOCCUPY_ACK)
+			ON_RECEIVE(MW_SKYGARDENOCCUPY_ACK)
 #endif
-	ON_RECEIVE(MW_MISSIONOCCUPY_ACK)
-	ON_RECEIVE(MW_CASTLEAPPLY_ACK)
-	ON_RECEIVE(MW_MONTEMPT_ACK)
-	ON_RECEIVE(MW_MONTEMPTEVO_ACK)
-	ON_RECEIVE(MW_GETBLOOD_ACK)
-	ON_RECEIVE(MW_FRIENDGROUPMAKE_ACK)
-    ON_RECEIVE(MW_FRIENDGROUPDELETE_ACK)
-	ON_RECEIVE(MW_FRIENDGROUPCHANGE_ACK)
-	ON_RECEIVE(MW_FRIENDGROUPNAME_ACK)
-	ON_RECEIVE(MW_PROTECTEDCHECK_ACK)
-	ON_RECEIVE(MW_FRIENDPROTECTEDASK_ACK)
-	ON_RECEIVE(MW_DEALITEMERROR_ACK)
-	ON_RECEIVE(MW_MAGICMIRROR_ACK)
-	ON_RECEIVE(MW_PARTYORDERTAKEITEM_ACK)
-	ON_RECEIVE(MW_CREATERECALLMON_ACK)
-	ON_RECEIVE(MW_RECALLMONDEL_ACK)
-	ON_RECEIVE(MW_TELEPORT_ACK)
-	ON_RECEIVE(MW_REGION_ACK)
-	ON_RECEIVE(MW_BEGINTELEPORT_ACK)
-	ON_RECEIVE(MW_PETRIDING_ACK)
-	ON_RECEIVE(MW_HELMETHIDE_ACK)
-	ON_RECEIVE(MW_PARTYMEMBERRECALL_ACK)
-	ON_RECEIVE(MW_PARTYMEMBERRECALLANS_ACK)
-	ON_RECEIVE(MW_SOULMATESEARCH_ACK)
-	ON_RECEIVE(MW_SOULMATEREG_ACK)
-	ON_RECEIVE(MW_SOULMATEEND_ACK)
-	ON_RECEIVE(MW_CASTLEWARINFO_ACK)
-	ON_RECEIVE(MW_ENDWAR_ACK)
-	ON_RECEIVE(MW_RECALLMONDATA_ACK)
-	ON_RECEIVE(MW_CHANGECHARBASE_ACK)
-	ON_RECEIVE(MW_HEROSELECT_ACK)	
-	ON_RECEIVE(MW_GAINPVPPOINT_ACK)
-	ON_RECEIVE(MW_LOCALRECORD_ACK)
-	ON_RECEIVE(MW_GUILDPOINTLOG_ACK)
-	ON_RECEIVE(MW_GUILDPOINTREWARD_ACK)
-	ON_RECEIVE(MW_GUILDPVPRECORD_ACK)
-	ON_RECEIVE(MW_MONSTERBUY_ACK)
-	ON_RECEIVE(MW_GUILDMONEYRECOVER_ACK)
-	ON_RECEIVE(MW_FRIENDLIST_ACK)
-	ON_RECEIVE(MW_CASHITEMSALE_ACK)
-	ON_RECEIVE(MW_MONTHRANKUPDATE_ACK)
-	ON_RECEIVE(MW_FAMERANKUPDATE_ACK)  
-	ON_RECEIVE(MW_WARLORDSAY_ACK)
-	ON_RECEIVE(MW_TERMINATE_ACK)
-	ON_RECEIVE(MW_CHATBAN_ACK)
-	ON_RECEIVE(MW_TOURNAMENT_ACK)
-	ON_RECEIVE(MW_TOURNAMENTENTERGATE_ACK)
-	ON_RECEIVE(MW_TOURNAMENTRESULT_ACK)
-	ON_RECEIVE(MW_RPSGAME_ACK)
-	ON_RECEIVE(MW_WARCOUNTRYBALANCE_ACK)
-	ON_RECEIVE(MW_MEETINGROOM_ACK)
-	ON_RECEIVE(MW_ARENAJOIN_ACK)
-	ON_RECEIVE(MW_CMGIFT_ACK)
-	ON_RECEIVE(MW_CMGIFTRESULT_ACK)
+			ON_RECEIVE(MW_MISSIONOCCUPY_ACK)
+			ON_RECEIVE(MW_CASTLEAPPLY_ACK)
+			ON_RECEIVE(MW_MONTEMPT_ACK)
+			ON_RECEIVE(MW_MONTEMPTEVO_ACK)
+			ON_RECEIVE(MW_GETBLOOD_ACK)
+			ON_RECEIVE(MW_FRIENDGROUPMAKE_ACK)
+			ON_RECEIVE(MW_FRIENDGROUPDELETE_ACK)
+			ON_RECEIVE(MW_FRIENDGROUPCHANGE_ACK)
+			ON_RECEIVE(MW_FRIENDGROUPNAME_ACK)
+			ON_RECEIVE(MW_PROTECTEDCHECK_ACK)
+			ON_RECEIVE(MW_FRIENDPROTECTEDASK_ACK)
+			ON_RECEIVE(MW_DEALITEMERROR_ACK)
+			ON_RECEIVE(MW_MAGICMIRROR_ACK)
+			ON_RECEIVE(MW_PARTYORDERTAKEITEM_ACK)
+			ON_RECEIVE(MW_CREATERECALLMON_ACK)
+			ON_RECEIVE(MW_RECALLMONDEL_ACK)
+			ON_RECEIVE(MW_TELEPORT_ACK)
+			ON_RECEIVE(MW_REGION_ACK)
+			ON_RECEIVE(MW_BEGINTELEPORT_ACK)
+			ON_RECEIVE(MW_PETRIDING_ACK)
+			ON_RECEIVE(MW_HELMETHIDE_ACK)
+			ON_RECEIVE(MW_PARTYMEMBERRECALL_ACK)
+			ON_RECEIVE(MW_PARTYMEMBERRECALLANS_ACK)
+			ON_RECEIVE(MW_SOULMATESEARCH_ACK)
+			ON_RECEIVE(MW_SOULMATEREG_ACK)
+			ON_RECEIVE(MW_SOULMATEEND_ACK)
+			ON_RECEIVE(MW_CASTLEWARINFO_ACK)
+			ON_RECEIVE(MW_ENDWAR_ACK)
+			ON_RECEIVE(MW_RECALLMONDATA_ACK)
+			ON_RECEIVE(MW_CHANGECHARBASE_ACK)
+			ON_RECEIVE(MW_HEROSELECT_ACK)
+			ON_RECEIVE(MW_GAINPVPPOINT_ACK)
+			ON_RECEIVE(MW_LOCALRECORD_ACK)
+			ON_RECEIVE(MW_GUILDPOINTLOG_ACK)
+			ON_RECEIVE(MW_GUILDPOINTREWARD_ACK)
+			ON_RECEIVE(MW_GUILDPVPRECORD_ACK)
+			ON_RECEIVE(MW_MONSTERBUY_ACK)
+			ON_RECEIVE(MW_GUILDMONEYRECOVER_ACK)
+			ON_RECEIVE(MW_FRIENDLIST_ACK)
+			ON_RECEIVE(MW_CASHITEMSALE_ACK)
+			ON_RECEIVE(MW_MONTHRANKUPDATE_ACK)
+			ON_RECEIVE(MW_FAMERANKUPDATE_ACK)
+			ON_RECEIVE(MW_WARLORDSAY_ACK)
+			ON_RECEIVE(MW_TERMINATE_ACK)
+			ON_RECEIVE(MW_CHATBAN_ACK)
+			ON_RECEIVE(MW_TOURNAMENT_ACK)
+			ON_RECEIVE(MW_TOURNAMENTENTERGATE_ACK)
+			ON_RECEIVE(MW_TOURNAMENTRESULT_ACK)
+			ON_RECEIVE(MW_RPSGAME_ACK)
+			ON_RECEIVE(MW_WARCOUNTRYBALANCE_ACK)
+			ON_RECEIVE(MW_MEETINGROOM_ACK)
+			ON_RECEIVE(MW_ARENAJOIN_ACK)
+			ON_RECEIVE(MW_CMGIFT_ACK)
+			ON_RECEIVE(MW_CMGIFTRESULT_ACK)
 
-	// DB message handler
-	////////////////////////////////////////////////////
-	// ±ÊµÂ
-	ON_RECEIVE(DM_GUILDUPDATE_REQ)
-	ON_RECEIVE(DM_GUILDESTABLISH_REQ)
-	ON_RECEIVE(DM_GUILDESTABLISH_ACK)
-	ON_RECEIVE(DM_GUILDDISORGANIZATION_REQ)
-	ON_RECEIVE(DM_GUILDDISORGANIZATION_ACK)
-	ON_RECEIVE(DM_GUILDMEMBERADD_REQ)
-	ON_RECEIVE(DM_GUILDKICKOUT_REQ)
-	ON_RECEIVE(DM_GUILDEXTINCTION_REQ)
-	ON_RECEIVE(DM_GUILDEXTINCTION_ACK)
-	ON_RECEIVE(DM_GUILDLEAVE_REQ)
-	ON_RECEIVE(DM_GUILDDUTY_REQ)
-	ON_RECEIVE(DM_GUILDPEER_REQ)
+			// DB message handler
+			////////////////////////////////////////////////////
+			// Í∏∏Îìú
+			ON_RECEIVE(DM_GUILDUPDATE_REQ)
+			ON_RECEIVE(DM_GUILDESTABLISH_REQ)
+			ON_RECEIVE(DM_GUILDESTABLISH_ACK)
+			ON_RECEIVE(DM_GUILDDISORGANIZATION_REQ)
+			ON_RECEIVE(DM_GUILDDISORGANIZATION_ACK)
+			ON_RECEIVE(DM_GUILDMEMBERADD_REQ)
+			ON_RECEIVE(DM_GUILDKICKOUT_REQ)
+			ON_RECEIVE(DM_GUILDEXTINCTION_REQ)
+			ON_RECEIVE(DM_GUILDEXTINCTION_ACK)
+			ON_RECEIVE(DM_GUILDLEAVE_REQ)
+			ON_RECEIVE(DM_GUILDDUTY_REQ)
+			ON_RECEIVE(DM_GUILDPEER_REQ)
 
-	ON_RECEIVE(DM_GUILDARTICLEADD_REQ)
-	ON_RECEIVE(DM_GUILDARTICLEDEL_REQ)
-	ON_RECEIVE(DM_GUILDARTICLEUPDATE_REQ)
-	ON_RECEIVE(DM_GUILDFAME_REQ)
-	ON_RECEIVE(DM_GUILDLEVEL_REQ)
-	ON_RECEIVE(DM_GUILDCABINETMAX_REQ)
-	ON_RECEIVE(DM_GUILDCONTRIBUTION_REQ)
-	ON_RECEIVE(DM_GUILDLOAD_REQ)
-	ON_RECEIVE(DM_GUILDLOAD_ACK)
-	ON_RECEIVE(DM_GUILDPVPOINT_REQ)
-	ON_RECEIVE(DM_GUILDPOINTREWARD_REQ)
-	ON_RECEIVE(DM_GUILDWANTEDADD_REQ)
-	ON_RECEIVE(DM_GUILDWANTEDDEL_REQ)
-	ON_RECEIVE(DM_GUILDVOLUNTEERING_REQ)
-	ON_RECEIVE(DM_GUILDVOLUNTEERINGDEL_REQ)
-	ON_RECEIVE(DM_GUILDTACTICSWANTEDADD_REQ)
-	ON_RECEIVE(DM_GUILDTACTICSWANTEDDEL_REQ)
-	ON_RECEIVE(DM_GUILDTACTICSADD_REQ)
-	ON_RECEIVE(DM_GUILDTACTICSADD_ACK)
-	ON_RECEIVE(DM_GUILDTACTICSDEL_REQ)
-	ON_RECEIVE(DM_GUILDTACTICSDEL_ACK)
-	ON_RECEIVE(DM_TACTICSPOINT_REQ)
-	ON_RECEIVE(DM_TOURNAMENTSTATUS_REQ)
-	////////////////////////////////////////////////////
+			ON_RECEIVE(DM_GUILDARTICLEADD_REQ)
+			ON_RECEIVE(DM_GUILDARTICLEDEL_REQ)
+			ON_RECEIVE(DM_GUILDARTICLEUPDATE_REQ)
+			ON_RECEIVE(DM_GUILDFAME_REQ)
+			ON_RECEIVE(DM_GUILDLEVEL_REQ)
+			ON_RECEIVE(DM_GUILDCABINETMAX_REQ)
+			ON_RECEIVE(DM_GUILDCONTRIBUTION_REQ)
+			ON_RECEIVE(DM_GUILDLOAD_REQ)
+			ON_RECEIVE(DM_GUILDLOAD_ACK)
+			ON_RECEIVE(DM_GUILDPVPOINT_REQ)
+			ON_RECEIVE(DM_GUILDPOINTREWARD_REQ)
+			ON_RECEIVE(DM_GUILDWANTEDADD_REQ)
+			ON_RECEIVE(DM_GUILDWANTEDDEL_REQ)
+			ON_RECEIVE(DM_GUILDVOLUNTEERING_REQ)
+			ON_RECEIVE(DM_GUILDVOLUNTEERINGDEL_REQ)
+			ON_RECEIVE(DM_GUILDTACTICSWANTEDADD_REQ)
+			ON_RECEIVE(DM_GUILDTACTICSWANTEDDEL_REQ)
+			ON_RECEIVE(DM_GUILDTACTICSADD_REQ)
+			ON_RECEIVE(DM_GUILDTACTICSADD_ACK)
+			ON_RECEIVE(DM_GUILDTACTICSDEL_REQ)
+			ON_RECEIVE(DM_GUILDTACTICSDEL_ACK)
+			ON_RECEIVE(DM_TACTICSPOINT_REQ)
+			ON_RECEIVE(DM_TOURNAMENTSTATUS_REQ)
+			////////////////////////////////////////////////////
 
-	ON_RECEIVE(DM_FRIENDLIST_REQ)
-	ON_RECEIVE(DM_FRIENDLIST_ACK)
-	ON_RECEIVE(DM_SOULMATELIST_REQ)
-	ON_RECEIVE(DM_SOULMATELIST_ACK)
-	ON_RECEIVE(DM_SOULMATEREG_REQ)
-	ON_RECEIVE(DM_SOULMATEREG_ACK)
-	ON_RECEIVE(DM_SOULMATEEND_REQ)
-	ON_RECEIVE(DM_SOULMATEEND_ACK)
-	ON_RECEIVE(DM_SOULMATEDEL_REQ)
-	ON_RECEIVE(DM_SOULMATEDEL_ACK)
-	ON_RECEIVE(DM_FRIENDINSERT_REQ)
-	ON_RECEIVE(DM_FRIENDERASE_REQ)
-	ON_RECEIVE(DM_FRIENDERASE_ACK)
-	ON_RECEIVE(DM_FRIENDGROUPMAKE_REQ)
-	ON_RECEIVE(DM_FRIENDGROUPDELETE_REQ)
-	ON_RECEIVE(DM_FRIENDGROUPCHANGE_REQ)
-	ON_RECEIVE(DM_FRIENDGROUPNAME_REQ)
-	ON_RECEIVE(DM_RESERVEDPOSTSEND_REQ)  
-	ON_RECEIVE(DM_RESERVEDPOSTRECV_ACK)
-	ON_RECEIVE(DM_CLEARMAPCURRENTUSER_REQ)
-	ON_RECEIVE(DM_ITEMFIND_REQ)
-	ON_RECEIVE(DM_ITEMSTATE_REQ)
-	ON_RECEIVE(DM_ITEMSTATE_ACK)
-	ON_RECEIVE(DM_PVPRECORD_REQ)
-	ON_RECEIVE(DM_CASTLEAPPLY_REQ)
-	ON_RECEIVE(DM_CASHITEMSALE_REQ)  
-	ON_RECEIVE(DM_CASHITEMSALE_ACK)
-	ON_RECEIVE(DM_MONTHRANKSAVE_REQ)  
-	ON_RECEIVE(DM_MONTHRANKSAVE_ACK)
-	ON_RECEIVE(DM_CLEARDATA_REQ)
-	ON_RECEIVE(DM_CLEARDATA_ACK)
-	ON_RECEIVE(DM_EVENTQUARTERLIST_REQ) 
-	ON_RECEIVE(DM_EVENTQUARTERUPDATE_REQ)
-	ON_RECEIVE(DM_EVENTQUARTERUPDATE_ACK)
-	ON_RECEIVE(DM_GETCHARINFO_REQ)
-	ON_RECEIVE(DM_GETCHARINFO_ACK)
-	ON_RECEIVE(DM_TOURNAMENTPAYBACK_REQ)
-	ON_RECEIVE(DM_TOURNAMENTPAYBACK_ACK)
-	ON_RECEIVE(DM_TOURNAMENTRESULT_REQ)
-	ON_RECEIVE(DM_TOURNAMENTAPPLY_REQ)
-	ON_RECEIVE(DM_TOURNAMENTCLEAR_REQ)
-	ON_RECEIVE(DM_TOURNAMENTEVENTCHARINFO_REQ)
-	ON_RECEIVE(DM_TNMTEVENTSCHEDULEADD_REQ)
-	ON_RECEIVE(DM_TNMTEVENTSCHEDULEDEL_REQ)
-	ON_RECEIVE(DM_TNMTEVENTENTRYADD_REQ)
-	ON_RECEIVE(DM_HELPMESSAGE_REQ)
-	ON_RECEIVE(DM_RPSGAMERECORD_REQ)
-	ON_RECEIVE(DM_ACTIVECHARUPDATE_REQ)
-	ON_RECEIVE(DM_CMGIFT_REQ)
-	ON_RECEIVE(DM_CMGIFT_ACK)
-	ON_RECEIVE(DM_CMGIFTCHARTUPDATE_REQ)
-	ON_RECEIVE(DM_CMGIFTCHARTUPDATE_ACK)
+			ON_RECEIVE(DM_FRIENDLIST_REQ)
+			ON_RECEIVE(DM_FRIENDLIST_ACK)
+			ON_RECEIVE(DM_SOULMATELIST_REQ)
+			ON_RECEIVE(DM_SOULMATELIST_ACK)
+			ON_RECEIVE(DM_SOULMATEREG_REQ)
+			ON_RECEIVE(DM_SOULMATEREG_ACK)
+			ON_RECEIVE(DM_SOULMATEEND_REQ)
+			ON_RECEIVE(DM_SOULMATEEND_ACK)
+			ON_RECEIVE(DM_SOULMATEDEL_REQ)
+			ON_RECEIVE(DM_SOULMATEDEL_ACK)
+			ON_RECEIVE(DM_FRIENDINSERT_REQ)
+			ON_RECEIVE(DM_FRIENDERASE_REQ)
+			ON_RECEIVE(DM_FRIENDERASE_ACK)
+			ON_RECEIVE(DM_FRIENDGROUPMAKE_REQ)
+			ON_RECEIVE(DM_FRIENDGROUPDELETE_REQ)
+			ON_RECEIVE(DM_FRIENDGROUPCHANGE_REQ)
+			ON_RECEIVE(DM_FRIENDGROUPNAME_REQ)
+			ON_RECEIVE(DM_RESERVEDPOSTSEND_REQ)
+			ON_RECEIVE(DM_RESERVEDPOSTRECV_ACK)
+			ON_RECEIVE(DM_CLEARMAPCURRENTUSER_REQ)
+			ON_RECEIVE(DM_ITEMFIND_REQ)
+			ON_RECEIVE(DM_ITEMSTATE_REQ)
+			ON_RECEIVE(DM_ITEMSTATE_ACK)
+			ON_RECEIVE(DM_PVPRECORD_REQ)
+			ON_RECEIVE(DM_CASTLEAPPLY_REQ)
+			ON_RECEIVE(DM_CASHITEMSALE_REQ)
+			ON_RECEIVE(DM_CASHITEMSALE_ACK)
+			ON_RECEIVE(DM_MONTHRANKSAVE_REQ)
+			ON_RECEIVE(DM_MONTHRANKSAVE_ACK)
+			ON_RECEIVE(DM_CLEARDATA_REQ)
+			ON_RECEIVE(DM_CLEARDATA_ACK)
+			ON_RECEIVE(DM_EVENTQUARTERLIST_REQ)
+			ON_RECEIVE(DM_EVENTQUARTERUPDATE_REQ)
+			ON_RECEIVE(DM_EVENTQUARTERUPDATE_ACK)
+			ON_RECEIVE(DM_GETCHARINFO_REQ)
+			ON_RECEIVE(DM_GETCHARINFO_ACK)
+			ON_RECEIVE(DM_TOURNAMENTPAYBACK_REQ)
+			ON_RECEIVE(DM_TOURNAMENTPAYBACK_ACK)
+			ON_RECEIVE(DM_TOURNAMENTRESULT_REQ)
+			ON_RECEIVE(DM_TOURNAMENTAPPLY_REQ)
+			ON_RECEIVE(DM_TOURNAMENTCLEAR_REQ)
+			ON_RECEIVE(DM_TOURNAMENTEVENTCHARINFO_REQ)
+			ON_RECEIVE(DM_TNMTEVENTSCHEDULEADD_REQ)
+			ON_RECEIVE(DM_TNMTEVENTSCHEDULEDEL_REQ)
+			ON_RECEIVE(DM_TNMTEVENTENTRYADD_REQ)
+			ON_RECEIVE(DM_HELPMESSAGE_REQ)
+			ON_RECEIVE(DM_RPSGAMERECORD_REQ)
+			ON_RECEIVE(DM_ACTIVECHARUPDATE_REQ)
+			ON_RECEIVE(DM_CMGIFT_REQ)
+			ON_RECEIVE(DM_CMGIFT_ACK)
+			ON_RECEIVE(DM_CMGIFTCHARTUPDATE_REQ)
+			ON_RECEIVE(DM_CMGIFTCHARTUPDATE_ACK)
 
-// Relay Server Message
-	ON_RECEIVE(RW_RELAYSVR_REQ)
-	ON_RECEIVE(RW_ENTERCHAR_REQ)
-	ON_RECEIVE(RW_RELAYCONNECT_REQ)
+			// Relay Server Message
+			ON_RECEIVE(RW_RELAYSVR_REQ)
+			ON_RECEIVE(RW_ENTERCHAR_REQ)
+			ON_RECEIVE(RW_RELAYCONNECT_REQ)
 	}
 
-	LogError("Invalid Message " + pBUF->m_packet.GetID());
+	LogEvent("Invalid Message %d", pBUF->m_packet.GetID());
 	return EC_SESSION_INVALIDMSG;
 }
 
-void CTWorldSvrModule::SayToBATCH( LPPACKETBUF pBUF)
+void CTWorldSvrModule::SayToBATCH(LPPACKETBUF pBUF)
 {
 	pBUF->m_packet.Rewind(FALSE);
 
@@ -2514,7 +2436,7 @@ void CTWorldSvrModule::SayToBATCH( LPPACKETBUF pBUF)
 	SetEvent(m_hBatchEvent);
 }
 
-void CTWorldSvrModule::SayToDB( LPPACKETBUF pBUF)
+void CTWorldSvrModule::SayToDB(LPPACKETBUF pBUF)
 {
 	pBUF->m_packet.Rewind(FALSE);
 
@@ -2524,7 +2446,7 @@ void CTWorldSvrModule::SayToDB( LPPACKETBUF pBUF)
 	SetEvent(m_hDBEvent);
 }
 
-void CTWorldSvrModule::SayToTIMER( LPPACKETBUF pBUF)
+void CTWorldSvrModule::SayToTIMER(LPPACKETBUF pBUF)
 {
 	pBUF->m_packet.Rewind(FALSE);
 
@@ -2534,32 +2456,32 @@ void CTWorldSvrModule::SayToTIMER( LPPACKETBUF pBUF)
 	SetEvent(m_hTimerEvent);
 }
 
-CTServer *CTWorldSvrModule::FindMapSvr( BYTE bServerID)
+CTServer *CTWorldSvrModule::FindMapSvr(BYTE bServerID)
 {
-	MAPTSERVER::iterator finder = m_mapSERVER.find( MAKEWORD( bServerID, BYTE(SVR_MAP)));
+	MAPTSERVER::iterator finder = m_mapSERVER.find(MAKEWORD(bServerID, BYTE(SVR_MAP)));
 
-	if( finder != m_mapSERVER.end() )
+	if (finder != m_mapSERVER.end())
 		return (*finder).second;
 
 	return NULL;
 }
 
-CTServer *CTWorldSvrModule::FindTServer( DWORD_PTR dwHandle)
+CTServer *CTWorldSvrModule::FindTServer(DWORD_PTR dwHandle)
 {
 	MAPTSERVER::iterator finder = m_mapSESSION.find(dwHandle);
 
-	if( finder != m_mapSESSION.end() )
+	if (finder != m_mapSESSION.end())
 		return (*finder).second;
 
 	return NULL;
 }
 
-LPTCHARACTER CTWorldSvrModule::FindTChar( DWORD dwCharID,
-										  DWORD dwKEY)
+LPTCHARACTER CTWorldSvrModule::FindTChar(DWORD dwCharID,
+	DWORD dwKEY)
 {
 	MAPTCHARACTER::iterator itCHAR = m_mapTCHAR.find(dwCharID);
 
-	if( itCHAR == m_mapTCHAR.end() || dwKEY != (*itCHAR).second->m_dwKEY )
+	if (itCHAR == m_mapTCHAR.end() || dwKEY != (*itCHAR).second->m_dwKEY)
 		return NULL;
 
 	return (*itCHAR).second;
@@ -2568,7 +2490,7 @@ LPTCHARACTER CTWorldSvrModule::FindTChar(CString strName)
 {
 	strName.MakeUpper();
 	MAPTCHARACTERNAME::iterator it = m_mapTCHARNAME.find(strName);
-	if(it!=m_mapTCHARNAME.end())
+	if (it != m_mapTCHARNAME.end())
 		return (*it).second;
 	else
 		return NULL;
@@ -2577,7 +2499,7 @@ LPTCHARACTER CTWorldSvrModule::FindTChar(CString strName)
 CTParty * CTWorldSvrModule::FindParty(WORD wID)
 {
 	MAPTPARTY::iterator it = m_mapTParty.find(wID);
-	if(it!=m_mapTParty.end())
+	if (it != m_mapTParty.end())
 		return (*it).second;
 	else
 		return NULL;
@@ -2586,16 +2508,16 @@ BYTE CTWorldSvrModule::DeleteParty(WORD wID)
 {
 	MAPTPARTY::iterator it = m_mapTParty.find(wID);
 
-	if(it!=m_mapTParty.end())
+	if (it != m_mapTParty.end())
 	{
 		CTParty * pParty = (*it).second;
-		for(int i=0; i<pParty->GetSize(); i++)
+		for (int i = 0; i<pParty->GetSize(); i++)
 		{
-			memset(&(pParty->GetMember(i)->m_command),0,sizeof(TCOMMAND));
+			memset(&(pParty->GetMember(i)->m_command), 0, sizeof(TCOMMAND));
 			pParty->GetMember(i)->m_pParty = NULL;
 			pParty->GetMember(i)->m_bPartyWaiter = FALSE;
 
-			if(m_pRelay)
+			if (m_pRelay)
 				m_pRelay->SendRW_PARTYDEL_ACK(pParty->GetMember(i)->m_dwCharID, pParty->GetID(), 0);
 
 			PartyAttr(pParty->GetMember(i));
@@ -2613,22 +2535,22 @@ BYTE CTWorldSvrModule::DeleteParty(WORD wID)
 void CTWorldSvrModule::LeaveFriend(LPTCHARACTER pChar)
 {
 	MAPTFRIEND::iterator itF;
-	for(itF=pChar->m_mapTFRIEND.begin(); itF!=pChar->m_mapTFRIEND.end(); itF++)
+	for (itF = pChar->m_mapTFRIEND.begin(); itF != pChar->m_mapTFRIEND.end(); itF++)
 	{
 		LPTFRIEND pFriend = (*itF).second;
-		if(pFriend->m_bConnected)
+		if (pFriend->m_bConnected)
 		{
 			LPTCHARACTER pTarget = FindTChar(pFriend->m_strName);
-			if(pTarget)
+			if (pTarget)
 			{
-                MAPTFRIEND::iterator it = pTarget->m_mapTFRIEND.find(pChar->m_dwCharID);
-				if(it!=pTarget->m_mapTFRIEND.end())
+				MAPTFRIEND::iterator it = pTarget->m_mapTFRIEND.find(pChar->m_dwCharID);
+				if (it != pTarget->m_mapTFRIEND.end())
 					(*it).second->m_bConnected = FALSE;
 
-				if((*itF).second->m_bType != FT_FRIEND)
+				if ((*itF).second->m_bType != FT_FRIEND)
 				{
 					CTServer * pCon = FindMapSvr(pTarget->m_bMainID);
-					if(pCon)
+					if (pCon)
 					{
 						pCon->SendMW_FRIENDCONNECTION_REQ(
 							pTarget->m_dwCharID,
@@ -2641,7 +2563,7 @@ void CTWorldSvrModule::LeaveFriend(LPTCHARACTER pChar)
 		}
 	}
 
-	for(itF=pChar->m_mapTFRIEND.begin(); itF!=pChar->m_mapTFRIEND.end(); itF++)
+	for (itF = pChar->m_mapTFRIEND.begin(); itF != pChar->m_mapTFRIEND.end(); itF++)
 		delete (*itF).second;
 	pChar->m_mapTFRIEND.clear();
 }
@@ -2649,19 +2571,19 @@ void CTWorldSvrModule::LeaveSoulmate(LPTCHARACTER pChar)
 {
 	MAPTSOULMATE::iterator it;
 
-	for(it=pChar->m_mapTSOULMATE.begin(); it!=pChar->m_mapTSOULMATE.end(); it++)
+	for (it = pChar->m_mapTSOULMATE.begin(); it != pChar->m_mapTSOULMATE.end(); it++)
 	{
 		LPTSOULMATE pSOUL = (*it).second;
-		if(pSOUL->m_bConnected &&
+		if (pSOUL->m_bConnected &&
 			pSOUL->m_dwCharID != pChar->m_dwCharID)
 		{
 			MAPTCHARACTER::iterator itSo = m_mapTCHAR.find(pSOUL->m_dwCharID);
-			if(itSo != m_mapTCHAR.end())
+			if (itSo != m_mapTCHAR.end())
 			{
 				LPTCHARACTER pTarget = (*itSo).second;
 
 				MAPTSOULMATE::iterator itSoul = pTarget->m_mapTSOULMATE.find(pTarget->m_dwCharID);
-				if(itSoul != pTarget->m_mapTSOULMATE.end())
+				if (itSoul != pTarget->m_mapTSOULMATE.end())
 				{
 					(*itSoul).second->m_bConnected = FALSE;
 					(*itSoul).second->m_dwRegion = 0;
@@ -2676,10 +2598,10 @@ void CTWorldSvrModule::LeaveSoulmate(LPTCHARACTER pChar)
 void CTWorldSvrModule::LeaveTMS(LPTCHARACTER pChar)
 {
 	MAPDWORD::iterator it;
-	for(it=pChar->m_mapTMS.begin(); it!=pChar->m_mapTMS.end(); it++)
+	for (it = pChar->m_mapTMS.begin(); it != pChar->m_mapTMS.end(); it++)
 	{
 		MAPTMS::iterator find = m_mapTMS.find((*it).second);
-		if(find==m_mapTMS.end())
+		if (find == m_mapTMS.end())
 			continue;
 
 		LPTMS pTMS = (*find).second;
@@ -2689,18 +2611,18 @@ void CTWorldSvrModule::LeaveTMS(LPTCHARACTER pChar)
 		pTMS->m_mapMember.erase(pChar->m_dwCharID);
 
 		MAPTCHARACTER::iterator itChar;
-		for(itChar=pTMS->m_mapMember.begin(); itChar!=pTMS->m_mapMember.end(); itChar++)
+		for (itChar = pTMS->m_mapMember.begin(); itChar != pTMS->m_mapMember.end(); itChar++)
 		{
 			CTServer * pCon = FindMapSvr((*itChar).second->m_bMainID);
-			if(pCon)
+			if (pCon)
 				pCon->SendMW_TMSOUT_REQ(
-					(*itChar).second->m_dwCharID,
+				(*itChar).second->m_dwCharID,
 					(*itChar).second->m_dwKEY,
 					dwTMS,
 					pChar->m_strNAME);
 		}
-		
-		if(!pTMS->m_mapMember.size())
+
+		if (!pTMS->m_mapMember.size())
 		{
 			delete pTMS;
 			m_mapTMS.erase(dwTMS);
@@ -2719,11 +2641,11 @@ void CTWorldSvrModule::PartyAttr(LPTCHARACTER pChar)
 	DWORD dwChiefID = 0;
 	BYTE bPartyType = PT_FREE;
 
-	if(pChar->m_pParty)
+	if (pChar->m_pParty)
 	{
 		CTCorps *pCorps = FindCorps(pChar->m_pParty->m_wCorpsID);
 
-		if(pCorps)
+		if (pCorps)
 			wCommander = pCorps->m_wCommander;
 
 		dwChiefID = pChar->m_pParty->GetChiefID();
@@ -2732,20 +2654,20 @@ void CTWorldSvrModule::PartyAttr(LPTCHARACTER pChar)
 	}
 
 	CTServer * pMain = FindMapSvr(pChar->m_bMainID);
-	if(pMain)
+	if (pMain)
 		pMain->SendMW_PARTYATTR_REQ(
-				pChar->m_dwCharID,
-				pChar->m_dwKEY,
-				wPartyID,
-				bPartyType,
-				dwChiefID,
-				wCommander);
+			pChar->m_dwCharID,
+			pChar->m_dwKEY,
+			wPartyID,
+			bPartyType,
+			dwChiefID,
+			wCommander);
 
-	for(itTCON=pChar->m_mapTCHARCON.begin(); itTCON!=pChar->m_mapTCHARCON.end(); itTCON++)
+	for (itTCON = pChar->m_mapTCHARCON.begin(); itTCON != pChar->m_mapTCHARCON.end(); itTCON++)
 	{
 		CTServer *pMAP = FindMapSvr((*itTCON).first);
 
-		if(pMAP && pMAP->m_bValid && pMAP != pMain)
+		if (pMAP && pMAP->m_bValid && pMAP != pMain)
 		{
 			pMAP->SendMW_PARTYATTR_REQ(
 				pChar->m_dwCharID,
@@ -2760,31 +2682,31 @@ void CTWorldSvrModule::PartyAttr(LPTCHARACTER pChar)
 
 void CTWorldSvrModule::JoinParty(CTParty * pParty, DWORD dwChiefID, LPTCHARACTER pTarget)
 {
-	if(!pParty->GetChiefID())
+	if (!pParty->GetChiefID())
 		pParty->SetChiefID(dwChiefID);
 
 	LPTCHARACTER pChief = NULL;
 
 	MAPTCHARACTER::iterator itCh = m_mapTCHAR.find(pParty->GetChiefID());
-	if(itCh != m_mapTCHAR.end())
+	if (itCh != m_mapTCHAR.end())
 		pChief = (*itCh).second;
 
-	if(!pChief)
+	if (!pChief)
 		return;
 
 	CTServer * pTgCon = FindMapSvr(pTarget->m_bMainID);
 	CTServer * pOgCon = FindMapSvr(pChief->m_bMainID);
 
-	if( !pTgCon || !pOgCon )
+	if (!pTgCon || !pOgCon)
 		return;
 
-	for(int i=0; i < pParty->GetSize(); i++)
+	for (int i = 0; i < pParty->GetSize(); i++)
 	{
 		LPTCHARACTER pMember = pParty->GetMember(i);
 		CTServer * pMemCon = FindMapSvr(pMember->m_bMainID);
 		CTCorps *pCorps = FindCorps(pParty->m_wCorpsID);
 
-		if(!pMemCon)
+		if (!pMemCon)
 			continue;
 
 		pTgCon->SendMW_PARTYJOIN_REQ(
@@ -2806,13 +2728,13 @@ void CTWorldSvrModule::JoinParty(CTParty * pParty, DWORD dwChiefID, LPTCHARACTER
 			pParty->m_bObtainType);
 	}
 
-	AddPartyMember( pParty, pTarget);
+	AddPartyMember(pParty, pTarget);
 	PartyAttr(pTarget);
 }
 
 void CTWorldSvrModule::LeaveParty(LPTCHARACTER pChar, BYTE bKick, BYTE bDelete)
 {
-	if(!pChar->m_pParty)
+	if (!pChar->m_pParty)
 		return;
 
 	CTParty *pParty = pChar->m_pParty;
@@ -2820,22 +2742,22 @@ void CTWorldSvrModule::LeaveParty(LPTCHARACTER pChar, BYTE bKick, BYTE bDelete)
 
 	BYTE bDel = FALSE;
 
-	NotifyDelCorpsUnit( pCorps, pChar);
+	NotifyDelCorpsUnit(pCorps, pChar);
 
-	if( pParty->GetSize() > 2 || !bDelete )
+	if (pParty->GetSize() > 2 || !bDelete)
 	{
 		CTServer *pMain = FindMapSvr(pChar->m_bMainID);
 
-		if(pParty->GetNextChief(pChar->m_dwCharID))
+		if (pParty->GetNextChief(pChar->m_dwCharID))
 		{
-			for(int i=0; i<pParty->GetSize(); i++)
+			for (int i = 0; i<pParty->GetSize(); i++)
 				PartyAttr(pParty->GetMember(i));
 
-			if(m_pRelay)
+			if (m_pRelay)
 				m_pRelay->SendRW_PARTYCHGCHIEF_ACK(pParty->GetID(), pParty->GetChiefID());
 
-			ChgSquadChief( pCorps, pParty);
-			ReportEnemyList( pCorps, pParty->GetID(), pParty->GetChiefID());
+			ChgSquadChief(pCorps, pParty);
+			ReportEnemyList(pCorps, pParty->GetID(), pParty->GetChiefID());
 		}
 	}
 	else
@@ -2847,16 +2769,16 @@ void CTWorldSvrModule::LeaveParty(LPTCHARACTER pChar, BYTE bKick, BYTE bDelete)
 
 	WORD wCommander = pCorps ? pCorps->m_wCommander : 0;
 
-	for(int i=0; i<pParty->GetSize(); i++)
+	for (int i = 0; i<pParty->GetSize(); i++)
 	{
 		CTServer *pMAP = FindMapSvr(pParty->GetMember(i)->m_bMainID);
 
-		if(pMAP)
+		if (pMAP)
 		{
 			DWORD dwChiefID = pParty->GetMember(i) != pChar ? pParty->GetChiefID() : 0;
 
 			pMAP->SendMW_PARTYDEL_REQ(
-                pParty->GetMember(i)->m_dwCharID,
+				pParty->GetMember(i)->m_dwCharID,
 				pParty->GetMember(i)->m_dwKEY,
 				pChar->m_dwCharID,
 				dwChiefID,
@@ -2867,69 +2789,69 @@ void CTWorldSvrModule::LeaveParty(LPTCHARACTER pChar, BYTE bKick, BYTE bDelete)
 	}
 
 	pParty->DelMember(pChar->m_dwCharID);
-	if(m_pRelay)
+	if (m_pRelay)
 		m_pRelay->SendRW_PARTYDEL_ACK(pChar->m_dwCharID, pParty->GetID(), pParty->GetChiefID());
 
 	PartyAttr(pChar);
 
-	if(bDel)
+	if (bDel)
 	{
-		if(pParty->GetSize())
+		if (pParty->GetSize())
 			LeaveParty(pParty->GetMember(0), FALSE, FALSE);
 
 		DeleteParty(pParty->GetID());
 	}
 }
 
-void CTWorldSvrModule::CloseChar( LPTCHARACTER pTCHAR)
+void CTWorldSvrModule::CloseChar(LPTCHARACTER pTCHAR)
 {
 #ifdef __TW_APEX
-	if(m_bNation == NATION_TAIWAN)
+	if (m_bNation == NATION_TAIWAN)
 		ApexNotifyUserLeave(pTCHAR->m_dwCharID, pTCHAR->m_strNAME);
 #endif
 
-	if(pTCHAR->m_bCHGMainID)
+	if (pTCHAR->m_bCHGMainID)
 	{
 		CTServer * pMain = FindMapSvr(pTCHAR->m_bCHGMainID);
-		if(pMain)
+		if (pMain)
 			pMain->SendMW_INVALIDCHAR_REQ(pTCHAR->m_dwCharID, pTCHAR->m_dwKEY, TRUE);
 	}
 
 	MAPTCHARCON::iterator itCON;
 
-	if(pTCHAR->m_mapTFRIEND.size())
+	if (pTCHAR->m_mapTFRIEND.size())
 		LeaveFriend(pTCHAR);
 
-	if(pTCHAR->m_mapTMS.size())
+	if (pTCHAR->m_mapTMS.size())
 		LeaveTMS(pTCHAR);
 
-	if(pTCHAR->m_pParty)
-		LeaveParty( pTCHAR, 0);
+	if (pTCHAR->m_pParty)
+		LeaveParty(pTCHAR, 0);
 
-	if(pTCHAR->m_mapTSOULMATE.size())
+	if (pTCHAR->m_mapTSOULMATE.size())
 		LeaveSoulmate(pTCHAR);
 
-	if(pTCHAR->m_pGuild)
+	if (pTCHAR->m_pGuild)
 	{
 		pTCHAR->m_pGuild->SetMemberConnection(pTCHAR->m_dwCharID, NULL, m_timeCurrent);
 		SendDM_PVPRECORD_REQ(pTCHAR->m_pGuild->m_dwID, pTCHAR->m_pGuild->FindMember(pTCHAR->m_dwCharID));
 	}
 
-	if(pTCHAR->m_pTactics)
+	if (pTCHAR->m_pTactics)
 	{
 		pTCHAR->m_pTactics->SetTacticsConnection(pTCHAR->m_dwCharID, NULL);
 		SendDM_TACTICSPOINT_REQ(pTCHAR->m_pTactics->FindTactics(pTCHAR->m_dwCharID));
 	}
 
-	if(pTCHAR->m_dwTicket)
+	if (pTCHAR->m_dwTicket)
 		TNMTEnterGate(pTCHAR, 0, FALSE);
 
-	while(!pTCHAR->m_vTDEADCON.empty())
+	while (!pTCHAR->m_vTDEADCON.empty())
 	{
 		BYTE bServerID = pTCHAR->m_vTDEADCON.back();
 		CTServer *pMAP = FindMapSvr(bServerID);
 
-		if(pMAP)
+		if (pMAP)
 		{
 			pMAP->SendMW_DELCHAR_REQ(
 				pTCHAR->m_dwCharID,
@@ -2941,11 +2863,11 @@ void CTWorldSvrModule::CloseChar( LPTCHARACTER pTCHAR)
 		pTCHAR->m_vTDEADCON.pop_back();
 	}
 
-	for( itCON = pTCHAR->m_mapTCHARCON.begin(); itCON != pTCHAR->m_mapTCHARCON.end(); itCON++)
+	for (itCON = pTCHAR->m_mapTCHARCON.begin(); itCON != pTCHAR->m_mapTCHARCON.end(); itCON++)
 	{
 		CTServer *pMAP = FindMapSvr((*itCON).first);
 
-		if(pMAP)
+		if (pMAP)
 		{
 			pMAP->SendMW_DELCHAR_REQ(
 				pTCHAR->m_dwCharID,
@@ -2960,7 +2882,7 @@ void CTWorldSvrModule::CloseChar( LPTCHARACTER pTCHAR)
 	MAPTCHARACTERNAME::iterator itNAME = m_mapTCHARNAME.find(strFindName);
 	MAPTCHARACTER::iterator itCHAR = m_mapTCHAR.find(pTCHAR->m_dwCharID);
 
-	if( itNAME != m_mapTCHARNAME.end() )
+	if (itNAME != m_mapTCHARNAME.end())
 		m_mapTCHARNAME.erase(itNAME);
 
 	m_mapTCHAR.erase(itCHAR);
@@ -2977,7 +2899,7 @@ WORD CTWorldSvrModule::GenPartyID()
 CTGuild *CTWorldSvrModule::FindTGuild(DWORD dwGuild)
 {
 	MAPTGUILD::iterator it = m_mapTGuild.find(dwGuild);
-	if(it!=m_mapTGuild.end())
+	if (it != m_mapTGuild.end())
 		return (*it).second;
 	return NULL;
 }
@@ -2985,7 +2907,7 @@ CTGuild *CTWorldSvrModule::FindTGuild(DWORD dwGuild)
 CTCorps *CTWorldSvrModule::FindCorps(WORD wID)
 {
 	MAPTCORPS::iterator it = m_mapTCorps.find(wID);
-	if(it!=m_mapTCorps.end())
+	if (it != m_mapTCorps.end())
 		return (*it).second;
 	else
 		return NULL;
@@ -2994,21 +2916,21 @@ CTCorps *CTWorldSvrModule::FindCorps(WORD wID)
 BYTE CTWorldSvrModule::DeleteTGuild(DWORD dwGuildID)
 {
 	MAPTGUILD::iterator it = m_mapTGuild.find(dwGuildID);
-	if(it!=m_mapTGuild.end())
+	if (it != m_mapTGuild.end())
 	{
 		CTGuild * pGuild = (*it).second;
 
 		MAPTGUILDMEMBER::iterator itMem;
-		for(itMem = pGuild->m_mapTMember.begin(); itMem!=pGuild->m_mapTMember.end();)
+		for (itMem = pGuild->m_mapTMember.begin(); itMem != pGuild->m_mapTMember.end();)
 		{
 			LPTGUILDMEMBER pMember = (*itMem).second;
 			itMem++;
 
-			if(pMember->m_pChar)
+			if (pMember->m_pChar)
 			{
 				pMember->m_pChar->m_pGuild = NULL;
 				CTServer * pCon = FindMapSvr(pMember->m_pChar->m_bMainID);
-				if(pCon)
+				if (pCon)
 					pCon->SendMW_GUILDLEAVE_REQ(
 						pMember->m_pChar->m_dwCharID,
 						pMember->m_pChar->m_dwKEY,
@@ -3021,16 +2943,16 @@ BYTE CTWorldSvrModule::DeleteTGuild(DWORD dwGuildID)
 		}
 
 		MAPTTACTICSMEMBER::iterator itTac;
-		for(itTac = pGuild->m_mapTTactics.begin(); itTac!=pGuild->m_mapTTactics.end();)
+		for (itTac = pGuild->m_mapTTactics.begin(); itTac != pGuild->m_mapTTactics.end();)
 		{
 			LPTTACTICSMEMBER pMember = (*itTac).second;
 			itTac++;
 
-			if(pMember->m_pChar)
+			if (pMember->m_pChar)
 			{
 				pMember->m_pChar->m_pTactics = NULL;
 				CTServer * pCon = FindMapSvr(pMember->m_pChar->m_bMainID);
-				if(pCon)
+				if (pCon)
 					pCon->SendMW_GUILDTACTICSKICKOUT_REQ(
 						pMember->m_pChar->m_dwCharID,
 						pMember->m_pChar->m_dwKEY,
@@ -3056,10 +2978,10 @@ void CTWorldSvrModule::CheckTGuildExtinction(DWORD dwCurrentTime)
 	vTGuild.clear();
 
 	MAPDWORD::iterator itGuild;
-	for( itGuild=m_mapTGuildEx.begin(); itGuild!=m_mapTGuildEx.end(); itGuild++)
+	for (itGuild = m_mapTGuildEx.begin(); itGuild != m_mapTGuildEx.end(); itGuild++)
 	{
 		DWORD dwTime = dwCurrentTime - (*itGuild).second;
-		if(dwTime > GUILD_EXTINC_DURATION)
+		if (dwTime > GUILD_EXTINC_DURATION)
 		{
 			LPPACKETBUF pMsg = new PACKETBUF();
 			pMsg->m_packet.SetID(DM_GUILDEXTINCTION_REQ)
@@ -3069,7 +2991,7 @@ void CTWorldSvrModule::CheckTGuildExtinction(DWORD dwCurrentTime)
 		}
 	}
 
-	for(BYTE i=0; i<vTGuild.size(); i++)
+	for (BYTE i = 0; i<vTGuild.size(); i++)
 		m_mapTGuildEx.erase(vTGuild[i]);
 
 	vTGuild.clear();
@@ -3077,29 +2999,29 @@ void CTWorldSvrModule::CheckTGuildExtinction(DWORD dwCurrentTime)
 
 void CTWorldSvrModule::SetCharLevel(LPTCHARACTER pCHAR, BYTE bLevel)
 {
-	if(pCHAR->m_bLevel != bLevel)
+	if (pCHAR->m_bLevel != bLevel)
 	{
 		BYTE bGapN = GetWarCountryGap(bLevel);
 		BYTE bCountry = GetWarCountry(pCHAR);
 
-		if(bGapN < WARCOUNTRY_MAXGAP && bCountry < TCONTRY_B)
+		if (bGapN < WARCOUNTRY_MAXGAP && bCountry < TCONTRY_B)
 		{
 			MAPDWORD::iterator itA;
 			BYTE bGapO = GetWarCountryGap(pCHAR->m_bLevel);
-			if(bGapO < WARCOUNTRY_MAXGAP && bGapO != bGapN)
+			if (bGapO < WARCOUNTRY_MAXGAP && bGapO != bGapN)
 			{
 				itA = m_mapWarCountry[bCountry][bGapO].find(pCHAR->m_dwCharID);
-				if(itA != m_mapWarCountry[bCountry][bGapO].end())
+				if (itA != m_mapWarCountry[bCountry][bGapO].end())
 					m_mapWarCountry[bCountry][bGapO].erase(itA);
 			}
 
 			itA = m_mapWarCountry[bCountry][bGapN].find(pCHAR->m_dwCharID);
-			if(itA == m_mapWarCountry[bCountry][bGapN].end())
+			if (itA == m_mapWarCountry[bCountry][bGapN].end())
 				m_mapWarCountry[bCountry][bGapN].insert(MAPDWORD::value_type(pCHAR->m_dwCharID, 0));
 		}
 
 		pCHAR->m_bLevel = bLevel;
-		if(pCHAR->m_pGuild)
+		if (pCHAR->m_pGuild)
 			pCHAR->m_pGuild->SetMemberLevel(pCHAR->m_dwCharID, bLevel);
 	}
 }
@@ -3116,19 +3038,19 @@ void CTWorldSvrModule::AddPartyMember(CTParty * pParty, LPTCHARACTER pChar)
 {
 	pParty->AddMember(pChar);
 
-	if(m_pRelay)
+	if (m_pRelay)
 		m_pRelay->SendRW_PARTYADD_ACK(pChar->m_dwCharID, pParty->GetID(), pParty->GetChiefID());
 
 	CTServer * pMain = FindMapSvr(pChar->m_bMainID);
-	if(!pMain)
+	if (!pMain)
 		return;
 
 	CTCorps * pCorps = NULL;
 
-	if(pParty->m_wCorpsID)
+	if (pParty->m_wCorpsID)
 	{
 		pCorps = FindCorps(pParty->m_wCorpsID);
-		if(pCorps)
+		if (pCorps)
 		{
 			pMain->SendMW_CORPSJOIN_REQ(
 				pChar->m_dwCharID,
@@ -3138,7 +3060,7 @@ void CTWorldSvrModule::AddPartyMember(CTParty * pParty, LPTCHARACTER pChar)
 		}
 	}
 
-	if(pCorps)
+	if (pCorps)
 		NotifyAddCorpsUnit(pCorps, pChar);
 	else
 		NotifyAddCorpsUnit(pParty, pChar);
@@ -3146,23 +3068,23 @@ void CTWorldSvrModule::AddPartyMember(CTParty * pParty, LPTCHARACTER pChar)
 
 void CTWorldSvrModule::BroadcastCorps(LPTCHARACTER pChar, CPacket * pPacket, WORD wMsgID)
 {
-	if(pChar->m_pParty->m_wCorpsID &&
+	if (pChar->m_pParty->m_wCorpsID &&
 		pChar->m_pParty->GetChiefID() == pChar->m_dwCharID)
 	{
 		CTCorps * pCorps = FindCorps(pChar->m_pParty->m_wCorpsID);
-		if(pCorps)
+		if (pCorps)
 		{
 			MAPTPARTY::iterator itParty;
-			for(itParty=pCorps->m_mapParty.begin(); itParty!=pCorps->m_mapParty.end(); itParty++)
+			for (itParty = pCorps->m_mapParty.begin(); itParty != pCorps->m_mapParty.end(); itParty++)
 			{
-				if(pChar->m_pParty == (*itParty).second)
+				if (pChar->m_pParty == (*itParty).second)
 					continue;
 
 				LPTCHARACTER pChief = (*itParty).second->GetChief();
-                if(pChief)
+				if (pChief)
 				{
 					CTServer * pMain = FindMapSvr(pChief->m_bMainID);
-					if(pMain)
+					if (pMain)
 						pMain->RelayCorpsMsg(
 							pChief->m_dwCharID,
 							pChief->m_dwKEY,
@@ -3172,16 +3094,16 @@ void CTWorldSvrModule::BroadcastCorps(LPTCHARACTER pChar, CPacket * pPacket, WOR
 			}
 		}
 	}
-	
+
 	BroadcastCorps(pChar->m_pParty, pPacket, wMsgID);
 }
 
 void CTWorldSvrModule::BroadcastCorps(CTParty * pParty, CPacket * pPacket, WORD wMsgID)
 {
-	for(int i=0; i<pParty->GetSize(); i++)
+	for (int i = 0; i<pParty->GetSize(); i++)
 	{
 		CTServer * pMap = FindMapSvr(pParty->GetMember(i)->m_bMainID);
-		if(pMap)
+		if (pMap)
 			pMap->RelayCorpsMsg(
 				pParty->GetMember(i)->m_dwCharID,
 				pParty->GetMember(i)->m_dwKEY,
@@ -3192,13 +3114,13 @@ void CTWorldSvrModule::BroadcastCorps(CTParty * pParty, CPacket * pPacket, WORD 
 
 void CTWorldSvrModule::NotifyDelCorpsUnit(CTCorps * pCorps, LPTCHARACTER pChar)
 {
-	if(!pChar)
+	if (!pChar)
 		return;
 
-	if(pCorps)
+	if (pCorps)
 	{
 		MAPTPARTY::iterator itPt;
-		for(itPt=pCorps->m_mapParty.begin(); itPt!=pCorps->m_mapParty.end(); itPt++)
+		for (itPt = pCorps->m_mapParty.begin(); itPt != pCorps->m_mapParty.end(); itPt++)
 			NotifyDelCorpsUnit((*itPt).second, pChar);
 	}
 	else
@@ -3208,13 +3130,13 @@ void CTWorldSvrModule::NotifyDelCorpsUnit(CTCorps * pCorps, LPTCHARACTER pChar)
 void CTWorldSvrModule::NotifyDelCorpsUnit(CTParty * pParty, LPTCHARACTER pChar)
 {
 	CTServer * pMain = FindMapSvr(pChar->m_bMainID);
-	if(!pMain)
+	if (!pMain)
 		return;
 
-	for(int i=0; i<pParty->GetSize(); i++)
+	for (int i = 0; i<pParty->GetSize(); i++)
 	{
 		CTServer * pMap = FindMapSvr(pParty->GetMember(i)->m_bMainID);
-		if(pMap)
+		if (pMap)
 		{
 			pMap->SendMW_DELCORPSUNIT_REQ(
 				pParty->GetMember(i)->m_dwCharID,
@@ -3223,7 +3145,7 @@ void CTWorldSvrModule::NotifyDelCorpsUnit(CTParty * pParty, LPTCHARACTER pChar)
 				pChar->m_dwCharID);
 		}
 
-		if(pChar != pParty->GetMember(i))
+		if (pChar != pParty->GetMember(i))
 			pMain->SendMW_DELCORPSUNIT_REQ(
 				pChar->m_dwCharID,
 				pChar->m_dwKEY,
@@ -3244,21 +3166,21 @@ void CTWorldSvrModule::NotifyDelCorpsUnit(CTParty * pParty, LPTCHARACTER pChar)
 
 void CTWorldSvrModule::NotifyAddCorpsUnit(CTCorps * pCorps, LPTCHARACTER pChar)
 {
-	if(!pCorps)
+	if (!pCorps)
 		return;
 
 	MAPTPARTY::iterator itPt;
-	for(itPt=pCorps->m_mapParty.begin(); itPt!=pCorps->m_mapParty.end(); itPt++)
+	for (itPt = pCorps->m_mapParty.begin(); itPt != pCorps->m_mapParty.end(); itPt++)
 		NotifyAddCorpsUnit((*itPt).second, pChar);
 }
 
 void CTWorldSvrModule::NotifyAddCorpsUnit(CTParty * pParty, LPTCHARACTER pChar)
 {
-	if(!pParty)
+	if (!pParty)
 		return;
 
 	CTServer * pMain = FindMapSvr(pChar->m_bMainID);
-	if(!pMain)
+	if (!pMain)
 		return;
 
 	pMain->SendMW_ADDSQUAD_REQ(
@@ -3266,12 +3188,12 @@ void CTWorldSvrModule::NotifyAddCorpsUnit(CTParty * pParty, LPTCHARACTER pChar)
 		pChar->m_dwKEY,
 		pParty);
 
-	for(int i=0; i<pParty->GetSize(); i++)
+	for (int i = 0; i<pParty->GetSize(); i++)
 	{
 		CTServer * pMap = FindMapSvr(pParty->GetMember(i)->m_bMainID);
-		if(pMap)
+		if (pMap)
 		{
-			if(pParty->GetMember(i) != pChar)
+			if (pParty->GetMember(i) != pChar)
 				pMap->SendMW_ADDCORPSUNIT_REQ(
 					pParty->GetMember(i)->m_dwCharID,
 					pParty->GetMember(i)->m_dwKEY,
@@ -3303,24 +3225,24 @@ void CTWorldSvrModule::NotifyCorpsJoin(CTCorps * pCorps, CTParty * pParty)
 	CTServer * pMap;
 
 	MAPTPARTY::iterator itPt;
-	for(itPt=pCorps->m_mapParty.begin(); itPt!=pCorps->m_mapParty.end(); itPt++)
+	for (itPt = pCorps->m_mapParty.begin(); itPt != pCorps->m_mapParty.end(); itPt++)
 	{
 		CTParty * pCorpsParty = (*itPt).second;
-	
-		for(int i=0; i<pCorpsParty->GetSize(); i++)
+
+		for (int i = 0; i<pCorpsParty->GetSize(); i++)
 		{
 			pMap = FindMapSvr(pCorpsParty->GetMember(i)->m_bMainID);
-			if(pMap)
+			if (pMap)
 				pMap->SendMW_ADDSQUAD_REQ(
 					pCorpsParty->GetMember(i)->m_dwCharID,
 					pCorpsParty->GetMember(i)->m_dwKEY,
 					pParty);
 		}
 
-		for(int i=0; i<pParty->GetSize(); i++)
+		for (int i = 0; i<pParty->GetSize(); i++)
 		{
 			pMap = FindMapSvr(pParty->GetMember(i)->m_bMainID);
-			if(pMap)
+			if (pMap)
 				pMap->SendMW_ADDSQUAD_REQ(
 					pParty->GetMember(i)->m_dwCharID,
 					pParty->GetMember(i)->m_dwKEY,
@@ -3329,19 +3251,19 @@ void CTWorldSvrModule::NotifyCorpsJoin(CTCorps * pCorps, CTParty * pParty)
 	}
 
 	pCorps->Enter(pParty);
-	CorpsJoin( pParty, pCorps->m_wCommander);
+	CorpsJoin(pParty, pCorps->m_wCommander);
 }
 
 void CTWorldSvrModule::CorpsJoin(CTParty * pParty, WORD wCommander)
 {
-	if(m_pRelay)
+	if (m_pRelay)
 		m_pRelay->SendRW_CORPSJOIN_ACK(pParty->GetID(), pParty->m_wCorpsID, wCommander);
 
-	for(int i=0; i<pParty->GetSize(); i++)
+	for (int i = 0; i<pParty->GetSize(); i++)
 	{
 		CTServer * pMap = FindMapSvr(pParty->GetMember(i)->m_bMainID);
 
-		if(pMap)
+		if (pMap)
 			pMap->SendMW_CORPSJOIN_REQ(
 				pParty->GetMember(i)->m_dwCharID,
 				pParty->GetMember(i)->m_dwKEY,
@@ -3354,20 +3276,20 @@ void CTWorldSvrModule::CorpsJoin(CTParty * pParty, WORD wCommander)
 
 CTCorps * CTWorldSvrModule::NotifyCorpsLeave(CTCorps * pCorps, CTParty * pParty)
 {
-	if(!pCorps)
+	if (!pCorps)
 		return NULL;
 
 	MAPTPARTY::iterator itPt;
-	for(itPt=pCorps->m_mapParty.begin(); itPt!=pCorps->m_mapParty.end(); itPt++)
+	for (itPt = pCorps->m_mapParty.begin(); itPt != pCorps->m_mapParty.end(); itPt++)
 	{
-		if((*itPt).second->GetID() != pParty->GetID())
+		if ((*itPt).second->GetID() != pParty->GetID())
 		{
 			DelSquad((*itPt).second, pParty->GetID());
 			DelSquad(pParty, (*itPt).second->GetID());
 		}
 	}
 
-	if( pCorps->Leave(pParty) )
+	if (pCorps->Leave(pParty))
 	{
 		CTParty *pCorpsParty = pCorps->m_mapParty.begin()->second;
 
@@ -3377,25 +3299,25 @@ CTCorps * CTWorldSvrModule::NotifyCorpsLeave(CTCorps * pCorps, CTParty * pParty)
 		delete pCorps;
 		pCorps = NULL;
 	}
-	else if(pCorps->GetNextCommander(pParty->GetID()))
+	else if (pCorps->GetNextCommander(pParty->GetID()))
 	{
 		MAPTPARTY::iterator itPt;
 
-		for(itPt=pCorps->m_mapParty.begin(); itPt!=pCorps->m_mapParty.end(); itPt++)
+		for (itPt = pCorps->m_mapParty.begin(); itPt != pCorps->m_mapParty.end(); itPt++)
 			CorpsJoin((*itPt).second, pCorps->m_wCommander);
 	}
 
-	CorpsJoin( pParty, 0);
+	CorpsJoin(pParty, 0);
 
 	return pCorps;
 }
 
 void CTWorldSvrModule::DelSquad(CTParty * pParty, WORD wDelParty)
 {
-	for(int i=0; i< pParty->GetSize(); i++)
+	for (int i = 0; i< pParty->GetSize(); i++)
 	{
 		CTServer * pMap = FindMapSvr(pParty->GetMember(i)->m_bMainID);
-		if(pMap)
+		if (pMap)
 		{
 			pMap->SendMW_DELSQUAD_REQ(
 				pParty->GetMember(i)->m_dwCharID,
@@ -3406,16 +3328,16 @@ void CTWorldSvrModule::DelSquad(CTParty * pParty, WORD wDelParty)
 }
 
 void CTWorldSvrModule::TransferCorpsCommand(LPTCHARACTER pChar,
-									   BYTE bCMD,
-									   BYTE bTgType,
-									   DWORD dwTgID,
-									   WORD wPosX,
-									   WORD wPosZ,
-									   WORD wSquadID,
-									   DWORD dwCharID,
-									   WORD wMapID)
+	BYTE bCMD,
+	BYTE bTgType,
+	DWORD dwTgID,
+	WORD wPosX,
+	WORD wPosZ,
+	WORD wSquadID,
+	DWORD dwCharID,
+	WORD wMapID)
 {
-	if(pChar->m_dwCharID == dwCharID)
+	if (pChar->m_dwCharID == dwCharID)
 	{
 		pChar->m_command.m_bCommand = bCMD;
 		pChar->m_command.m_bTgType = bTgType;
@@ -3425,7 +3347,7 @@ void CTWorldSvrModule::TransferCorpsCommand(LPTCHARACTER pChar,
 	}
 
 	CTServer * pMap = FindMapSvr(pChar->m_bMainID);
-	if(pMap)
+	if (pMap)
 		pMap->SendMW_CORPSCMD_REQ(
 			pChar->m_dwCharID,
 			pChar->m_dwKEY,
@@ -3444,10 +3366,10 @@ void CTWorldSvrModule::ChgSquadChief(CTCorps * pCorps, CTParty * pParty)
 	WORD wSquadID = pParty->GetID();
 	DWORD dwChiefID = pParty->GetChiefID();
 
-	if(pCorps)
+	if (pCorps)
 	{
 		MAPTPARTY::iterator it;
-		for(it=pCorps->m_mapParty.begin(); it!=pCorps->m_mapParty.end(); it++)
+		for (it = pCorps->m_mapParty.begin(); it != pCorps->m_mapParty.end(); it++)
 			ChgSquadChief((*it).second, wSquadID, dwChiefID);
 	}
 	else
@@ -3456,10 +3378,10 @@ void CTWorldSvrModule::ChgSquadChief(CTCorps * pCorps, CTParty * pParty)
 
 void CTWorldSvrModule::ChgSquadChief(CTParty * pParty, WORD wSquadID, DWORD dwChiefID)
 {
-	for(int i=0; i<pParty->GetSize(); i++)
+	for (int i = 0; i<pParty->GetSize(); i++)
 	{
 		CTServer * pCon = FindMapSvr(pParty->GetMember(i)->m_bMainID);
-		if(pCon)
+		if (pCon)
 			pCon->SendMW_CHGSQUADCHIEF_REQ(
 				pParty->GetMember(i)->m_dwCharID,
 				pParty->GetMember(i)->m_dwKEY,
@@ -3470,17 +3392,17 @@ void CTWorldSvrModule::ChgSquadChief(CTParty * pParty, WORD wSquadID, DWORD dwCh
 
 void CTWorldSvrModule::ReportEnemyList(CTCorps * pCorps, WORD wPartyID, DWORD dwChiefID)
 {
-	if(!pCorps)
+	if (!pCorps)
 		return;
 
 	MAPTPARTY::iterator it;
-	for(it=pCorps->m_mapParty.begin(); it!=pCorps->m_mapParty.end(); it++)
+	for (it = pCorps->m_mapParty.begin(); it != pCorps->m_mapParty.end(); it++)
 	{
-		if(wPartyID!=(*it).second->GetID())
+		if (wPartyID != (*it).second->GetID())
 		{
 			LPTCHARACTER pChief = (*it).second->GetChief();
 			CTServer * pCon = FindMapSvr(pChief->m_bMainID);
-			if(pCon)
+			if (pCon)
 			{
 				pCon->SendMW_REPORTENEMYLIST_REQ(
 					pChief->m_dwCharID,
@@ -3493,18 +3415,18 @@ void CTWorldSvrModule::ReportEnemyList(CTCorps * pCorps, WORD wPartyID, DWORD dw
 	}
 }
 
-void CTWorldSvrModule::CheckMainCON( LPTCHARACTER pTCHAR)
+void CTWorldSvrModule::CheckMainCON(LPTCHARACTER pTCHAR)
 {
 	MAPTCHARCON::iterator itCON;
 
-	if(!pTCHAR)
+	if (!pTCHAR)
 		return;
 
-	for( itCON = pTCHAR->m_mapTCHARCON.begin(); itCON != pTCHAR->m_mapTCHARCON.end(); itCON++)
+	for (itCON = pTCHAR->m_mapTCHARCON.begin(); itCON != pTCHAR->m_mapTCHARCON.end(); itCON++)
 	{
 		CTServer *pMAP = FindMapSvr((*itCON).first);
 
-		if(pMAP)
+		if (pMAP)
 		{
 			pMAP->SendMW_CHECKMAIN_REQ(
 				pTCHAR->m_dwCharID,
@@ -3518,16 +3440,16 @@ void CTWorldSvrModule::CheckMainCON( LPTCHARACTER pTCHAR)
 	}
 }
 
-void CTWorldSvrModule::ClearDeadCON( LPTCHARACTER pTCHAR)
+void CTWorldSvrModule::ClearDeadCON(LPTCHARACTER pTCHAR)
 {
-	if(!pTCHAR)
+	if (!pTCHAR)
 		return;
 
-	while(!pTCHAR->m_vTDEADCON.empty())
+	while (!pTCHAR->m_vTDEADCON.empty())
 	{
 		CTServer *pMAP = FindMapSvr(pTCHAR->m_vTDEADCON.back());
 
-		if(pMAP)
+		if (pMAP)
 		{
 			pMAP->SendMW_CLOSECHAR_REQ(
 				pTCHAR->m_dwCharID,
@@ -3538,7 +3460,7 @@ void CTWorldSvrModule::ClearDeadCON( LPTCHARACTER pTCHAR)
 	}
 }
 
-BYTE CTWorldSvrModule::PushConCess( LPTCHARACTER pTCHAR, LPPACKETBUF pBUF)
+BYTE CTWorldSvrModule::PushConCess(LPTCHARACTER pTCHAR, LPPACKETBUF pBUF)
 {
 	LPPACKETBUF pMSG = new PACKETBUF();
 
@@ -3550,45 +3472,45 @@ BYTE CTWorldSvrModule::PushConCess( LPTCHARACTER pTCHAR, LPPACKETBUF pBUF)
 	return INT(pTCHAR->m_qConCess.size()) > 1 ? TRUE : FALSE;
 }
 
-DWORD CTWorldSvrModule::PopConCess( LPTCHARACTER pTCHAR)
+DWORD CTWorldSvrModule::PopConCess(LPTCHARACTER pTCHAR)
 {
-	if(pTCHAR->m_qConCess.empty())
+	if (pTCHAR->m_qConCess.empty())
 		return EC_NOERROR;
 
 	delete pTCHAR->m_qConCess.front();
 	pTCHAR->m_qConCess.pop();
 
-	if(!pTCHAR->m_qConCess.empty())
+	if (!pTCHAR->m_qConCess.empty())
 	{
 		LPPACKETBUF pBUF = pTCHAR->m_qConCess.front();
 
-		switch(pBUF->m_packet.GetID())
+		switch (pBUF->m_packet.GetID())
 		{
-		case MW_BEGINTELEPORT_ACK	: OnBeginTeleport( pTCHAR, pBUF); break;
-		case MW_CHECKCONNECT_ACK	: OnCheckConnect( pTCHAR, pBUF); break;
+		case MW_BEGINTELEPORT_ACK: OnBeginTeleport(pTCHAR, pBUF); break;
+		case MW_CHECKCONNECT_ACK: OnCheckConnect(pTCHAR, pBUF); break;
 		}
 	}
 
 	return EC_NOERROR;
 }
 
-void CTWorldSvrModule::OnBeginTeleport( LPTCHARACTER pTCHAR, LPPACKETBUF pBUF)
+void CTWorldSvrModule::OnBeginTeleport(LPTCHARACTER pTCHAR, LPPACKETBUF pBUF)
 {
 	CTServer *pSERVER = FindTServer(DWORD(DWORD_PTR(pBUF->m_pSESSION)));
 	CTServer *pMAIN = FindMapSvr(pTCHAR->m_bMainID);
 
-	if( !pSERVER || !pMAIN )
+	if (!pSERVER || !pMAIN)
 	{
-		// ≈⁄∑π∆˜∆Æ∏¶ ¿«∑⁄«— ∏  º≠πˆ∞° ∫Ò»∞º∫ µ«æ˙∞≈≥™ ∏ﬁ¿Œº≠πˆ∞° æ¯∞≈≥™ ∞¯Ωƒ¿˚¿∏∑Œ πË∆˜µ» ≈¨∂Û¿Ãæ∆Æ∑Œ∫Œ≈Õ¿« ø¨∞·¿Ã æ∆¥œ∞≈≥™
-		// «ÿ≈∑¿∏∑Œ ¿«Ω…µ«¥¬ ø¨∞·∑Œ∫Œ≈Õ¿« ≈⁄∑π∆˜∆Æ ø‰√ª
-		// ≈¨∂Û¿Ãæ∆Æ¿« ø¨∞·¿ª ¡æ∑·
+		// ÌÖîÎ†àÌè¨Ìä∏Î•º ÏùòÎ¢∞Ìïú Îßµ ÏÑúÎ≤ÑÍ∞Ä ÎπÑÌôúÏÑ± ÎêòÏóàÍ±∞ÎÇò Î©îÏù∏ÏÑúÎ≤ÑÍ∞Ä ÏóÜÍ±∞ÎÇò Í≥µÏãùÏ†ÅÏúºÎ°ú Î∞∞Ìè¨Îêú ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏Î°úÎ∂ÄÌÑ∞Ïùò Ïó∞Í≤∞Ïù¥ ÏïÑÎãàÍ±∞ÎÇò
+		// Ìï¥ÌÇπÏúºÎ°ú ÏùòÏã¨ÎêòÎäî Ïó∞Í≤∞Î°úÎ∂ÄÌÑ∞Ïùò ÌÖîÎ†àÌè¨Ìä∏ ÏöîÏ≤≠
+		// ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏Ïùò Ïó∞Í≤∞ÏùÑ Ï¢ÖÎ£å
 		CloseChar(pTCHAR);
 		return;
 	}
 
-	if( pSERVER != pMAIN )
+	if (pSERVER != pMAIN)
 	{
-		// «ˆ¿Á¿« ∏ﬁ¿Œº≠πˆ∑Œ∫Œ≈Õ ø‰√ªπﬁ¿∫ ø¨∞·∞¸∏Æ «¡∑ŒººΩ∫∞° æ∆¥œπ«∑Œ √Îº“«œ∞Ì ¥Ÿ¿Ω ø¨∞·∞¸∏Æ «¡∑ŒººΩ∫∏¶ Ω««‡
+		// ÌòÑÏû¨Ïùò Î©îÏù∏ÏÑúÎ≤ÑÎ°úÎ∂ÄÌÑ∞ ÏöîÏ≤≠Î∞õÏùÄ Ïó∞Í≤∞Í¥ÄÎ¶¨ ÌîÑÎ°úÏÑ∏Ïä§Í∞Ä ÏïÑÎãàÎØÄÎ°ú Ï∑®ÏÜåÌïòÍ≥† Îã§Ïùå Ïó∞Í≤∞Í¥ÄÎ¶¨ ÌîÑÎ°úÏÑ∏Ïä§Î•º Ïã§Ìñâ
 		PopConCess(pTCHAR);
 		return;
 	}
@@ -3598,7 +3520,7 @@ void CTWorldSvrModule::OnBeginTeleport( LPTCHARACTER pTCHAR, LPPACKETBUF pBUF)
 	DWORD dwKEY;
 	BYTE bSameChannel;
 	WORD wMapID = pTCHAR->m_wMapID;
-	// ƒ≥∏Ø≈Õ ø¿∫Í¡ß∆Æ∏¶ ≈⁄∑π∆˜∆Æ«œ∑¡¥¬ ∏Ò¿˚¡ˆ∑Œ ¿ÃµøΩ√≈¥
+	// Ï∫êÎ¶≠ÌÑ∞ Ïò§Î∏åÏ†ùÌä∏Î•º ÌÖîÎ†àÌè¨Ìä∏ÌïòÎ†§Îäî Î™©Ï†ÅÏßÄÎ°ú Ïù¥ÎèôÏãúÌÇ¥
 	pBUF->m_packet
 		>> dwCharID
 		>> dwKEY
@@ -3609,17 +3531,17 @@ void CTWorldSvrModule::OnBeginTeleport( LPTCHARACTER pTCHAR, LPPACKETBUF pBUF)
 		>> pTCHAR->m_fPosY
 		>> pTCHAR->m_fPosZ;
 
-	if(m_pRelay)
-		m_pRelay->SendRW_CHANGEMAP_ACK(dwCharID, pTCHAR->m_wMapID, MAKEWORD( BYTE(INT(pTCHAR->m_fPosX) / UNIT_SIZE), BYTE(INT(pTCHAR->m_fPosZ) / UNIT_SIZE)));
+	if (m_pRelay)
+		m_pRelay->SendRW_CHANGEMAP_ACK(dwCharID, pTCHAR->m_wMapID, MAKEWORD(BYTE(INT(pTCHAR->m_fPosX) / UNIT_SIZE), BYTE(INT(pTCHAR->m_fPosZ) / UNIT_SIZE)));
 
-	// ¿Ø»ø«— ø¨∞·ø° ≈⁄∑π∆˜∆ÆΩ√¿€¿ª æÀ∏≤
-	// ¿Ã∂ß ∏  º≠πˆø°º≠¥¬ ƒ≥∏Ø≈Õ∏¶ ∏ ø°º≠ ¡¶ø‹ Ω√≈≤ »ƒ ¡ˆ¡§µ» ∏ﬁ¿Œº≠πˆ¥¬ ∏Ò¿˚¡ˆ¿« º≠πˆ ID∏¶ π›»Ø«—¥Ÿ
-	for( itCON = pTCHAR->m_mapTCHARCON.begin(); itCON != pTCHAR->m_mapTCHARCON.end(); itCON++)
-		if((*itCON).second->m_bValid)
+	// Ïú†Ìö®Ìïú Ïó∞Í≤∞Ïóê ÌÖîÎ†àÌè¨Ìä∏ÏãúÏûëÏùÑ ÏïåÎ¶º
+	// Ïù¥Îïå Îßµ ÏÑúÎ≤ÑÏóêÏÑúÎäî Ï∫êÎ¶≠ÌÑ∞Î•º ÎßµÏóêÏÑú Ï†úÏô∏ ÏãúÌÇ® ÌõÑ ÏßÄÏ†ïÎêú Î©îÏù∏ÏÑúÎ≤ÑÎäî Î™©Ï†ÅÏßÄÏùò ÏÑúÎ≤Ñ IDÎ•º Î∞òÌôòÌïúÎã§
+	for (itCON = pTCHAR->m_mapTCHARCON.begin(); itCON != pTCHAR->m_mapTCHARCON.end(); itCON++)
+		if ((*itCON).second->m_bValid)
 		{
 			CTServer *pMAP = FindMapSvr((*itCON).first);
 
-			if(pMAP)
+			if (pMAP)
 			{
 				pMAP->SendMW_STARTTELEPORT_REQ(
 					dwCharID,
@@ -3633,23 +3555,23 @@ void CTWorldSvrModule::OnBeginTeleport( LPTCHARACTER pTCHAR, LPPACKETBUF pBUF)
 		}
 }
 
-void CTWorldSvrModule::OnCheckConnect( LPTCHARACTER pTCHAR, LPPACKETBUF pBUF)
+void CTWorldSvrModule::OnCheckConnect(LPTCHARACTER pTCHAR, LPPACKETBUF pBUF)
 {
 	CTServer *pSERVER = FindTServer(DWORD(DWORD_PTR(pBUF->m_pSESSION)));
 	CTServer *pMAIN = FindMapSvr(pTCHAR->m_bMainID);
 
-	if( !pSERVER || !pMAIN )
+	if (!pSERVER || !pMAIN)
 	{
-		// « ø‰«— ø¨∞·»Æ¿Œ¿ª ¿«∑⁄«— ∏  º≠πˆ∞° ∫Ò»∞º∫ µ«æ˙∞≈≥™ ∏ﬁ¿Œº≠πˆ∞° æ¯∞≈≥™ ∞¯Ωƒ¿˚¿∏∑Œ πË∆˜µ» ≈¨∂Û¿Ãæ∆Æ∑Œ∫Œ≈Õ¿« ø¨∞·¿Ã æ∆¥œ∞≈≥™
-		// «ÿ≈∑¿∏∑Œ ¿«Ω…µ«¥¬ ø¨∞·∑Œ∫Œ≈Õ¿« ∏ﬁ¿Œº≠πˆ ∫Ø∞Ê ø‰√ª
-		// ≈¨∂Û¿Ãæ∆Æ¿« ø¨∞·¿ª ¡æ∑·
+		// ÌïÑÏöîÌïú Ïó∞Í≤∞ÌôïÏù∏ÏùÑ ÏùòÎ¢∞Ìïú Îßµ ÏÑúÎ≤ÑÍ∞Ä ÎπÑÌôúÏÑ± ÎêòÏóàÍ±∞ÎÇò Î©îÏù∏ÏÑúÎ≤ÑÍ∞Ä ÏóÜÍ±∞ÎÇò Í≥µÏãùÏ†ÅÏúºÎ°ú Î∞∞Ìè¨Îêú ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏Î°úÎ∂ÄÌÑ∞Ïùò Ïó∞Í≤∞Ïù¥ ÏïÑÎãàÍ±∞ÎÇò
+		// Ìï¥ÌÇπÏúºÎ°ú ÏùòÏã¨ÎêòÎäî Ïó∞Í≤∞Î°úÎ∂ÄÌÑ∞Ïùò Î©îÏù∏ÏÑúÎ≤Ñ Î≥ÄÍ≤Ω ÏöîÏ≤≠
+		// ÌÅ¥ÎùºÏù¥Ïñ∏Ìä∏Ïùò Ïó∞Í≤∞ÏùÑ Ï¢ÖÎ£å
 		CloseChar(pTCHAR);
 		return;
 	}
 
-	if( pSERVER != pMAIN )
+	if (pSERVER != pMAIN)
 	{
-		// «ˆ¿Á¿« ∏ﬁ¿Œº≠πˆ∑Œ∫Œ≈Õ ø‰√ªπﬁ¿∫ ø¨∞·∞¸∏Æ «¡∑ŒººΩ∫∞° æ∆¥œπ«∑Œ √Îº“«œ∞Ì ¥Ÿ¿Ω ø¨∞·∞¸∏Æ «¡∑ŒººΩ∫∏¶ Ω««‡
+		// ÌòÑÏû¨Ïùò Î©îÏù∏ÏÑúÎ≤ÑÎ°úÎ∂ÄÌÑ∞ ÏöîÏ≤≠Î∞õÏùÄ Ïó∞Í≤∞Í¥ÄÎ¶¨ ÌîÑÎ°úÏÑ∏Ïä§Í∞Ä ÏïÑÎãàÎØÄÎ°ú Ï∑®ÏÜåÌïòÍ≥† Îã§Ïùå Ïó∞Í≤∞Í¥ÄÎ¶¨ ÌîÑÎ°úÏÑ∏Ïä§Î•º Ïã§Ìñâ
 		PopConCess(pTCHAR);
 		return;
 	}
@@ -3659,7 +3581,7 @@ void CTWorldSvrModule::OnCheckConnect( LPTCHARACTER pTCHAR, LPPACKETBUF pBUF)
 	BYTE bCount;
 	WORD wMapID = pTCHAR->m_wMapID;
 
-	// ƒ≥∏Ø≈Õ ¿ßƒ°¡§∫∏∏¶ æ˜µ•¿Ã∆Æ
+	// Ï∫êÎ¶≠ÌÑ∞ ÏúÑÏπòÏ†ïÎ≥¥Î•º ÏóÖÎç∞Ïù¥Ìä∏
 	pBUF->m_packet
 		>> dwCharID
 		>> dwKEY
@@ -3670,12 +3592,12 @@ void CTWorldSvrModule::OnCheckConnect( LPTCHARACTER pTCHAR, LPPACKETBUF pBUF)
 		>> pTCHAR->m_fPosZ
 		>> bCount;
 
-	if(m_pRelay)
-		m_pRelay->SendRW_CHANGEMAP_ACK(dwCharID, pTCHAR->m_wMapID, MAKEWORD( BYTE(INT(pTCHAR->m_fPosX) / UNIT_SIZE), BYTE(INT(pTCHAR->m_fPosZ) / UNIT_SIZE)));
+	if (m_pRelay)
+		m_pRelay->SendRW_CHANGEMAP_ACK(dwCharID, pTCHAR->m_wMapID, MAKEWORD(BYTE(INT(pTCHAR->m_fPosX) / UNIT_SIZE), BYTE(INT(pTCHAR->m_fPosZ) / UNIT_SIZE)));
 
-	if(!bCount)
+	if (!bCount)
 	{
-		// √º≈©«ÿæﬂ «“ ø¨∞·¿Ã æ¯¿∏∏È ∏ﬁ¿Œº≠πˆ∏∏ √º≈©
+		// Ï≤¥ÌÅ¨Ìï¥Ïïº Ìï† Ïó∞Í≤∞Ïù¥ ÏóÜÏúºÎ©¥ Î©îÏù∏ÏÑúÎ≤ÑÎßå Ï≤¥ÌÅ¨
 		CheckMainCON(pTCHAR);
 		return;
 	}
@@ -3683,25 +3605,25 @@ void CTWorldSvrModule::OnCheckConnect( LPTCHARACTER pTCHAR, LPPACKETBUF pBUF)
 	MAPBYTE mapCON;
 	mapCON.clear();
 
-	// « ø‰«— ø¨∞·∏Ò∑œ ±∏º∫
-	for( BYTE i=0; i<bCount; i++)
+	// ÌïÑÏöîÌïú Ïó∞Í≤∞Î™©Î°ù Íµ¨ÏÑ±
+	for (BYTE i = 0; i<bCount; i++)
 	{
 		BYTE bServerID;
 
 		pBUF->m_packet
 			>> bServerID;
 
-		mapCON.insert( MAPBYTE::value_type( bServerID, bServerID));
+		mapCON.insert(MAPBYTE::value_type(bServerID, bServerID));
 	}
 
-	// « ø‰æ¯¥¬ ø¨∞·µÈ¿ª ¡æ∑·¥Î±‚ πˆ∆€∑Œ ¿Ãµø
+	// ÌïÑÏöîÏóÜÎäî Ïó∞Í≤∞Îì§ÏùÑ Ï¢ÖÎ£åÎåÄÍ∏∞ Î≤ÑÌçºÎ°ú Ïù¥Îèô
 	MAPTCHARCON::iterator itCON = pTCHAR->m_mapTCHARCON.begin();
-	while(itCON != pTCHAR->m_mapTCHARCON.end())
+	while (itCON != pTCHAR->m_mapTCHARCON.end())
 	{
 		MAPTCHARCON::iterator itNEXT = itCON;
 		itNEXT++;
 
-		if( mapCON.find((*itCON).first) == mapCON.end() )
+		if (mapCON.find((*itCON).first) == mapCON.end())
 		{
 			pTCHAR->m_vTDEADCON.push_back((*itCON).first);
 
@@ -3712,23 +3634,23 @@ void CTWorldSvrModule::OnCheckConnect( LPTCHARACTER pTCHAR, LPPACKETBUF pBUF)
 		itCON = itNEXT;
 	}
 
-	// ªı∑”∞‘ ø¨∞·µ«æÓæﬂ «œ¥¬ ø¨∞·∏Ò∑œ ±∏º∫
+	// ÏÉàÎ°≠Í≤å Ïó∞Í≤∞ÎêòÏñ¥Ïïº ÌïòÎäî Ïó∞Í≤∞Î™©Î°ù Íµ¨ÏÑ±
 	MAPBYTE::iterator itID = mapCON.begin();
-	while(itID != mapCON.end())
+	while (itID != mapCON.end())
 	{
 		MAPBYTE::iterator itNEXT = itID;
 		itNEXT++;
 
-		if( pTCHAR->m_mapTCHARCON.find((*itID).first) != pTCHAR->m_mapTCHARCON.end() )
+		if (pTCHAR->m_mapTCHARCON.find((*itID).first) != pTCHAR->m_mapTCHARCON.end())
 			mapCON.erase(itID);
 
 		itID = itNEXT;
 	}
 
-	if(!mapCON.empty())
+	if (!mapCON.empty())
 	{
-		// ªı∑”∞‘ ø¨∞·µ«æÓæﬂ «œ¥¬ ø¨∞·¿Ã ¿÷¿∏∏È ∏ﬁ¿Œº≠πˆ∑Œ «ÿ¥Á ø¨∞·¿« ¡¢º”¡§∫∏(IP, ∆˜∆Æ µÓ)∏¶ ø‰√ª
-		// ¿Ã ∂ß ∏  º≠πˆ¥¬ MW_ROUTE_ACK∏¶ ¿ÃøÎ«œø© ¡¢º”¡§∫∏∏¶ π›»Ø«œø© √ﬂ∞° ø¨∞·∞¸∏Æ «¡∑ŒººΩ∫ Ω««‡
+		// ÏÉàÎ°≠Í≤å Ïó∞Í≤∞ÎêòÏñ¥Ïïº ÌïòÎäî Ïó∞Í≤∞Ïù¥ ÏûàÏúºÎ©¥ Î©îÏù∏ÏÑúÎ≤ÑÎ°ú Ìï¥Îãπ Ïó∞Í≤∞Ïùò Ï†ëÏÜçÏ†ïÎ≥¥(IP, Ìè¨Ìä∏ Îì±)Î•º ÏöîÏ≤≠
+		// Ïù¥ Îïå Îßµ ÏÑúÎ≤ÑÎäî MW_ROUTE_ACKÎ•º Ïù¥Ïö©ÌïòÏó¨ Ï†ëÏÜçÏ†ïÎ≥¥Î•º Î∞òÌôòÌïòÏó¨ Ï∂îÍ∞Ä Ïó∞Í≤∞Í¥ÄÎ¶¨ ÌîÑÎ°úÏÑ∏Ïä§ Ïã§Ìñâ
 		CPacket *pMSG = new CPacket();
 
 		pMSG->SetID(MW_ROUTELIST_REQ)
@@ -3736,42 +3658,26 @@ void CTWorldSvrModule::OnCheckConnect( LPTCHARACTER pTCHAR, LPPACKETBUF pBUF)
 			<< pTCHAR->m_dwKEY
 			<< BYTE(mapCON.size());
 
-		for( itID = mapCON.begin(); itID != mapCON.end(); itID++)
+		for (itID = mapCON.begin(); itID != mapCON.end(); itID++)
 			(*pMSG) << (*itID).first;
 
 		pMAIN->Say(pMSG);
 	}
 	else
 	{
-		// ªı∑”∞‘ ø¨∞·µ«æÓæﬂ «œ¥¬ ø¨∞·¿Ã æ¯¿∏∏È ¡ÔΩ√ ∏ﬁ¿Œº≠πˆ √º≈©
+		// ÏÉàÎ°≠Í≤å Ïó∞Í≤∞ÎêòÏñ¥Ïïº ÌïòÎäî Ïó∞Í≤∞Ïù¥ ÏóÜÏúºÎ©¥ Ï¶âÏãú Î©îÏù∏ÏÑúÎ≤Ñ Ï≤¥ÌÅ¨
 		CheckMainCON(pTCHAR);
 	}
 
 	mapCON.clear();
 }
 
-void CTWorldSvrModule::StartServer()
-{
-	DWORD dwResult = StartUp();
-
-	if (dwResult)
-	{
-		OnERROR(dwResult);
-	}
-}
-
-HRESULT CTWorldSvrModule::PostMessageLoop()
-{
-	OnExit();
-	return NO_ERROR;
-}
-
 LPTGUILDLEVEL CTWorldSvrModule::FindGuildLevel(BYTE bLevel)
 {
 	LPTGUILDLEVEL pLevel = NULL;
-	
+
 	MAPTGUILDLEVEL::iterator itLevel = m_mapTGuildLevel.find(bLevel);
-	if(itLevel != m_mapTGuildLevel.end())
+	if (itLevel != m_mapTGuildLevel.end())
 		pLevel = (*itLevel).second;
 
 	return pLevel;
@@ -3789,7 +3695,7 @@ void CTWorldSvrModule::OnTimer()
 
 	CheckEventQuarter();
 
-	if(m_bReservedPostMinute != nCM )  
+	if (m_bReservedPostMinute != nCM)
 	{
 		m_bReservedPostMinute = nCM;
 
@@ -3799,7 +3705,7 @@ void CTWorldSvrModule::OnTimer()
 		SayToDB(pBUF);
 	}
 
-	if(m_TournamentSchedule.m_wID)
+	if (m_TournamentSchedule.m_wID)
 	{
 		LPMAPTOURNAMENTSTEP pTournament = m_TournamentSchedule.m_mapStep;
 		WORD wTournamentID = m_TournamentSchedule.m_wID;
@@ -3807,16 +3713,16 @@ void CTWorldSvrModule::OnTimer()
 		MAPTOURNAMENTSTEP::iterator itTStep;
 		MAPTOURNAMENTSTEP::reverse_iterator itRS = pTournament->rbegin();
 
-		for(itTStep=pTournament->begin(); itTStep!=pTournament->end(); itTStep++)
+		for (itTStep = pTournament->begin(); itTStep != pTournament->end(); itTStep++)
 		{
 			LPTOURNAMENTSTEP pStep = &((*itTStep).second);
-			if(!pStep->m_dwPeriod)
+			if (!pStep->m_dwPeriod)
 				continue;
 
-			if(pStep->m_dStart > m_timeCurrent)
+			if (pStep->m_dStart > m_timeCurrent)
 				break;
 
-			if(pStep->m_dStart && pStep->m_dStart <= m_timeCurrent)
+			if (pStep->m_dStart && pStep->m_dStart <= m_timeCurrent)
 			{
 				pStep->m_dStart = 0;
 
@@ -3834,7 +3740,7 @@ void CTWorldSvrModule::OnTimer()
 				break;
 			}
 
-			if(pStep->m_bStep == TNMTSTEP_END &&
+			if (pStep->m_bStep == TNMTSTEP_END &&
 				pStep->m_dEnd &&
 				pStep->m_dEnd <= m_timeCurrent &&
 				(*itRS).second.m_bGroup == pStep->m_bGroup)
@@ -3842,7 +3748,7 @@ void CTWorldSvrModule::OnTimer()
 				pStep->m_dEnd = 0;
 
 				MAPTOURNAMENTTIME::iterator itTm = m_mapTournamentTime.find(wTournamentID);
-				if(itTm != m_mapTournamentTime.end())
+				if (itTm != m_mapTournamentTime.end())
 					SetTournamentTime(pTournament, (*itTm).second, wTournamentID, TRUE, TRUE);
 
 				TournamentUpdate(wTournamentID);
@@ -3852,7 +3758,7 @@ void CTWorldSvrModule::OnTimer()
 		}
 	}
 
-	if(bCurMonth != m_bRankMonth && !m_bFameRankSave)
+	if (bCurMonth != m_bRankMonth && !m_bFameRankSave)
 	{
 		m_bFameRankSave = TRUE;
 		LPPACKETBUF pMSG = new PACKETBUF();
@@ -3863,7 +3769,7 @@ void CTWorldSvrModule::OnTimer()
 
 	static WORD wActiveCharUpdate = MAKEWORD(bCurMonth, bCurDay);
 	WORD wCurActive = MAKEWORD(bCurMonth, bCurDay);
-	if(nCD == 1 && wActiveCharUpdate != wCurActive)
+	if (nCD == 1 && wActiveCharUpdate != wCurActive)
 	{
 		wActiveCharUpdate = wCurActive;
 		LPPACKETBUF pMSG = new PACKETBUF();
@@ -3872,7 +3778,7 @@ void CTWorldSvrModule::OnTimer()
 	}
 
 	static INT nChangeDay = bCurDay;
-	if(nChangeDay != bCurDay)
+	if (nChangeDay != bCurDay)
 	{
 		nChangeDay = bCurDay;
 		LPPACKETBUF pMSG = new PACKETBUF();
@@ -3880,127 +3786,127 @@ void CTWorldSvrModule::OnTimer()
 		SayToBATCH(pMSG);
 	}
 
-	DWORD dwCLT = nCH*60*60+nCM*60+nCS;
+	DWORD dwCLT = nCH * 60 * 60 + nCM * 60 + nCS;
 
 	LPTBATTLETIME pBattle;
-	if(m_battletime[BT_CASTLE].m_bDay == nCD)
+	if (m_battletime[BT_CASTLE].m_bDay == nCD)
 		pBattle = &(m_battletime[BT_CASTLE]);
-	else if( m_battletime[BT_SKYGARDEN].m_bDay == nCD &&
+	else if (m_battletime[BT_SKYGARDEN].m_bDay == nCD &&
 		dwCLT >= (m_battletime[BT_SKYGARDEN].m_dwBattleStart - m_battletime[BT_SKYGARDEN].m_dwAlarmStart - 60) &&
-		dwCLT <= (m_battletime[BT_SKYGARDEN].m_dwBattleStart + m_battletime[BT_SKYGARDEN].m_dwBattleDur + m_battletime[BT_SKYGARDEN].m_dwPeaceDur + 60))	
+		dwCLT <= (m_battletime[BT_SKYGARDEN].m_dwBattleStart + m_battletime[BT_SKYGARDEN].m_dwBattleDur + m_battletime[BT_SKYGARDEN].m_dwPeaceDur + 60))
 		pBattle = &(m_battletime[BT_SKYGARDEN]);
 	else
 		pBattle = &(m_battletime[BT_LOCAL]);
 
-	if(!pBattle->m_bRun)
+	if (!pBattle->m_bRun)
 	{
-		if(m_battletime[BT_MISSION].m_bRun)
+		if (m_battletime[BT_MISSION].m_bRun)
 			pBattle = &(m_battletime[BT_MISSION]);
-		else if(m_battletime[BT_MISSION].m_dwBattleStart)
+		else if (m_battletime[BT_MISSION].m_dwBattleStart)
 		{
-			DWORD dwCLT = nCH*60*60+nCM*60+nCS;
+			DWORD dwCLT = nCH * 60 * 60 + nCM * 60 + nCS;
 			DWORD dwStartLeftTime = dwCLT > pBattle->m_dwBattleStart ? DAY_ONE - dwCLT + pBattle->m_dwBattleStart :
-								pBattle->m_dwBattleStart - dwCLT;
+				pBattle->m_dwBattleStart - dwCLT;
 			DWORD dwBattleEnd = (pBattle->m_dwBattleStart + pBattle->m_dwBattleDur + pBattle->m_dwPeaceDur) % DAY_ONE;
 			DWORD dwEndLeftTime = dwCLT > dwBattleEnd ? DAY_ONE - dwCLT + dwBattleEnd : dwBattleEnd - dwCLT;
 
-			if(dwStartLeftTime > pBattle->m_dwAlarmStart + 60 && dwEndLeftTime > pBattle->m_dwBattleDur + pBattle->m_dwPeaceDur + 60)
+			if (dwStartLeftTime > pBattle->m_dwAlarmStart + 60 && dwEndLeftTime > pBattle->m_dwBattleDur + pBattle->m_dwPeaceDur + 60)
 				pBattle = &(m_battletime[BT_MISSION]);
 		}
 	}
 
 
-	if(pBattle->m_dwBattleStart)
+	if (pBattle->m_dwBattleStart)
 	{
 		BYTE bPrevStatus = pBattle->m_bStatus;
 		BYTE bAlarm = FALSE;
 		DWORD dwLeftTime = 0;
 
 		DWORD dwStartLeftTime = dwCLT > pBattle->m_dwBattleStart ? DAY_ONE - dwCLT + pBattle->m_dwBattleStart :
-							pBattle->m_dwBattleStart - dwCLT;
+			pBattle->m_dwBattleStart - dwCLT;
 
 		DWORD dwBattleEnd = (pBattle->m_dwBattleStart + pBattle->m_dwBattleDur) % DAY_ONE;
 		DWORD dwEndLeftTime = dwCLT > dwBattleEnd ? DAY_ONE - dwCLT + dwBattleEnd : dwBattleEnd - dwCLT;
 		pBattle->m_dwLeftTime = dwEndLeftTime;
 
-		switch(pBattle->m_bStatus)
+		switch (pBattle->m_bStatus)
 		{
 		case BS_NORMAL:
+		{
+			if (dwStartLeftTime <= pBattle->m_dwAlarmStart)
 			{
-				if(dwStartLeftTime <= pBattle->m_dwAlarmStart)
+				DWORD dwInterval = dwStartLeftTime > 600 ? 600 : (dwStartLeftTime > 60 ? 120 : 10);
+				if (dwStartLeftTime && dwStartLeftTime % dwInterval == 0)
 				{
-					DWORD dwInterval = dwStartLeftTime > 600 ? 600 : (dwStartLeftTime > 60 ? 120 : 10);
-					if(dwStartLeftTime && dwStartLeftTime % dwInterval == 0)
-					{
-						dwLeftTime = dwStartLeftTime;
-						bAlarm = TRUE;
-						pBattle->m_bRun = TRUE;
-					}
-				}
-				else if(dwEndLeftTime <= pBattle->m_dwBattleDur)
-				{
-					pBattle->m_bStatus = BS_BATTLE;
-					dwLeftTime = dwEndLeftTime;
+					dwLeftTime = dwStartLeftTime;
+					bAlarm = TRUE;
 					pBattle->m_bRun = TRUE;
 				}
 			}
-			break;
+			else if (dwEndLeftTime <= pBattle->m_dwBattleDur)
+			{
+				pBattle->m_bStatus = BS_BATTLE;
+				dwLeftTime = dwEndLeftTime;
+				pBattle->m_bRun = TRUE;
+			}
+		}
+		break;
 		case BS_BATTLE:
+		{
+			if (dwEndLeftTime > pBattle->m_dwBattleDur)
+				pBattle->m_bStatus = BS_PEACE;
+			else if (dwEndLeftTime && dwEndLeftTime <= pBattle->m_dwAlarmEnd)
 			{
-				if(dwEndLeftTime > pBattle->m_dwBattleDur)
-					pBattle->m_bStatus = BS_PEACE;
-				else if(dwEndLeftTime && dwEndLeftTime <= pBattle->m_dwAlarmEnd)
+				DWORD dwInterval = dwEndLeftTime > 60 ? 60 : 10;
+				if (dwEndLeftTime % dwInterval == 0)
 				{
-					DWORD dwInterval = dwEndLeftTime > 60 ? 60 : 10;
-					if(dwEndLeftTime % dwInterval == 0)
-					{
-						dwLeftTime = dwEndLeftTime;
-						bAlarm = TRUE;
-					}
+					dwLeftTime = dwEndLeftTime;
+					bAlarm = TRUE;
 				}
 			}
-			break;
+		}
+		break;
 		case BS_PEACE:
+		{
+			DWORD dwPeaceEnd = (pBattle->m_dwBattleStart + pBattle->m_dwBattleDur + pBattle->m_dwPeaceDur) % DAY_ONE;
+			DWORD dwPeaceLeftTime = dwCLT > dwPeaceEnd ? DAY_ONE - dwCLT + dwPeaceEnd : dwPeaceEnd - dwCLT;
+
+			if (dwPeaceLeftTime > pBattle->m_dwPeaceDur)
 			{
-				DWORD dwPeaceEnd = (pBattle->m_dwBattleStart + pBattle->m_dwBattleDur + pBattle->m_dwPeaceDur) % DAY_ONE;
-				DWORD dwPeaceLeftTime = dwCLT > dwPeaceEnd ? DAY_ONE - dwCLT + dwPeaceEnd : dwPeaceEnd - dwCLT;
+				pBattle->m_bStatus = BS_NORMAL;
+				pBattle->m_bRun = FALSE;
 
-				if(dwPeaceLeftTime > pBattle->m_dwPeaceDur)
+				if (pBattle->m_bType == BT_MISSION)
 				{
-					pBattle->m_bStatus = BS_NORMAL;
-					pBattle->m_bRun = FALSE;
+					pBattle->m_dwBattleStart += HOUR_ONE;
+					if (pBattle->m_dwBattleStart > DAY_ONE)
+						pBattle->m_dwBattleStart = pBattle->m_dwBattleStart % DAY_ONE;
 
-					if(pBattle->m_bType == BT_MISSION)
-					{
-						pBattle->m_dwBattleStart += HOUR_ONE;
-						if(pBattle->m_dwBattleStart > DAY_ONE)
-							pBattle->m_dwBattleStart = pBattle->m_dwBattleStart % DAY_ONE;
+					LPTBATTLETIME pLocal;
+					if (m_battletime[BT_CASTLE].m_bDay == nCD)
+						pLocal = &(m_battletime[BT_CASTLE]);
+					else
+						pLocal = &(m_battletime[BT_LOCAL]);
 
-						LPTBATTLETIME pLocal;
-						if(m_battletime[BT_CASTLE].m_bDay == nCD)
-							pLocal = &(m_battletime[BT_CASTLE]);
-						else
-							pLocal = &(m_battletime[BT_LOCAL]);
+					if (pLocal->m_dwBattleStart && pBattle->m_dwBattleStart / HOUR_ONE == pLocal->m_dwBattleStart / HOUR_ONE)
+						pBattle->m_dwBattleStart += HOUR_ONE * 2;
 
-						if(pLocal->m_dwBattleStart && pBattle->m_dwBattleStart / HOUR_ONE == pLocal->m_dwBattleStart / HOUR_ONE)
-							pBattle->m_dwBattleStart += HOUR_ONE * 2;
+					if (m_battletime[BT_SKYGARDEN].m_bDay == nCD && pBattle->m_dwBattleStart / HOUR_ONE == m_battletime[BT_SKYGARDEN].m_dwBattleStart / HOUR_ONE)
+						pBattle->m_dwBattleStart += HOUR_ONE * 2;
 
-						if(m_battletime[BT_SKYGARDEN].m_bDay == nCD && pBattle->m_dwBattleStart / HOUR_ONE == m_battletime[BT_SKYGARDEN].m_dwBattleStart / HOUR_ONE)
-							pBattle->m_dwBattleStart += HOUR_ONE * 2;
-
-						if(pBattle->m_dwBattleStart > DAY_ONE)
-							pBattle->m_dwBattleStart = pBattle->m_dwBattleStart % DAY_ONE;
-					}
+					if (pBattle->m_dwBattleStart > DAY_ONE)
+						pBattle->m_dwBattleStart = pBattle->m_dwBattleStart % DAY_ONE;
 				}
 			}
-			break;
+		}
+		break;
 		default:
 			break;
 		}
 
-		if(bAlarm || pBattle->m_bStatus != bPrevStatus)
+		if (bAlarm || pBattle->m_bStatus != bPrevStatus)
 		{
-			if(pBattle->m_bStatus == BS_PEACE)
+			if (pBattle->m_bStatus == BS_PEACE)
 				dwLeftTime = pBattle->m_dwPeaceDur;
 
 			LPPACKETBUF pMSG = new PACKETBUF();
@@ -4017,36 +3923,36 @@ void CTWorldSvrModule::OnTimer()
 
 void CTWorldSvrModule::CheckSoulmateEnd(LPTCHARACTER pTCHAR, LPTSOULMATE pTSOUL)
 {
-	if(!pTCHAR || !pTSOUL )
+	if (!pTCHAR || !pTSOUL)
 		return;
 
-	if(pTSOUL->m_dwTime)
+	if (pTSOUL->m_dwTime)
 		return;
 
 	BYTE bLevel = pTSOUL->m_bLevel;
 
-	// ∑π∫ß∫Ò±≥
-	if(abs(pTCHAR->m_bLevel - bLevel) > SOULMATE_LEVEL)
+	// Î†àÎ≤®ÎπÑÍµê
+	if (abs(pTCHAR->m_bLevel - bLevel) > SOULMATE_LEVEL)
 		SendDM_SOULMATEEND_REQ(pTCHAR->m_dwCharID, pTCHAR->m_dwKEY, (DWORD)m_timeCurrent);
 }
 
-void CTWorldSvrModule::RegSoulmate(LPTCHARACTER pTCHAR, LPTCHARACTER pTarget, BYTE bSearch,BYTE bNpcInvenID, BYTE bNpcItemID)
+void CTWorldSvrModule::RegSoulmate(LPTCHARACTER pTCHAR, LPTCHARACTER pTarget, BYTE bSearch, BYTE bNpcInvenID, BYTE bNpcItemID)
 {
 	CTServer * pCon = FindMapSvr(pTCHAR->m_bMainID);
-	if(!pCon)
+	if (!pCon)
 		return;
 
 	LPTSOULMATE pTSOUL = NULL;
 
 	MAPTSOULMATE::iterator find = pTCHAR->m_mapTSOULMATE.find(pTCHAR->m_dwCharID);
-	if(find!=pTCHAR->m_mapTSOULMATE.end())
+	if (find != pTCHAR->m_mapTSOULMATE.end())
 	{
 		pTSOUL = (*find).second;
 		LPTCHARACTER pSoul = FindTChar(pTSOUL->m_strName);
-		if(pSoul)
+		if (pSoul)
 		{
 			MAPTSOULMATE::iterator itPlayer = pSoul->m_mapTSOULMATE.find(pTCHAR->m_dwCharID);
-			if(itPlayer!=pSoul->m_mapTSOULMATE.end())
+			if (itPlayer != pSoul->m_mapTSOULMATE.end())
 			{
 				delete (*itPlayer).second;
 				pSoul->m_mapTSOULMATE.erase(itPlayer);
@@ -4080,7 +3986,7 @@ void CTWorldSvrModule::RegSoulmate(LPTCHARACTER pTCHAR, LPTCHARACTER pTarget, BY
 	pSoulTarget->m_dwTime = 0;
 	pTarget->m_mapTSOULMATE.insert(MAPTSOULMATE::value_type(pSoulTarget->m_dwCharID, pSoulTarget));
 
-	if(bSearch)
+	if (bSearch)
 		pCon->SendMW_SOULMATESEARCH_REQ(
 			pTCHAR->m_dwCharID,
 			pTCHAR->m_dwKEY,
@@ -4106,18 +4012,18 @@ void CTWorldSvrModule::RegSoulmate(LPTCHARACTER pTCHAR, LPTCHARACTER pTarget, BY
 void CTWorldSvrModule::SoulmateDel(LPTCHARACTER pTCHAR, DWORD dwSoul)
 {
 	MAPTSOULMATE::iterator find = pTCHAR->m_mapTSOULMATE.find(pTCHAR->m_dwCharID);
-	if(find==pTCHAR->m_mapTSOULMATE.end())
+	if (find == pTCHAR->m_mapTSOULMATE.end())
 		return;
 
 	LPTSOULMATE pTSOUL = (*find).second;
-	if(pTSOUL->m_dwTarget != dwSoul)
+	if (pTSOUL->m_dwTarget != dwSoul)
 		return;
 
 	LPTCHARACTER pSoul = FindTChar(pTSOUL->m_strName);
-	if(pSoul)
+	if (pSoul)
 	{
 		MAPTSOULMATE::iterator itPlayer = pSoul->m_mapTSOULMATE.find(pTCHAR->m_dwCharID);
-		if(itPlayer!=pSoul->m_mapTSOULMATE.end())
+		if (itPlayer != pSoul->m_mapTSOULMATE.end())
 		{
 			delete (*itPlayer).second;
 			pSoul->m_mapTSOULMATE.erase(itPlayer);
@@ -4127,7 +4033,7 @@ void CTWorldSvrModule::SoulmateDel(LPTCHARACTER pTCHAR, DWORD dwSoul)
 	pTCHAR->m_mapTSOULMATE.erase(find);
 
 	CTServer * pCon = FindMapSvr(pTCHAR->m_bMainID);
-	if(pCon)
+	if (pCon)
 		pCon->SendMW_SOULMATEEND_REQ(
 			pTCHAR->m_dwCharID,
 			pTCHAR->m_dwKEY,
@@ -4140,7 +4046,7 @@ void CTWorldSvrModule::SoulmateDel(LPTCHARACTER pTCHAR, DWORD dwSoul)
 void CTWorldSvrModule::SoulmateEnd(LPTCHARACTER pTCHAR, DWORD dwTime)
 {
 	MAPTSOULMATE::iterator find = pTCHAR->m_mapTSOULMATE.find(pTCHAR->m_dwCharID);
-	if(find==pTCHAR->m_mapTSOULMATE.end())
+	if (find == pTCHAR->m_mapTSOULMATE.end())
 		return;
 
 	LPTSOULMATE pTSOUL = (*find).second;
@@ -4149,10 +4055,10 @@ void CTWorldSvrModule::SoulmateEnd(LPTCHARACTER pTCHAR, DWORD dwTime)
 
 	LPTCHARACTER pSoul = FindTChar(pTSOUL->m_strName);
 
-	if(pSoul)
+	if (pSoul)
 	{
 		MAPTSOULMATE::iterator itPlayer = pSoul->m_mapTSOULMATE.find(pTCHAR->m_dwCharID);
-		if(itPlayer!=pSoul->m_mapTSOULMATE.end())
+		if (itPlayer != pSoul->m_mapTSOULMATE.end())
 		{
 			delete (*itPlayer).second;
 			pSoul->m_mapTSOULMATE.erase(itPlayer);
@@ -4160,7 +4066,7 @@ void CTWorldSvrModule::SoulmateEnd(LPTCHARACTER pTCHAR, DWORD dwTime)
 	}
 
 	CTServer * pMAP = FindMapSvr(pTCHAR->m_bMainID);
-	if(pMAP)
+	if (pMAP)
 		pMAP->SendMW_SOULMATEEND_REQ(
 			pTCHAR->m_dwCharID,
 			pTCHAR->m_dwKEY,
@@ -4174,11 +4080,11 @@ void CTWorldSvrModule::SoulmateEnd(LPTCHARACTER pTCHAR, DWORD dwTime)
 void CTWorldSvrModule::EraseFriend(LPTCHARACTER pCHAR, DWORD dwTarget)
 {
 	CTServer * pCon = FindMapSvr(pCHAR->m_bMainID);
-	if(!pCon)
+	if (!pCon)
 		return;
 
 	MAPTFRIEND::iterator it = pCHAR->m_mapTFRIEND.find(dwTarget);
-	if(it==pCHAR->m_mapTFRIEND.end())
+	if (it == pCHAR->m_mapTFRIEND.end())
 	{
 		pCon->SendMW_FRIENDERASE_REQ(
 			pCHAR->m_dwCharID,
@@ -4189,30 +4095,30 @@ void CTWorldSvrModule::EraseFriend(LPTCHARACTER pCHAR, DWORD dwTarget)
 		return;
 	}
 
-	if((*it).second->m_bType == FT_FRIENDFRIEND)
+	if ((*it).second->m_bType == FT_FRIENDFRIEND)
 	{
-		if((*it).second->m_bConnected)
+		if ((*it).second->m_bConnected)
 		{
 			LPTCHARACTER pTarget = FindTChar((*it).second->m_strName);
-			if(pTarget)
+			if (pTarget)
 			{
 				MAPTFRIEND::iterator itFr = pTarget->m_mapTFRIEND.find(pCHAR->m_dwCharID);
-				if(itFr != pTarget->m_mapTFRIEND.end())
+				if (itFr != pTarget->m_mapTFRIEND.end())
 					(*itFr).second->m_bType = FT_FRIEND;
 			}
 		}
 
 		(*it).second->m_bType = FT_TARGET;
 	}
-	else if((*it).second->m_bType == FT_FRIEND)
+	else if ((*it).second->m_bType == FT_FRIEND)
 	{
-		if((*it).second->m_bConnected)
+		if ((*it).second->m_bConnected)
 		{
 			LPTCHARACTER pTarget = FindTChar((*it).second->m_strName);
-			if(pTarget)
+			if (pTarget)
 			{
 				MAPTFRIEND::iterator itFr = pTarget->m_mapTFRIEND.find(pCHAR->m_dwCharID);
-				if(itFr != pTarget->m_mapTFRIEND.end())
+				if (itFr != pTarget->m_mapTFRIEND.end())
 				{
 					delete (*itFr).second;
 					pTarget->m_mapTFRIEND.erase(itFr);
@@ -4234,16 +4140,16 @@ void CTWorldSvrModule::EraseFriend(LPTCHARACTER pCHAR, DWORD dwTarget)
 void CTWorldSvrModule::SaveAllPvPRecord()
 {
 	MAPTGUILD::iterator it;
-	for(it=m_mapTGuild.begin(); it!=m_mapTGuild.end(); it++)
+	for (it = m_mapTGuild.begin(); it != m_mapTGuild.end(); it++)
 	{
 		CTGuild * pGuild = (*it).second;
 
 		MAPTGUILDMEMBER::iterator itM;
-		for(itM=pGuild->m_mapTMember.begin(); itM!=pGuild->m_mapTMember.end(); itM++)
+		for (itM = pGuild->m_mapTMember.begin(); itM != pGuild->m_mapTMember.end(); itM++)
 			SendDM_PVPRECORD_REQ(pGuild->m_dwID, (*itM).second);
 
 		MAPTTACTICSMEMBER::iterator itT;
-		for(itT=pGuild->m_mapTTactics.begin(); itT!=pGuild->m_mapTTactics.end(); itT++)
+		for (itT = pGuild->m_mapTTactics.begin(); itT != pGuild->m_mapTTactics.end(); itT++)
 			SendDM_TACTICSPOINT_REQ((*itT).second);
 	}
 }
@@ -4251,50 +4157,50 @@ void CTWorldSvrModule::SaveAllPvPRecord()
 void CTWorldSvrModule::ResetCastleApply(CTGuild * pGuild, WORD wCastleID)
 {
 	MAPTGUILDMEMBER::iterator itM;
-	for(itM=pGuild->m_mapTMember.begin(); itM!=pGuild->m_mapTMember.end(); itM++)
+	for (itM = pGuild->m_mapTMember.begin(); itM != pGuild->m_mapTMember.end(); itM++)
 	{
-		if((*itM).second->m_wCastle != wCastleID)
+		if ((*itM).second->m_wCastle != wCastleID)
 			continue;
 
 		(*itM).second->m_wCastle = 0;
 		(*itM).second->m_bCamp = 0;
 
 		LPTCHARACTER pChar = (*itM).second->m_pChar;
-		if(pChar)
+		if (pChar)
 		{
 			CTServer * pMap = FindMapSvr(pChar->m_bMainID);
-			if(pMap)
+			if (pMap)
 				pMap->SendMW_CASTLEAPPLY_REQ(
 					pChar->m_dwCharID,
 					pChar->m_dwKEY,
 					CBS_SUCCESS,
 					0,
 					pChar->m_dwCharID,
-					0); 
+					0);
 		}
 	}
 
 	MAPTTACTICSMEMBER::iterator itT;
-	for(itT=pGuild->m_mapTTactics.begin(); itT!=pGuild->m_mapTTactics.end(); itT++)
+	for (itT = pGuild->m_mapTTactics.begin(); itT != pGuild->m_mapTTactics.end(); itT++)
 	{
-		if((*itT).second->m_wCastle != wCastleID)
+		if ((*itT).second->m_wCastle != wCastleID)
 			continue;
 
 		(*itT).second->m_wCastle = 0;
 		(*itT).second->m_bCamp = 0;
 
 		LPTCHARACTER pChar = (*itT).second->m_pChar;
-		if(pChar)
+		if (pChar)
 		{
 			CTServer * pMap = FindMapSvr(pChar->m_bMainID);
-			if(pMap)
+			if (pMap)
 				pMap->SendMW_CASTLEAPPLY_REQ(
 					pChar->m_dwCharID,
 					pChar->m_dwKEY,
 					CBS_SUCCESS,
 					0,
 					pChar->m_dwCharID,
-					0); 
+					0);
 		}
 	}
 }
@@ -4306,26 +4212,26 @@ DWORD CTWorldSvrModule::GenRecallID()
 
 BYTE CTWorldSvrModule::CheckCorpsJoin(CTParty * pOrigin, CTParty * pTarget)
 {
-	if(pOrigin->m_wCorpsID && pTarget->m_wCorpsID)
+	if (pOrigin->m_wCorpsID && pTarget->m_wCorpsID)
 		return CORPS_WRONG_TARGET;
 
-	if(pOrigin->m_wCorpsID)
+	if (pOrigin->m_wCorpsID)
 	{
 		CTCorps * pCorps = FindCorps(pOrigin->m_wCorpsID);
-		if(!pCorps)
+		if (!pCorps)
 			return CORPS_WRONG_TARGET;
 
-		if(pCorps->m_mapParty.size() >= MAX_CORPS_PARTY)
+		if (pCorps->m_mapParty.size() >= MAX_CORPS_PARTY)
 			return CORPS_MAX_PARTY;
 	}
 
-	if(pTarget->m_wCorpsID)
+	if (pTarget->m_wCorpsID)
 	{
 		CTCorps * pCorps = FindCorps(pTarget->m_wCorpsID);
-		if(!pCorps)
+		if (!pCorps)
 			return CORPS_WRONG_TARGET;
 
-		if(pCorps->m_mapParty.size() >= MAX_CORPS_PARTY)
+		if (pCorps->m_mapParty.size() >= MAX_CORPS_PARTY)
 			return CORPS_MAX_PARTY;
 	}
 
@@ -4333,24 +4239,24 @@ BYTE CTWorldSvrModule::CheckCorpsJoin(CTParty * pOrigin, CTParty * pTarget)
 }
 
 BYTE CTWorldSvrModule::AddGuildWanted(CTGuild * pGuild,
-									  BYTE bMinLevel,
-									  BYTE bMaxLevel,
-									  CString strTitle,
-									  CString strText,
-									  INT64 dlEndTime)
+	BYTE bMinLevel,
+	BYTE bMaxLevel,
+	CString strTitle,
+	CString strText,
+	INT64 dlEndTime)
 {
-	if(!pGuild)
+	if (!pGuild)
 		return GUILD_FAIL;
 
 	LPTGUILDWANTED pWanted = FindGuildWanted(pGuild->m_dwID);
-	if(!pWanted)
+	if (!pWanted)
 	{
 		TGUILDWANTED wanted;
 		wanted.m_dwGuildID = pGuild->m_dwID;
 
 		m_mapTGuildWanted.insert(MAPTGUILDWANTED::value_type(pGuild->m_dwID, wanted));
 		pWanted = FindGuildWanted(pGuild->m_dwID);
-		if(!pWanted)
+		if (!pWanted)
 			return GUILD_FAIL;
 	}
 
@@ -4361,7 +4267,7 @@ BYTE CTWorldSvrModule::AddGuildWanted(CTGuild * pGuild,
 	pWanted->m_strText = strText;
 	pWanted->m_strTitle = strTitle;
 
-	if(dlEndTime)
+	if (dlEndTime)
 		pWanted->m_dlEndTime = dlEndTime;
 	else
 		pWanted->m_dlEndTime = m_timeCurrent + GUILDWANTED_PERIOD;
@@ -4370,32 +4276,32 @@ BYTE CTWorldSvrModule::AddGuildWanted(CTGuild * pGuild,
 }
 
 BYTE CTWorldSvrModule::AddGuildTacticsWanted(CTGuild * pGuild,
-                                             DWORD dwID,
-                                             DWORD dwPoint,
-                                             DWORD dwGold,
-                                             DWORD dwSilver,
-                                             DWORD dwCooper,
-                                             BYTE bDay,
-                                             BYTE bMinLevel,
-                                             BYTE bMaxLevel,
-                                             CString strTitle,
-                                             CString strText,
-											 INT64 dlEndTime)
+	DWORD dwID,
+	DWORD dwPoint,
+	DWORD dwGold,
+	DWORD dwSilver,
+	DWORD dwCooper,
+	BYTE bDay,
+	BYTE bMinLevel,
+	BYTE bMaxLevel,
+	CString strTitle,
+	CString strText,
+	INT64 dlEndTime)
 {
-	if(!pGuild)
+	if (!pGuild)
 		return GUILD_FAIL;
 
 	LPTGUILDTACTICSWANTED pWanted = FindGuildTacticsWanted(pGuild->m_dwID, dwID);
-	if(!pWanted)
+	if (!pWanted)
 	{
 		TGUILDTACTICSWANTED wanted;
 		wanted.m_dwGuildID = pGuild->m_dwID;
 		wanted.m_dwID = dwID;
 
 		LPVTGUILDTACTICSWANTED pList = FindGuildTacticsList(pGuild->m_dwID);
-		if(pList)
+		if (pList)
 		{
-			if(pList->size() >= MAX_TACTICSWANTED)
+			if (pList->size() >= MAX_TACTICSWANTED)
 				return GUILD_MAXWANTED;
 
 			pList->push_back(wanted);
@@ -4408,7 +4314,7 @@ BYTE CTWorldSvrModule::AddGuildTacticsWanted(CTGuild * pGuild,
 		}
 
 		pWanted = FindGuildTacticsWanted(pGuild->m_dwID, wanted.m_dwID);
-		if(!pWanted)
+		if (!pWanted)
 			return GUILD_FAIL;
 	}
 
@@ -4425,7 +4331,7 @@ BYTE CTWorldSvrModule::AddGuildTacticsWanted(CTGuild * pGuild,
 	pWanted->m_dwSilver = dwSilver;
 	pWanted->m_dwPoint = dwPoint;
 
-	if(dlEndTime)
+	if (dlEndTime)
 		pWanted->m_dlEndTime = dlEndTime;
 	else
 		pWanted->m_dlEndTime = m_timeCurrent + GUILDWANTED_PERIOD;
@@ -4435,14 +4341,14 @@ BYTE CTWorldSvrModule::AddGuildTacticsWanted(CTGuild * pGuild,
 
 BYTE CTWorldSvrModule::DelGuildWanted(CTGuild * pGuild)
 {
-	if(!pGuild)
+	if (!pGuild)
 		return GUILD_FAIL;
 
 	MAPTGUILDWANTED::iterator it = m_mapTGuildWanted.find(pGuild->m_dwID);
-	if(it==m_mapTGuildWanted.end())
+	if (it == m_mapTGuildWanted.end())
 		return GUILD_FAIL;
 
-	while(!(*it).second.m_mapTWantedApp.empty())
+	while (!(*it).second.m_mapTWantedApp.empty())
 		DelGuildWantedApp(((*it).second.m_mapTWantedApp.begin())->second->m_dwCharID);
 
 	m_mapTGuildWanted.erase(it);
@@ -4452,18 +4358,18 @@ BYTE CTWorldSvrModule::DelGuildWanted(CTGuild * pGuild)
 
 BYTE CTWorldSvrModule::DelGuildTacticsWanted(CTGuild * pGuild, DWORD dwID)
 {
-	if(!pGuild)
+	if (!pGuild)
 		return GUILD_FAIL;
 
 	LPVTGUILDTACTICSWANTED pList = FindGuildTacticsList(pGuild->m_dwID);
-	if(!pList)
+	if (!pList)
 		return GUILD_FAIL;
 
-	for(DWORD i=0; i<pList->size(); i++)
+	for (DWORD i = 0; i<pList->size(); i++)
 	{
-		if((*pList)[i].m_dwID == dwID)
+		if ((*pList)[i].m_dwID == dwID)
 		{
-			while(!(*pList)[i].m_mapTWantedApp.empty())
+			while (!(*pList)[i].m_mapTWantedApp.empty())
 				DelGuildTacticsWantedApp(((*pList)[i].m_mapTWantedApp.begin())->second->m_dwCharID);
 
 			pList->erase(pList->begin() + i);
@@ -4477,7 +4383,7 @@ BYTE CTWorldSvrModule::DelGuildTacticsWanted(CTGuild * pGuild, DWORD dwID)
 LPTGUILDWANTED CTWorldSvrModule::FindGuildWanted(DWORD dwGuildID)
 {
 	MAPTGUILDWANTED::iterator it = m_mapTGuildWanted.find(dwGuildID);
-	if(it==m_mapTGuildWanted.end())
+	if (it == m_mapTGuildWanted.end())
 		return NULL;
 
 	return &((*it).second);
@@ -4486,12 +4392,12 @@ LPTGUILDWANTED CTWorldSvrModule::FindGuildWanted(DWORD dwGuildID)
 LPTGUILDTACTICSWANTED CTWorldSvrModule::FindGuildTacticsWanted(DWORD dwGuildID, DWORD dwID)
 {
 	LPVTGUILDTACTICSWANTED pList = FindGuildTacticsList(dwGuildID);
-	if(!pList)
+	if (!pList)
 		return NULL;
 
-	for(DWORD i=0; i<pList->size(); i++)
+	for (DWORD i = 0; i<pList->size(); i++)
 	{
-		if((*pList)[i].m_dwID == dwID)
+		if ((*pList)[i].m_dwID == dwID)
 			return &((*pList)[i]);
 	}
 
@@ -4501,13 +4407,13 @@ LPTGUILDTACTICSWANTED CTWorldSvrModule::FindGuildTacticsWanted(DWORD dwGuildID, 
 LPTGUILDTACTICSWANTED CTWorldSvrModule::FindGuildTacticsWanted(DWORD dwID)
 {
 	MAPVTGUILDTACTICSWANTED::iterator itGW;
-	for(itGW=m_mapTGuildTacticsWanted.begin(); itGW!=m_mapTGuildTacticsWanted.end(); itGW++)
+	for (itGW = m_mapTGuildTacticsWanted.begin(); itGW != m_mapTGuildTacticsWanted.end(); itGW++)
 	{
 		LPVTGUILDTACTICSWANTED pList = &((*itGW).second);
 
-		for(DWORD i=0; i<pList->size(); i++)
+		for (DWORD i = 0; i<pList->size(); i++)
 		{
-			if((*pList)[i].m_dwID == dwID)
+			if ((*pList)[i].m_dwID == dwID)
 				return &((*pList)[i]);
 		}
 	}
@@ -4518,7 +4424,7 @@ LPTGUILDTACTICSWANTED CTWorldSvrModule::FindGuildTacticsWanted(DWORD dwID)
 LPTGUILDWANTEDAPP CTWorldSvrModule::FindGuildWantedApp(DWORD dwCharID)
 {
 	MAPTGUILDWANTEDAPP::iterator it = m_mapTGuildWantedApp.find(dwCharID);
-	if(it!=m_mapTGuildWantedApp.end())
+	if (it != m_mapTGuildWantedApp.end())
 		return (*it).second;
 
 	return NULL;
@@ -4527,7 +4433,7 @@ LPTGUILDWANTEDAPP CTWorldSvrModule::FindGuildWantedApp(DWORD dwCharID)
 LPTGUILDTACTICSWANTEDAPP CTWorldSvrModule::FindGuildTacticsWantedApp(DWORD dwCharID)
 {
 	MAPTGUILDTACTICSWANTEDAPP::iterator it = m_mapTGuildTacticsWantedApp.find(dwCharID);
-	if(it!=m_mapTGuildTacticsWantedApp.end())
+	if (it != m_mapTGuildTacticsWantedApp.end())
 		return (*it).second;
 
 	return NULL;
@@ -4536,44 +4442,44 @@ LPTGUILDTACTICSWANTEDAPP CTWorldSvrModule::FindGuildTacticsWantedApp(DWORD dwCha
 LPVTGUILDTACTICSWANTED CTWorldSvrModule::FindGuildTacticsList(DWORD dwGuildID)
 {
 	MAPVTGUILDTACTICSWANTED::iterator it = m_mapTGuildTacticsWanted.find(dwGuildID);
-	if(it!=m_mapTGuildTacticsWanted.end())
+	if (it != m_mapTGuildTacticsWanted.end())
 		return &((*it).second);
 
 	return NULL;
 }
 
 BYTE CTWorldSvrModule::AddGuildWantedApp(DWORD dwID,
-										 DWORD dwCharID,
-										 CString strNAME,
-										 BYTE bLevel,
-										 BYTE bClass,
-										 LPTCHARACTER pTCHAR)
+	DWORD dwCharID,
+	CString strNAME,
+	BYTE bLevel,
+	BYTE bClass,
+	LPTCHARACTER pTCHAR)
 {
 	MAPTGUILDWANTEDAPP::iterator it = m_mapTGuildWantedApp.find(dwCharID);
-	if(it!=m_mapTGuildWantedApp.end())
+	if (it != m_mapTGuildWantedApp.end())
 	{
-		if((*it).second->m_dwWantedID == dwID)
+		if ((*it).second->m_dwWantedID == dwID)
 			return GUILD_SAME;
 
 		return GUILD_AREADYAPPLY;
 	}
 
 	LPTGUILDWANTED pWanted = FindGuildWanted(dwID);
-	if(!pWanted)
+	if (!pWanted)
 		return GUILD_FAIL;
 
-	if(pTCHAR &&
+	if (pTCHAR &&
 		pWanted->m_bCountry != pTCHAR->m_bCountry)
 		return GUILD_FAIL;
 
-	if(pWanted->m_dlEndTime < m_timeCurrent)
+	if (pWanted->m_dlEndTime < m_timeCurrent)
 		return GUILD_WANTEDEND;
 
-	if(pWanted->m_bMaxLevel < bLevel ||
+	if (pWanted->m_bMaxLevel < bLevel ||
 		pWanted->m_bMinLevel >bLevel)
 		return GUILD_MISMATCHLEVEL;
 
-	if(pTCHAR &&
+	if (pTCHAR &&
 		pTCHAR->m_pTactics &&
 		pTCHAR->m_pTactics->m_dwID == pWanted->m_dwGuildID)
 		return GUILD_SAMEGUILDTACTICS;
@@ -4592,38 +4498,38 @@ BYTE CTWorldSvrModule::AddGuildWantedApp(DWORD dwID,
 	return GUILD_SUCCESS;
 }
 BYTE CTWorldSvrModule::AddGuildTacticsWantedApp(DWORD dwID,
-												DWORD dwCharID,
-												CString strNAME,
-												BYTE bLevel,
-												BYTE bClass,
-												DWORD dwGuildID,
-												LPTCHARACTER pTCHAR)
+	DWORD dwCharID,
+	CString strNAME,
+	BYTE bLevel,
+	BYTE bClass,
+	DWORD dwGuildID,
+	LPTCHARACTER pTCHAR)
 {
 	MAPTGUILDTACTICSWANTEDAPP::iterator it = m_mapTGuildTacticsWantedApp.find(dwCharID);
-	if(it!=m_mapTGuildTacticsWantedApp.end())
+	if (it != m_mapTGuildTacticsWantedApp.end())
 	{
-		if((*it).second->m_dwWantedGuildID == dwGuildID)
+		if ((*it).second->m_dwWantedGuildID == dwGuildID)
 			return GUILD_SAME;
 
 		return GUILD_AREADYAPPLY;
 	}
 
 	LPTGUILDTACTICSWANTED pWanted = FindGuildTacticsWanted(dwGuildID, dwID);
-	if(!pWanted)
+	if (!pWanted)
 		return GUILD_FAIL;
 
-	if(pTCHAR &&
+	if (pTCHAR &&
 		pWanted->m_bCountry != GetWarCountry(pTCHAR))
 		return GUILD_FAIL;
 
-	if(pWanted->m_dlEndTime < m_timeCurrent)
+	if (pWanted->m_dlEndTime < m_timeCurrent)
 		return GUILD_WANTEDEND;
 
-	if(	pWanted->m_bMaxLevel < bLevel ||
+	if (pWanted->m_bMaxLevel < bLevel ||
 		pWanted->m_bMinLevel > bLevel)
 		return GUILD_MISMATCHLEVEL;
 
-	if(pTCHAR &&
+	if (pTCHAR &&
 		pTCHAR->m_pGuild &&
 		pTCHAR->m_pGuild->m_dwID == dwGuildID)
 		return GUILD_SAMEGUILDTACTICS;
@@ -4651,12 +4557,12 @@ BYTE CTWorldSvrModule::AddGuildTacticsWantedApp(DWORD dwID,
 BYTE CTWorldSvrModule::DelGuildWantedApp(DWORD dwCharID)
 {
 	MAPTGUILDWANTEDAPP::iterator it = m_mapTGuildWantedApp.find(dwCharID);
-	if(it==m_mapTGuildWantedApp.end())
+	if (it == m_mapTGuildWantedApp.end())
 		return GUILD_FAIL;
 
 	LPTGUILDWANTEDAPP pApp = (*it).second;
 	LPTGUILDWANTED pWanted = FindGuildWanted(pApp->m_dwWantedID);
-	if(pWanted)
+	if (pWanted)
 		pWanted->m_mapTWantedApp.erase(dwCharID);
 
 	delete pApp;
@@ -4669,12 +4575,12 @@ BYTE CTWorldSvrModule::DelGuildWantedApp(DWORD dwCharID)
 BYTE CTWorldSvrModule::DelGuildTacticsWantedApp(DWORD dwCharID)
 {
 	MAPTGUILDTACTICSWANTEDAPP::iterator it = m_mapTGuildTacticsWantedApp.find(dwCharID);
-	if(it==m_mapTGuildTacticsWantedApp.end())
+	if (it == m_mapTGuildTacticsWantedApp.end())
 		return GUILD_FAIL;
 
 	LPTGUILDTACTICSWANTEDAPP pApp = (*it).second;
 	LPTGUILDTACTICSWANTED pWanted = FindGuildTacticsWanted(pApp->m_dwWantedGuildID, pApp->m_dwWantedID);
-	if(pWanted)
+	if (pWanted)
 		pWanted->m_mapTWantedApp.erase(dwCharID);
 
 	delete pApp;
@@ -4687,27 +4593,27 @@ BYTE CTWorldSvrModule::DelGuildTacticsWantedApp(DWORD dwCharID)
 BYTE CTWorldSvrModule::ApplyGuildApp(DWORD dwCharID)
 {
 	LPTGUILDWANTEDAPP pApp = FindGuildWantedApp(dwCharID);
-	if(!pApp)
+	if (!pApp)
 		return GUILD_FAIL;
 
 	CTGuild * pGuild = FindTGuild(pApp->m_dwWantedID);
-	if(!pGuild)
+	if (!pGuild)
 		return GUILD_FAIL;
 
 	MAPDWORD::iterator itGM = m_mapCharGuild.find(dwCharID);
-	if(itGM != m_mapCharGuild.end())
+	if (itGM != m_mapCharGuild.end())
 		return GUILD_HAVEGUILD;
 
-	if(!pGuild->CanAddMember())
+	if (!pGuild->CanAddMember())
 		return GUILD_MEMBER_FULL;
 
-	if(pGuild->FindMember(dwCharID))
+	if (pGuild->FindMember(dwCharID))
 		return GUILD_ALREADYMEMBER;
 
-	if(pGuild->FindTactics(dwCharID))
+	if (pGuild->FindTactics(dwCharID))
 		return GUILD_SAMEGUILDTACTICS;
 
-	if(!pGuild->FindChief())
+	if (!pGuild->FindChief())
 		return GUILD_FAIL;
 
 	LPTGUILDMEMBER pMember = new TGUILDMEMBER();
@@ -4729,42 +4635,42 @@ BYTE CTWorldSvrModule::ApplyGuildApp(DWORD dwCharID)
 BYTE CTWorldSvrModule::ApplyGuildTacticsApp(DWORD dwCharID)
 {
 	LPTGUILDTACTICSWANTEDAPP pApp = FindGuildTacticsWantedApp(dwCharID);
-	if(!pApp)
+	if (!pApp)
 		return GUILD_FAIL;
 
 	CTGuild * pGuild = FindTGuild(pApp->m_dwWantedGuildID);
-	if(!pGuild)
+	if (!pGuild)
 		return GUILD_FAIL;
 
 	MAPDWORD::iterator itTM = m_mapCharTactics.find(dwCharID);
-	if(itTM != m_mapCharTactics.end())
+	if (itTM != m_mapCharTactics.end())
 		return GUILD_HAVEGUILD;
 
 	MAPDWORD::iterator itGM = m_mapCharGuild.find(dwCharID);
-	if(itGM != m_mapCharGuild.end())
+	if (itGM != m_mapCharGuild.end())
 	{
 		CTGuild * pTG = FindTGuild((*itGM).second);
-		if(pTG)
+		if (pTG)
 		{
 			LPTGUILDMEMBER pGM = pTG->FindMember(dwCharID);
-			if(pGM && pGM->m_bDuty >= GUILD_DUTY_VICECHIEF)
+			if (pGM && pGM->m_bDuty >= GUILD_DUTY_VICECHIEF)
 				return GUILD_NODUTY;
 		}
 	}
 
-	if(pGuild->FindTactics(dwCharID))
+	if (pGuild->FindTactics(dwCharID))
 		return GUILD_ALREADYMEMBER;
 
-	if(pGuild->FindMember(dwCharID))
+	if (pGuild->FindMember(dwCharID))
 		return GUILD_SAMEGUILDTACTICS;
 
-	if(pGuild->m_dwPvPUseablePoint < pApp->m_dwPoint)
+	if (pGuild->m_dwPvPUseablePoint < pApp->m_dwPoint)
 		return GUILD_NOPOINT;
 
-	if(!pGuild->CanAddTactics())
+	if (!pGuild->CanAddTactics())
 		return GUILD_MEMBER_FULL;
 
-	if(!pGuild->UseMoney(pApp->m_dwGold, pApp->m_dwSilver, pApp->m_dwCooper, TRUE))
+	if (!pGuild->UseMoney(pApp->m_dwGold, pApp->m_dwSilver, pApp->m_dwCooper, TRUE))
 		return GUILD_NOMONEY;
 
 	pGuild->UsePvPoint(pApp->m_dwPoint, PVP_USEABLE);
@@ -4782,14 +4688,14 @@ BYTE CTWorldSvrModule::ApplyGuildTacticsApp(DWORD dwCharID)
 	pMember->m_pChar = NULL;
 
 	LPTCHARACTER pChar = FindTChar(pMember->m_strName);
-	if(pChar)
+	if (pChar)
 	{
 		pMember->m_pChar = pChar;
 		pMember->m_bLevel = pChar->m_bLevel;
 		pChar->m_pTactics = pGuild;
 
 		CTServer * pServer = FindMapSvr(pChar->m_bMainID);
-		if(pServer)
+		if (pServer)
 			pServer->SendMW_GUILDTACTICSREPLY_REQ(
 				pChar->m_dwCharID,
 				pChar->m_dwKEY,
@@ -4804,10 +4710,10 @@ BYTE CTWorldSvrModule::ApplyGuildTacticsApp(DWORD dwCharID)
 	}
 
 	LPTGUILDMEMBER pChief = pGuild->FindChief();
-	if(pChief && pChief->m_pChar)
+	if (pChief && pChief->m_pChar)
 	{
 		CTServer * pServer = FindMapSvr(pChief->m_pChar->m_bMainID);
-		if(pServer)
+		if (pServer)
 			pServer->SendMW_GUILDTACTICSREPLY_REQ(
 				pChief->m_pChar->m_dwCharID,
 				pChief->m_pChar->m_dwKEY,
@@ -4829,13 +4735,13 @@ BYTE CTWorldSvrModule::ApplyGuildTacticsApp(DWORD dwCharID)
 void CTWorldSvrModule::NotifyAddGuildMember(LPTGUILDMEMBER pMember, CTGuild * pGuild)
 {
 	LPTCHARACTER pChar = FindTChar(pMember->m_strName);
-	if(pChar)
+	if (pChar)
 	{
 		pMember->m_pChar = pChar;
 		pChar->m_pGuild = pGuild;
 
 		CTServer * pServer = FindMapSvr(pChar->m_bMainID);
-		if(pServer)
+		if (pServer)
 			pServer->SendMW_GUILDJOIN_REQ(
 				pChar->m_dwCharID,
 				pChar->m_dwKEY,
@@ -4849,17 +4755,17 @@ void CTWorldSvrModule::NotifyAddGuildMember(LPTGUILDMEMBER pMember, CTGuild * pG
 	}
 
 	LPTGUILDMEMBER pChief = pGuild->FindChief();
-	if(!pChief)
+	if (!pChief)
 		return;
 
-	if(pMember->m_dwID == pChief->m_dwID)
+	if (pMember->m_dwID == pChief->m_dwID)
 		return;
 
 	LPTCHARACTER pChiefChar = FindTChar(pChief->m_strName);
-	if(pChiefChar)
+	if (pChiefChar)
 	{
 		CTServer * pServer = FindMapSvr(pChiefChar->m_bMainID);
-		if(pServer)
+		if (pServer)
 			pServer->SendMW_GUILDJOIN_REQ(
 				pChiefChar->m_dwCharID,
 				pChiefChar->m_dwKEY,
@@ -4877,7 +4783,7 @@ void CTWorldSvrModule::NotifyGuildWantedList(DWORD dwCharID, DWORD dwKey, CTServ
 {
 	LPTCHARACTER pTCHAR = FindTChar(dwCharID, dwKey);
 
-	if(!pTCHAR)	return;
+	if (!pTCHAR)	return;
 
 	LPTGUILDWANTEDAPP pApp = FindGuildWantedApp(dwCharID);
 
@@ -4892,7 +4798,7 @@ void CTWorldSvrModule::NotifyGuildTacticsWantedList(DWORD dwCharID, DWORD dwKey,
 {
 	LPTCHARACTER pTCHAR = FindTChar(dwCharID, dwKey);
 
-	if(!pTCHAR)	return;
+	if (!pTCHAR)	return;
 
 	LPTGUILDTACTICSWANTEDAPP pApp = FindGuildTacticsWantedApp(dwCharID);
 
@@ -4908,17 +4814,17 @@ void CTWorldSvrModule::NotifyGuildVolunteerList(DWORD dwCharID, DWORD dwKey, CTS
 {
 	LPTCHARACTER pTCHAR = FindTChar(dwCharID, dwKey);
 
-	if(!pTCHAR || !pTCHAR->m_pGuild)
+	if (!pTCHAR || !pTCHAR->m_pGuild)
 		return;
 
 	LPTGUILDWANTED pWanted = FindGuildWanted(pTCHAR->m_pGuild->m_dwID);
-	if(pWanted)
+	if (pWanted)
 	{
 		MAPTGUILDWANTEDAPP::iterator it;
-		for(it=pWanted->m_mapTWantedApp.begin(); it!=pWanted->m_mapTWantedApp.end(); it++)
+		for (it = pWanted->m_mapTWantedApp.begin(); it != pWanted->m_mapTWantedApp.end(); it++)
 		{
 			LPTCHARACTER pTarget = FindTChar((*it).second->m_strName);
-			if(pTarget)
+			if (pTarget)
 				(*it).second->m_dwRegion = pTarget->m_dwRegion;
 			else
 				(*it).second->m_dwRegion = 0;
@@ -4934,22 +4840,22 @@ void CTWorldSvrModule::NotifyGuildTacticsVolunteerList(DWORD dwCharID, DWORD dwK
 {
 	LPTCHARACTER pTCHAR = FindTChar(dwCharID, dwKey);
 
-	if(!pTCHAR || !pTCHAR->m_pGuild)
+	if (!pTCHAR || !pTCHAR->m_pGuild)
 		return;
 
 	MAPTGUILDTACTICSWANTEDAPP app;
 	app.clear();
 
 	LPVTGUILDTACTICSWANTED pWanted = FindGuildTacticsList(pTCHAR->m_pGuild->m_dwID);
-	if(pWanted)
+	if (pWanted)
 	{
 		MAPTGUILDTACTICSWANTEDAPP::iterator it;
-		for(DWORD i=0; i<pWanted->size(); i++)
+		for (DWORD i = 0; i<pWanted->size(); i++)
 		{
-			for(it=(*pWanted)[i].m_mapTWantedApp.begin(); it!=(*pWanted)[i].m_mapTWantedApp.end(); it++)
+			for (it = (*pWanted)[i].m_mapTWantedApp.begin(); it != (*pWanted)[i].m_mapTWantedApp.end(); it++)
 			{
 				LPTCHARACTER pTarget = FindTChar((*it).second->m_strName);
-				if(pTarget)
+				if (pTarget)
 					(*it).second->m_dwRegion = pTarget->m_dwRegion;
 				else
 					(*it).second->m_dwRegion = 0;
@@ -4969,10 +4875,10 @@ void CTWorldSvrModule::NotifyGuildTacticsVolunteerList(DWORD dwCharID, DWORD dwK
 
 CTGuild * CTWorldSvrModule::GetCurGuild(LPTCHARACTER pTCHAR)
 {
-	if(pTCHAR->m_pTactics)
+	if (pTCHAR->m_pTactics)
 		return pTCHAR->m_pTactics;
 
-	if(pTCHAR->m_pGuild)
+	if (pTCHAR->m_pGuild)
 		return pTCHAR->m_pGuild;
 
 	return NULL;
@@ -4981,9 +4887,9 @@ CTGuild * CTWorldSvrModule::GetCurGuild(LPTCHARACTER pTCHAR)
 DWORD CTWorldSvrModule::FindCharTacticsID(DWORD dwCharID)
 {
 	MAPTGUILD::iterator it;
-	for(it=m_mapTGuild.begin(); it!=m_mapTGuild.end(); it++)
+	for (it = m_mapTGuild.begin(); it != m_mapTGuild.end(); it++)
 	{
-		if((*it).second->FindTactics(dwCharID))
+		if ((*it).second->FindTactics(dwCharID))
 			return (*it).second->m_dwID;
 	}
 
@@ -4991,10 +4897,10 @@ DWORD CTWorldSvrModule::FindCharTacticsID(DWORD dwCharID)
 }
 
 void CTWorldSvrModule::OnEventExpired(BYTE bInsert,
-									  BYTE bType,
-									  INT64 timeExpired,
-									  DWORD dwValue_1=0,
-									  DWORD dwValue_2=0)
+	BYTE bType,
+	INT64 timeExpired,
+	DWORD dwValue_1 = 0,
+	DWORD dwValue_2 = 0)
 {
 	LPPACKETBUF pMSG = new PACKETBUF();
 	pMSG->m_packet.SetID(SM_EVENTEXPIRED_REQ)
@@ -5010,9 +4916,9 @@ void CTWorldSvrModule::OnEventExpired(BYTE bInsert,
 void CTWorldSvrModule::CheckEventExpired()
 {
 	VTEXPIREDBUF::iterator it = m_vExpired.begin();
-	while(it != m_vExpired.end())
+	while (it != m_vExpired.end())
 	{
-		if((*it).m_timeExpired <= m_timeCurrent )
+		if ((*it).m_timeExpired <= m_timeCurrent)
 		{
 			LPPACKETBUF pBUF = new PACKETBUF();
 			pBUF->m_packet.SetID(SM_EVENTEXPIRED_ACK)
@@ -5031,14 +4937,14 @@ void CTWorldSvrModule::CheckEventExpired()
 }
 
 void CTWorldSvrModule::SendPost(BYTE bType,
-								DWORD dwValue,
-								DWORD dwSenderID,
-								CString strSender,
-								DWORD dwRecvID,
-								CString strRecver,
-								INT64 dlValue)
+	DWORD dwValue,
+	DWORD dwSenderID,
+	CString strSender,
+	DWORD dwRecvID,
+	CString strRecver,
+	INT64 dlValue)
 {
-	if(m_mapSERVER.empty())
+	if (m_mapSERVER.empty())
 		return;
 
 	MAPTSERVER::iterator finder = m_mapSERVER.begin();
@@ -5054,15 +4960,15 @@ void CTWorldSvrModule::SendPost(BYTE bType,
 }
 
 void CTWorldSvrModule::SendPost(BYTE	bType,
-								DWORD	dwRecvID,
-								CString	strRecver,
-								CString	strTitle,
-								CString	strMessage,
-								WORD	wItemID,
-								BYTE	bItemNum,
-								WORD	wUseTime)
+	DWORD	dwRecvID,
+	CString	strRecver,
+	CString	strTitle,
+	CString	strMessage,
+	WORD	wItemID,
+	BYTE	bItemNum,
+	WORD	wUseTime)
 {
-	if(m_mapSERVER.empty() || bType != WPT_LOTITEM)
+	if (m_mapSERVER.empty() || bType != WPT_LOTITEM)
 		return;
 
 	MAPTSERVER::iterator finder = m_mapSERVER.begin();
@@ -5083,7 +4989,7 @@ void CTWorldSvrModule::NotifyCastleApply(WORD wCastle, CTGuild * pGuild)
 	WORD wValue = pGuild->GetCastleApplicantCount(wCastle);
 
 	MAPTSERVER::iterator finder;
-	for(finder = m_mapSERVER.begin(); finder != m_mapSERVER.end(); finder++)
+	for (finder = m_mapSERVER.begin(); finder != m_mapSERVER.end(); finder++)
 	{
 		(*finder).second->SendMW_CASTLEAPPLICANTCOUNT_REQ(
 			wCastle,
@@ -5095,7 +5001,7 @@ void CTWorldSvrModule::NotifyCastleApply(WORD wCastle, CTGuild * pGuild)
 
 void CTWorldSvrModule::GuildMemberAdd(CTGuild * pGuild, LPTGUILDMEMBER pMember)
 {
-	if(m_pRelay)
+	if (m_pRelay)
 		m_pRelay->SendRW_GUILDADD_ACK(pMember->m_dwID, pGuild->m_dwID, pGuild->m_dwChief);
 
 	SendDM_GUILDMEMBERADD_REQ(
@@ -5110,7 +5016,7 @@ void CTWorldSvrModule::GuildMemberAdd(CTGuild * pGuild, LPTGUILDMEMBER pMember)
 }
 void CTWorldSvrModule::GuildMemberDel(CTGuild * pGuild, LPTGUILDMEMBER pMember, BYTE bReason)
 {
-	if(m_pRelay)
+	if (m_pRelay)
 		m_pRelay->SendRW_GUILDDEL_ACK(pMember->m_dwID, pGuild->m_dwID);
 
 	SendDM_GUILDLEAVE_REQ(
@@ -5124,7 +5030,7 @@ void CTWorldSvrModule::GuildMemberDel(CTGuild * pGuild, LPTGUILDMEMBER pMember, 
 }
 void CTWorldSvrModule::GuildTacticsAdd(CTGuild * pGuild, LPTTACTICSMEMBER pMember)
 {
-	if(m_pRelay)
+	if (m_pRelay)
 		m_pRelay->SendRW_TACTICSADD_ACK(pMember->m_dwID, pGuild->m_dwID, pGuild->m_dwChief);
 
 	SendDM_GUILDTACTICSADD_REQ(
@@ -5140,13 +5046,13 @@ void CTWorldSvrModule::GuildTacticsAdd(CTGuild * pGuild, LPTTACTICSMEMBER pMembe
 	pGuild->AddTactics(pMember);
 
 	MAPDWORD::iterator itOG = m_mapCharGuild.find(pMember->m_dwID);
-	if(itOG != m_mapCharGuild.end())
+	if (itOG != m_mapCharGuild.end())
 	{
 		CTGuild * pOG = FindTGuild(itOG->second);
-		if(pOG)
+		if (pOG)
 		{
 			LPTGUILDMEMBER pOM = pOG->FindMember(pMember->m_dwID);
-			if(pOM && pOM->m_wCastle)
+			if (pOM && pOM->m_wCastle)
 			{
 				WORD wCastle = pOM->m_wCastle;
 				pOM->m_wCastle = 0;
@@ -5160,20 +5066,20 @@ void CTWorldSvrModule::GuildTacticsAdd(CTGuild * pGuild, LPTTACTICSMEMBER pMembe
 }
 BYTE CTWorldSvrModule::GuildTacticsDel(CTGuild * pGuild, LPTTACTICSMEMBER pMember, BYTE bKick)
 {
-	if(bKick)
+	if (bKick)
 	{
 		pGuild->PointLog(pMember->m_dwRewardPoint, pMember->m_strName, m_timeCurrent);
 		SendDM_GUILDPOINTREWARD_REQ(pGuild->m_dwID, pMember->m_dwRewardPoint, pMember->m_strName, pGuild->m_dwPvPTotalPoint, pGuild->m_dwPvPUseablePoint);
 	}
 
 	MAPTCHARACTER::iterator it = m_mapTCHAR.find(pMember->m_dwID);
-	if(it!=m_mapTCHAR.end())
+	if (it != m_mapTCHAR.end())
 	{
 		LPTCHARACTER pTarget = (*it).second;
 		pTarget->m_pTactics = NULL;
 
 		CTServer * pServer = FindMapSvr(pTarget->m_bMainID);
-		if(pServer)
+		if (pServer)
 		{
 			pServer->SendMW_GUILDTACTICSKICKOUT_REQ(
 				pTarget->m_dwCharID,
@@ -5182,22 +5088,22 @@ BYTE CTWorldSvrModule::GuildTacticsDel(CTGuild * pGuild, LPTTACTICSMEMBER pMembe
 				pMember->m_dwID,
 				bKick);
 
-			if( bKick && pTarget->m_bSave)
+			if (bKick && pTarget->m_bSave)
 				pServer->SendMW_GAINPVPPOINT_REQ(pMember->m_dwID, pMember->m_dwRewardPoint, PVPE_GUILD, PVP_USEABLE, TRUE);
 		}
 	}
 
 	BYTE bWP = WPT_NONE;
-	if(bKick == 1)
+	if (bKick == 1)
 		bWP = WPT_TACTICSKICK;
-	else if(bKick >= 2)
+	else if (bKick >= 2)
 		bWP = WPT_TACTICSEND;
 
 	LPTGUILDMEMBER pChief = pGuild->FindChief();
-	if(bWP != WPT_NONE && pChief)
+	if (bWP != WPT_NONE && pChief)
 		SendPost(bWP, pMember->m_dwRewardPoint, pChief->m_dwID, pChief->m_strName, pMember->m_dwID, pMember->m_strName, pMember->m_dlRewardMoney);
 
-	if(m_pRelay)
+	if (m_pRelay)
 		m_pRelay->SendRW_TACTICSDEL_ACK(pMember->m_dwID, pGuild->m_dwID);
 
 	SendDM_GUILDTACTICSDEL_REQ(pMember->m_dwID);
@@ -5211,17 +5117,17 @@ BYTE CTWorldSvrModule::GuildTacticsDel(CTGuild * pGuild, LPTTACTICSMEMBER pMembe
 CString CTWorldSvrModule::GetSvrMsg(DWORD dwID)
 {
 	MAPTSTRING::iterator it = m_mapTSvrMsg.find(dwID);
-	if(it!=m_mapTSvrMsg.end())
+	if (it != m_mapTSvrMsg.end())
 		return (*it).second;
 	else
 		return NAME_NULL;
 }
 
-CString CTWorldSvrModule::BuildNetString( const CString& strHeader, const CString& strBody)
+CString CTWorldSvrModule::BuildNetString(const CString& strHeader, const CString& strBody)
 {
 	CString strSIZE;
 
-	strSIZE.Format( _T("%04X%04X"), strHeader.GetLength(), strBody.GetLength());
+	strSIZE.Format(_T("%04X%04X"), strHeader.GetLength(), strBody.GetLength());
 	return strSIZE + strHeader + strBody;
 }
 
@@ -5248,7 +5154,7 @@ LPTITEM CTWorldSvrModule::CreateItem(CPacket * pPacket)
 		>> pItem->m_dwExtValue[IEV_GUILD]
 		>> pItem->m_bMagicCount;
 
-	for(BYTE i=0; i<pItem->m_bMagicCount; i++)
+	for (BYTE i = 0; i<pItem->m_bMagicCount; i++)
 	{
 		(*pPacket)
 			>> pItem->m_bMagic[i]
@@ -5277,9 +5183,9 @@ LPTITEM CTWorldSvrModule::CreateItem(TITEM &item)
 	pItem->m_dwExtValue[IEV_WRAP] = item.m_dwExtValue[IEV_WRAP];
 	pItem->m_dwExtValue[IEV_COLOR] = item.m_dwExtValue[IEV_COLOR];
 	pItem->m_dwExtValue[IEV_GUILD] = item.m_dwExtValue[IEV_GUILD];
-	for(BYTE i=0; i<TMAGIC_MAX; i++)
+	for (BYTE i = 0; i<TMAGIC_MAX; i++)
 	{
-		if(item.m_bMagic[i])
+		if (item.m_bMagic[i])
 		{
 			pItem->m_bMagic[i] = item.m_bMagic[i];
 			pItem->m_wValue[i] = item.m_wValue[i];
@@ -5313,7 +5219,7 @@ void CTWorldSvrModule::WrapItem(CPacket * pPacket, TITEM &item)
 		<< item.m_dwExtValue[IEV_GUILD]
 		<< item.m_bMagicCount;
 
-	for(BYTE i=0; i<item.m_bMagicCount; i++)
+	for (BYTE i = 0; i<item.m_bMagicCount; i++)
 	{
 		(*pPacket)
 			<< item.m_bMagic[i]
@@ -5321,20 +5227,20 @@ void CTWorldSvrModule::WrapItem(CPacket * pPacket, TITEM &item)
 	}
 }
 
- 
+
 void CTWorldSvrModule::MonthRankReset()
 {
-	for(BYTE i = 0; i < COUNTRY_COUNT; i++)
-        for(BYTE j = 1; j < MONTHRANKCOUNT; j++)
-            m_arMonthRank[i][j].Reset();	
+	for (BYTE i = 0; i < COUNTRY_COUNT; i++)
+		for (BYTE j = 1; j < MONTHRANKCOUNT; j++)
+			m_arMonthRank[i][j].Reset();
 }
 
 void CTWorldSvrModule::AddChatBan(CString strName, INT64 dlEndTime)
 {
 	MAPBANCHAR::iterator it = m_mapBanChar.find(strName);
-	if(it!=m_mapBanChar.end())
+	if (it != m_mapBanChar.end())
 	{
-		if(dlEndTime <= m_timeCurrent)
+		if (dlEndTime <= m_timeCurrent)
 			m_mapBanChar.erase(it);
 		else
 			(*it).second = dlEndTime;
@@ -5346,22 +5252,22 @@ void CTWorldSvrModule::AddChatBan(CString strName, INT64 dlEndTime)
 void CTWorldSvrModule::CheckChatBan(LPTCHARACTER pChar, BYTE bRelay)
 {
 	MAPBANCHAR::iterator it = m_mapBanChar.find(pChar->m_strNAME);
-	if(it!=m_mapBanChar.end())
+	if (it != m_mapBanChar.end())
 	{
-		if((*it).second > m_timeCurrent)
+		if ((*it).second > m_timeCurrent)
 		{
 			pChar->m_nChatBanTime = (*it).second;
 
-			if(bRelay)
+			if (bRelay)
 			{
-				if(m_pRelay)
-					m_pRelay->SendRW_CHATBAN_ACK(pChar->m_strNAME,pChar->m_nChatBanTime);
+				if (m_pRelay)
+					m_pRelay->SendRW_CHATBAN_ACK(pChar->m_strNAME, pChar->m_nChatBanTime);
 			}
 			else
 			{
 				CTServer* pServer = FindMapSvr(pChar->m_bMainID);
-				if(pServer)
-					pServer->SendMW_CHATBAN_REQ(pChar->m_strNAME,pChar->m_nChatBanTime,CHATBAN_SUCCESS,0,0);
+				if (pServer)
+					pServer->SendMW_CHATBAN_REQ(pChar->m_strNAME, pChar->m_nChatBanTime, CHATBAN_SUCCESS, 0, 0);
 			}
 		}
 		else
@@ -5371,12 +5277,12 @@ void CTWorldSvrModule::CheckChatBan(LPTCHARACTER pChar, BYTE bRelay)
 
 BYTE CTWorldSvrModule::IsFirstGroup(BYTE bCountry, DWORD dwCharID)
 {
-	if(bCountry > TCONTRY_B)
+	if (bCountry > TCONTRY_B)
 		return FALSE;
 
-	for(BYTE i=1; i<m_bFirstGroupCount; i++)
+	for (BYTE i = 1; i<m_bFirstGroupCount; i++)
 	{
-		if(m_arFirstGradeGroup[bCountry][i].m_dwCharID == dwCharID)
+		if (m_arFirstGradeGroup[bCountry][i].m_dwCharID == dwCharID)
 			return TRUE;
 	}
 
@@ -5385,7 +5291,7 @@ BYTE CTWorldSvrModule::IsFirstGroup(BYTE bCountry, DWORD dwCharID)
 
 WORD CTWorldSvrModule::SetTournamentTime(LPMAPTOURNAMENTSTEP pTour, TBATTLETIME battletime, WORD wTourID, BYTE bMonthBase, BYTE bEnable, WORD wTnmtID, BYTE bTnmtGroup, BYTE bTnmtStep)
 {
-	if(!pTour || !battletime.m_bWeek || pTour->empty())
+	if (!pTour || !battletime.m_bWeek || pTour->empty())
 		return 0;
 
 	CTime cur = CTime::GetCurrentTime().GetTime();
@@ -5396,10 +5302,10 @@ WORD CTWorldSvrModule::SetTournamentTime(LPMAPTOURNAMENTSTEP pTour, TBATTLETIME 
 
 	WORD wYear = cur.GetYear();
 
-	for(BYTE m=bMonthBase; m<=1; m++)
+	for (BYTE m = bMonthBase; m <= 1; m++)
 	{
 		BYTE bMonth = cur.GetMonth() + m;
-		if(bMonth > 12)
+		if (bMonth > 12)
 		{
 			wYear = cur.GetYear() + 1;
 			bMonth = 1;
@@ -5407,32 +5313,32 @@ WORD CTWorldSvrModule::SetTournamentTime(LPMAPTOURNAMENTSTEP pTour, TBATTLETIME 
 
 		BYTE bWeek = 0;
 
-		for(BYTE i=1; i<=battletime.m_bWeek*7;)
+		for (BYTE i = 1; i <= battletime.m_bWeek * 7;)
 		{
-			if(i>31)
+			if (i>31)
 				break;
 
 			CTime set(wYear, bMonth, i, 0, 0, 0);
-			if(set.GetDayOfWeek() == battletime.m_bDay)
+			if (set.GetDayOfWeek() == battletime.m_bDay)
 			{
 				bWeek++;
-				if(bWeek == battletime.m_bWeek)
+				if (bWeek == battletime.m_bWeek)
 				{
 					start = set;
 					break;
 				}
 				else
-					i+=7;
+					i += 7;
 			}
 			else
 				i++;
 		}
 
-		if(start.GetTime())
+		if (start.GetTime())
 		{
 			dStart = start.GetTime() + battletime.m_dwBattleStart;
 			MAPTOURNAMENTSTEP::iterator it;
-			for(it=pTour->begin(); it != pTour->end(); it++)
+			for (it = pTour->begin(); it != pTour->end(); it++)
 			{
 				LPTOURNAMENTSTEP pSc = &((*it).second);
 
@@ -5441,16 +5347,16 @@ WORD CTWorldSvrModule::SetTournamentTime(LPMAPTOURNAMENTSTEP pTour, TBATTLETIME 
 				dStart = pSc->m_dEnd;
 			}
 
-			if(dStart > cur.GetTime())
+			if (dStart > cur.GetTime())
 				break;
 		}
 	}
 
-	if(dStart <= cur.GetTime())
+	if (dStart <= cur.GetTime())
 	{
 		MAPTOURNAMENTSCHEDULE::iterator itTour;
-		for(itTour=m_mapTournamentSchedule.begin(); itTour!=m_mapTournamentSchedule.end(); itTour++)
-			if((*itTour).second.m_mapStep == pTour)
+		for (itTour = m_mapTournamentSchedule.begin(); itTour != m_mapTournamentSchedule.end(); itTour++)
+			if ((*itTour).second.m_mapStep == pTour)
 			{
 				LPPACKETBUF pMSG = new PACKETBUF();
 				pMSG->m_packet.SetID(SM_TOURNAMENTEVENT_ACK)
@@ -5471,18 +5377,18 @@ WORD CTWorldSvrModule::SetTournamentTime(LPMAPTOURNAMENTSTEP pTour, TBATTLETIME 
 	INT64 dNS = pTour->begin()->second.m_dStart;
 	INT64 dNE = pTour->rbegin()->second.m_dEnd;
 
-	for(itTour=m_mapTournamentSchedule.begin(); itTour!=m_mapTournamentSchedule.end(); itTour++)
+	for (itTour = m_mapTournamentSchedule.begin(); itTour != m_mapTournamentSchedule.end(); itTour++)
 	{
 		LPMAPTOURNAMENTSTEP pTM = (*itTour).second.m_mapStep;
-		if(pTM->empty() || (*itTour).first == wTourID)
+		if (pTM->empty() || (*itTour).first == wTourID)
 			continue;
 
 		INT64 dCS = pTM->begin()->second.m_dStart;
 		INT64 dCE = pTM->rbegin()->second.m_dEnd;
-		if((dNS >= dCS && dNS <= dCE) ||
+		if ((dNS >= dCS && dNS <= dCE) ||
 			(dNE >= dCS && dNE <= dCE))
 		{
-			if(wTourID == 1)
+			if (wTourID == 1)
 			{
 				LPPACKETBUF pMSG = new PACKETBUF();
 				pMSG->m_packet.SetID(SM_TOURNAMENTEVENT_ACK)
@@ -5502,7 +5408,7 @@ WORD CTWorldSvrModule::SetTournamentTime(LPMAPTOURNAMENTSTEP pTour, TBATTLETIME 
 	tosc.m_bEnable = bEnable;
 	tosc.m_mapStep = pTour;
 
-	if(!wTourID)
+	if (!wTourID)
 	{
 		tosc.m_wID = ++m_wTournamentID;
 		m_mapTournamentSchedule.insert(MAPTOURNAMENTSCHEDULE::value_type(tosc.m_wID, tosc));
@@ -5512,38 +5418,38 @@ WORD CTWorldSvrModule::SetTournamentTime(LPMAPTOURNAMENTSTEP pTour, TBATTLETIME 
 	else
 	{
 		MAPTOURNAMENTSCHEDULE::iterator itTs = m_mapTournamentSchedule.find(wTourID);
-		if(itTs == m_mapTournamentSchedule.end())
+		if (itTs == m_mapTournamentSchedule.end())
 		{
 			tosc.m_wID = wTourID;
 			m_mapTournamentSchedule.insert(MAPTOURNAMENTSCHEDULE::value_type(tosc.m_wID, tosc));
 			m_mapTournamentTime.insert(MAPTOURNAMENTTIME::value_type(tosc.m_wID, battletime));
 
-			if(m_wTournamentID < wTourID)
+			if (m_wTournamentID < wTourID)
 				m_wTournamentID = wTourID;
 		}
 	}
 
-	if(wTourID == wTnmtID && bTnmtStep != TNMTSTEP_READY)
+	if (wTourID == wTnmtID && bTnmtStep != TNMTSTEP_READY)
 	{
 		BYTE bEdit = FALSE;
 
-		if(bTnmtStep >= TNMTSTEP_FENTER)
+		if (bTnmtStep >= TNMTSTEP_FENTER)
 		{
 			bTnmtStep = TNMTSTEP_FENTER;
 			bEdit = TRUE;
 		}
-		else if(bTnmtStep >= TNMTSTEP_SFENTER)
+		else if (bTnmtStep >= TNMTSTEP_SFENTER)
 		{
 			bTnmtStep = TNMTSTEP_SFENTER;
 			bEdit = TRUE;
 		}
-		else if(bTnmtStep == TNMTSTEP_ENTER)
+		else if (bTnmtStep == TNMTSTEP_ENTER)
 		{
 			bTnmtStep = TNMTSTEP_ENTER;
 			bEdit = TRUE;
 		}
 
-		if(bEdit)
+		if (bEdit)
 			dStart = cur.GetTime();
 
 		m_tournament.m_wID = m_wTournamentID;
@@ -5554,18 +5460,18 @@ WORD CTWorldSvrModule::SetTournamentTime(LPMAPTOURNAMENTSTEP pTour, TBATTLETIME 
 		m_TournamentSchedule.m_mapStep = pTour;
 
 		MAPTOURNAMENTSTEP::iterator it;
-		for(it=pTour->begin(); it != pTour->end(); it++)
+		for (it = pTour->begin(); it != pTour->end(); it++)
 		{
 			LPTOURNAMENTSTEP pSc = &((*it).second);
 			WORD wAddTime = 0;
 
-			if(bEdit)
+			if (bEdit)
 			{
-				if(MAKEWORD(pSc->m_bStep, pSc->m_bGroup) >= MAKEWORD(bTnmtStep, bTnmtGroup) &&
+				if (MAKEWORD(pSc->m_bStep, pSc->m_bGroup) >= MAKEWORD(bTnmtStep, bTnmtGroup) &&
 					pSc->m_dwPeriod)
 				{
-					if(pSc->m_bGroup == bTnmtGroup && pSc->m_bStep == bTnmtStep)
-						wAddTime = 60*10;
+					if (pSc->m_bGroup == bTnmtGroup && pSc->m_bStep == bTnmtStep)
+						wAddTime = 60 * 10;
 
 					pSc->m_dStart = dStart;
 					pSc->m_dEnd = dStart + pSc->m_dwPeriod + wAddTime;
@@ -5594,7 +5500,7 @@ void CTWorldSvrModule::DelTournamentSchedule(WORD wTourID)
 {
 	m_mapTournamentTime.erase(wTourID);
 	MAPTOURNAMENTSCHEDULE::iterator it = m_mapTournamentSchedule.find(wTourID);
-	if(it!=m_mapTournamentSchedule.end())
+	if (it != m_mapTournamentSchedule.end())
 		delete (*it).second.m_mapStep;
 
 	m_mapTournamentSchedule.erase(wTourID);
@@ -5607,10 +5513,10 @@ void CTWorldSvrModule::DelTournamentSchedule(WORD wTourID)
 BYTE CTWorldSvrModule::CanDoTournament(BYTE bStep, BYTE bGroup)
 {
 	MAPTOURNAMENT::iterator it = m_mapTournament.find(m_tournament.m_wID);
-	if(it == m_mapTournament.end())
+	if (it == m_mapTournament.end())
 		return FALSE;
 
-	if(m_tournament.m_bStep == bStep && (!bGroup || m_tournament.m_bGroup == bGroup))
+	if (m_tournament.m_bStep == bStep && (!bGroup || m_tournament.m_bGroup == bGroup))
 		return TRUE;
 
 	return FALSE;
@@ -5619,7 +5525,7 @@ BYTE CTWorldSvrModule::CanDoTournament(BYTE bStep, BYTE bGroup)
 LPMAPTOURNAMENTENTRY CTWorldSvrModule::GetTournament(WORD wTournamentID)
 {
 	MAPTOURNAMENT::iterator it = m_mapTournament.find(wTournamentID);
-	if(it == m_mapTournament.end())
+	if (it == m_mapTournament.end())
 		return NULL;
 	else
 		return &((*it).second);
@@ -5627,10 +5533,10 @@ LPMAPTOURNAMENTENTRY CTWorldSvrModule::GetTournament(WORD wTournamentID)
 
 LPTOURNAMENTENTRY CTWorldSvrModule::GetCurrentTournamentEntry(BYTE bEntry)
 {
-	if(m_tournament.m_mapEntry)
+	if (m_tournament.m_mapEntry)
 	{
 		MAPTOURNAMENTENTRY::iterator it = m_tournament.m_mapEntry->find(bEntry);
-		if(it!=m_tournament.m_mapEntry->end())
+		if (it != m_tournament.m_mapEntry->end())
 			return (*it).second;
 	}
 
@@ -5643,13 +5549,13 @@ void CTWorldSvrModule::AddTNMTPlayer(LPTOURNAMENTENTRY pEntry, LPTNMTPLAYER pPla
 	pPlayer->m_dwChiefID = pChief->m_dwCharID;
 	pPlayer->m_bSlotID = pChief->m_bSlotID;
 
-	if(bStep == TNMTSTEP_1st)
+	if (bStep == TNMTSTEP_1st)
 		pEntry->m_map1st.insert(MAPTNMTPLAYER::value_type(pPlayer->m_dwCharID, pPlayer));
-	else if(bStep == TNMTSTEP_NORMAL)
+	else if (bStep == TNMTSTEP_NORMAL)
 		pEntry->m_mapNormal.insert(MAPTNMTPLAYER::value_type(pPlayer->m_dwCharID, pPlayer));
-	else if(bStep == TNMTSTEP_PARTY)
+	else if (bStep == TNMTSTEP_PARTY)
 		pChief->m_mapParty.insert(MAPTNMTPLAYER::value_type(pPlayer->m_dwCharID, pPlayer));
-	else if(bStep == TNMTSTEP_MATCH)
+	else if (bStep == TNMTSTEP_MATCH)
 		pEntry->m_mapPlayer.insert(MAPTNMTPLAYER::value_type(pPlayer->m_dwCharID, pPlayer));
 	else
 		return;
@@ -5663,10 +5569,10 @@ void CTWorldSvrModule::DelTNMTPlayer(LPTOURNAMENTENTRY pEntry, LPTNMTPLAYER pPla
 	pEntry->m_mapNormal.erase(pPlayer->m_dwCharID);
 	pEntry->m_mapPlayer.erase(pPlayer->m_dwCharID);
 
-	if(pEntry->m_bType == ENTRY_PARTY)
+	if (pEntry->m_bType == ENTRY_PARTY)
 	{
 		LPTNMTPLAYER pChief = FindTNMTPlayer(pPlayer->m_dwChiefID);
-		if(pChief)
+		if (pChief)
 			pChief->m_mapParty.erase(pPlayer->m_dwCharID);
 	}
 
@@ -5677,7 +5583,7 @@ void CTWorldSvrModule::DelTNMTPlayer(LPTOURNAMENTENTRY pEntry, LPTNMTPLAYER pPla
 LPTNMTPLAYER CTWorldSvrModule::FindTNMTPlayer(DWORD dwCharID)
 {
 	MAPTNMTPLAYER::iterator it = m_mapTNMTPlayer.find(dwCharID);
-	if(it!=m_mapTNMTPlayer.end())
+	if (it != m_mapTNMTPlayer.end())
 		return (*it).second;
 
 	return NULL;
@@ -5688,20 +5594,20 @@ void CTWorldSvrModule::GetRanking(DWORD dwCharID, DWORD & dwRank, DWORD & dwMont
 	dwRank = dwMonthRank = 0;
 
 	MAPDWORD::iterator it = m_mapRank.find(dwCharID);
-	if(it!=m_mapRank.end())
+	if (it != m_mapRank.end())
 		dwRank = (*it).second;
 
 	it = m_mapMonthRank.find(dwCharID);
-	if(it!=m_mapMonthRank.end())
+	if (it != m_mapMonthRank.end())
 		dwMonthRank = (*it).second;
 }
 
 LPTNMTPLAYER CTWorldSvrModule::FindBatter(BYTE bEntry, LPTCHARACTER pTCHAR)
 {
 	MAPTNMTPLAYER::iterator it;
-	for(it=pTCHAR->m_mapBatting.begin(); it!=pTCHAR->m_mapBatting.end(); it++)
+	for (it = pTCHAR->m_mapBatting.begin(); it != pTCHAR->m_mapBatting.end(); it++)
 	{
-		if((*it).second->m_bEntryID == bEntry)
+		if ((*it).second->m_bEntryID == bEntry)
 			return (*it).second;
 	}
 
@@ -5711,7 +5617,7 @@ LPTNMTPLAYER CTWorldSvrModule::FindBatter(BYTE bEntry, LPTCHARACTER pTCHAR)
 void CTWorldSvrModule::ResetBatting(LPTNMTPLAYER pTarget, LPTCHARACTER pTCHAR)
 {
 	MAPDWORD::iterator it = pTarget->m_mapBatting.find(pTCHAR->m_dwCharID);
-	if(it!=pTarget->m_mapBatting.end())
+	if (it != pTarget->m_mapBatting.end())
 	{
 		pTarget->m_dwSum -= (*it).second;
 		pTarget->m_mapBatting.erase(it);
@@ -5730,11 +5636,11 @@ void CTWorldSvrModule::GetBattingAmount(LPTNMTPLAYER pTarget, DWORD dwCharID, FL
 	fRate = 0;
 	dwAmount = 0;
 
-	if(!pTarget)
+	if (!pTarget)
 		return;
 
 	MAPDWORD::iterator it = pTarget->m_mapBatting.find(dwCharID);
-	if(it!=pTarget->m_mapBatting.end())
+	if (it != pTarget->m_mapBatting.end())
 	{
 		fRate = FLOAT(pTarget->m_dwSum ? m_tournament.m_dwSum / pTarget->m_dwSum : 0);
 		dwAmount = DWORD(m_tournament.m_bBase * (*it).second * fRate);
@@ -5744,7 +5650,7 @@ void CTWorldSvrModule::GetBattingAmount(LPTNMTPLAYER pTarget, DWORD dwCharID, FL
 void CTWorldSvrModule::TournamentSelectPlayer()
 {
 	LPMAPTOURNAMENTENTRY pTour = GetTournament(m_tournament.m_wID);
-	if(!pTour)
+	if (!pTour)
 		return;
 
 	m_tournament.m_bSelected = TRUE;
@@ -5754,26 +5660,26 @@ void CTWorldSvrModule::TournamentSelectPlayer()
 	m_mapTNMTPlayer.clear();
 
 	MAPTOURNAMENTENTRY::iterator it;
-	for(it=pTour->begin(); it!=pTour->end(); it++)
+	for (it = pTour->begin(); it != pTour->end(); it++)
 	{
 		LPTOURNAMENTENTRY pEntry = (*it).second;
 		pEntry->m_mapPlayer.clear();
 
 		MAPTNMTPLAYER::iterator itTP;
-		BYTE bCountry[TCONTRY_COUNT] = {0};
-		BYTE bSlot[TOURNAMENT_SLOT] = {0};
+		BYTE bCountry[TCONTRY_COUNT] = { 0 };
+		BYTE bSlot[TOURNAMENT_SLOT] = { 0 };
 
 		MAPTNMTPLAYER mapCPL1[TCONTRY_COUNT];
 		MAPTNMTPLAYER mapCPLN[TCONTRY_COUNT];
 		MAPDWORD mapPL[TCONTRY_COUNT];
-		for(BYTE cc=0; cc<TCONTRY_COUNT; cc++)
+		for (BYTE cc = 0; cc<TCONTRY_COUNT; cc++)
 		{
 			mapCPL1[cc].clear();
 			mapCPLN[cc].clear();
 			mapPL[cc].clear();
 		}
 
-		for(itTP=pEntry->m_map1st.begin(); itTP!=pEntry->m_map1st.end(); itTP++)
+		for (itTP = pEntry->m_map1st.begin(); itTP != pEntry->m_map1st.end(); itTP++)
 		{
 			LPTNMTPLAYER pPlayer = (*itTP).second;
 			bCountry[pPlayer->m_bCountry]++;
@@ -5782,8 +5688,8 @@ void CTWorldSvrModule::TournamentSelectPlayer()
 		}
 		pEntry->m_map1st.clear();
 
-		DWORD dwLevel[TCONTRY_COUNT] = {0};
-		for(itTP=pEntry->m_mapNormal.begin(); itTP!=pEntry->m_mapNormal.end(); itTP++)
+		DWORD dwLevel[TCONTRY_COUNT] = { 0 };
+		for (itTP = pEntry->m_mapNormal.begin(); itTP != pEntry->m_mapNormal.end(); itTP++)
 		{
 			LPTNMTPLAYER pPlayer = (*itTP).second;
 			dwLevel[pPlayer->m_bCountry] += pPlayer->m_bLevel;
@@ -5791,30 +5697,30 @@ void CTWorldSvrModule::TournamentSelectPlayer()
 		}
 		pEntry->m_mapNormal.clear();
 
-		BYTE bNC[TCONTRY_COUNT] = {0};
+		BYTE bNC[TCONTRY_COUNT] = { 0 };
 		BYTE bSum = BYTE(mapCPL1[TCONTRY_D].size() + mapCPL1[TCONTRY_C].size() + mapCPL1[TCONTRY_B].size());
 
-		for(BYTE sm = 0; sm < TOURNAMENT_SLOT; sm++)
+		for (BYTE sm = 0; sm < TOURNAMENT_SLOT; sm++)
 		{
-			if(bSum >= TOURNAMENT_SLOT)
+			if (bSum >= TOURNAMENT_SLOT)
 				break;
 
-			if(bSum > sm)
+			if (bSum > sm)
 				continue;
 
 			BYTE bMinC = TCONTRY_COUNT;
-			for(BYTE bM = TCONTRY_D; bM <= TCONTRY_B; bM++)
+			for (BYTE bM = TCONTRY_D; bM <= TCONTRY_B; bM++)
 			{
-				if(mapPL[bM].empty())
+				if (mapPL[bM].empty())
 					continue;
 
-				if(bMinC == TCONTRY_COUNT || mapCPL1[bM].size() + bNC[bM] < mapCPL1[bMinC].size() + bNC[bMinC])
+				if (bMinC == TCONTRY_COUNT || mapCPL1[bM].size() + bNC[bM] < mapCPL1[bMinC].size() + bNC[bMinC])
 					bMinC = bM;
-				else if(mapCPL1[bM].size() + bNC[bM] == mapCPL1[bMinC].size() + bNC[bMinC])
+				else if (mapCPL1[bM].size() + bNC[bM] == mapCPL1[bMinC].size() + bNC[bMinC])
 					bMinC = rand() % 2 ? bM : bMinC;
 			}
 
-			if(bMinC == TCONTRY_COUNT)
+			if (bMinC == TCONTRY_COUNT)
 				break;
 
 			MAPDWORD mapCalc;
@@ -5825,14 +5731,14 @@ void CTWorldSvrModule::TournamentSelectPlayer()
 			MAPDWORD::iterator itSt;
 			BYTE bSelected = FALSE;
 
-			for(itSt=mapPL[bMinC].begin(); itSt!=mapPL[bMinC].end(); itSt++)
+			for (itSt = mapPL[bMinC].begin(); itSt != mapPL[bMinC].end(); itSt++)
 			{
 				itTNMTP = tp.find((*itSt).second);
-				if(itTNMTP!=tp.end())
+				if (itTNMTP != tp.end())
 				{
 					LPTNMTPLAYER pPlayer = (*itTNMTP).second;
-					
-					if((*itSt).first > dwRand && !bSelected)
+
+					if ((*itSt).first > dwRand && !bSelected)
 					{
 						mapCPLN[pPlayer->m_bCountry].insert(MAPTNMTPLAYER::value_type(pPlayer->m_dwCharID, pPlayer));
 						tp.erase(pPlayer->m_dwCharID);
@@ -5857,10 +5763,10 @@ void CTWorldSvrModule::TournamentSelectPlayer()
 		TNMTMatch(pEntry, mapCPL1, mapCPLN, bSum);
 	}
 
-	for(itTNMTP=tp.begin(); itTNMTP!=tp.end(); itTNMTP++)
+	for (itTNMTP = tp.begin(); itTNMTP != tp.end(); itTNMTP++)
 	{
 		LPTOURNAMENTENTRY pEntry = GetCurrentTournamentEntry((*itTNMTP).second->m_bEntryID);
-		if(pEntry)
+		if (pEntry)
 			SendDM_TOURNAMENTPAYBACK_REQ((*itTNMTP).second->m_dwCharID, pEntry->m_dwFeeBack);
 
 		m_mapTNMTPlayer.erase((*itTNMTP).second->m_dwCharID);
@@ -5868,21 +5774,21 @@ void CTWorldSvrModule::TournamentSelectPlayer()
 	}
 	tp.clear();
 
-	for(itTNMTP=m_mapTNMTPlayer.begin(); itTNMTP!=m_mapTNMTPlayer.end();)
+	for (itTNMTP = m_mapTNMTPlayer.begin(); itTNMTP != m_mapTNMTPlayer.end();)
 	{
-		if((*itTNMTP).second->m_bSlotID == TOURNAMENT_SLOT)
+		if ((*itTNMTP).second->m_bSlotID == TOURNAMENT_SLOT)
 		{
 			delete (*itTNMTP).second;
 			itTNMTP = m_mapTNMTPlayer.erase(itTNMTP);
 		}
 		else
-			 itTNMTP++;
+			itTNMTP++;
 	}
 }
 
 void CTWorldSvrModule::TNMTMatch(LPTOURNAMENTENTRY pEntry, MAPTNMTPLAYER map1st[TCONTRY_COUNT], MAPTNMTPLAYER mapNormal[TCONTRY_COUNT], BYTE bTotal)
 {
-	if(!bTotal)
+	if (!bTotal)
 		return;
 
 	BYTE bOrder[TOURNAMENT_SLOT] = { 0, 6, 4, 2, 3, 5, 7, 1 };
@@ -5891,35 +5797,35 @@ void CTWorldSvrModule::TNMTMatch(LPTOURNAMENTENTRY pEntry, MAPTNMTPLAYER map1st[
 	BYTE bSeed = 0;
 	MAPTNMTPLAYER::iterator it;
 
-	for(BYTE bSeed=0; bSeed<TOURNAMENT_SLOT; bSeed++)
+	for (BYTE bSeed = 0; bSeed<TOURNAMENT_SLOT; bSeed++)
 	{
 		LPTNMTPLAYER pChar = NULL;
 		LPTNMTPLAYER pCountryChar = NULL;
 		BYTE bSlot = bOrder[bSeed];
 
-		for(BYTE bCC=TCONTRY_D; bCC<TCONTRY_COUNT; bCC++)
+		for (BYTE bCC = TCONTRY_D; bCC<TCONTRY_COUNT; bCC++)
 		{
-			for(it=map1st[bCC].begin(); it!=map1st[bCC].end(); it++)
+			for (it = map1st[bCC].begin(); it != map1st[bCC].end(); it++)
 			{
-				if(!pChar || !pChar->m_dwMonthRank || (it->second->m_dwMonthRank && pChar->m_dwMonthRank > it->second->m_dwMonthRank))
+				if (!pChar || !pChar->m_dwMonthRank || (it->second->m_dwMonthRank && pChar->m_dwMonthRank > it->second->m_dwMonthRank))
 					pChar = it->second;
 
-				if((bSlot % 2) &&
-					pTP[bSlot-1] &&
-					pTP[bSlot-1]->m_bCountry != it->second->m_bCountry &&
+				if ((bSlot % 2) &&
+					pTP[bSlot - 1] &&
+					pTP[bSlot - 1]->m_bCountry != it->second->m_bCountry &&
 					(!pCountryChar ||
-					 !pCountryChar->m_dwMonthRank ||
-					 (it->second->m_dwMonthRank && pCountryChar->m_dwMonthRank > it->second->m_dwMonthRank)))
+						!pCountryChar->m_dwMonthRank ||
+						(it->second->m_dwMonthRank && pCountryChar->m_dwMonthRank > it->second->m_dwMonthRank)))
 				{
 					pCountryChar = it->second;
 				}
 			}
 		}
 
-		if(pCountryChar)
+		if (pCountryChar)
 			pChar = pCountryChar;
 
-		if(pChar)
+		if (pChar)
 		{
 			pChar->m_bSlotID = bSlot;
 			AddTNMTPlayer(pEntry, pChar, TNMTSTEP_MATCH, pChar);
@@ -5929,29 +5835,29 @@ void CTWorldSvrModule::TNMTMatch(LPTOURNAMENTENTRY pEntry, MAPTNMTPLAYER map1st[
 			continue;
 		}
 
-		for(BYTE bCC=TCONTRY_D; bCC<TCONTRY_COUNT; bCC++)
+		for (BYTE bCC = TCONTRY_D; bCC<TCONTRY_COUNT; bCC++)
 		{
-			for(it=mapNormal[bCC].begin(); it!=mapNormal[bCC].end(); it++)
+			for (it = mapNormal[bCC].begin(); it != mapNormal[bCC].end(); it++)
 			{
-				if(!pChar || !pChar->m_dwMonthRank || (it->second->m_dwMonthRank && pChar->m_dwMonthRank > it->second->m_dwMonthRank))
+				if (!pChar || !pChar->m_dwMonthRank || (it->second->m_dwMonthRank && pChar->m_dwMonthRank > it->second->m_dwMonthRank))
 					pChar = it->second;
 
-				if((bSlot % 2) &&
-					pTP[bSlot-1] &&
-					pTP[bSlot-1]->m_bCountry != it->second->m_bCountry &&
+				if ((bSlot % 2) &&
+					pTP[bSlot - 1] &&
+					pTP[bSlot - 1]->m_bCountry != it->second->m_bCountry &&
 					(!pCountryChar ||
-					 !pCountryChar->m_dwMonthRank ||
-					 (it->second->m_dwMonthRank && pCountryChar->m_dwMonthRank > it->second->m_dwMonthRank)))
+						!pCountryChar->m_dwMonthRank ||
+						(it->second->m_dwMonthRank && pCountryChar->m_dwMonthRank > it->second->m_dwMonthRank)))
 				{
 					pCountryChar = it->second;
 				}
 			}
 		}
 
-		if(pCountryChar)
+		if (pCountryChar)
 			pChar = pCountryChar;
 
-		if(pChar)
+		if (pChar)
 		{
 			pChar->m_bSlotID = bSlot;
 			AddTNMTPlayer(pEntry, pChar, TNMTSTEP_MATCH, pChar);
@@ -5976,20 +5882,20 @@ void CTWorldSvrModule::TournamentClear()
 	m_tournament.m_mapStep.clear();
 
 	MAPTNMTPLAYER::iterator itTP;
-	for(itTP=m_mapTNMTPlayer.begin(); itTP != m_mapTNMTPlayer.end(); itTP++)
+	for (itTP = m_mapTNMTPlayer.begin(); itTP != m_mapTNMTPlayer.end(); itTP++)
 		delete (*itTP).second;
 	m_mapTNMTPlayer.clear();
 
 	MAPTCHARACTER::iterator itC;
-	for(itC=m_mapTCHAR.begin(); itC!=m_mapTCHAR.end(); itC++)
+	for (itC = m_mapTCHAR.begin(); itC != m_mapTCHAR.end(); itC++)
 		(*itC).second->m_mapBatting.clear();
 
 	LPMAPTOURNAMENTENTRY pTour = GetTournament(wTID);
-	if(!pTour)
+	if (!pTour)
 		return;
 
 	MAPTOURNAMENTENTRY::iterator it;
-	for(it=pTour->begin(); it!=pTour->end(); it++)
+	for (it = pTour->begin(); it != pTour->end(); it++)
 	{
 		LPTOURNAMENTENTRY pEntry = (*it).second;
 		pEntry->m_map1st.clear();
@@ -6000,14 +5906,14 @@ void CTWorldSvrModule::TournamentClear()
 
 void CTWorldSvrModule::TournamentApply(LPTCHARACTER pChar, CTServer * pServer, BYTE bEntryID)
 {
-	if(pChar->m_bCountry > TCONTRY_B)
+	if (pChar->m_bCountry > TCONTRY_B)
 	{
 		pServer->SendMW_TOURNAMENT_REQ(pChar->m_dwCharID, pChar->m_dwKEY, MW_TOURNAMENTAPPLY_REQ, TOURNAMENT_FAIL);
 		return;
 	}
 
 	LPTOURNAMENTENTRY pEntry = GetCurrentTournamentEntry(bEntryID);
-	if(!pEntry)
+	if (!pEntry)
 	{
 		pServer->SendMW_TOURNAMENT_REQ(pChar->m_dwCharID, pChar->m_dwKEY, MW_TOURNAMENTAPPLY_REQ, TOURNAMENT_FAIL);
 		return;
@@ -6016,11 +5922,11 @@ void CTWorldSvrModule::TournamentApply(LPTCHARACTER pChar, CTServer * pServer, B
 	BYTE bResult = TOURNAMENT_DISQUALIFY;
 	BYTE bStep = TNMTSTEP_NORMAL;
 
-	if(CanDoTournament(TNMTSTEP_1st))
+	if (CanDoTournament(TNMTSTEP_1st))
 	{
-		for(BYTE j = 1; j < m_bFirstGroupCount; j++)
+		for (BYTE j = 1; j < m_bFirstGroupCount; j++)
 		{
-			if(m_arFirstGradeGroup[pChar->m_bCountry][j].m_dwCharID == pChar->m_dwCharID)
+			if (m_arFirstGradeGroup[pChar->m_bCountry][j].m_dwCharID == pChar->m_dwCharID)
 			{
 				bResult = TOURNAMENT_SUCCESS;
 				bStep = TNMTSTEP_1st;
@@ -6028,24 +5934,24 @@ void CTWorldSvrModule::TournamentApply(LPTCHARACTER pChar, CTServer * pServer, B
 			}
 		}
 	}
-	else if(!CanDoTournament(TNMTSTEP_NORMAL))
+	else if (!CanDoTournament(TNMTSTEP_NORMAL))
 		bResult = TOURNAMENT_TIMEOUT;
 	else
 		bResult = TOURNAMENT_SUCCESS;
 
-	if(bResult)
-	{
-		pServer->SendMW_TOURNAMENT_REQ(pChar->m_dwCharID, pChar->m_dwKEY, MW_TOURNAMENTAPPLY_REQ, bResult);
-		return;
-	}
-	
-	if(FindTNMTPlayer(pChar->m_dwCharID))
+	if (bResult)
 	{
 		pServer->SendMW_TOURNAMENT_REQ(pChar->m_dwCharID, pChar->m_dwKEY, MW_TOURNAMENTAPPLY_REQ, bResult);
 		return;
 	}
 
-	if(pEntry->m_map1st.size() >= TOURNAMENT_SLOT)
+	if (FindTNMTPlayer(pChar->m_dwCharID))
+	{
+		pServer->SendMW_TOURNAMENT_REQ(pChar->m_dwCharID, pChar->m_dwKEY, MW_TOURNAMENTAPPLY_REQ, bResult);
+		return;
+	}
+
+	if (pEntry->m_map1st.size() >= TOURNAMENT_SLOT)
 	{
 		pServer->SendMW_TOURNAMENT_REQ(pChar->m_dwCharID, pChar->m_dwKEY, MW_TOURNAMENTAPPLY_REQ, TOURNAMENT_FULL);
 		return;
@@ -6059,7 +5965,7 @@ void CTWorldSvrModule::TournamentApply(LPTCHARACTER pChar, CTServer * pServer, B
 	pPlayer->m_strName = pChar->m_strNAME;
 	pPlayer->m_bSlotID = TOURNAMENT_SLOT;
 
-	if(pChar->m_pGuild)
+	if (pChar->m_pGuild)
 		pPlayer->m_strGuildName = pChar->m_pGuild->m_strName;
 
 	GetRanking(pChar->m_dwCharID, pPlayer->m_dwRank, pPlayer->m_dwMonthRank);
@@ -6082,10 +5988,10 @@ void CTWorldSvrModule::TournamentApply(LPTCHARACTER pChar, CTServer * pServer, B
 
 void CTWorldSvrModule::TournamentApplyInfo(LPTCHARACTER pChar, CTServer * pServer)
 {
-	if(!m_tournament.m_mapEntry)
+	if (!m_tournament.m_mapEntry)
 		return;
 
-	if(m_tournament.m_bStep > TNMTSTEP_NORMAL)
+	if (m_tournament.m_bStep > TNMTSTEP_NORMAL)
 		return;
 
 	LPMAPTOURNAMENTENTRY pTour = m_tournament.m_mapEntry;
@@ -6099,11 +6005,11 @@ void CTWorldSvrModule::TournamentApplyInfo(LPTCHARACTER pChar, CTServer * pServe
 
 	BYTE bEntry = 0;
 	LPTNMTPLAYER pI = FindTNMTPlayer(pChar->m_dwCharID);
-	if(pI)
+	if (pI)
 		bEntry = pI->m_bEntryID;
 
 	MAPTOURNAMENTENTRY::iterator it;
-	for(it=pTour->begin(); it!=pTour->end(); it++)
+	for (it = pTour->begin(); it != pTour->end(); it++)
 	{
 		LPTOURNAMENTENTRY pEntry = (*it).second;
 
@@ -6118,17 +6024,17 @@ void CTWorldSvrModule::TournamentApplyInfo(LPTCHARACTER pChar, CTServer * pServe
 			<< pEntry->m_dwFeeBack
 			<< pEntry->m_bPermitCount
 			<< pEntry->m_bMinLevel
-			<< ((pEntry->m_bMaxLevel==0xFF)?m_bMaxLevel:pEntry->m_bMaxLevel)
-			<< BYTE(TOURNAMENT_SLOT-pEntry->m_map1st.size())
+			<< ((pEntry->m_bMaxLevel == 0xFF) ? m_bMaxLevel : pEntry->m_bMaxLevel)
+			<< BYTE(TOURNAMENT_SLOT - pEntry->m_map1st.size())
 			<< WORD(pEntry->m_mapNormal.size());
 
 		WORD wSize = pMSG->GetSize();
 		BYTE bCount = 0;
 		(*pMSG)
 			<< bCount;
-		for(BYTE i=0; i<pEntry->m_vReward.size(); i++)
+		for (BYTE i = 0; i<pEntry->m_vReward.size(); i++)
 		{
-			if(pEntry->m_vReward[i].m_dwClass & (DWORD)pow(2, pChar->m_bClass))
+			if (pEntry->m_vReward[i].m_dwClass & (DWORD)pow(2, pChar->m_bClass))
 			{
 				(*pMSG)
 					<< pEntry->m_vReward[i].m_bCheckShield
@@ -6139,13 +6045,13 @@ void CTWorldSvrModule::TournamentApplyInfo(LPTCHARACTER pChar, CTServer * pServe
 				bCount++;
 			}
 		}
-		memcpy(pMSG->GetBuffer()+wSize, &bCount, sizeof(bCount));
+		memcpy(pMSG->GetBuffer() + wSize, &bCount, sizeof(bCount));
 
 		(*pMSG)
 			<< BYTE(pEntry->m_map1st.size());
 
 		MAPTNMTPLAYER::iterator itTm;
-		for(itTm=pEntry->m_map1st.begin(); itTm!=pEntry->m_map1st.end(); itTm++)
+		for (itTm = pEntry->m_map1st.begin(); itTm != pEntry->m_map1st.end(); itTm++)
 		{
 			LPTNMTPLAYER pPlayer = (*itTm).second;
 			(*pMSG)
@@ -6159,15 +6065,15 @@ void CTWorldSvrModule::TournamentApplyInfo(LPTCHARACTER pChar, CTServer * pServe
 		}
 	}
 
-	pServer->SendMW_TOURNAMENT_REQ(pMSG);	
+	pServer->SendMW_TOURNAMENT_REQ(pMSG);
 }
 
 void CTWorldSvrModule::TournamentJoinList(LPTCHARACTER pChar, CTServer * pServer)
 {
-	if(!m_tournament.m_mapEntry)
+	if (!m_tournament.m_mapEntry)
 		return;
 
-	if(!CanDoTournament(TNMTSTEP_PARTY))
+	if (!CanDoTournament(TNMTSTEP_PARTY))
 		return;
 
 	LPMAPTOURNAMENTENTRY pTour = m_tournament.m_mapEntry;
@@ -6181,11 +6087,11 @@ void CTWorldSvrModule::TournamentJoinList(LPTCHARACTER pChar, CTServer * pServer
 
 	BYTE bEntry = 0;
 	LPTNMTPLAYER pI = FindTNMTPlayer(pChar->m_dwCharID);
-	if(pI)
+	if (pI)
 		bEntry = pI->m_bEntryID;
 
 	MAPTOURNAMENTENTRY::iterator it;
-	for(it=pTour->begin(); it!=pTour->end(); it++)
+	for (it = pTour->begin(); it != pTour->end(); it++)
 	{
 		LPTOURNAMENTENTRY pEntry = (*it).second;
 
@@ -6201,9 +6107,9 @@ void CTWorldSvrModule::TournamentJoinList(LPTCHARACTER pChar, CTServer * pServer
 		BYTE bCount = 0;
 		(*pMSG)
 			<< bCount;
-		for(BYTE i=0; i<pEntry->m_vReward.size(); i++)
+		for (BYTE i = 0; i<pEntry->m_vReward.size(); i++)
 		{
-			if(pEntry->m_vReward[i].m_dwClass & (DWORD)pow(2, pChar->m_bClass))
+			if (pEntry->m_vReward[i].m_dwClass & (DWORD)pow(2, pChar->m_bClass))
 			{
 				(*pMSG)
 					<< pEntry->m_vReward[i].m_bCheckShield
@@ -6214,14 +6120,14 @@ void CTWorldSvrModule::TournamentJoinList(LPTCHARACTER pChar, CTServer * pServer
 				bCount++;
 			}
 		}
-		memcpy(pMSG->GetBuffer()+wSize, &bCount, sizeof(bCount));
+		memcpy(pMSG->GetBuffer() + wSize, &bCount, sizeof(bCount));
 
 
 		(*pMSG)
 			<< BYTE(pEntry->m_mapPlayer.size());
 
 		MAPTNMTPLAYER::iterator itTm;
-		for(itTm=pEntry->m_mapPlayer.begin(); itTm!=pEntry->m_mapPlayer.end(); itTm++)
+		for (itTm = pEntry->m_mapPlayer.begin(); itTm != pEntry->m_mapPlayer.end(); itTm++)
 		{
 			LPTNMTPLAYER pPlayer = (*itTm).second;
 			(*pMSG)
@@ -6239,46 +6145,46 @@ void CTWorldSvrModule::TournamentJoinList(LPTCHARACTER pChar, CTServer * pServer
 }
 
 void CTWorldSvrModule::TournamentPartyAdd(LPTCHARACTER pChar,
-										  CTServer * pServer,
-										  DWORD dwTargetID,
-										  BYTE bCountry,
-										  CString strTarget,
-										  BYTE bLevel,
-										  BYTE bClass)
+	CTServer * pServer,
+	DWORD dwTargetID,
+	BYTE bCountry,
+	CString strTarget,
+	BYTE bLevel,
+	BYTE bClass)
 {
-	if(!CanDoTournament(TNMTSTEP_PARTY))
+	if (!CanDoTournament(TNMTSTEP_PARTY))
 		return;
 
-	if(!m_tournament.m_mapEntry)
+	if (!m_tournament.m_mapEntry)
 		return;
 
 	LPMAPTOURNAMENTENTRY pTour = m_tournament.m_mapEntry;
 
 	LPTOURNAMENTENTRY pEntry = NULL;
 	MAPTOURNAMENTENTRY::iterator it;
-	for(it=pTour->begin(); it!=pTour->end(); it++)
+	for (it = pTour->begin(); it != pTour->end(); it++)
 	{
 		pEntry = (*it).second;
-		if(pEntry->m_bType == ENTRY_PARTY)
+		if (pEntry->m_bType == ENTRY_PARTY)
 			break;
 	}
 
-	if(!pEntry)
+	if (!pEntry)
 		return;
 
-	if(!dwTargetID || pChar->m_bCountry != bCountry)
+	if (!dwTargetID || pChar->m_bCountry != bCountry)
 	{
 		pServer->SendMW_TOURNAMENT_REQ(pChar->m_dwCharID, pChar->m_dwKEY, MW_TOURNAMENTPARTYADD_REQ, TOURNAMENT_NOTFOUND);
 		return;
 	}
 
-	if(FindTNMTPlayer(dwTargetID))
+	if (FindTNMTPlayer(dwTargetID))
 	{
 		pServer->SendMW_TOURNAMENT_REQ(pChar->m_dwCharID, pChar->m_dwKEY, MW_TOURNAMENTPARTYADD_REQ, TOURNAMENT_ALREADYREG);
 		return;
 	}
 
-	if(pEntry->m_bMaxLevel < bLevel || pEntry->m_bMinLevel > bLevel)
+	if (pEntry->m_bMaxLevel < bLevel || pEntry->m_bMinLevel > bLevel)
 	{
 		CPacket* pMSG = new CPacket();
 		(*pMSG)
@@ -6288,15 +6194,15 @@ void CTWorldSvrModule::TournamentPartyAdd(LPTCHARACTER pChar,
 			<< BYTE(TOURNAMENT_LEVEL)
 			<< strTarget;
 
-		pServer->SendMW_TOURNAMENT_REQ(pMSG);	
+		pServer->SendMW_TOURNAMENT_REQ(pMSG);
 		return;
 	}
 
 	LPTNMTPLAYER pChief = FindTNMTPlayer(pChar->m_dwCharID);
-	if(!pChief)
+	if (!pChief)
 		return;
 
-	if(pChief->m_mapParty.size() >= 6)
+	if (pChief->m_mapParty.size() >= 6)
 	{
 		pServer->SendMW_TOURNAMENT_REQ(pChar->m_dwCharID, pChar->m_dwKEY, MW_TOURNAMENTPARTYADD_REQ, TOURNAMENT_FULL);
 		return;
@@ -6309,10 +6215,10 @@ void CTWorldSvrModule::TournamentPartyAdd(LPTCHARACTER pChar,
 	pTarget->m_strName = strTarget;
 
 	MAPDWORD::iterator itGM = m_mapCharGuild.find(dwTargetID);
-	if(itGM != m_mapCharGuild.end())
+	if (itGM != m_mapCharGuild.end())
 	{
 		CTGuild * pGuild = FindTGuild((*itGM).second);
-		if(pGuild)
+		if (pGuild)
 			pTarget->m_strGuildName = pGuild->m_strName;
 	}
 
@@ -6337,16 +6243,16 @@ void CTWorldSvrModule::TournamentPartyAdd(LPTCHARACTER pChar,
 
 void CTWorldSvrModule::TournamentPartyDel(LPTCHARACTER pChar, CTServer * pServer, DWORD dwTargetID)
 {
-	if(!CanDoTournament(TNMTSTEP_PARTY))
+	if (!CanDoTournament(TNMTSTEP_PARTY))
 		return;
 
 	LPTNMTPLAYER pPlayer = FindTNMTPlayer(dwTargetID);
-	if(!pPlayer)
+	if (!pPlayer)
 		return;
 
-	if(pPlayer->m_dwChiefID == dwTargetID ||
+	if (pPlayer->m_dwChiefID == dwTargetID ||
 		(pPlayer->m_dwChiefID != pChar->m_dwCharID &&
-		dwTargetID != pChar->m_dwCharID))
+			dwTargetID != pChar->m_dwCharID))
 		return;
 
 	DWORD dwChief = pPlayer->m_dwChiefID;
@@ -6362,7 +6268,7 @@ void CTWorldSvrModule::TournamentPartyDel(LPTCHARACTER pChar, CTServer * pServer
 void CTWorldSvrModule::TournamentPartyList(LPTCHARACTER pChar, CTServer * pServer, DWORD dwChiefID)
 {
 	LPTNMTPLAYER pChief = FindTNMTPlayer(dwChiefID);
-	if(!pChief)
+	if (!pChief)
 		return;
 
 	CPacket* pMSG = new CPacket();
@@ -6374,7 +6280,7 @@ void CTWorldSvrModule::TournamentPartyList(LPTCHARACTER pChar, CTServer * pServe
 		<< BYTE(pChief->m_mapParty.size());
 
 	MAPTNMTPLAYER::iterator itTm;
-	for(itTm=pChief->m_mapParty.begin(); itTm!=pChief->m_mapParty.end(); itTm++)
+	for (itTm = pChief->m_mapParty.begin(); itTm != pChief->m_mapParty.end(); itTm++)
 	{
 		LPTNMTPLAYER pPlayer = (*itTm).second;
 		(*pMSG)
@@ -6393,21 +6299,21 @@ void CTWorldSvrModule::TournamentPartyList(LPTCHARACTER pChar, CTServer * pServe
 void CTWorldSvrModule::TournamentEventJoin(LPTCHARACTER pChar, CTServer * pServer, BYTE bEntryID, DWORD dwTargetID)
 {
 	LPTNMTPLAYER pTarget = FindTNMTPlayer(dwTargetID);
-	if(!pTarget)
+	if (!pTarget)
 		return;
 
 	LPTOURNAMENTENTRY pEntry = GetCurrentTournamentEntry(bEntryID);
-	if(!pEntry)
+	if (!pEntry)
 		return;
 
-	if(!CanDoTournament(TNMTSTEP_ENTER, pEntry->m_bGroup))
+	if (!CanDoTournament(TNMTSTEP_ENTER, pEntry->m_bGroup))
 		return;
 
-	if(pEntry->m_bEntryID != pTarget->m_bEntryID)
+	if (pEntry->m_bEntryID != pTarget->m_bEntryID)
 		return;
 
 	LPTNMTPLAYER pOld = FindBatter(bEntryID, pChar);
-	if(pOld)
+	if (pOld)
 	{
 		ResetBatting(pOld, pChar);
 		pChar->m_mapBatting.erase(pOld->m_dwCharID);
@@ -6427,7 +6333,7 @@ void CTWorldSvrModule::TournamentEventJoin(LPTCHARACTER pChar, CTServer * pServe
 
 void CTWorldSvrModule::TournamentEventList(LPTCHARACTER pChar, CTServer * pServer)
 {
-	if(!m_tournament.m_mapEntry || !m_tournament.m_bBase)
+	if (!m_tournament.m_mapEntry || !m_tournament.m_bBase)
 		return;
 
 	LPMAPTOURNAMENTENTRY pTour = m_tournament.m_mapEntry;
@@ -6442,16 +6348,16 @@ void CTWorldSvrModule::TournamentEventList(LPTCHARACTER pChar, CTServer * pServe
 		<< TournamentGetEntryCount();
 
 	MAPTOURNAMENTENTRY::iterator it;
-	for(it=pTour->begin(); it!=pTour->end(); it++)
+	for (it = pTour->begin(); it != pTour->end(); it++)
 	{
 		LPTOURNAMENTENTRY pEntry = (*it).second;
 
-		if(pEntry->m_bGroup != m_tournament.m_bGroup)
+		if (pEntry->m_bGroup != m_tournament.m_bGroup)
 			continue;
 
 		LPTNMTPLAYER pPlayer = FindBatter(pEntry->m_bEntryID, pChar);
-		
-		FLOAT fRate =0 ;
+
+		FLOAT fRate = 0;
 		DWORD dwAmount = 0;
 
 		GetBattingAmount(pPlayer, pChar->m_dwCharID, fRate, dwAmount);
@@ -6472,10 +6378,10 @@ void CTWorldSvrModule::TournamentEventList(LPTCHARACTER pChar, CTServer * pServe
 void CTWorldSvrModule::TournamentEventInfo(LPTCHARACTER pChar, CTServer * pServer, BYTE bEntryID)
 {
 	LPTOURNAMENTENTRY pEntry = GetCurrentTournamentEntry(bEntryID);
-	if(!pEntry || !pChar->m_dwTicket)
+	if (!pEntry || !pChar->m_dwTicket)
 		return;
 
-	if(!CanDoTournament(TNMTSTEP_ENTER, pEntry->m_bGroup))
+	if (!CanDoTournament(TNMTSTEP_ENTER, pEntry->m_bGroup))
 		return;
 
 	CPacket* pMSG = new CPacket();
@@ -6489,7 +6395,7 @@ void CTWorldSvrModule::TournamentEventInfo(LPTCHARACTER pChar, CTServer * pServe
 		<< BYTE(pEntry->m_mapPlayer.size());
 
 	MAPTNMTPLAYER::iterator it, itPt;
-	for(it=pEntry->m_mapPlayer.begin(); it!=pEntry->m_mapPlayer.end(); it++)
+	for (it = pEntry->m_mapPlayer.begin(); it != pEntry->m_mapPlayer.end(); it++)
 	{
 		LPTNMTPLAYER pPlayer = (*it).second;
 
@@ -6505,7 +6411,7 @@ void CTWorldSvrModule::TournamentEventInfo(LPTCHARACTER pChar, CTServer * pServe
 			<< FLOAT(pPlayer->m_dwSum ? m_tournament.m_dwSum / pPlayer->m_dwSum : 0)
 			<< BYTE(pPlayer->m_mapParty.size());
 
-		for(itPt=pPlayer->m_mapParty.begin(); itPt != pPlayer->m_mapParty.end(); itPt++)
+		for (itPt = pPlayer->m_mapParty.begin(); itPt != pPlayer->m_mapParty.end(); itPt++)
 		{
 			LPTNMTPLAYER pParty = (*itPt).second;
 			(*pMSG)
@@ -6525,7 +6431,7 @@ void CTWorldSvrModule::TournamentEventInfo(LPTCHARACTER pChar, CTServer * pServe
 
 void CTWorldSvrModule::TournamentMatchList(LPTCHARACTER pChar, CTServer * pServer)
 {
-	if(!m_tournament.m_mapEntry)
+	if (!m_tournament.m_mapEntry)
 		return;
 
 	LPMAPTOURNAMENTENTRY pTour = m_tournament.m_mapEntry;
@@ -6538,13 +6444,13 @@ void CTWorldSvrModule::TournamentMatchList(LPTCHARACTER pChar, CTServer * pServe
 		<< BYTE(pTour->size());
 
 	MAPTOURNAMENTENTRY::iterator it;
-	for(it=pTour->begin(); it!=pTour->end(); it++)
+	for (it = pTour->begin(); it != pTour->end(); it++)
 	{
 		LPTOURNAMENTENTRY pEntry = (*it).second;
 
 		BYTE bApply = FALSE;
 		LPTNMTPLAYER pPlayer = FindTNMTPlayer(pChar->m_dwCharID);
-		if(pPlayer && pPlayer->m_bEntryID == pEntry->m_bEntryID)
+		if (pPlayer && pPlayer->m_bEntryID == pEntry->m_bEntryID)
 			bApply = TRUE;
 
 		(*pMSG)
@@ -6559,9 +6465,9 @@ void CTWorldSvrModule::TournamentMatchList(LPTCHARACTER pChar, CTServer * pServe
 		BYTE bCount = 0;
 		(*pMSG)
 			<< bCount;
-		for(BYTE i=0; i<pEntry->m_vReward.size(); i++)
+		for (BYTE i = 0; i<pEntry->m_vReward.size(); i++)
 		{
-			if(pEntry->m_vReward[i].m_dwClass & (DWORD)pow(2, pChar->m_bClass))
+			if (pEntry->m_vReward[i].m_dwClass & (DWORD)pow(2, pChar->m_bClass))
 			{
 				(*pMSG)
 					<< pEntry->m_vReward[i].m_bCheckShield
@@ -6572,13 +6478,13 @@ void CTWorldSvrModule::TournamentMatchList(LPTCHARACTER pChar, CTServer * pServe
 				bCount++;
 			}
 		}
-		memcpy(pMSG->GetBuffer()+wSize, &bCount, sizeof(bCount));
+		memcpy(pMSG->GetBuffer() + wSize, &bCount, sizeof(bCount));
 
 		(*pMSG)
 			<< BYTE(pEntry->m_mapPlayer.size());
 
 		MAPTNMTPLAYER::iterator itTm;
-		for(itTm=pEntry->m_mapPlayer.begin(); itTm!=pEntry->m_mapPlayer.end(); itTm++)
+		for (itTm = pEntry->m_mapPlayer.begin(); itTm != pEntry->m_mapPlayer.end(); itTm++)
 		{
 			LPTNMTPLAYER pPlayer = (*itTm).second;
 			(*pMSG)
@@ -6601,36 +6507,36 @@ void CTWorldSvrModule::TournamentMatchList(LPTCHARACTER pChar, CTServer * pServe
 
 void CTWorldSvrModule::TournamentInfo(CTServer * pServer)
 {
-	if(pServer)
+	if (pServer)
 	{
 		pServer->SendMW_TOURNAMENTINFO_REQ(m_bFirstGroupCount, m_tournament.m_mapEntry, m_tournament.m_bGroup, m_tournament.m_bStep, m_bMaxLevel);
-		if(m_tournament.m_bStep >= TNMTSTEP_MATCH)
+		if (m_tournament.m_bStep >= TNMTSTEP_MATCH)
 			TournamentMatch();
 	}
 	else
 	{
 		MAPTSERVER::iterator finder;
-		for(finder = m_mapSERVER.begin(); finder != m_mapSERVER.end(); finder++)
+		for (finder = m_mapSERVER.begin(); finder != m_mapSERVER.end(); finder++)
 			(*finder).second->SendMW_TOURNAMENTINFO_REQ(m_bFirstGroupCount, m_tournament.m_mapEntry, m_tournament.m_bGroup, m_tournament.m_bStep, m_bMaxLevel);
 	}
 }
 
 void CTWorldSvrModule::TournamentMatch(CTServer * pServer)
 {
-	if( m_tournament.m_bStep < TNMTSTEP_MATCH)
+	if (m_tournament.m_bStep < TNMTSTEP_MATCH)
 		return;
 
-	if(!m_tournament.m_mapEntry)
+	if (!m_tournament.m_mapEntry)
 		return;
 
 	LPMAPTOURNAMENTENTRY pTour = m_tournament.m_mapEntry;
 
-	if(pServer)
+	if (pServer)
 		pServer->SendMW_TOURNAMENTMATCH_REQ(&m_mapTNMTPlayer);
 	else
 	{
 		MAPTSERVER::iterator finder;
-		for(finder = m_mapSERVER.begin(); finder != m_mapSERVER.end(); finder++)
+		for (finder = m_mapSERVER.begin(); finder != m_mapSERVER.end(); finder++)
 			(*finder).second->SendMW_TOURNAMENTMATCH_REQ(&m_mapTNMTPlayer);
 	}
 }
@@ -6642,19 +6548,19 @@ void CTWorldSvrModule::TournamentUpdate(WORD wTourID)
 	MAPTOURNAMENTSCHEDULE::iterator itTS;
 	MAPTOURNAMENTSTEP::iterator itStart;
 
-	for(itTS=m_mapTournamentSchedule.begin(); itTS!=m_mapTournamentSchedule.end(); itTS++)
+	for (itTS = m_mapTournamentSchedule.begin(); itTS != m_mapTournamentSchedule.end(); itTS++)
 	{
 		LPMAPTOURNAMENTSTEP pMapStep = (*itTS).second.m_mapStep;
 		itStart = pMapStep->begin();
 
-		if(itStart != pMapStep->end())
+		if (itStart != pMapStep->end())
 		{
-			if(wTourID == (*itTS).first)
+			if (wTourID == (*itTS).first)
 				(*itTS).second.m_bEnable = TRUE;
 
 			TOURNAMENTSTEP startTM = (*itStart).second;
 
-			if(!pTournament || startTM.m_dStart < pTournament->begin()->second.m_dStart)
+			if (!pTournament || startTM.m_dStart < pTournament->begin()->second.m_dStart)
 			{
 				pTournament = pMapStep;
 				wTournamentID = (*itTS).first;
@@ -6662,7 +6568,7 @@ void CTWorldSvrModule::TournamentUpdate(WORD wTourID)
 		}
 	}
 
-	if(!pTournament)
+	if (!pTournament)
 	{
 		LPPACKETBUF pMSG = new PACKETBUF();
 		pMSG->m_packet.SetID(SM_TOURNAMENTUPDATE_REQ)
@@ -6677,7 +6583,7 @@ void CTWorldSvrModule::TournamentUpdate(WORD wTourID)
 		return;
 	}
 
-	if(wTourID == wTournamentID ||
+	if (wTourID == wTournamentID ||
 		wTournamentID != m_tournament.m_wID)
 	{
 		m_TournamentSchedule.m_wID = wTournamentID;
@@ -6688,7 +6594,7 @@ void CTWorldSvrModule::TournamentUpdate(WORD wTourID)
 			<< wTournamentID
 			<< BYTE(pTournament->size());
 
-		for(itStart=pTournament->begin(); itStart!=pTournament->end(); itStart++)
+		for (itStart = pTournament->begin(); itStart != pTournament->end(); itStart++)
 		{
 			pMSG->m_packet
 				<< (*itStart).second.m_bGroup
@@ -6705,7 +6611,7 @@ void CTWorldSvrModule::TournamentUpdate(WORD wTourID)
 
 void CTWorldSvrModule::TournamentSchedule(LPTCHARACTER pChar, CTServer * pServer)
 {
-	if(m_tournament.m_mapStep.empty())
+	if (m_tournament.m_mapStep.empty())
 		return;
 
 	MAPTOURNAMENTSTEP::iterator itStart;
@@ -6723,9 +6629,9 @@ void CTWorldSvrModule::TournamentSchedule(LPTCHARACTER pChar, CTServer * pServer
 	(*pMSG)
 		<< bCount;
 
-	for(itStart=m_tournament.m_mapStep.begin(); itStart!=m_tournament.m_mapStep.end(); itStart++)
+	for (itStart = m_tournament.m_mapStep.begin(); itStart != m_tournament.m_mapStep.end(); itStart++)
 	{
-		if((*itStart).second.m_dwPeriod)
+		if ((*itStart).second.m_dwPeriod)
 		{
 			(*pMSG)
 				<< (*itStart).second.m_bGroup
@@ -6735,7 +6641,7 @@ void CTWorldSvrModule::TournamentSchedule(LPTCHARACTER pChar, CTServer * pServer
 			bCount++;
 		}
 	}
-	memcpy(pMSG->GetBuffer()+wSize, &bCount, sizeof(bCount));
+	memcpy(pMSG->GetBuffer() + wSize, &bCount, sizeof(bCount));
 
 	pServer->SendMW_TOURNAMENT_REQ(pMSG);
 }
@@ -6743,14 +6649,14 @@ void CTWorldSvrModule::TournamentSchedule(LPTCHARACTER pChar, CTServer * pServer
 void CTWorldSvrModule::TNMTEnterGate(LPTCHARACTER pChar, DWORD dwMoney, BYTE bEnter)
 {
 	MAPTNMTPLAYER::iterator it;
-	for(it=pChar->m_mapBatting.begin(); it!=pChar->m_mapBatting.end(); it++)
+	for (it = pChar->m_mapBatting.begin(); it != pChar->m_mapBatting.end(); it++)
 		ResetBatting((*it).second, pChar);
 
 	pChar->m_dwTicket = 0;
 	pChar->m_mapBatting.clear();
 
 	DWORD dwTicket = dwMoney / TOURNAMENT_BASEPRIZE;
-	if(bEnter && 
+	if (bEnter &&
 		dwTicket &&
 		m_tournament.m_wID && m_tournament.m_bStep >= TNMTSTEP_ENTER)
 	{
@@ -6762,19 +6668,19 @@ void CTWorldSvrModule::TNMTEnterGate(LPTCHARACTER pChar, DWORD dwMoney, BYTE bEn
 void CTWorldSvrModule::TNMTEntryDelete(WORD wTID, BYTE bEntryID)
 {
 	LPMAPTOURNAMENTENTRY pTour = GetTournament(wTID);
-	if(pTour)
+	if (pTour)
 	{
 		MAPTOURNAMENTENTRY::iterator it = pTour->find(bEntryID);
-		if(it!=pTour->end())
+		if (it != pTour->end())
 		{
-			if(wTID == m_tournament.m_wID)
+			if (wTID == m_tournament.m_wID)
 			{
 				MAPTNMTPLAYER::iterator itTP, itCTP;
-				for(itTP=m_mapTNMTPlayer.begin(); itTP!=m_mapTNMTPlayer.end();)
+				for (itTP = m_mapTNMTPlayer.begin(); itTP != m_mapTNMTPlayer.end();)
 				{
 					itCTP = itTP;
 					itTP++;
-					if((*itCTP).second->m_bEntryID == bEntryID)
+					if ((*itCTP).second->m_bEntryID == bEntryID)
 					{
 						SendDM_TOURNAMENTAPPLY_REQ(FALSE, (*itCTP).second->m_dwCharID);
 						DelTNMTPlayer((*it).second, (*itCTP).second);
@@ -6790,14 +6696,14 @@ void CTWorldSvrModule::TNMTEntryDelete(WORD wTID, BYTE bEntryID)
 
 BYTE CTWorldSvrModule::TournamentGetEntryCount()
 {
-	if(!m_tournament.m_mapEntry)
+	if (!m_tournament.m_mapEntry)
 		return 0;
 
-	BYTE bCount=0;
+	BYTE bCount = 0;
 	MAPTOURNAMENTENTRY::iterator it;
-	for(it=m_tournament.m_mapEntry->begin(); it!=m_tournament.m_mapEntry->end(); it++)
+	for (it = m_tournament.m_mapEntry->begin(); it != m_tournament.m_mapEntry->end(); it++)
 	{
-		if(m_tournament.m_bGroup == (*it).second->m_bGroup)
+		if (m_tournament.m_bGroup == (*it).second->m_bGroup)
 			bCount++;
 	}
 
@@ -6809,9 +6715,9 @@ BYTE CTWorldSvrModule::CheckMapID(WORD wMapType, WORD wMapID)
 	switch (wMapType)
 	{
 	case 1:	//	Tournament
-			if( 532 >= wMapID && 500 <= wMapID )
-				return TRUE;
-			break;
+		if (532 >= wMapID && 500 <= wMapID)
+			return TRUE;
+		break;
 	}
 	return FALSE;
 }
@@ -6825,114 +6731,114 @@ void CTWorldSvrModule::LotteryItem(VLOTTERY& pLot, BYTE bMap, CString& szMsg, CS
 	vector<LOTPACKET> vLot;
 	vector<LPTCHARACTER> vLotChar;
 
-	//	º±≈√«— ∏ ¿Ã¿÷¥¬∞°?
-	if(bMap)
+	//	ÏÑ†ÌÉùÌïú ÎßµÏù¥ÏûàÎäîÍ∞Ä?
+	if (bMap)
 	{
-		////	∏ ø° ∏¬¥¬ ƒ≥∏Ø≈Õ ∏Ò∑œ ∏∏µÈ±‚
+		////	ÎßµÏóê ÎßûÎäî Ï∫êÎ¶≠ÌÑ∞ Î™©Î°ù ÎßåÎì§Í∏∞
 		MAPTCHARACTER::iterator Mit;
-		for(Mit = m_mapTCHAR.begin(); Mit != m_mapTCHAR.end(); Mit++)
+		for (Mit = m_mapTCHAR.begin(); Mit != m_mapTCHAR.end(); Mit++)
 		{
-			//	∏  ID √º≈©
-			if( CheckMapID(bMap, Mit->second->m_wMapID) )
+			//	Îßµ ID Ï≤¥ÌÅ¨
+			if (CheckMapID(bMap, Mit->second->m_wMapID))
 				vLotChar.push_back(Mit->second);
 		}
 
-		////	√ﬂ√∑!
-		for(DWORD i = 0; i < pLot.size(); i++)
+		////	Ï∂îÏ≤®!
+		for (DWORD i = 0; i < pLot.size(); i++)
 		{
 			LOTPACKET sTempLot;
 			sTempLot.m_pLot = &pLot[i];
 
-			//	¡ˆ¡§µ» √ﬂ√∑¿⁄ ºˆ∏∏≈≠ ªÃ±‚!
+			//	ÏßÄÏ†ïÎêú Ï∂îÏ≤®Ïûê ÏàòÎßåÌÅº ÎΩëÍ∏∞!
 			int nWinner = pLot[i].m_wWinner;
-			for(int j = 0; j < nWinner; j++)
+			for (int j = 0; j < nWinner; j++)
 			{
-				//	√ﬂ√∑ ¥ÎªÛ¿Ã æ¯¿∏∏È ≥°.
-				if(vLotChar.size() <= 0)
+				//	Ï∂îÏ≤® ÎåÄÏÉÅÏù¥ ÏóÜÏúºÎ©¥ ÎÅù.
+				if (vLotChar.size() <= 0)
 				{
-					if(sTempLot.m_pChar.size() > 0)
+					if (sTempLot.m_pChar.size() > 0)
 						vLot.push_back(sTempLot);
 
-					if(vLot.size() <= 0)
+					if (vLot.size() <= 0)
 						return;
 					MAPTSERVER::iterator itS;
-					for(itS=m_mapSERVER.begin(); itS!=m_mapSERVER.end(); itS++)
+					for (itS = m_mapSERVER.begin(); itS != m_mapSERVER.end(); itS++)
 						(*itS).second->SendMW_EVENTMSGLOTTERY_REQ(szEventName, vLot);
-					return ;
+					return;
 				}
 
 				DWORD dwRand = TRand((DWORD)vLotChar.size());
 
 				vector<LPTCHARACTER>::iterator PostIt = vLotChar.begin();
 
-				PostIt+= dwRand;
-				//	¥Á√∑ ∏ﬁ¿œ ∫∏≥ª±‚				
+				PostIt += dwRand;
+				//	ÎãπÏ≤® Î©îÏùº Î≥¥ÎÇ¥Í∏∞				
 				SendPost(WPT_LOTITEM, (*PostIt)->m_dwCharID, (*PostIt)->m_strNAME, strTitle, strMessage, pLot[i].m_wItemID, pLot[i].m_bNum);
 				sTempLot.m_pChar.push_back(*PostIt);
 
-				//	¡ﬂ∫π ¥Á√∑¿ª ∏∑±‚¿ß«ÿ ∏ÆΩ∫∆Æø°º≠ ¡¶∞≈.
+				//	Ï§ëÎ≥µ ÎãπÏ≤®ÏùÑ ÎßâÍ∏∞ÏúÑÌï¥ Î¶¨Ïä§Ìä∏ÏóêÏÑú Ï†úÍ±∞.
 				vLotChar.erase(PostIt);
 			}
-			if(sTempLot.m_pChar.size() > 0)
+			if (sTempLot.m_pChar.size() > 0)
 				vLot.push_back(sTempLot);
 
-			//	√ﬂ√∑ ¥ÎªÛ¿Ã æ¯¿∏∏È ≥°.
-			if(vLotChar.size() <= 0)
+			//	Ï∂îÏ≤® ÎåÄÏÉÅÏù¥ ÏóÜÏúºÎ©¥ ÎÅù.
+			if (vLotChar.size() <= 0)
 			{
-				if(vLot.size() <= 0)
+				if (vLot.size() <= 0)
 					return;
 				MAPTSERVER::iterator itS;
-				for(itS=m_mapSERVER.begin(); itS!=m_mapSERVER.end(); itS++)
+				for (itS = m_mapSERVER.begin(); itS != m_mapSERVER.end(); itS++)
 					(*itS).second->SendMW_EVENTMSGLOTTERY_REQ(szEventName, vLot);
-				return ;
+				return;
 			}
 		}
 	}
 	else
 	{
-		////	∏  ¿¸√ºø°º≠ √ﬂ√∑
-		//	¥Á√∑¿⁄ ID ∏ÆΩ∫∆Æ, ¥Á√∑¿⁄ºˆ
+		////	Îßµ Ï†ÑÏ≤¥ÏóêÏÑú Ï∂îÏ≤®
+		//	ÎãπÏ≤®Ïûê ID Î¶¨Ïä§Ìä∏, ÎãπÏ≤®ÏûêÏàò
 		DWORD nWinnerCount = 0;
 
-		for(DWORD i = 0; i < pLot.size(); i++)
+		for (DWORD i = 0; i < pLot.size(); i++)
 		{
 			LOTPACKET sTempLot;
 			sTempLot.m_pLot = &pLot[i];
 
-			//	¡ˆ¡§µ» √ﬂ√∑¿⁄ ºˆ∏∏≈≠ ªÃ±‚!
+			//	ÏßÄÏ†ïÎêú Ï∂îÏ≤®Ïûê ÏàòÎßåÌÅº ÎΩëÍ∏∞!
 			int nWinner = pLot[i].m_wWinner;
-			for(int j = 0; j < nWinner; j++)
+			for (int j = 0; j < nWinner; j++)
 			{
-				//	√ﬂ√∑ ¥ÎªÛ¿Ã æ¯¿∏∏È ≥°.
-				if(m_mapTCHAR.size() <= nWinnerCount)
+				//	Ï∂îÏ≤® ÎåÄÏÉÅÏù¥ ÏóÜÏúºÎ©¥ ÎÅù.
+				if (m_mapTCHAR.size() <= nWinnerCount)
 				{
-					if(sTempLot.m_pChar.size() > 0)
+					if (sTempLot.m_pChar.size() > 0)
 						vLot.push_back(sTempLot);
-					
-					if(vLot.size() <= 0)
+
+					if (vLot.size() <= 0)
 						return;
 					MAPTSERVER::iterator itS;
-					for(itS=m_mapSERVER.begin(); itS!=m_mapSERVER.end(); itS++)
+					for (itS = m_mapSERVER.begin(); itS != m_mapSERVER.end(); itS++)
 						(*itS).second->SendMW_EVENTMSGLOTTERY_REQ(szEventName, vLot);
-					return ;
+					return;
 				}
 
-				//	√ﬂ√∑!
+				//	Ï∂îÏ≤®!
 				MAPTCHARACTER::iterator PostIt = m_mapTCHAR.begin();
-				DWORD dwRand =  TRand((DWORD)m_mapTCHAR.size());
+				DWORD dwRand = TRand((DWORD)m_mapTCHAR.size());
 
-				for(DWORD m = 0; m < dwRand; m++)
+				for (DWORD m = 0; m < dwRand; m++)
 				{
 					PostIt++;
-					if(PostIt == m_mapTCHAR.end())
-						return ;
+					if (PostIt == m_mapTCHAR.end())
+						return;
 				}
 
-				//	¡ﬂ∫π ¥Á√∑ ¡∂ªÁ
+				//	Ï§ëÎ≥µ ÎãπÏ≤® Ï°∞ÏÇ¨
 				BYTE bRet = FALSE;
-				for(DWORD k = 0; k < nWinnerCount; k++)
+				for (DWORD k = 0; k < nWinnerCount; k++)
 				{
-					if(vLotChar[k] == PostIt->second)
+					if (vLotChar[k] == PostIt->second)
 					{
 						bRet = TRUE;
 						j--;
@@ -6940,37 +6846,37 @@ void CTWorldSvrModule::LotteryItem(VLOTTERY& pLot, BYTE bMap, CString& szMsg, CS
 					}
 				}
 
-				//	¡ﬂ∫πµ«¡ˆ æ æ“¥Ÿ∏È
-				if(!bRet)
+				//	Ï§ëÎ≥µÎêòÏßÄ ÏïäÏïòÎã§Î©¥
+				if (!bRet)
 				{
-					//	¥Á√∑ ∏ﬁ¿œ ∫∏≥ª±‚
+					//	ÎãπÏ≤® Î©îÏùº Î≥¥ÎÇ¥Í∏∞
 					SendPost(WPT_LOTITEM, PostIt->second->m_dwCharID, PostIt->second->m_strNAME, strTitle, strMessage, pLot[i].m_wItemID, pLot[i].m_bNum);
-					
-					//	¡ﬂ∫π ¥Á√∑¿ª ∏∑±‚¿ß«ÿ ¥Á√∑¿⁄ ∏ÆΩ∫∆Æø° √ﬂ∞°
+
+					//	Ï§ëÎ≥µ ÎãπÏ≤®ÏùÑ ÎßâÍ∏∞ÏúÑÌï¥ ÎãπÏ≤®Ïûê Î¶¨Ïä§Ìä∏Ïóê Ï∂îÍ∞Ä
 					vLotChar.push_back(PostIt->second);
 					sTempLot.m_pChar.push_back(PostIt->second);
 					nWinnerCount++;
 				}
 			}
-			if(sTempLot.m_pChar.size() > 0)
+			if (sTempLot.m_pChar.size() > 0)
 				vLot.push_back(sTempLot);
 
-			//	√ﬂ√∑ ¥ÎªÛ¿Ã æ¯¿∏∏È ≥°.
-			if(m_mapTCHAR.size() <= nWinnerCount)
+			//	Ï∂îÏ≤® ÎåÄÏÉÅÏù¥ ÏóÜÏúºÎ©¥ ÎÅù.
+			if (m_mapTCHAR.size() <= nWinnerCount)
 			{
-				if(vLot.size() <= 0)
+				if (vLot.size() <= 0)
 					return;
 				MAPTSERVER::iterator itS;
-				for(itS=m_mapSERVER.begin(); itS!=m_mapSERVER.end(); itS++)
+				for (itS = m_mapSERVER.begin(); itS != m_mapSERVER.end(); itS++)
 					(*itS).second->SendMW_EVENTMSGLOTTERY_REQ(szEventName, vLot);
-				return ;
+				return;
 			}
 		}
 	}
-	if(vLot.size() <= 0)
+	if (vLot.size() <= 0)
 		return;
 	MAPTSERVER::iterator itS;
-	for(itS=m_mapSERVER.begin(); itS!=m_mapSERVER.end(); itS++)
+	for (itS = m_mapSERVER.begin(); itS != m_mapSERVER.end(); itS++)
 		(*itS).second->SendMW_EVENTMSGLOTTERY_REQ(szEventName, vLot);
 }
 
@@ -6983,87 +6889,87 @@ void CTWorldSvrModule::GiftTime(LPEVENTINFO pEvent)//LPLOTTERY pLot, CString& sz
 	BYTE bMinLevel = HIBYTE(pEvent->m_wValue);
 	BYTE bMaxLevel = LOBYTE(pEvent->m_wValue);
 
-	//	∏ﬁ¿œ ∫∏≥ª±‚
+	//	Î©îÏùº Î≥¥ÎÇ¥Í∏∞
 	for (MAPTCHARACTER::iterator it = m_mapTCHAR.begin(); it != m_mapTCHAR.end(); it++)
 	{
 		LPTCHARACTER pPlayer = it->second;
-		if(bMinLevel <= pPlayer->m_bLevel && bMaxLevel >= pPlayer->m_bLevel)			
+		if (bMinLevel <= pPlayer->m_bLevel && bMaxLevel >= pPlayer->m_bLevel)
 			SendPost(WPT_LOTITEM, pPlayer->m_dwCharID, pPlayer->m_strNAME, strTitle, strMessage, pLot->m_wItemID, pLot->m_bNum, pLot->m_wWinner);
 	}
-	
+
 }
 
 void CTWorldSvrModule::NotifyCastleWarInfo(CTServer * pServer)
 {
 	MAPCASTLEWARINFO::iterator it;
 
-	if(pServer)
+	if (pServer)
 	{
-		for(it=m_mapCastleWarInfo.begin(); it!=m_mapCastleWarInfo.end(); it++)
+		for (it = m_mapCastleWarInfo.begin(); it != m_mapCastleWarInfo.end(); it++)
 		{
 			CTGuild * pDef = FindTGuild(it->second.m_dwDefGuild);
 			CTGuild * pAtk = FindTGuild(it->second.m_dwAtkGuild);
 
 			pServer->SendMW_CASTLEWARINFO_REQ(
-					&(it->second),
-					pDef ? pDef->m_dwID : 0,
-					pDef ? pDef->m_strName : NAME_NULL,
-					pDef ? pDef->m_bCountry : TCONTRY_N,
-					pAtk ? pAtk->m_dwID : 0,
-					pAtk ? pAtk->m_strName : NAME_NULL);
+				&(it->second),
+				pDef ? pDef->m_dwID : 0,
+				pDef ? pDef->m_strName : NAME_NULL,
+				pDef ? pDef->m_bCountry : TCONTRY_N,
+				pAtk ? pAtk->m_dwID : 0,
+				pAtk ? pAtk->m_strName : NAME_NULL);
 		}
 
 		return;
 	}
 
-	for(it=m_mapCastleWarInfo.begin(); it!=m_mapCastleWarInfo.end(); it++)
+	for (it = m_mapCastleWarInfo.begin(); it != m_mapCastleWarInfo.end(); it++)
 	{
 		it->second.m_mapEnableGuild.clear();
 		it->second.m_mapEnableGuild = it->second.m_mapGuild;
 		it->second.m_mapTop3[TCONTRY_D].clear();
 		it->second.m_mapTop3[TCONTRY_C].clear();
-		it->second.m_dwAtkGuild=0;
-		it->second.m_dwDefGuild=0;
+		it->second.m_dwAtkGuild = 0;
+		it->second.m_dwDefGuild = 0;
 		memset(it->second.m_wCountryPoint, 0, sizeof(it->second.m_wCountryPoint));
 	}
 
-	for(it=m_mapCastleWarInfo.begin(); it!=m_mapCastleWarInfo.end(); it++)
+	for (it = m_mapCastleWarInfo.begin(); it != m_mapCastleWarInfo.end(); it++)
 	{
 		MAPDWORD::iterator itGd;
 		LPTCASTLEWARINFO pCs = &((*it).second);
 
-		for(itGd=pCs->m_mapGuild.begin(); itGd!=pCs->m_mapGuild.end(); itGd++)
+		for (itGd = pCs->m_mapGuild.begin(); itGd != pCs->m_mapGuild.end(); itGd++)
 		{
 			CTGuild * pGuild = FindTGuild((*itGd).first);
-			if(!pGuild)
+			if (!pGuild)
 				continue;
 
 			pCs->m_wCountryPoint[pGuild->m_bCountry] += WORD((*itGd).second);
 
 			MAPCASTLETOP3::iterator it3;
 			BYTE bId = BYTE(pCs->m_mapTop3[pGuild->m_bCountry].size() + 1);
-			for(it3=pCs->m_mapTop3[pGuild->m_bCountry].begin(); it3!=pCs->m_mapTop3[pGuild->m_bCountry].end(); it3++)
+			for (it3 = pCs->m_mapTop3[pGuild->m_bCountry].begin(); it3 != pCs->m_mapTop3[pGuild->m_bCountry].end(); it3++)
 			{
 				CTGuild * pTop = FindTGuild(it3->second.m_dwID);
-				if(!pTop || pTop->m_dwID == pGuild->m_dwID)
+				if (!pTop || pTop->m_dwID == pGuild->m_dwID)
 				{
 					bId = 4;
 					break;
 				}
 
-				if(it3->second.m_wPoint < itGd->second)
+				if (it3->second.m_wPoint < itGd->second)
 					bId--;
-				else if(it3->second.m_wPoint == itGd->second)
+				else if (it3->second.m_wPoint == itGd->second)
 				{
 					DWORD dwSelGuild = CompareOccupation(pCs, pGuild->m_dwID, pCs, pTop->m_dwID);
-					if(dwSelGuild == pGuild->m_dwID)
+					if (dwSelGuild == pGuild->m_dwID)
 						bId--;
-					else if(!dwSelGuild && CompareGuildRank(pGuild, pTop))
+					else if (!dwSelGuild && CompareGuildRank(pGuild, pTop))
 						bId--;
 				}
 			}
 
-			if(bId < 4)
+			if (bId < 4)
 			{
 				TCASTLETOP3 top3, newtop;
 				newtop.m_dwID = pGuild->m_dwID;
@@ -7071,20 +6977,20 @@ void CTWorldSvrModule::NotifyCastleWarInfo(CTServer * pServer)
 				newtop.m_wPoint = WORD(itGd->second);
 
 				pCs->m_mapTop3[pGuild->m_bCountry].erase(3);
-				if(bId < 3)
+				if (bId < 3)
 				{
 					it3 = pCs->m_mapTop3[pGuild->m_bCountry].find(2);
-					if(it3 != pCs->m_mapTop3[pGuild->m_bCountry].end())
+					if (it3 != pCs->m_mapTop3[pGuild->m_bCountry].end())
 					{
 						top3 = it3->second;
 						pCs->m_mapTop3[pGuild->m_bCountry].insert(MAPCASTLETOP3::value_type(3, top3));
 					}
 				}
 
-				if(bId == 1)
+				if (bId == 1)
 				{
 					it3 = pCs->m_mapTop3[pGuild->m_bCountry].find(1);
-					if(it3 != pCs->m_mapTop3[pGuild->m_bCountry].end())
+					if (it3 != pCs->m_mapTop3[pGuild->m_bCountry].end())
 					{
 						top3 = it3->second;
 						pCs->m_mapTop3[pGuild->m_bCountry].erase(2);
@@ -7100,23 +7006,23 @@ void CTWorldSvrModule::NotifyCastleWarInfo(CTServer * pServer)
 		SelectCastleWarGuild(TRUE, pCs);
 	}
 
-	for(it=m_mapCastleWarInfo.begin(); it!=m_mapCastleWarInfo.end(); it++)
+	for (it = m_mapCastleWarInfo.begin(); it != m_mapCastleWarInfo.end(); it++)
 	{
 		MAPCASTLEWARINFO::iterator itGd;
-		for(itGd=m_mapCastleWarInfo.begin(); itGd!=m_mapCastleWarInfo.end(); itGd++)
+		for (itGd = m_mapCastleWarInfo.begin(); itGd != m_mapCastleWarInfo.end(); itGd++)
 			itGd->second.m_mapEnableGuild.erase(it->second.m_dwDefGuild);
 	}
 
-	for(it=m_mapCastleWarInfo.begin(); it!=m_mapCastleWarInfo.end(); it++)
+	for (it = m_mapCastleWarInfo.begin(); it != m_mapCastleWarInfo.end(); it++)
 		SelectCastleWarGuild(FALSE, &(it->second));
 
-	for(it=m_mapCastleWarInfo.begin(); it!=m_mapCastleWarInfo.end(); it++)
+	for (it = m_mapCastleWarInfo.begin(); it != m_mapCastleWarInfo.end(); it++)
 	{
 		CTGuild * pDef = FindTGuild(it->second.m_dwDefGuild);
 		CTGuild * pAtk = FindTGuild(it->second.m_dwAtkGuild);
 
 		MAPTSERVER::iterator itSv;
-		for(itSv=m_mapSERVER.begin(); itSv!=m_mapSERVER.end(); itSv++)
+		for (itSv = m_mapSERVER.begin(); itSv != m_mapSERVER.end(); itSv++)
 			(*itSv).second->SendMW_CASTLEWARINFO_REQ(
 				&(it->second),
 				pDef ? pDef->m_dwID : 0,
@@ -7129,7 +7035,7 @@ void CTWorldSvrModule::NotifyCastleWarInfo(CTServer * pServer)
 
 CTGuild * CTWorldSvrModule::SelectCastleWarGuild(BYTE bIsDef, LPTCASTLEWARINFO pCastle)
 {
-	if(bIsDef)
+	if (bIsDef)
 	{
 		pCastle->m_dwDefGuild = 0;
 		pCastle->m_bDefCountry = TCONTRY_N;
@@ -7144,30 +7050,30 @@ CTGuild * CTWorldSvrModule::SelectCastleWarGuild(BYTE bIsDef, LPTCASTLEWARINFO p
 	MAPDWORD::iterator itTop;
 	CTGuild * pTop = NULL;
 
-	for(itGd=pCastle->m_mapEnableGuild.begin(); itGd!=pCastle->m_mapEnableGuild.end(); itGd++)
+	for (itGd = pCastle->m_mapEnableGuild.begin(); itGd != pCastle->m_mapEnableGuild.end(); itGd++)
 	{
 		CTGuild * pGuild = FindTGuild((*itGd).first);
-		if(!pGuild)
+		if (!pGuild)
 			continue;
 
-		if(!bIsDef && pGuild->m_bCountry == pCastle->m_bDefCountry)
+		if (!bIsDef && pGuild->m_bCountry == pCastle->m_bDefCountry)
 			continue;
 
-		if(!pTop || WORD(itTop->second) < WORD(itGd->second))
+		if (!pTop || WORD(itTop->second) < WORD(itGd->second))
 		{
 			itTop = itGd;
 			pTop = pGuild;
 		}
-		else if(WORD(itTop->second) == WORD(itGd->second))
+		else if (WORD(itTop->second) == WORD(itGd->second))
 		{
-			if(pTop->m_bCountry != pGuild->m_bCountry &&
+			if (pTop->m_bCountry != pGuild->m_bCountry &&
 				pCastle->m_wCountryPoint[TCONTRY_D] > pCastle->m_wCountryPoint[TCONTRY_C] &&
 				pGuild->m_bCountry == TCONTRY_D)
 			{
 				itTop = itGd;
 				pTop = pGuild;
 			}
-			else if(pTop->m_bCountry != pGuild->m_bCountry &&
+			else if (pTop->m_bCountry != pGuild->m_bCountry &&
 				pCastle->m_wCountryPoint[TCONTRY_C] > pCastle->m_wCountryPoint[TCONTRY_D] &&
 				pGuild->m_bCountry == TCONTRY_C)
 			{
@@ -7177,12 +7083,12 @@ CTGuild * CTWorldSvrModule::SelectCastleWarGuild(BYTE bIsDef, LPTCASTLEWARINFO p
 			else
 			{
 				DWORD dwSelGuild = CompareOccupation(pCastle, pGuild->m_dwID, pCastle, pTop->m_dwID);
-				if(dwSelGuild == pGuild->m_dwID)
+				if (dwSelGuild == pGuild->m_dwID)
 				{
 					itTop = itGd;
 					pTop = pGuild;
 				}
-				else if(!dwSelGuild && CompareGuildRank(pGuild, pTop))
+				else if (!dwSelGuild && CompareGuildRank(pGuild, pTop))
 				{
 					itTop = itGd;
 					pTop = pGuild;
@@ -7192,35 +7098,35 @@ CTGuild * CTWorldSvrModule::SelectCastleWarGuild(BYTE bIsDef, LPTCASTLEWARINFO p
 	}
 
 	MAPCASTLEWARINFO::iterator it;
-	for(it=m_mapCastleWarInfo.begin(); it!=m_mapCastleWarInfo.end(); it++)
+	for (it = m_mapCastleWarInfo.begin(); it != m_mapCastleWarInfo.end(); it++)
 	{
-		if(!pTop)
+		if (!pTop)
 			break;
 
 		itTop = pCastle->m_mapEnableGuild.find(pTop->m_dwID);
-		if(itTop == pCastle->m_mapEnableGuild.end())
+		if (itTop == pCastle->m_mapEnableGuild.end())
 		{
 			pTop = NULL;
 			break;
 		}
 
 		DWORD dwCompare;
-		if(bIsDef)
+		if (bIsDef)
 			dwCompare = it->second.m_dwDefGuild;
 		else
 			dwCompare = it->second.m_dwAtkGuild;
 
-		if(dwCompare == pTop->m_dwID)
+		if (dwCompare == pTop->m_dwID)
 		{
 			MAPDWORD::iterator itS = it->second.m_mapGuild.find(dwCompare);
-			if(itS != it->second.m_mapGuild.end())
+			if (itS != it->second.m_mapGuild.end())
 			{
-				if(itS->second < itTop->second)
+				if (itS->second < itTop->second)
 				{
 					it->second.m_mapEnableGuild.erase(dwCompare);
 					SelectCastleWarGuild(bIsDef, &(it->second));
 				}
-				else if(itS->second > itTop->second)
+				else if (itS->second > itTop->second)
 				{
 					pCastle->m_mapEnableGuild.erase(dwCompare);
 					pTop = SelectCastleWarGuild(bIsDef, pCastle);
@@ -7228,12 +7134,12 @@ CTGuild * CTWorldSvrModule::SelectCastleWarGuild(BYTE bIsDef, LPTCASTLEWARINFO p
 				else
 				{
 					DWORD dwSelGuild = CompareOccupation(pCastle, dwCompare, &(it->second), itS->first);
-					if(dwSelGuild == dwCompare)
+					if (dwSelGuild == dwCompare)
 					{
 						it->second.m_mapEnableGuild.erase(dwCompare);
 						SelectCastleWarGuild(bIsDef, &(it->second));
 					}
-					else if(dwSelGuild == itS->first)
+					else if (dwSelGuild == itS->first)
 					{
 						pCastle->m_mapEnableGuild.erase(dwCompare);
 						pTop = SelectCastleWarGuild(bIsDef, pCastle);
@@ -7243,9 +7149,9 @@ CTGuild * CTWorldSvrModule::SelectCastleWarGuild(BYTE bIsDef, LPTCASTLEWARINFO p
 		}
 	}
 
-	if(pTop)
+	if (pTop)
 	{
-		if(bIsDef)
+		if (bIsDef)
 		{
 			pCastle->m_dwDefGuild = pTop->m_dwID;
 			pCastle->m_bDefCountry = pTop->m_bCountry;
@@ -7261,15 +7167,15 @@ CTGuild * CTWorldSvrModule::SelectCastleWarGuild(BYTE bIsDef, LPTCASTLEWARINFO p
 
 BYTE CTWorldSvrModule::CompareGuildRank(CTGuild * pG1, CTGuild * pG2)
 {
-	if(pG1->m_dwPvPTotalPoint > pG2->m_dwPvPTotalPoint)
+	if (pG1->m_dwPvPTotalPoint > pG2->m_dwPvPTotalPoint)
 		return TRUE;
-	else if(pG1->m_dwPvPTotalPoint == pG2->m_dwPvPTotalPoint)
+	else if (pG1->m_dwPvPTotalPoint == pG2->m_dwPvPTotalPoint)
 	{
-		if(pG1->GetMemberSize() > pG2->GetMemberSize())
+		if (pG1->GetMemberSize() > pG2->GetMemberSize())
 			return TRUE;
-		else if(pG1->GetMemberSize() == pG2->GetMemberSize())
+		else if (pG1->GetMemberSize() == pG2->GetMemberSize())
 		{
-			if(pG1->m_timeEstablish < pG2->m_timeEstablish)
+			if (pG1->m_timeEstablish < pG2->m_timeEstablish)
 				return TRUE;
 		}
 	}
@@ -7281,41 +7187,41 @@ DWORD CTWorldSvrModule::CompareOccupation(LPTCASTLEWARINFO pCastle1, DWORD dwG1,
 {
 	MAPARRAY::iterator itON = pCastle1->m_mapOccupy.find(dwG1);
 	MAPARRAY::iterator itOO = pCastle2->m_mapOccupy.find(dwG2);
-	if(itON == pCastle1->m_mapOccupy.end() && itOO == pCastle2->m_mapOccupy.end())
+	if (itON == pCastle1->m_mapOccupy.end() && itOO == pCastle2->m_mapOccupy.end())
 		return 0;
-	if(itON != pCastle1->m_mapOccupy.end() && itOO == pCastle2->m_mapOccupy.end())
+	if (itON != pCastle1->m_mapOccupy.end() && itOO == pCastle2->m_mapOccupy.end())
 		return dwG1;
-	if(itON == pCastle1->m_mapOccupy.end() && itOO != pCastle2->m_mapOccupy.end())
+	if (itON == pCastle1->m_mapOccupy.end() && itOO != pCastle2->m_mapOccupy.end())
 		return dwG2;
 
-	for(BYTE day=m_battletime[BT_CASTLE].m_bDay; day>1; day--)
+	for (BYTE day = m_battletime[BT_CASTLE].m_bDay; day>1; day--)
 	{
-		if(itON->second[day-2] > itOO->second[day-2])
+		if (itON->second[day - 2] > itOO->second[day - 2])
 			return dwG1;
-		else if(itON->second[day-2] < itOO->second[day-2])
+		else if (itON->second[day - 2] < itOO->second[day - 2])
 			return dwG2;
-		else if(itON->second[day-2])
+		else if (itON->second[day - 2])
 		{
-			if(pCastle1->m_wID < pCastle2->m_wID)
+			if (pCastle1->m_wID < pCastle2->m_wID)
 				return dwG2;
-			else if(pCastle1->m_wID > pCastle2->m_wID)
+			else if (pCastle1->m_wID > pCastle2->m_wID)
 				return dwG1;
 			else
 				return 0;
 		}
 	}
 
-	for(BYTE day=6;day>=m_battletime[BT_CASTLE].m_bDay; day--)
+	for (BYTE day = 6; day >= m_battletime[BT_CASTLE].m_bDay; day--)
 	{
-		if(itON->second[day-1] > itOO->second[day-1])
+		if (itON->second[day - 1] > itOO->second[day - 1])
 			return dwG1;
-		else if(itON->second[day-1] < itOO->second[day-1])
+		else if (itON->second[day - 1] < itOO->second[day - 1])
 			return dwG2;
-		else if(itON->second[day-1])
+		else if (itON->second[day - 1])
 		{
-			if(pCastle1->m_wID < pCastle2->m_wID)
+			if (pCastle1->m_wID < pCastle2->m_wID)
 				return dwG2;
-			else if(pCastle1->m_wID > pCastle2->m_wID)
+			else if (pCastle1->m_wID > pCastle2->m_wID)
 				return dwG1;
 			else
 				return 0;
@@ -7327,45 +7233,45 @@ DWORD CTWorldSvrModule::CompareOccupation(LPTCASTLEWARINFO pCastle1, DWORD dwG1,
 
 void CTWorldSvrModule::ChangeCountry(LPTCHARACTER pTCHAR, BYTE bType, BYTE bCountry)
 {
-	if(pTCHAR->m_pParty)
+	if (pTCHAR->m_pParty)
 		LeaveParty(pTCHAR, FALSE);
 
 	DelGuildTacticsWantedApp(pTCHAR->m_dwCharID);
 
-	if(pTCHAR->m_pTactics)
+	if (pTCHAR->m_pTactics)
 	{
 		LPTTACTICSMEMBER pMember = pTCHAR->m_pTactics->FindTactics(pTCHAR->m_dwCharID);
-		if(pMember)
+		if (pMember)
 			GuildTacticsDel(pTCHAR->m_pTactics, pMember, 2);
 	}
 
 	BYTE bGap = GetWarCountryGap(pTCHAR->m_bLevel);
-	if(bGap < WARCOUNTRY_MAXGAP)
+	if (bGap < WARCOUNTRY_MAXGAP)
 	{
 		BYTE bCC = GetWarCountry(pTCHAR);
-		if(bCC < TCONTRY_B)
+		if (bCC < TCONTRY_B)
 			m_mapWarCountry[bCC][bGap].erase(pTCHAR->m_dwCharID);
-		
-		if(bCountry < TCONTRY_B)
+
+		if (bCountry < TCONTRY_B)
 			m_mapWarCountry[bCountry][bGap].insert(MAPDWORD::value_type(pTCHAR->m_dwCharID, 0));
 	}
 
-	if(pTCHAR->m_pGuild)
+	if (pTCHAR->m_pGuild)
 	{
 		LPTGUILDMEMBER pGM = pTCHAR->m_pGuild->FindMember(pTCHAR->m_dwCharID);
-		if(pGM)
+		if (pGM)
 			pGM->m_bWarCountry = bCountry;
 	}
 
-	if(bType == IK_COUNTRY)
+	if (bType == IK_COUNTRY)
 	{
 		pTCHAR->m_bCountry = bCountry;
 		DelGuildWantedApp(pTCHAR->m_dwCharID);
 
-		if(pTCHAR->m_pGuild)
+		if (pTCHAR->m_pGuild)
 		{
 			LPTGUILDMEMBER pMember = pTCHAR->m_pGuild->FindMember(pTCHAR->m_dwCharID);
-			if(pMember)
+			if (pMember)
 			{
 				DWORD dwGuildID = pTCHAR->m_pGuild->m_dwID;
 
@@ -7373,35 +7279,35 @@ void CTWorldSvrModule::ChangeCountry(LPTCHARACTER pTCHAR, BYTE bType, BYTE bCoun
 				pTCHAR->m_pGuild = NULL;
 
 				CTServer * pServer = FindMapSvr(pTCHAR->m_bMainID);
-				if(pServer)
+				if (pServer)
 					pServer->SendMW_GUILDLEAVE_REQ(pTCHAR->m_dwCharID, pTCHAR->m_dwKEY, pTCHAR->m_strNAME, GUILD_LEAVE_SELF, (DWORD)m_timeCurrent);
 			}
 		}
 
 		MAPTFRIEND::iterator itFr;
-		for(itFr=pTCHAR->m_mapTFRIEND.begin(); itFr!=pTCHAR->m_mapTFRIEND.end(); itFr++)
+		for (itFr = pTCHAR->m_mapTFRIEND.begin(); itFr != pTCHAR->m_mapTFRIEND.end(); itFr++)
 		{
 			SendDM_FRIENDERASE_REQ((*itFr).second->m_dwID, pTCHAR->m_dwCharID);
 			SendDM_FRIENDERASE_REQ(pTCHAR->m_dwCharID, (*itFr).second->m_dwID);
 		}
 
 		MAPTSOULMATE::iterator itSM;
-		for(itSM=pTCHAR->m_mapTSOULMATE.begin(); itSM!=pTCHAR->m_mapTSOULMATE.end(); itSM++)
+		for (itSM = pTCHAR->m_mapTSOULMATE.begin(); itSM != pTCHAR->m_mapTSOULMATE.end(); itSM++)
 			SendDM_SOULMATEDEL_REQ((*itSM).second->m_dwCharID, (*itSM).second->m_dwTarget);
 	}
 	else
 		pTCHAR->m_bAidCountry = bCountry;
 
-	if(m_pRelay)
+	if (m_pRelay)
 		m_pRelay->SendRW_CHANGENAME_ACK(pTCHAR->m_dwCharID, bType, bCountry, NAME_NULL);
 
 	MAPTCHARCON::iterator itCON;
-	for(itCON=pTCHAR->m_mapTCHARCON.begin(); itCON!=pTCHAR->m_mapTCHARCON.end(); itCON++)
+	for (itCON = pTCHAR->m_mapTCHARCON.begin(); itCON != pTCHAR->m_mapTCHARCON.end(); itCON++)
 	{
-		if((*itCON).second->m_bValid)
+		if ((*itCON).second->m_bValid)
 		{
 			CTServer *pMAP = FindMapSvr((*itCON).first);
-			if(pMAP)
+			if (pMAP)
 				pMAP->SendMW_CHANGECHARBASE_REQ(
 					pTCHAR->m_dwCharID,
 					pTCHAR->m_dwKEY,
@@ -7417,7 +7323,7 @@ BYTE CTWorldSvrModule::GetWarCountry(LPTCHARACTER pTCHAR)
 {
 	BYTE bCountry = pTCHAR->m_bCountry;
 
-	if(pTCHAR->m_bAidCountry != TCONTRY_N)
+	if (pTCHAR->m_bAidCountry != TCONTRY_N)
 		bCountry = pTCHAR->m_bAidCountry;
 
 	return bCountry;
@@ -7426,7 +7332,7 @@ BYTE CTWorldSvrModule::GetWarCountry(LPTCHARACTER pTCHAR)
 BYTE CTWorldSvrModule::GetWarCountryGap(BYTE bLevel)
 {
 	BYTE bGap = WARCOUNTRY_MAXGAP;
-	if(bLevel < BROA_BASELEVEL)
+	if (bLevel < BROA_BASELEVEL)
 		return bGap;
 
 	return (bLevel - BROA_BASELEVEL) / 10;
@@ -7436,7 +7342,7 @@ BYTE CTWorldSvrModule::IsMeetingRoom(WORD wMapID, BYTE bIsSmall)
 {
 	BYTE bIn = wMapID >= MEETING_MAPID && wMapID <= MEETING_MAPID + MEETING_SROOM_COUNT;
 
-	if(bIsSmall)
+	if (bIsSmall)
 		bIn = bIn && wMapID != MEETING_MAPID;
 
 	return bIn;
@@ -7445,55 +7351,55 @@ BYTE CTWorldSvrModule::IsMeetingRoom(WORD wMapID, BYTE bIsSmall)
 void CTWorldSvrModule::CalcGuildRanking()
 {
 	MAPTGUILD::iterator it, itComp;
-	for(it=m_mapTGuild.begin(); it!=m_mapTGuild.end(); it++)
+	for (it = m_mapTGuild.begin(); it != m_mapTGuild.end(); it++)
 	{
 		CTGuild * pGuild = it->second;
 		pGuild->m_dwRankTotal = 0;
 		pGuild->m_dwRankMonth = 0;
 
-		if(!pGuild->m_dwPvPTotalPoint && !pGuild->m_dwPvPMonthPoint)
+		if (!pGuild->m_dwPvPTotalPoint && !pGuild->m_dwPvPMonthPoint)
 			continue;
 
-		for(itComp=m_mapTGuild.begin(); itComp!=m_mapTGuild.end(); itComp++)
+		for (itComp = m_mapTGuild.begin(); itComp != m_mapTGuild.end(); itComp++)
 		{
-			if(!itComp->second->m_dwPvPTotalPoint && !itComp->second->m_dwPvPMonthPoint)
+			if (!itComp->second->m_dwPvPTotalPoint && !itComp->second->m_dwPvPMonthPoint)
 				continue;
 
-			if(pGuild->m_dwPvPTotalPoint && pGuild->m_dwPvPTotalPoint < itComp->second->m_dwPvPTotalPoint)
+			if (pGuild->m_dwPvPTotalPoint && pGuild->m_dwPvPTotalPoint < itComp->second->m_dwPvPTotalPoint)
 				pGuild->m_dwRankTotal++;
 
-			if(pGuild->m_dwPvPMonthPoint && pGuild->m_dwPvPMonthPoint < itComp->second->m_dwPvPMonthPoint)
+			if (pGuild->m_dwPvPMonthPoint && pGuild->m_dwPvPMonthPoint < itComp->second->m_dwPvPMonthPoint)
 				pGuild->m_dwRankMonth++;
 		}
 
-		if(pGuild->m_dwPvPTotalPoint)
+		if (pGuild->m_dwPvPTotalPoint)
 			pGuild->m_dwRankTotal++;
 
-		if(pGuild->m_dwPvPMonthPoint)
+		if (pGuild->m_dwPvPMonthPoint)
 			pGuild->m_dwRankMonth++;
 	}
 }
 
-//	¿Ã∫•∆Æ ≥Ø¬• ∏∏µÂ¥¬ «‘ºˆ
+//	Ïù¥Î≤§Ìä∏ ÎÇ†Ïßú ÎßåÎìúÎäî Ìï®Ïàò
 __int64 CTWorldSvrModule::GetNextEventTime(BYTE bWeek, BYTE bHour, BYTE bMin)
 {
-	if(!bWeek || 7 < bWeek || 24 < bHour || 60 < bMin)
+	if (!bWeek || 7 < bWeek || 24 < bHour || 60 < bMin)
 		return -1;
 
-	CTime CurTime = CTime::GetCurrentTime();		
+	CTime CurTime = CTime::GetCurrentTime();
 	CTime EventTime = CTime(CurTime.GetYear(), CurTime.GetMonth(), CurTime.GetDay(), (int)bHour, (int)bMin, 0);
 	BYTE bCurrentWeek = (BYTE)CurTime.GetDayOfWeek();
 	int nDay = 0;
 
-	if(bCurrentWeek > bWeek)
-		bWeek+=7;
+	if (bCurrentWeek > bWeek)
+		bWeek += 7;
 
 	nDay = bWeek - bCurrentWeek;
 
-	if(nDay)
+	if (nDay)
 		EventTime = EventTime + CTimeSpan(nDay, 0, 0, 0);
 
-	if(EventTime.GetTime() < CurTime.GetTime())
+	if (EventTime.GetTime() < CurTime.GetTime())
 		EventTime = EventTime + CTimeSpan(7, 0, 0, 0);
 
 	return EventTime.GetTime();
@@ -7503,40 +7409,40 @@ void CTWorldSvrModule::CheckEventQuarter()
 {
 	MAPTEVENTQUARTER::iterator it = m_mapEVQT.end();
 	MAPTIMEQUARTER::iterator itTime = m_mapTimeEVQT.begin();
-	if(itTime != m_mapTimeEVQT.end())
+	if (itTime != m_mapTimeEVQT.end())
 		it = m_mapEVQT.find(m_mapTimeEVQT.begin()->second);
 
-	if(it != m_mapEVQT.end())
+	if (it != m_mapEVQT.end())
 	{
 		LPTEVENTQUARTER pQT = it->second;
 
 		CTime CurTime(m_timeCurrent);
 		CTime EvnetTime = CTime(itTime->first);
-		CTime NoticeTime = EvnetTime - CTimeSpan(0,0,5,0);	//	Ω√¿€ 5∫–¿¸
+		CTime NoticeTime = EvnetTime - CTimeSpan(0, 0, 5, 0);	//	ÏãúÏûë 5Î∂ÑÏ†Ñ
 
-		
-	INT nCH = CurTime.GetHour();
-	INT nCM = CurTime.GetMinute();
-	INT nCS = CurTime.GetSecond();
-	INT nCD = CurTime.GetDayOfWeek();
-	INT bCurDay = CurTime.GetDay();
-	INT bCurMonth = CurTime.GetMonth();
-	
-	INT nCH2 = NoticeTime.GetHour();
-	INT nCM2 = NoticeTime.GetMinute();
-	INT nCS2 = NoticeTime.GetSecond();
-	INT nCD2 = NoticeTime.GetDayOfWeek();
-	INT bCurDay2 = NoticeTime.GetDay();
-	INT bCurMonth2 = NoticeTime.GetMonth();
 
-		//	∫∏ªÛ¿∫ æ¯∞Ì ∞¯¡ˆ∏∏ ¿÷¥¬∞ÊøÏ
-		if(pQT->m_strPresent.IsEmpty())
+		INT nCH = CurTime.GetHour();
+		INT nCM = CurTime.GetMinute();
+		INT nCS = CurTime.GetSecond();
+		INT nCD = CurTime.GetDayOfWeek();
+		INT bCurDay = CurTime.GetDay();
+		INT bCurMonth = CurTime.GetMonth();
+
+		INT nCH2 = NoticeTime.GetHour();
+		INT nCM2 = NoticeTime.GetMinute();
+		INT nCS2 = NoticeTime.GetSecond();
+		INT nCD2 = NoticeTime.GetDayOfWeek();
+		INT bCurDay2 = NoticeTime.GetDay();
+		INT bCurMonth2 = NoticeTime.GetMonth();
+
+		//	Î≥¥ÏÉÅÏùÄ ÏóÜÍ≥† Í≥µÏßÄÎßå ÏûàÎäîÍ≤ΩÏö∞
+		if (pQT->m_strPresent.IsEmpty())
 			NoticeTime = EvnetTime;
 
-		if(!pQT->m_bNotice && CurTime.GetTime() >= NoticeTime.GetTime()
+		if (!pQT->m_bNotice && CurTime.GetTime() >= NoticeTime.GetTime()
 			&& !pQT->m_strAnnounce.IsEmpty())
 		{
-			//	∞¯¡ˆ ∂ÁøÏ±‚.
+			//	Í≥µÏßÄ ÎùÑÏö∞Í∏∞.
 			LPPACKETBUF pMSG = new PACKETBUF();
 			pMSG->m_packet.SetID(SM_EVENTQUARTERNOTIFY_REQ)
 				<< pQT->m_strAnnounce;
@@ -7545,11 +7451,11 @@ void CTWorldSvrModule::CheckEventQuarter()
 			pQT->m_bNotice = TRUE;
 		}
 
-		if(CurTime.GetTime() >= EvnetTime.GetTime())
-		{			
-			if(!pQT->m_strPresent.IsEmpty())
+		if (CurTime.GetTime() >= EvnetTime.GetTime())
+		{
+			if (!pQT->m_strPresent.IsEmpty())
 			{
-				//	¥Á√∑¿⁄ ∞¯¡ˆ, º±π∞πﬂº€
+				//	ÎãπÏ≤®Ïûê Í≥µÏßÄ, ÏÑ†Î¨ºÎ∞úÏÜ°
 				LPPACKETBUF pMSG = new PACKETBUF();
 				pMSG->m_packet.SetID(SM_EVENTQUARTER_REQ)
 					<< pQT->m_bDay
@@ -7569,7 +7475,7 @@ void CTWorldSvrModule::CheckEventQuarter()
 
 #ifdef __TW_APEX
 // Apex Function Start/////////////////////////////////////////////////////////////////////////
-long CTWorldSvrModule::ApexSendToMap(signed int nSendId, const char * pBuffer,int nLen)
+long CTWorldSvrModule::ApexSendToMap(signed int nSendId, const char * pBuffer, int nLen)
 {
 	LPPACKETBUF pMSG = new PACKETBUF();
 	pMSG->m_packet.SetID(SM_APEXDATA_REQ)
@@ -7595,11 +7501,11 @@ long CTWorldSvrModule::ApexKillUser(signed int nId, int nAction)
 }
 void CTWorldSvrModule::ApexNotifyUserEnter(DWORD dwCharID, CString strName, DWORD dwIP)
 {
-	if(m_pApexRecv)
+	if (m_pApexRecv)
 	{
-		m_pApexRecv('L',dwCharID,strName,strName.GetLength());
+		m_pApexRecv('L', dwCharID, strName, strName.GetLength());
 
-		char szBuf[5] = {0};
+		char szBuf[5] = { 0 };
 		szBuf[0] = 0x01;
 		memcpy(&szBuf[1], &dwIP, sizeof(dwIP));
 		m_pApexRecv('S', dwCharID, szBuf, 5);
@@ -7607,18 +7513,18 @@ void CTWorldSvrModule::ApexNotifyUserEnter(DWORD dwCharID, CString strName, DWOR
 }
 void CTWorldSvrModule::ApexNotifyUserLeave(DWORD dwCharID, CString strName)
 {
-	if(m_pApexRecv)
-		m_pApexRecv('G',dwCharID,strName,strName.GetLength());
+	if (m_pApexRecv)
+		m_pApexRecv('G', dwCharID, strName, strName.GetLength());
 }
-void CTWorldSvrModule::ApexNotifyUserData(int nSendId,const char * pBuf,int nBufLen)
+void CTWorldSvrModule::ApexNotifyUserData(int nSendId, const char * pBuf, int nBufLen)
 {
-	if(m_pApexRecv)
-		m_pApexRecv('T',nSendId,pBuf,nBufLen);
+	if (m_pApexRecv)
+		m_pApexRecv('T', nSendId, pBuf, nBufLen);
 }
-void CTWorldSvrModule::ApexNotifyUserReturn(int nSendId,const char * pRet)
+void CTWorldSvrModule::ApexNotifyUserReturn(int nSendId, const char * pRet)
 {
-	if(m_pApexRecv)
-		m_pApexRecv('R',nSendId,(char*)pRet,4);
+	if (m_pApexRecv)
+		m_pApexRecv('R', nSendId, (char*)pRet, 4);
 }
 
 // Apex Function End//

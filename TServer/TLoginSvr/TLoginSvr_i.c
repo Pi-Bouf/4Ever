@@ -5,11 +5,11 @@
 /* link this file in with the server and any clients */
 
 
- /* File created by MIDL compiler version 8.00.0603 */
-/* at Sat Jun 16 18:17:57 2018
+ /* File created by MIDL compiler version 8.01.0622 */
+/* at Tue Jan 19 04:14:07 2038
  */
 /* Compiler settings for TLoginSvr.idl:
-    Oicf, W1, Zp8, env=Win32 (32b run), target_arch=X86 8.00.0603 
+    Oicf, W1, Zp8, env=Win32 (32b run), target_arch=X86 8.01.0622 
     protocol : dce , ms_ext, c_ext, robust
     error checks: allocation ref bounds_check enum stub_data 
     VC __declspec() decoration level: 
@@ -18,7 +18,6 @@
 */
 /* @@MIDL_FILE_HEADING(  ) */
 
-#pragma warning( disable: 4049 )  /* more than 64k source lines */
 
 
 #ifdef __cplusplus
@@ -63,9 +62,9 @@ typedef IID CLSID;
 #endif // CLSID_DEFINED
 
 #define MIDL_DEFINE_GUID(type,name,l,w1,w2,b1,b2,b3,b4,b5,b6,b7,b8) \
-        const type name = {l,w1,w2,{b1,b2,b3,b4,b5,b6,b7,b8}}
+        EXTERN_C __declspec(selectany) const type name = {l,w1,w2,{b1,b2,b3,b4,b5,b6,b7,b8}}
 
-#endif !_MIDL_USE_GUIDDEF_
+#endif // !_MIDL_USE_GUIDDEF_
 
 MIDL_DEFINE_GUID(IID, LIBID_TLoginSvrLib,0xE9F8E765,0x87F4,0x4E21,0xAB,0x86,0xAA,0x81,0x03,0x80,0x6A,0x01);
 

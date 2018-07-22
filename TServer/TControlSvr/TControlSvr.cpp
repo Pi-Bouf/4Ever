@@ -7,18 +7,23 @@
 CTControlSvrModule _AtlModule;
 
 
-extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, 
-                                LPTSTR /*lpCmdLine*/, int nShowCmd)
+//extern "C" int WINAPI _tWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, 
+//                                LPTSTR /*lpCmdLine*/, int nShowCmd)
+//{
+//    return _AtlModule.WinMain(nShowCmd);
+//}
+
+void main()
 {
-    return _AtlModule.WinMain(nShowCmd);
+	_AtlModule.StartServer();
+
+	int i;
+	cin >> i;
 }
 
 
-CTControlSvrModule::CTControlSvrModule()
+CTControlSvrModule::CTControlSvrModule(): TServerSystem("TControl", TCONTROL_VERSION)
 {
-	memset( m_szDBPasswd, 0, ONE_KBYTE);
-	memset( m_szDBUserID, 0, ONE_KBYTE);
-	memset( m_szDSN, 0, ONE_KBYTE);
 	memset( &m_svraddr, 0, sizeof(SOCKADDR_IN));
 
 	m_wPort = DEF_CONTROLPORT;
@@ -103,22 +108,27 @@ DWORD CTControlSvrModule::_TimerThread(LPVOID lpParam)
 
 DWORD CTControlSvrModule::OnEnter()
 {
+	LogInfo("Load configuration...", 1);
 	DWORD dwResult = LoadConfig();
 	if(dwResult)
 		return dwResult;
 
+	LogInfo("Database initialization...", 1);
 	dwResult = InitDB();
 	if(dwResult)
 		return dwResult;
 
+	LogInfo("Loading data...", 1);
 	dwResult = LoadData();
 	if(dwResult)
 		return dwResult;
 
+	LogInfo("Create threads...", 1);
 	dwResult = CreateThreads();
 	if(dwResult)
 		return dwResult;
 
+	LogInfo("Init network...", 1);
 	dwResult = InitNetwork();
 	if(dwResult)
 		return dwResult;
@@ -144,6 +154,7 @@ DWORD CTControlSvrModule::OnEnter()
 	// Dump
 	CTMiniDump::SetOption(MiniDumpWithFullMemory);
 
+	LogInfo("Ready !", 1);
 	return 0;
 }
 
@@ -189,87 +200,15 @@ void CTControlSvrModule::OnExit()
 
 DWORD CTControlSvrModule::LoadConfig()
 {
-	//Load config from registry
-	DWORD dwLength;
-	DWORD dwValue;
-	HKEY hKey;
 
-	CString strRegKey;
-	strRegKey.Empty();
+	LoadStringFromIni("DSN", string("TGLOBAL_GSP"), &m_szDSN);
+	LoadStringFromIni("DBUser", string("sa"), &m_szDBUserID);
+	LoadStringFromIni("DBPasswd", string("1234"), &m_szDBPasswd);
+	LoadIntFromIni("ControlPort", DEF_CONTROLPORT, &m_wPort);
 
-#ifdef _DEBUG
-	HKEY hOpenKey = HKEY_CURRENT_USER;
-	strRegKey.Format(_T("software\\%s"), m_szServiceName);
-#else
-	HKEY hOpenKey = HKEY_LOCAL_MACHINE;
-	strRegKey.Format(_T("SYSTEM\\CurrentControlSet\\Services\\%s\\Config"), m_szServiceName);
-#endif
+	DisplayIni();
 
-	int nERROR = RegCreateKey( hOpenKey, strRegKey, &hKey);
-	if( nERROR != ERROR_SUCCESS )
-		return EC_INITSERVICE_OPENREG;
-
-	// Load game database password
-	dwLength = ONE_KBYTE;
-	nERROR = RegQueryValueEx(
-		hKey,
-		_T("DBPasswd"),
-		NULL,
-		NULL,
-		(LPBYTE) &m_szDBPasswd,
-		&dwLength);
-	if( nERROR != ERROR_SUCCESS )
-		return EC_INITSERVICE_PASSWDNOTASSIGNED;
-
-	// Load DB user ID
-	dwLength = ONE_KBYTE;
-	nERROR = RegQueryValueEx(
-		hKey,
-		_T("DBUser"),
-		NULL,
-		NULL,
-		(LPBYTE) &m_szDBUserID,
-		&dwLength);
-	if( nERROR != ERROR_SUCCESS )
-		return EC_INITSERVICE_PASSWDNOTASSIGNED;
-
-	// Load account database DSN
-	dwLength = ONE_KBYTE;
-	nERROR = RegQueryValueEx(
-		hKey,
-		_T("DSN"),
-		NULL,
-		NULL,
-		(LPBYTE) &m_szDSN,
-		&dwLength);
-	if( nERROR != ERROR_SUCCESS )
-		return EC_INITSERVICE_DSNNOTASSIGNED;
-
-	// Load listen port
-	dwLength = sizeof(DWORD);
-	nERROR = RegQueryValueEx(
-		hKey,
-		_T("Port"),
-		NULL,
-		NULL,
-		(LPBYTE) &dwValue,
-		&dwLength);
-	if( nERROR != ERROR_SUCCESS )
-		return EC_INITSERVICE_PORTNOTASSIGNED;
-	else
-		m_wPort = (WORD) dwValue;
-
-	// AutoStartEnable
-	dwLength = sizeof(DWORD);
-	nERROR = RegQueryValueEx(
-		hKey,
-		_T("AutoStart"),
-		NULL,
-		NULL,
-		NULL,
-		NULL);
-	if( nERROR == ERROR_SUCCESS )
-		m_bAutoStart = TRUE;
+	m_bAutoStart = TRUE;
 	
 	return EC_NOERROR;
 }
@@ -429,7 +368,7 @@ DWORD CTControlSvrModule::InitNetwork()
 
 	if( !m_pDebugSocket->Initialize( "127.0.0.1", 7000) )
 	{
-		LogEvent("DebugSocket could not be initializised!");
+		LogError("DebugSocket could not be initializised!", 1);
 
 		return EC_INITSERVICE_UDPSOCKETFAILED;
 	}
@@ -610,7 +549,8 @@ void CTControlSvrModule::OnCloseSession( CTControlSession *pSession)
 		LPTSVRTEMP pSvrTemp = FindService(pServer);
 		if(pSvrTemp)
 		{
-			LogEvent("Svr Close %d", pServer->m_dwID);
+			string message = "Svr Close " + to_string(pServer->m_dwID);
+			LogInfo(message, 1);
 			pSvrTemp->m_pConn = NULL;
 			pSvrTemp->m_flag = FALSE;
 		}
@@ -676,7 +616,7 @@ void CTControlSvrModule::CloseSession( CTControlSession *pSession)
 
 DWORD CTControlSvrModule::InitDB()
 {
-	if(!m_db.Open( m_szDSN, m_szDBUserID, m_szDBPasswd))
+	if(!m_db.Open( m_szDSN.c_str(), m_szDBUserID.c_str(), m_szDBPasswd.c_str()))
 		return EC_INITSERVICE_DBOPENFAILED;
 
 	if(!InitQueryTControlSvr(&m_db))
@@ -1596,25 +1536,6 @@ void CTControlSvrModule::SayToSM( LPPACKETBUF pBUF)
 	m_qSMJOB.push(pBUF);
 	LeaveCriticalSection(&m_csSMQUEUE);
 	SetEvent(m_hSMEvent);
-}
-
-HRESULT CTControlSvrModule::PreMessageLoop( int nShowCmd)
-{
-	DWORD dwResult = OnEnter();
-
-	if(dwResult)
-	{
-		OnERROR(dwResult);
-		return E_FAIL;
-	}
-
-	return CAtlServiceModuleT<CTControlSvrModule,IDS_SERVICENAME>::PreMessageLoop(nShowCmd);
-}
-
-HRESULT CTControlSvrModule::PostMessageLoop()
-{
-	OnExit();
-	return CAtlServiceModuleT<CTControlSvrModule,IDS_SERVICENAME>::PostMessageLoop();
 }
 
 void CTControlSvrModule::SendSvrStatusSMS(BYTE _bSvrType, DWORD _dwSvrID, BYTE _bSvrStatus)
