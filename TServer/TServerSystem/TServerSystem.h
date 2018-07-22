@@ -9,6 +9,14 @@
 #define INI_PRESENTATION_COLOR 11
 #define INI_VALUES_COLOR 7
 
+#define TCONTROL_VERSION "1.1.0"
+#define TLOGIN_VERSION "1.1.0"
+#define TMAP_VERSION "1.1.0"
+#define TPATCH_VERSION "1.1.0"
+#define TRELAY_VERSION "1.1.0"
+#define TWORLD_VERSION "1.1.0"
+
+
 #define _CRT_SECURE_NO_WARNINGS
 
 #include <ctime>

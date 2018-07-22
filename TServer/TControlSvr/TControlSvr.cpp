@@ -22,7 +22,7 @@ void main()
 }
 
 
-CTControlSvrModule::CTControlSvrModule(): TServerSystem("TControl", "1.0.1")
+CTControlSvrModule::CTControlSvrModule(): TServerSystem("TControl", TCONTROL_VERSION)
 {
 	memset( &m_svraddr, 0, sizeof(SOCKADDR_IN));
 

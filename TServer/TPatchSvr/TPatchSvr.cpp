@@ -22,7 +22,7 @@ void main()
 }
 
 
-CTPatchSvrModule::CTPatchSvrModule() : TServerSystem("TPatch", "1.0.1")
+CTPatchSvrModule::CTPatchSvrModule() : TServerSystem("TPatch", TPATCH_VERSION)
 {
 	m_wPort = DEF_PATCHPORT;
 	m_bNumWorker = 0;

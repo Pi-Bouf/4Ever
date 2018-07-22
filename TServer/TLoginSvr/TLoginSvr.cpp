@@ -25,7 +25,7 @@ void main()
 }
 
 
-CTLoginSvrModule::CTLoginSvrModule() : TServerSystem("TLogin", "1.0.1")
+CTLoginSvrModule::CTLoginSvrModule() : TServerSystem("TLogin", TLOGIN_VERSION)
 {
 	m_wPort = DEF_LOGINPORT;
 	m_bNumWorker = 0;

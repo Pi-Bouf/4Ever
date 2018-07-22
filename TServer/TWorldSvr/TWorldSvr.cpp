@@ -21,7 +21,7 @@ void main()
 }
 
 
-CTWorldSvrModule::CTWorldSvrModule() : TServerSystem("TWorld", "1.0.1")
+CTWorldSvrModule::CTWorldSvrModule() : TServerSystem("TWorld", TWORLD_VERSION)
 {
 	m_wPort = DEF_WORLDPORT;
 	m_bNumWorker = 0;

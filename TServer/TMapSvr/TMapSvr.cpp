@@ -22,7 +22,7 @@ void main()
 	cin >> i;
 }
 
-CTMapSvrModule::CTMapSvrModule() : TServerSystem("TMap", "1.0.1")
+CTMapSvrModule::CTMapSvrModule() : TServerSystem("TMap", TMAP_VERSION)
 {
 	memset( m_dwWarCountryBalance, 0, sizeof(m_dwWarCountryBalance));
 

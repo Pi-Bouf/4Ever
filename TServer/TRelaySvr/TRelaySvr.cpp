@@ -24,7 +24,7 @@ void main()
 	cin >> i;
 }
 
-CTRelaySvrModule::CTRelaySvrModule() : TServerSystem("TRelay", "1.0.1")
+CTRelaySvrModule::CTRelaySvrModule() : TServerSystem("TRelay", TRELAY_VERSION)
 {
 
 	m_wWorldPort = DEF_WORLDPORT;
