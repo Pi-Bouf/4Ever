@@ -17,6 +17,7 @@
 #define DEF_WORLDPORT				(4422)
 #define DEF_LOGINPORT				(5336)
 #define DEF_MAPPORT					(5816)
+#define DEF_TRELAYPORT				(4016)
 
 //////////////////////////////////////////////////////////////////////////////
 // Completion key

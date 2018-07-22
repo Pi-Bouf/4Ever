@@ -13,7 +13,7 @@ CTPlayer::CTPlayer(void)
 	m_dwCheckTick = 0;
 	m_dwTacticsID = 0;
 
-	m_wPort = 0;
+	m_wRelayPort = 0;
 	m_wPartyID = 0;
 	m_wCorpsID = 0;
 	m_wMapID = 0;

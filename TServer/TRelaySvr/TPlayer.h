@@ -15,7 +15,7 @@ public:
 	DWORD	m_dwCheckTick;
 	DWORD	m_dwTacticsID;
 
-	WORD	m_wPort;
+	WORD	m_wRelayPort;
 	WORD	m_wPartyID;
 	WORD	m_wCorpsID;
 	WORD	m_wMapID;
