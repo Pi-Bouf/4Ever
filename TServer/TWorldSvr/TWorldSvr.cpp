@@ -12,27 +12,6 @@ CTWorldSvrModule _AtlModule;
 
 void main()
 {
-	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-	SetConsoleTextAttribute(hConsole, 14);
-	cout << endl;
-	cout << " #################################################################### " << endl;
-	cout << " #         .o    .oooooo..o     .                                   # " << endl;
-	cout << " #       .d88   d8P'    `Y8   .o8                                   # " << endl;
-	cout << " #     .d'888   Y88bo.      .o888oo  .ooooo.  oooo d8b oooo    ooo  # " << endl;
-	cout << " #   .d'  888    `\"Y8888o.    888   d88' `88b `888\"\"8P  `88.  .8'   # " << endl;
-	cout << " #   88ooo888oo      `\"Y88b   888   888   888  888       `88..8'    # " << endl;
-	cout << " #        888   oo     .d8P   888 . 888   888  888        `888'     # " << endl;
-	cout << " #       o888o  8\"\"88888P'    \"888\" `Y8bod8P' d888b        .8'      # " << endl;
-	SetConsoleTextAttribute(hConsole, 13);
-	cout << " #       TWORLD SERVER";
-	SetConsoleTextAttribute(hConsole, 14);
-	cout << "                                 .o..P'       # " << endl;
-	SetConsoleTextAttribute(hConsole, 11);
-	cout << " #       Version: 1.0.1";
-	SetConsoleTextAttribute(hConsole, 14);
-	cout << "                                `Y8P'        # " << endl;
-	cout << " #################################################################### " << endl << endl;
-
 	_AtlModule.StartServer();
 
 	int i;
@@ -42,10 +21,6 @@ void main()
 
 CTWorldSvrModule::CTWorldSvrModule()
 {
-	timeNow = time(0);
-	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-	LogInfo("Welcome on TWorld Server !");
-
 	m_wPort = DEF_WORLDPORT;
 	m_bNumWorker = 0;
 	m_bServerID = 0;
@@ -3748,22 +3723,6 @@ void CTWorldSvrModule::OnCheckConnect( LPTCHARACTER pTCHAR, LPPACKETBUF pBUF)
 	}
 
 	mapCON.clear();
-}
-
-void CTWorldSvrModule::StartServer()
-{
-	DWORD dwResult = StartUp();
-
-	if (dwResult)
-	{
-		OnERROR(dwResult);
-	}
-}
-
-HRESULT CTWorldSvrModule::PostMessageLoop()
-{
-	OnExit();
-	return NO_ERROR;
 }
 
 LPTGUILDLEVEL CTWorldSvrModule::FindGuildLevel(BYTE bLevel)

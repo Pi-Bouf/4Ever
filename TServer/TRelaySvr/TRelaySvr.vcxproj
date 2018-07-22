@@ -71,7 +71,7 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>odbc32.lib;ws2_32.lib;mswsock.lib;TNetLibd.Lib;TServerSystemd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>odbc32.lib;ws2_32.lib;mswsock.lib;TNetLibd.lib;TServerSystemd.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>..\Servers\TRelaySvr_Debug.exe</OutputFile>
       <AdditionalLibraryDirectories>..\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <DelayLoadDLLs />
@@ -92,8 +92,11 @@
       <ProxyFileName>TRelaySvr_p.c</ProxyFileName>
     </Midl>
     <PostBuildEvent>
-      <Message>등록하고 있습니다.</Message>
-      <Command>"$(TargetPath)" /RegServer</Command>
+      <Message>
+      </Message>
+      <Command>IF NOT EXIST "..\Servers\Configurations\$(ProjectName).ini" XCOPY $(ProjectName).ini ..\Servers\Configurations\
+DEL /f ..\Servers\$(ProjectName)
+DEL /f ..\Servers\$(ProjectName)_Debug.ilk</Command>
     </PostBuildEvent>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -113,7 +116,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>odbc32.lib;ws2_32.lib;mswsock.lib;TNetLib.ib;TServerSystemd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>odbc32.lib;ws2_32.lib;mswsock.lib;TNetLib.lib;TServerSystemd.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>..\Servers\TRelaySvr.exe</OutputFile>
       <AdditionalLibraryDirectories>..\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <DelayLoadDLLs />
@@ -142,6 +145,11 @@
       <Culture>0x0412</Culture>
       <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
+    <PostBuildEvent>
+      <Command>IF NOT EXIST "..\Servers\Configurations\$(ProjectName).ini" XCOPY $(ProjectName).ini ..\Servers\Configurations\
+DEL /f ..\Servers\$(ProjectName)
+DEL /f ..\Servers\$(ProjectName)_Debug.ilk</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CSHandler.cpp" />
