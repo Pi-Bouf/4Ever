@@ -116,7 +116,7 @@ DEL /f ..\Servers\$(ProjectName)_Debug.ilk</Command>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>odbc32.lib;ws2_32.lib;mswsock.lib;TNetLib.lib;TServerSystemd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>odbc32.lib;ws2_32.lib;mswsock.lib;TNetLib.lib;TServerSystem.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>..\Servers\TRelaySvr.exe</OutputFile>
       <AdditionalLibraryDirectories>..\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <DelayLoadDLLs />
