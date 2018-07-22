@@ -120,9 +120,9 @@ LANGUAGE LANG_FRENCH, SUBLANG_FRENCH
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_ICON1               ICON                    "C:\\Users\\pierr\\Desktop\\4Ever\\TServer\\TServerSystem\\res\\TServer_Debug.ico"
+IDI_ICON1               ICON                    "..\\TServerSystem\\res\\TServer_Debug.ico"
 
-IDI_ICON2               ICON                    "C:\\Users\\pierr\\Desktop\\4Ever\\TServer\\TServerSystem\\res\\TServer_Release.ico"
+IDI_ICON2               ICON                    "..\\TServerSystem\\res\\TServer_Release.ico"
 
 #endif    // Français (France) resources
 /////////////////////////////////////////////////////////////////////////////
