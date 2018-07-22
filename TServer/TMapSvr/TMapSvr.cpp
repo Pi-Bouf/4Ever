@@ -532,7 +532,7 @@ DWORD CTMapSvrModule::LoadConfig()
 	LoadStringFromIni("DSN", string("TGLOBAL_GSP"), &m_szGameDSN);
 	LoadStringFromIni("DBUser", string("sa"), &m_szDBUserID);
 	LoadStringFromIni("DBPasswd", string("1234"), &m_szGamePasswd);
-	LoadIntFromIni("GamePort", 5816, &m_wGamePort);
+	LoadIntFromIni("GamePort", DEF_MAPPORT, &m_wGamePort);
 
 	LoadStringFromIni("WorldIP", string("127.0.0.1"), &m_szWorldIP);
 	LoadIntFromIni("WorldPort", 4422, &m_wWorldPort);

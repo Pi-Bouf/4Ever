@@ -37,6 +37,8 @@
 
 #include "resource.h"
 
+#include "AtlTime.h"
+
 #include "TNetLib.h"
 #include "NetCode.h"
 #include "TPatchType.h"

@@ -180,7 +180,7 @@ DWORD CTLoginSvrModule::LoadConfig()
 	LoadStringFromIni("DSN", string("TGLOBAL_GSP"), &m_szDSN);
 	LoadStringFromIni("DBUser", string("sa"), &m_szDBUserID);
 	LoadStringFromIni("DBPasswd", string("1234"), &m_szDBPasswd);
-	LoadIntFromIni("LoginPort", 5336, &m_wPort);
+	LoadIntFromIni("LoginPort", DEF_LOGINPORT, &m_wPort);
 	LoadIntFromIni("ServerID", 1, &m_bServerID);
 	LoadStringFromIni("LogIP", string("127.0.0.1"), &m_szLogServerIP);
 	LoadIntFromIni("LogPort", 7000, &m_wLogServerPORT);

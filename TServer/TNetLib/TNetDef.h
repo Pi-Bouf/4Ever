@@ -12,11 +12,11 @@
 //////////////////////////////////////////////////////////////////////////////
 // Default port
 
-#define DEF_CONTROLPORT				(3615)
+#define DEF_CONTROLPORT				(7442)
 #define DEF_PATCHPORT				(3715)
-#define DEF_WORLDPORT				(3815)
-#define DEF_LOGINPORT				(4815)
-#define DEF_MAPPORT					(5815)
+#define DEF_WORLDPORT				(4422)
+#define DEF_LOGINPORT				(5336)
+#define DEF_MAPPORT					(5816)
 
 //////////////////////////////////////////////////////////////////////////////
 // Completion key

@@ -204,7 +204,7 @@ DWORD CTControlSvrModule::LoadConfig()
 	LoadStringFromIni("DSN", string("TGLOBAL_GSP"), &m_szDSN);
 	LoadStringFromIni("DBUser", string("sa"), &m_szDBUserID);
 	LoadStringFromIni("DBPasswd", string("1234"), &m_szDBPasswd);
-	LoadIntFromIni("ControlPort", 7442, &m_wPort);
+	LoadIntFromIni("ControlPort", DEF_CONTROLPORT, &m_wPort);
 
 	DisplayIni();
 
