@@ -6,6 +6,12 @@ tglobal.bak
 **/*.lnk
 .vs
 
+# AAAAAAAAAAAA SUPPRIMER
+TServer/Lib/*
+TServer/lib/*
+TServer/Servers/*
+
+
 # Internals
 Includes/Internals/.vs/*
 Includes/Internals/TChart/Debug/*
@@ -41,9 +47,9 @@ TClient/Exec/TClientd.map
 
 # TServer
 TServer/.vs/*
-TServer/Services/
-TServer/lib/TNetLib.lib
-TServer/lib/TNetLibd.lib
+TServer/Servers/Configurations/*
+TServer/Lib/TNetLib.lib
+TServer/Lib/TNetLibd.lib
 TServer/TNetLib/Debug/*
 TServer/TNetLib/Release/*
 
@@ -52,30 +58,46 @@ TServer/TLoginSvr/Debug/*
 TServer/TLoginSvr/Release/*
 TServer/TLoginSvr/TLoginSvr.h
 TServer/TLoginSvr/TLoginSvr_i.c
+TServer/TLoginSvr/TLoginSvr.aps
 
 # TMap
 TServer/TMapSvr/Debug/*
 TServer/TMapSvr/Release/*
 TServer/TMapSvr/TMapSvr.h
 TServer/TMapSvr/TMapSvr_i.c
+TServer/TMapSvr/TMapSvr.aps
 
 # TWorld
 TServer/TWorldSvr/Debug/*
 TServer/TWorldSvr/Release/*
 TServer/TWorldSvr/TWorldSvr.h
 TServer/TWorldSvr/TWorldSvr_i.c
+TServer/TWorldSvr/TWorldSvr.aps
 
 # TRelay
 TServer/TRelaySvr/Debug/*
 TServer/TRelaySvr/Release/*
 TServer/TRelaySvr/TRelaySvr.h
 TServer/TRelaySvr/TRelaySvr_i.c
+TServer/TRelaySvr/TRelaySvr.aps
+
+# TPatch
+TServer/TPatchSvr/Debug/*
+TServer/TPatchSvr/Release/*
+TServer/TPatchSvr/TPatchSvr.h
+TServer/TPatchSvr/TPatchSvr_i.c
+TServer/TPatchSvr/TPatchSvr.aps
 
 # TControl
 TServer/TControlSvr/Debug/*
 TServer/TControlSvr/Release/*
 TServer/TControlSvr/TControlSvr.h
 TServer/TControlSvr/TControlSvr_i.c
+TServer/TControlSvr/TControlSvr.aps
+
+# TServerSystem
+TServer/TServerSystem/Debug/*
+TServer/TServerSystem/Release/*
 
 # Tools
 TClient/Tools
