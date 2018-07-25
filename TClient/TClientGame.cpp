@@ -556,7 +556,7 @@ CTClientGame::CTClientGame()
 	ClearMonInven();
 	EndQUAKE();
 
-#if defined(TEST_MODE) || defined(DEBUG)
+#if defined(TEST_MODE)
 	ReleaseTSPAWN();
 
 	m_bEditTSPAWN = FALSE;
@@ -1004,6 +1004,7 @@ HRESULT CTClientGame::Render( DWORD dwTickCount)
 
 	CalcDynamicHelp(dwTickCount);
 	CalcTQuestTick(dwTickCount);
+	CalcUIBar(dwTickCount);
 	CalcGlobalTEX(dwTickCount);
 	CalcFLASHTick(dwTickCount);
 	CalcBGM(dwTickCount);
@@ -6113,7 +6114,7 @@ void CTClientGame::CalcSLAVEMON( DWORD dwTick)
 
 			if( pMONSTER->m_bFollowType == OT_NONE )
 			{
-#if defined(TEST_MODE) || defined(DEBUG)
+#if defined(TEST_MODE)
 				CTClientObjBase *pFollow = NULL;
 
 				if(m_bMonRoaming)
@@ -8194,6 +8195,17 @@ int CTClientGame::OnCommand( TCOMMAND Command)
 	ON_GM_COMMAND(GM_MENU_RIDEPET)
 	ON_GM_COMMAND(GM_MENU_PETMANAGE)
 
+	ON_GM_COMMAND(GM_UTILIRYBAR_EX)
+	ON_GM_COMMAND(GM_UTILIRYBAR_1)
+	ON_GM_COMMAND(GM_UTILIRYBAR_2)
+	ON_GM_COMMAND(GM_UTILIRYBAR_3)
+	ON_GM_COMMAND(GM_UTILIRYBAR_4)
+	ON_GM_COMMAND(GM_UTILIRYBAR_5)
+	ON_GM_COMMAND(GM_UTILIRYBAR_6)
+	ON_GM_COMMAND(GM_UTILIRYBAR_7)
+	ON_GM_COMMAND(GM_UTILIRYBAR_8)
+	ON_GM_COMMAND(GM_UTILIRYBAR_9)
+
 	ON_GM_COMMAND(GM_SELECT_TEXTURE_DETAIL)
 	ON_GM_COMMAND(GM_CHANGE_CHANNEL)
 	ON_GM_COMMAND(GM_CLICK_WORLDMAP)
@@ -9275,7 +9287,7 @@ void CTClientGame::ReleaseGame()
 			pTPANNEL->m_pLUCKY4->m_strText.Empty();
 	}
 
-#if defined(TEST_MODE) || defined(DEBUG)
+#if defined(TEST_MODE)
 	ReleaseTSPAWN();
 #endif
 
@@ -9655,6 +9667,10 @@ BYTE CTClientGame::CloseTopFrame()
 	{
 		if( m_bTournamentBattle || m_bTournamentWatching )
 			return (BYTE)T_INVALID;
+	}
+	else if (bFrameID == TFRAME_UIBAR)
+	{
+		return (BYTE)T_INVALID;
 	}
 	else if(bFrameID == TFRAME_SKYGARDEN_MAP)
 	{
@@ -20470,6 +20486,29 @@ void CTClientGame::CalcDynamicHelp( DWORD dwTick)
 	else if( m_vTOPTION.m_bAutoHelp && !m_pNotifyFrame->IsVisible() )
 		m_pNotifyFrame->ShowComponent(TRUE);
 #endif
+}
+
+void CTClientGame::CalcUIBar(DWORD dwTick)
+{
+	CTUIBarDlg* pBar = static_cast<CTUIBarDlg*>(m_vTFRAME[TFRAME_UIBAR]);
+
+	if (!m_vTOPTION.m_bUIBarShow)
+	{
+		pBar->bShownBar = FALSE;
+	}
+	else
+	{
+		pBar->bShownBar = TRUE;
+	}
+
+	if (!m_vTOPTION.m_bUIBar)
+	{
+		pBar->bShownAll = FALSE;
+	}
+	else
+	{
+		pBar->bShownAll = TRUE;
+	}
 }
 
 void CTClientGame::CalcBGM( DWORD dwTick)

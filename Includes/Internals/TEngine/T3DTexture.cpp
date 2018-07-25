@@ -1,5 +1,13 @@
 #include "StdAfx.h"
 
+void CT3DTexture::SaveImageFile(LPCSTR strFileName, D3DXIMAGE_FILEFORMAT destFormat, LPDIRECT3DTEXTURE9 pTEX)
+{
+	D3DXSaveTextureToFile(
+		strFileName,
+		destFormat,
+		pTEX,
+		NULL);
+}
 
 CT3DTexture::CT3DTexture()
 {

@@ -188,6 +188,9 @@
     <Filter Include="Global">
       <UniqueIdentifier>{68afa6e4-5872-496c-abdb-c0ddfece09c7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Interface\Utilitybar">
+      <UniqueIdentifier>{44611303-8aa0-4ce2-ab69-e7a81ee35d72}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="res\Curse.txt">
@@ -857,6 +860,9 @@
     </ClCompile>
     <ClCompile Include="IPDialog.cpp" />
     <ClCompile Include="TClientPath.cpp" />
+    <ClCompile Include="TUIBarDlg.cpp">
+      <Filter>Interface\Utilitybar</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TClientGuildMark.h">
@@ -1470,5 +1476,11 @@
     </ClInclude>
     <ClInclude Include="IPDialog.h" />
     <ClInclude Include="TClientPath.h" />
+    <ClInclude Include="..\Includes\Internals\History Files\TClientID.h">
+      <Filter>Lobby</Filter>
+    </ClInclude>
+    <ClInclude Include="TUIBarDlg.h">
+      <Filter>Interface\Utilitybar</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

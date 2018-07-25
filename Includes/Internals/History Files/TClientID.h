@@ -1,5 +1,17 @@
 #pragma once
-
+//UTILITYBAR
+#define ID_FRAME_UIBAR              	  (0x0000047A)
+#define GM_UTILIRYBAR_EX                  (0x000002FC)
+#define GM_UTILIRYBAR_1                   (0x000002F3)
+#define GM_UTILIRYBAR_2                   (0x000002F4)
+#define GM_UTILIRYBAR_3                   (0x000002F5)
+#define GM_UTILIRYBAR_4                   (0x000002F6)
+#define GM_UTILIRYBAR_5                   (0x000002F7)
+#define GM_UTILIRYBAR_6                   (0x000002F8)
+#define GM_UTILIRYBAR_7                   (0x000002F9)
+#define GM_UTILIRYBAR_8                   (0x000002FA)
+#define GM_UTILIRYBAR_9                   (0x000002FB)
+//UTILITYBAR(end)
 #define A			(0x00005FDE)
 #define AAA			(0x00005FD8)
 #define ARROW2_ANI_0			(0x00005F3F)

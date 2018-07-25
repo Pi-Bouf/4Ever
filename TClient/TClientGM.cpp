@@ -5103,6 +5103,390 @@ int CTClientGame::OnGM_MENU_PETMANAGE()
 	return TERR_NONE;
 }
 
+int CTClientGame::OnGM_UTILIRYBAR_EX()
+{
+	CTClientGame::m_vTOPTION.m_bUIBarShow = !CTClientGame::m_vTOPTION.m_bUIBarShow;
+	CTUIBarDlg* pBar = static_cast<CTUIBarDlg*>(m_vTFRAME[TFRAME_UIBAR]);
+	if (pBar->bShownAll)
+	{
+		pBar->bShownBar = FALSE;
+	}
+	else
+	{
+		pBar->bShownBar = TRUE;
+	}
+
+	return TERR_NONE;
+}
+int CTClientGame::OnGM_UTILIRYBAR_1()
+{
+	if (m_pMainChar->m_bContryID == 0)
+		CTAuctionCommander::GetInstance()->SetNpcID((WORD)20789);//v
+	else if (m_pMainChar->m_bContryID == 1)
+		CTAuctionCommander::GetInstance()->SetNpcID((WORD)20841);//d
+	else
+		CTAuctionCommander::GetInstance()->SetNpcID((WORD)26153);//g
+
+
+	TTERMPOS vTAUTOPATH;
+
+	ZeroMemory(&vTAUTOPATH, sizeof(TTERMPOS));
+	switch (m_pMainChar->m_bContryID)
+	{
+	case 0:
+	{
+		vTAUTOPATH.m_dwMapID = 0;
+		vTAUTOPATH.m_fPosX = 1584.72f;
+		vTAUTOPATH.m_fPosY = 0;
+		vTAUTOPATH.m_fPosZ = 4335.88f;//88
+	}
+	break;
+	case 1:
+	{
+		vTAUTOPATH.m_dwMapID = 0;
+		vTAUTOPATH.m_fPosX = 6788.74f;
+		vTAUTOPATH.m_fPosY = 0;
+		vTAUTOPATH.m_fPosZ = 4910.31f;
+	}
+	break;
+	default:
+	{
+		vTAUTOPATH.m_dwMapID = 0;
+		vTAUTOPATH.m_fPosX = 3749.84f;
+		vTAUTOPATH.m_fPosY = 0;
+		vTAUTOPATH.m_fPosZ = 242.31f;
+	}
+	break;
+	}
+	DoTAUTOPATH(&vTAUTOPATH);
+	CString strMsg = "Walking to Blacksmith";
+	CTMainUI* pMain = static_cast<CTMainUI*> (m_vTFRAME[TFRAME_MAIN]);
+	pMain->ResetRegionMSG(strMsg);
+
+	return TERR_NONE;
+}
+int CTClientGame::OnGM_UTILIRYBAR_2()
+{
+	if (m_pMainChar->m_bContryID == 0)
+		CTAuctionCommander::GetInstance()->SetNpcID((WORD)20789);//v
+	else if (m_pMainChar->m_bContryID == 1)
+		CTAuctionCommander::GetInstance()->SetNpcID((WORD)20841);//d
+	else
+		CTAuctionCommander::GetInstance()->SetNpcID((WORD)26153);//g
+
+
+	TTERMPOS vTAUTOPATH;
+
+	ZeroMemory(&vTAUTOPATH, sizeof(TTERMPOS));
+	switch (m_pMainChar->m_bContryID)
+	{
+	case 0:
+	{
+		vTAUTOPATH.m_dwMapID = 0;
+		vTAUTOPATH.m_fPosX = 1584.72f;
+		vTAUTOPATH.m_fPosY = 0;
+		vTAUTOPATH.m_fPosZ = 4335.88f;//88
+	}
+	break;
+	case 1:
+	{
+		vTAUTOPATH.m_dwMapID = 0;
+		vTAUTOPATH.m_fPosX = 6788.74f;
+		vTAUTOPATH.m_fPosY = 0;
+		vTAUTOPATH.m_fPosZ = 4910.31f;
+	}
+	break;
+	default:
+	{
+		vTAUTOPATH.m_dwMapID = 0;
+		vTAUTOPATH.m_fPosX = 3749.84f;
+		vTAUTOPATH.m_fPosY = 0;
+		vTAUTOPATH.m_fPosZ = 242.31f;
+	}
+	break;
+	}
+	DoTAUTOPATH(&vTAUTOPATH);
+	CString strMsg = "Walking to Alchemist";
+	CTMainUI* pMain = static_cast<CTMainUI*> (m_vTFRAME[TFRAME_MAIN]);
+	pMain->ResetRegionMSG(strMsg);
+
+	return TERR_NONE;
+}
+int CTClientGame::OnGM_UTILIRYBAR_3()
+{
+	if (m_pMainChar->m_bContryID == 0)
+		CTAuctionCommander::GetInstance()->SetNpcID((WORD)20789);//v
+	else if (m_pMainChar->m_bContryID == 1)
+		CTAuctionCommander::GetInstance()->SetNpcID((WORD)20841);//d
+	else
+		CTAuctionCommander::GetInstance()->SetNpcID((WORD)26153);//g
+
+
+	TTERMPOS vTAUTOPATH;
+
+	ZeroMemory(&vTAUTOPATH, sizeof(TTERMPOS));
+	switch (m_pMainChar->m_bContryID)
+	{
+	case 0:
+	{
+		vTAUTOPATH.m_dwMapID = 0;
+		vTAUTOPATH.m_fPosX = 1584.72f;
+		vTAUTOPATH.m_fPosY = 0;
+		vTAUTOPATH.m_fPosZ = 4335.88f;//88
+	}
+	break;
+	case 1:
+	{
+		vTAUTOPATH.m_dwMapID = 0;
+		vTAUTOPATH.m_fPosX = 6788.74f;
+		vTAUTOPATH.m_fPosY = 0;
+		vTAUTOPATH.m_fPosZ = 4910.31f;
+	}
+	break;
+	default:
+	{
+		vTAUTOPATH.m_dwMapID = 0;
+		vTAUTOPATH.m_fPosX = 3749.84f;
+		vTAUTOPATH.m_fPosY = 0;
+		vTAUTOPATH.m_fPosZ = 242.31f;
+	}
+	break;
+	}
+	DoTAUTOPATH(&vTAUTOPATH);
+	CString strMsg = "Walking to Repairman";
+	CTMainUI* pMain = static_cast<CTMainUI*> (m_vTFRAME[TFRAME_MAIN]);
+	pMain->ResetRegionMSG(strMsg);
+
+	return TERR_NONE;
+}
+int CTClientGame::OnGM_UTILIRYBAR_4()
+{
+	if (m_pMainChar->m_bContryID == 0)
+		CTAuctionCommander::GetInstance()->SetNpcID((WORD)20789);//v
+	else if (m_pMainChar->m_bContryID == 1)
+		CTAuctionCommander::GetInstance()->SetNpcID((WORD)20841);//d
+	else
+		CTAuctionCommander::GetInstance()->SetNpcID((WORD)26153);//g
+
+
+	TTERMPOS vTAUTOPATH;
+
+	ZeroMemory(&vTAUTOPATH, sizeof(TTERMPOS));
+	switch (m_pMainChar->m_bContryID)
+	{
+	case 0:
+	{
+		vTAUTOPATH.m_dwMapID = 0;
+		vTAUTOPATH.m_fPosX = 1584.72f;
+		vTAUTOPATH.m_fPosY = 0;
+		vTAUTOPATH.m_fPosZ = 4335.88f;//88
+	}
+	break;
+	case 1:
+	{
+		vTAUTOPATH.m_dwMapID = 0;
+		vTAUTOPATH.m_fPosX = 6788.74f;
+		vTAUTOPATH.m_fPosY = 0;
+		vTAUTOPATH.m_fPosZ = 4910.31f;
+	}
+	break;
+	default:
+	{
+		vTAUTOPATH.m_dwMapID = 0;
+		vTAUTOPATH.m_fPosX = 3749.84f;
+		vTAUTOPATH.m_fPosY = 0;
+		vTAUTOPATH.m_fPosZ = 242.31f;
+	}
+	break;
+	}
+	DoTAUTOPATH(&vTAUTOPATH);
+	CString strMsg = "Walking to Banker";
+	CTMainUI* pMain = static_cast<CTMainUI*> (m_vTFRAME[TFRAME_MAIN]);
+	pMain->ResetRegionMSG(strMsg);
+
+	return TERR_NONE;
+}
+int CTClientGame::OnGM_UTILIRYBAR_5()
+{
+
+	if (m_pMainChar->m_bContryID == 0)
+		CTAuctionCommander::GetInstance()->SetNpcID((WORD)20789);//v
+	else if (m_pMainChar->m_bContryID == 1)
+		CTAuctionCommander::GetInstance()->SetNpcID((WORD)20841);//d
+	else
+		CTAuctionCommander::GetInstance()->SetNpcID((WORD)26153);//g
+
+
+	TTERMPOS vTAUTOPATH;
+
+	ZeroMemory(&vTAUTOPATH, sizeof(TTERMPOS));
+	switch (m_pMainChar->m_bContryID)
+	{
+	case 0:
+	{
+		vTAUTOPATH.m_dwMapID = 0;
+		vTAUTOPATH.m_fPosX = 1584.72f;
+		vTAUTOPATH.m_fPosY = 0;
+		vTAUTOPATH.m_fPosZ = 4335.88f;//88
+	}
+	break;
+	case 1:
+	{
+		vTAUTOPATH.m_dwMapID = 0;
+		vTAUTOPATH.m_fPosX = 6788.74f;
+		vTAUTOPATH.m_fPosY = 0;
+		vTAUTOPATH.m_fPosZ = 4910.31f;
+	}
+	break;
+	default:
+	{
+		vTAUTOPATH.m_dwMapID = 0;
+		vTAUTOPATH.m_fPosX = 3749.84f;
+		vTAUTOPATH.m_fPosY = 0;
+		vTAUTOPATH.m_fPosZ = 242.31f;
+	}
+	break;
+	}
+	DoTAUTOPATH(&vTAUTOPATH);
+	CString strMsg = "Walking to Auctioneer";
+	CTMainUI* pMain = static_cast<CTMainUI*> (m_vTFRAME[TFRAME_MAIN]);
+	pMain->ResetRegionMSG(strMsg);
+	return TERR_NONE;
+}
+int CTClientGame::OnGM_UTILIRYBAR_6()
+{
+	if (m_pMainChar->m_bContryID == 0)
+		CTAuctionCommander::GetInstance()->SetNpcID((WORD)20789);//v
+	else if (m_pMainChar->m_bContryID == 1)
+		CTAuctionCommander::GetInstance()->SetNpcID((WORD)20841);//d
+	else
+		CTAuctionCommander::GetInstance()->SetNpcID((WORD)26153);//g
+
+
+	TTERMPOS vTAUTOPATH;
+
+	ZeroMemory(&vTAUTOPATH, sizeof(TTERMPOS));
+	switch (m_pMainChar->m_bContryID)
+	{
+	case 0:
+	{
+		vTAUTOPATH.m_dwMapID = 0;
+		vTAUTOPATH.m_fPosX = 1584.72f;
+		vTAUTOPATH.m_fPosY = 0;
+		vTAUTOPATH.m_fPosZ = 4335.88f;//88
+	}
+	break;
+	case 1:
+	{
+		vTAUTOPATH.m_dwMapID = 0;
+		vTAUTOPATH.m_fPosX = 6788.74f;
+		vTAUTOPATH.m_fPosY = 0;
+		vTAUTOPATH.m_fPosZ = 4910.31f;
+	}
+	break;
+	default:
+	{
+		vTAUTOPATH.m_dwMapID = 0;
+		vTAUTOPATH.m_fPosX = 3749.84f;
+		vTAUTOPATH.m_fPosY = 0;
+		vTAUTOPATH.m_fPosZ = 242.31f;
+	}
+	break;
+	}
+	DoTAUTOPATH(&vTAUTOPATH);
+	CString strMsg = "Walking to Seller";
+	CTMainUI* pMain = static_cast<CTMainUI*> (m_vTFRAME[TFRAME_MAIN]);
+	pMain->ResetRegionMSG(strMsg);
+
+	return TERR_NONE;
+}
+int CTClientGame::OnGM_UTILIRYBAR_7()
+{
+	if (m_pMainChar->m_bContryID == 0)
+		CTAuctionCommander::GetInstance()->SetNpcID((WORD)20789);//v
+	else if (m_pMainChar->m_bContryID == 1)
+		CTAuctionCommander::GetInstance()->SetNpcID((WORD)20841);//d
+	else
+		CTAuctionCommander::GetInstance()->SetNpcID((WORD)26153);//g
+
+
+	TTERMPOS vTAUTOPATH;
+
+	ZeroMemory(&vTAUTOPATH, sizeof(TTERMPOS));
+	switch (m_pMainChar->m_bContryID)
+	{
+	case 0:
+	{
+		vTAUTOPATH.m_dwMapID = 0;
+		vTAUTOPATH.m_fPosX = 1584.72f;
+		vTAUTOPATH.m_fPosY = 0;
+		vTAUTOPATH.m_fPosZ = 4335.88f;//88
+	}
+	break;
+	case 1:
+	{
+		vTAUTOPATH.m_dwMapID = 0;
+		vTAUTOPATH.m_fPosX = 6788.74f;
+		vTAUTOPATH.m_fPosY = 0;
+		vTAUTOPATH.m_fPosZ = 4910.31f;
+	}
+	break;
+	default:
+	{
+		vTAUTOPATH.m_dwMapID = 0;
+		vTAUTOPATH.m_fPosX = 3749.84f;
+		vTAUTOPATH.m_fPosY = 0;
+		vTAUTOPATH.m_fPosZ = 242.31f;
+	}
+	break;
+	}
+	DoTAUTOPATH(&vTAUTOPATH);
+	CString strMsg = "Walking to Mystic";
+	CTMainUI* pMain = static_cast<CTMainUI*> (m_vTFRAME[TFRAME_MAIN]);
+	pMain->ResetRegionMSG(strMsg);
+
+	return TERR_NONE;
+}
+int CTClientGame::OnGM_UTILIRYBAR_8()
+{
+
+	TTERMPOS vTAUTOPATH;
+
+	ZeroMemory(&vTAUTOPATH, sizeof(TTERMPOS));
+	switch (m_pMainChar->m_bContryID)
+	{
+	case 0:
+	{
+		vTAUTOPATH.m_dwMapID = 0;
+		vTAUTOPATH.m_fPosX = 1535.87f;
+		vTAUTOPATH.m_fPosY = 0;
+		vTAUTOPATH.m_fPosZ = 4264.08f;
+	}
+	break;
+	case 1:
+	{
+		vTAUTOPATH.m_dwMapID = 0;
+		vTAUTOPATH.m_fPosX = 6770.83f;
+		vTAUTOPATH.m_fPosY = 0;
+		vTAUTOPATH.m_fPosZ = 4905.38f;
+	}
+	break;
+	default:
+		break;
+	}
+	DoTAUTOPATH(&vTAUTOPATH);
+
+	CString strMsg = "Walking to Mission Portal";
+	CTMainUI* pMain = static_cast<CTMainUI*> (m_vTFRAME[TFRAME_MAIN]);
+	pMain->ResetRegionMSG(strMsg);
+
+	return TERR_NONE;
+}
+int CTClientGame::OnGM_UTILIRYBAR_9()
+{
+	return TERR_NONE;
+}
+
 int CTClientGame::OnGM_SELECT_TEXTURE_DETAIL()
 {
 	BOOL bChange = FALSE;

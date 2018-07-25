@@ -974,6 +974,11 @@ void CTClientApp::LoadStdProfileSettings()
 		_T("MapSFX"),
 		CTClientGame::m_vTOPTION.m_bMapSFX);
 
+	WriteProfileInt(
+		_T("Settings"),
+		_T("UTILITYBAR"),
+		CTClientGame::m_vTOPTION.m_bUIBar);
+
 	CTachyonSFX::m_bOptionLodLevel = (BYTE) GetProfileInt(
 		_T("Settings"),
 		_T("SfxDETAIL"),
@@ -1145,6 +1150,11 @@ void CTClientApp::SaveStdProfileSettings()
 		_T("Settings"),
 		_T("MapSFX"),
 		CTClientGame::m_vTOPTION.m_bMapSFX);
+
+	WriteProfileInt(
+		_T("Settings"),
+		_T("UTILITYBAR"),
+		CTClientGame::m_vTOPTION.m_bUIBar);
 
 	WriteProfileInt(
 		_T("Settings"),

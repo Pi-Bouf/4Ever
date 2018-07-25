@@ -1186,6 +1186,7 @@ public:
 	void CalcMainChar( DWORD dwTick);
 
 	void CalcDynamicHelp( DWORD dwTick);
+	void CalcUIBar(DWORD dwTick);
 	void CalcMaintainOBJ( DWORD dwTick);
 	void CalcGHOSTScene( DWORD dwTick);
 	void CalcTQuestTick( DWORD dwTick);
@@ -1964,6 +1965,17 @@ public:
 	int OnGM_PET_RECALL();
 	int OnGM_MENU_RIDEPET();
 	int OnGM_MENU_PETMANAGE();
+
+	int OnGM_UTILIRYBAR_EX();
+	int OnGM_UTILIRYBAR_1();
+	int OnGM_UTILIRYBAR_2();
+	int OnGM_UTILIRYBAR_3();
+	int OnGM_UTILIRYBAR_4();
+	int OnGM_UTILIRYBAR_5();
+	int OnGM_UTILIRYBAR_6();
+	int OnGM_UTILIRYBAR_7();
+	int OnGM_UTILIRYBAR_8();
+	int OnGM_UTILIRYBAR_9();
 
 	int OnGM_SELECT_TEXTURE_DETAIL();
 	int OnGM_CHANGE_CHANNEL();

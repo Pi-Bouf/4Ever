@@ -97,6 +97,7 @@
 #include <tchar.h> 
 #include <objbase.h> 
 #include <atlbase.h>
+#include "TUIBarDlg.h" 
 
 #pragma comment(lib, "wbemuuid.lib") 
 
@@ -967,6 +968,7 @@ void CTClientWnd::InitResource( CString strGroupID,
 		ID_FRAME_PET_MANAGE,				//TFRAME_PET_MANAGE,
 		ID_FRAME_ITEM_REGBOX,				//TFRAME_ITEM_REGBOX
 		ID_FRAME_CABINET,					//TFRAME_CABINET
+		ID_FRAME_UIBAR,						//TFRAME_UIBAR
 		ID_FRAME_TITLE,						//TFRAME_TITLE
 		ID_FRAME_SOULLOTTERY,				//TFRAME_SOULLOTTERY
 		ID_FRAME_RANKING_NEW,				//TFRAME_RANKING_NEW
@@ -1437,6 +1439,7 @@ void CTClientWnd::InitResource( CString strGroupID,
 		case TFRAME_PET_MANAGE					: m_MainGame.m_vTFRAME[i] = new CTPetManageDlg( &m_MainGame, pDESC, &m_Device); break;
 		case TFRAME_ITEM_REGBOX					: m_MainGame.m_vTFRAME[i] = new CTItemRegBox( &m_MainGame, pDESC ); break;
 		case TFRAME_CABINET						: m_MainGame.m_vTFRAME[i] = new CTNormalCabinetDlg( &m_MainGame, pDESC ); break;
+		case TFRAME_UIBAR						: m_MainGame.m_vTFRAME[i] = new CTUIBarDlg(&m_MainGame, pDESC, m_pTParser); break;
 		case TFRAME_TITLE						: m_MainGame.m_vTFRAME[i] = new CTTitleDlg( &m_MainGame, pDESC ); break;
 		case TFRAME_SOULLOTTERY					: m_MainGame.m_vTFRAME[i] = new CTSoulLotteryDlg( &m_MainGame, pDESC ); break;
 		case TFRAME_RANKING_NEW					: m_MainGame.m_vTFRAME[i] = new CTRankingNewMain( &m_MainGame, pDESC ); break;
@@ -2307,6 +2310,7 @@ void CTClientWnd::InitUI( BOOL bResetOnlyPosition)
 		{ TBASISPOINT_LEFT_MIDDLE, ID_CTRLINST_CHAR_INFO},		//TFRAME_PET_MANAGE
 		{ TBASISPOINT_CENTER_MIDDLE, ID_CTRLINST_SHOP},			//TFRAME_ITEM_REGBOX
 		{ TBASISPOINT_CENTER_MIDDLE, ID_CTRLINST_SHOP},			//TFRAME_CABINET
+		{ TBASISPOINT_CENTER_MIDDLE, ID_CTRLINST_SHOP},			//TFRANE_UIBAR
 		{ TBASISPOINT_CENTER_MIDDLE, ID_CTRLINST_SHOP},			//TFRAME_TITLE
 		{ TBASISPOINT_CENTER_MIDDLE, ID_CTRLINST_SHOP},			//TFRAME_SOULLOTTERY
 		{ TBASISPOINT_CENTER_MIDDLE, ID_CTRLINST_SHOP},			//TFRAME_RANKING_NEW
@@ -2426,6 +2430,7 @@ void CTClientWnd::InitUI( BOOL bResetOnlyPosition)
 		{ FALSE, TRUE, TRUE},					//TFRAME_PET_MANAGE
 		{ FALSE, TRUE, TRUE},					//TFRAME_ITEM_REGBOX
 		{ FALSE, TRUE, TRUE},					//TFRAME_CABINET
+		{ FALSE, TRUE, TRUE },					//TFRAME_UIBAR
 		{ FALSE, TRUE, TRUE},					//TFRAME_TITLE
 		{ FALSE, TRUE, TRUE},					//TFRAME_SOULLOTTERY
 		{ FALSE, TRUE, TRUE},					//TFRAME_RANKING_NEW
@@ -5317,177 +5322,189 @@ BYTE CTClientWnd::RestoreDevice()
 
 void CTClientWnd::ResetTOption()
 {
-	static TOPTION vDEFAULT_GERMANY[ TOPTIONLEVEL_COUNT ] = {
+	static TOPTION vDEFAULT_GERMANY[TOPTIONLEVEL_COUNT] = {
 		TOPTION(		// TOPTIONLEVEL_LOW
-		TDETAIL_LOW,	// m_bMapDETAIL
-		TDETAIL_MED,	// m_bObjDETAIL
-		TRUE,			// m_bMapSHADOW
-		TRUE,			// m_bObjSHADOW
-		FALSE,			// m_bMapSFX
-		FALSE,			// m_bNpcNAME
-		FALSE,			// m_bMonNAME
-		FALSE,			// m_bPcNAME
-		FALSE,			// m_bDungeonLIGHTMAP
-		FALSE,			// m_bFieldLIGHTMAP
-		FALSE,			// m_bFarIMAGE
+			TDETAIL_LOW,	// m_bMapDETAIL
+			TDETAIL_MED,	// m_bObjDETAIL
+			TRUE,			// m_bMapSHADOW
+			TRUE,			// m_bObjSHADOW
+			FALSE,			// m_bMapSFX
+			FALSE,			// m_bNpcNAME
+			FALSE,			// m_bMonNAME
+			FALSE,			// m_bPcNAME
+			FALSE,			// m_bDungeonLIGHTMAP
+			FALSE,			// m_bFieldLIGHTMAP
+			FALSE,			// m_bFarIMAGE
 #ifdef NEW_IF
-		FALSE,
+			FALSE,
 #else
-		TRUE,			// m_bHUD
+			TRUE,			// m_bHUD
 #endif
-		TRUE,			// m_bAutoHelp
-		TRUE,			// m_bTalkBox
-		FALSE,			// m_bDenyWhisper
-		FALSE,			// m_bDenyCommunity
-		FALSE,			// m_bContinualChat
-		TRUE,				// m_bMouseClickMove
-		0.7f, // m_fOBJRange
-		FALSE, // m_bShowCaution15
-		TRUE // m_bAutoTargeting
-		),			
+			TRUE,			// m_bAutoHelp
+			TRUE,			// m_bTalkBox
+			FALSE,			// m_bDenyWhisper
+			FALSE,			// m_bDenyCommunity
+			FALSE,			// m_bContinualChat
+			TRUE,				// m_bMouseClickMove
+			0.7f, // m_fOBJRange
+			FALSE, // m_bShowCaution15
+			TRUE, //
+			TRUE,
+			TRUE// m_bAutoTargeting
+		),
 
 		TOPTION(		// TOPTIONLEVEL_MED
-		TDETAIL_MED,	// m_bMapDETAIL
-		TDETAIL_HI,		// m_bObjDETAIL
-		TRUE,			// m_bMapSHADOW
-		TRUE,			// m_bObjSHADOW
-		FALSE,			// m_bMapSFX
-		FALSE,			// m_bNpcNAME
-		FALSE,			// m_bMonNAME
-		FALSE,			// m_bPcNAME
-		TRUE,			// m_bDungeonLIGHTMAP
-		FALSE,			// m_bFieldLIGHTMAP
-		TRUE,			// m_bFarIMAGE
+			TDETAIL_MED,	// m_bMapDETAIL
+			TDETAIL_HI,		// m_bObjDETAIL
+			TRUE,			// m_bMapSHADOW
+			TRUE,			// m_bObjSHADOW
+			FALSE,			// m_bMapSFX
+			FALSE,			// m_bNpcNAME
+			FALSE,			// m_bMonNAME
+			FALSE,			// m_bPcNAME
+			TRUE,			// m_bDungeonLIGHTMAP
+			FALSE,			// m_bFieldLIGHTMAP
+			TRUE,			// m_bFarIMAGE
 #ifdef NEW_IF
-		FALSE,
+			FALSE,
 #else
-		TRUE,			// m_bHUD
+			TRUE,			// m_bHUD
 #endif
-		TRUE,			// m_bAutoHelp
-		TRUE,			// m_bTalkBox
-		FALSE,			// m_bDenyWhisper
-		FALSE,			// m_bDenyCommunity
-		FALSE,			// m_bContinualChat
-		TRUE,				// m_bMouseClickMove
-		0.75f,		// m_fOBJRange
-		FALSE, // m_bShowCaution15
-		TRUE // m_bAutoTargeting
+			TRUE,			// m_bAutoHelp
+			TRUE,			// m_bTalkBox
+			FALSE,			// m_bDenyWhisper where is linked 
+			FALSE,			// m_bDenyCommunity
+			FALSE,			// m_bContinualChat
+			TRUE,				// m_bMouseClickMove
+			0.75f,		// m_fOBJRange
+			FALSE, // m_bShowCaution15
+			TRUE, //
+			TRUE,
+			TRUE// m_bAutoTargeting
 		),
 
 		TOPTION(		// TOPTIONLEVEL_HI
-		TDETAIL_MED,	// m_bMapDETAIL
-		TDETAIL_HI,		// m_bObjDETAIL
-		TRUE,			// m_bMapSHADOW
-		TRUE,			// m_bObjSHADOW
-		TRUE,			// m_bMapSFX
-		FALSE,			// m_bNpcNAME
-		FALSE,			// m_bMonNAME
-		FALSE,			// m_bPcNAME
-		TRUE,			// m_bDungeonLIGHTMAP
-		FALSE,			// m_bFieldLIGHTMAP
-		TRUE,			// m_bFarIMAGE
+			TDETAIL_MED,	// m_bMapDETAIL
+			TDETAIL_HI,		// m_bObjDETAIL
+			TRUE,			// m_bMapSHADOW
+			TRUE,			// m_bObjSHADOW
+			TRUE,			// m_bMapSFX
+			FALSE,			// m_bNpcNAME
+			FALSE,			// m_bMonNAME
+			FALSE,			// m_bPcNAME
+			TRUE,			// m_bDungeonLIGHTMAP
+			FALSE,			// m_bFieldLIGHTMAP
+			TRUE,			// m_bFarIMAGE
 #ifdef NEW_IF
-		FALSE,
+			FALSE,
 #else
-		TRUE,			// m_bHUD
+			TRUE,			// m_bHUD
 #endif
-		TRUE,			// m_bAutoHelp
-		TRUE,			// m_bTalkBox
-		FALSE,			// m_bDenyWhisper
-		FALSE,			// m_bDenyCommunity
-		FALSE,			// m_bContinualChat
-		TRUE,				// m_bMouseClickMove
-		0.8f, // m_fOBJRange
-		FALSE, // m_bShowCaution15
-		TRUE // m_bAutoTargeting
+			TRUE,			// m_bAutoHelp
+			TRUE,			// m_bTalkBox
+			FALSE,			// m_bDenyWhisper
+			FALSE,			// m_bDenyCommunity
+			FALSE,			// m_bContinualChat
+			TRUE,				// m_bMouseClickMove
+			0.8f, // m_fOBJRange
+			FALSE, // m_bShowCaution15
+			TRUE, //
+			TRUE,
+			TRUE// m_bAutoTargeting
 		)
-	};			
+	};
 
-	static TOPTION vDEFAULT_NORMAL[ TOPTIONLEVEL_COUNT ] = {
+	static TOPTION vDEFAULT_NORMAL[TOPTIONLEVEL_COUNT] = {
 		TOPTION(		// TOPTIONLEVEL_LOW
-		TDETAIL_LOW,	// m_bMapDETAIL
-		TDETAIL_MED,	// m_bObjDETAIL
-		TRUE,			// m_bMapSHADOW
-		TRUE,			// m_bObjSHADOW
-		FALSE,			// m_bMapSFX
-		TRUE,			// m_bNpcNAME
-		TRUE,			// m_bMonNAME
-		TRUE,			// m_bPcNAME
-		FALSE,			// m_bDungeonLIGHTMAP
-		FALSE,			// m_bFieldLIGHTMAP
-		FALSE,			// m_bFarIMAGE
+			TDETAIL_LOW,	// m_bMapDETAIL
+			TDETAIL_MED,	// m_bObjDETAIL
+			TRUE,			// m_bMapSHADOW
+			TRUE,			// m_bObjSHADOW
+			FALSE,			// m_bMapSFX
+			TRUE,			// m_bNpcNAME
+			TRUE,			// m_bMonNAME
+			TRUE,			// m_bPcNAME
+			FALSE,			// m_bDungeonLIGHTMAP
+			FALSE,			// m_bFieldLIGHTMAP
+			FALSE,			// m_bFarIMAGE
 #ifdef NEW_IF
-		FALSE,
+			FALSE,
 #else
-		TRUE,			// m_bHUD
+			TRUE,			// m_bHUD
 #endif
-		TRUE,			// m_bAutoHelp
-		TRUE,			// m_bTalkBox
-		FALSE,			// m_bDenyWhisper
-		FALSE,			// m_bDenyCommunity
-		FALSE,			// m_bContinualChat
-		TRUE,				// m_bMouseClickMove
-		0.7f, // m_fOBJRange
-		TRUE, // m_bShowCaution15
-		TRUE // m_bAutoTargeting
-		),			
+			TRUE,			// m_bAutoHelp
+			TRUE,			// m_bTalkBox
+			FALSE,			// m_bDenyWhisper
+			FALSE,			// m_bDenyCommunity
+			FALSE,			// m_bContinualChat
+			TRUE,				// m_bMouseClickMove
+			0.7f, // m_fOBJRange
+			TRUE, // m_bShowCaution15
+			TRUE, //
+			TRUE,
+			TRUE// m_bAutoTargeting
+		),
 
 		TOPTION(		// TOPTIONLEVEL_MED
-		TDETAIL_MED,	// m_bMapDETAIL
-		TDETAIL_HI,		// m_bObjDETAIL
-		TRUE,			// m_bMapSHADOW
-		TRUE,			// m_bObjSHADOW
-		FALSE,			// m_bMapSFX
-		TRUE,			// m_bNpcNAME
-		TRUE,			// m_bMonNAME
-		TRUE,			// m_bPcNAME
-		TRUE,			// m_bDungeonLIGHTMAP
-		FALSE,			// m_bFieldLIGHTMAP
-		TRUE,			// m_bFarIMAGE
+			TDETAIL_MED,	// m_bMapDETAIL
+			TDETAIL_HI,		// m_bObjDETAIL
+			TRUE,			// m_bMapSHADOW
+			TRUE,			// m_bObjSHADOW
+			FALSE,			// m_bMapSFX
+			TRUE,			// m_bNpcNAME
+			TRUE,			// m_bMonNAME
+			TRUE,			// m_bPcNAME
+			TRUE,			// m_bDungeonLIGHTMAP
+			FALSE,			// m_bFieldLIGHTMAP
+			TRUE,			// m_bFarIMAGE
 #ifdef NEW_IF
-		FALSE,
+			FALSE,
 #else
-		TRUE,			// m_bHUD
+			TRUE,			// m_bHUD
 #endif
-		TRUE,			// m_bAutoHelp
-		TRUE,			// m_bTalkBox
-		FALSE,			// m_bDenyWhisper
-		FALSE,			// m_bDenyCommunity
-		FALSE,			// m_bContinualChat
-		TRUE,				// m_bMouseClickMove
-		0.75f, // m_fOBJRange
-		TRUE, // m_bShowCaution15
-		TRUE // m_bAutoTargeting
-		),			
+			TRUE,			// m_bAutoHelp
+			TRUE,			// m_bTalkBox
+			FALSE,			// m_bDenyWhisper
+			FALSE,			// m_bDenyCommunity
+			FALSE,			// m_bContinualChat
+			TRUE,				// m_bMouseClickMove
+			0.75f, // m_fOBJRange
+			TRUE, // m_bShowCaution15
+			TRUE, //
+			TRUE,
+			TRUE// m_bAutoTargeting
+		),
 
 		TOPTION(		// TOPTIONLEVEL_HI
-		TDETAIL_MED,	// m_bMapDETAIL
-		TDETAIL_HI,		// m_bObjDETAIL
-		TRUE,			// m_bMapSHADOW
-		TRUE,			// m_bObjSHADOW
-		TRUE,			// m_bMapSFX
-		TRUE,			// m_bNpcNAME
-		TRUE,			// m_bMonNAME
-		TRUE,			// m_bPcNAME
-		TRUE,			// m_bDungeonLIGHTMAP
-		FALSE,			// m_bFieldLIGHTMAP
-		TRUE,			// m_bFarIMAGE
+			TDETAIL_MED,	// m_bMapDETAIL
+			TDETAIL_HI,		// m_bObjDETAIL
+			TRUE,			// m_bMapSHADOW
+			TRUE,			// m_bObjSHADOW
+			TRUE,			// m_bMapSFX
+			TRUE,			// m_bNpcNAME
+			TRUE,			// m_bMonNAME
+			TRUE,			// m_bPcNAME
+			TRUE,			// m_bDungeonLIGHTMAP
+			FALSE,			// m_bFieldLIGHTMAP
+			TRUE,			// m_bFarIMAGE
 #ifdef NEW_IF
-		FALSE,
+			FALSE,
 #else
-		TRUE,			// m_bHUD
+			TRUE,			// m_bHUD
 #endif
-		TRUE,			// m_bAutoHelp
-		TRUE,			// m_bTalkBox
-		FALSE,			// m_bDenyWhisper
-		FALSE,			// m_bDenyCommunity
-		FALSE,			// m_bContinualChat
-		TRUE,				// m_bMouseClickMove
-		0.8f, // m_fOBJRange
-		TRUE, // m_bShowCaution15
-		TRUE // m_bAutoTargeting
+			TRUE,			// m_bAutoHelp
+			TRUE,			// m_bTalkBox
+			FALSE,			// m_bDenyWhisper
+			FALSE,			// m_bDenyCommunity
+			FALSE,			// m_bContinualChat
+			TRUE,				// m_bMouseClickMove
+			0.8f, // m_fOBJRange
+			TRUE, // m_bShowCaution15
+			TRUE, //
+			TRUE,
+			TRUE// m_bAutoTargeting
 		)
-	};			
+	};
 
 	TOPTION* vDEFAULT = NULL;
 	if( CTNationOption::GERMANY || CTNationOption::FRANCE || CTNationOption::POLAND ||

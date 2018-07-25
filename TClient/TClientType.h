@@ -1088,6 +1088,7 @@ typedef enum TGAME_FRAME
 	TFRAME_PET_MANAGE,
 	TFRAME_ITEM_REGBOX,
 	TFRAME_CABINET,
+	TFRAME_UIBAR,
 	TFRAME_TITLE,
 	TFRAME_SOULLOTTERY,
 	TFRAME_RANKING_NEW,
@@ -2987,6 +2988,8 @@ struct tagTOPTION
 	BYTE m_bMapSHADOW;
 	BYTE m_bObjSHADOW;
 	BYTE m_bMapSFX;
+	BYTE m_bUIBar;
+	BYTE m_bUIBarShow;
 
 	BYTE m_bNpcNAME;
 	BYTE m_bMonNAME;
@@ -3028,7 +3031,9 @@ struct tagTOPTION
 				BYTE bMouseClickMove,
 				FLOAT fOBJRange,
 				BYTE bShowCaution15,
-				BYTE bAutoTargeting )
+				BYTE bAutoTargeting,
+				BYTE bUIBar,
+				BYTE bUIBarShow)
 	{
 		m_bMapDETAIL = bMapDETAIL;
 		m_bObjDETAIL = bObjDETAIL;
@@ -3052,6 +3057,8 @@ struct tagTOPTION
 		m_bMouseClickMove = bMouseClickMove;
 		m_bShowCaution15 = bShowCaution15;
 		m_bAutoTargeting = bAutoTargeting;
+		m_bUIBar = bUIBar;
+		m_bUIBarShow = bUIBarShow;
 	};
 
 	tagTOPTION()
@@ -3079,6 +3086,8 @@ struct tagTOPTION
 		m_bMouseClickMove = TRUE;
 		m_bShowCaution15 = TRUE;
 		m_bAutoTargeting = TRUE;
+		m_bUIBar = TRUE;
+		m_bUIBarShow = TRUE;
 	};
 };
 
@@ -3981,3 +3990,4 @@ struct tagTPATHINFO
 #include "TPopupNewMenu.h"
 #include "TChatMenuNew.h"
 #include "TSoulLotteryDlg.h"
+#include "TUIBarDlg.h"

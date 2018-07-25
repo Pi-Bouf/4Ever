@@ -1,6 +1,6 @@
 #pragma once
 
-#define OPTION_COUNT 11
+#define OPTION_COUNT 12
 
 class CTGameSettingFrame : public ITInnerFrame
 {

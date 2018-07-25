@@ -41,10 +41,10 @@ void TCMLParser::Release()
 void TCMLParser::Load( char* fname, TCMLParserProgress* pProgress)
 {
 	FILE *pFILE = fopen( fname, "rb");
-	int nCount2 = 0;
+	//int nCount2 = 0;
 	int nCount = 0;
 
-	fread( &nCount2, sizeof(int), 1, pFILE);
+	//fread( &nCount2, sizeof(int), 1, pFILE);
 	fread( &nCount, sizeof(int), 1, pFILE);
 
 	for( int i=0; i<nCount; i++)
@@ -58,9 +58,9 @@ void TCMLParser::Load( char* fname, TCMLParserProgress* pProgress)
 			pProgress->OnProgress( (FLOAT) i / (FLOAT) nCount );
 	}
 
-	fread( &nCount2, sizeof(int), 1, pFILE);
+	//fread( &nCount2, sizeof(int), 1, pFILE);
 	fread( &nCount, sizeof(int), 1, pFILE);
-	for( int i=0; i<nCount; i++)
+	for(int i=0; i<nCount; i++)
 	{
 		LP_TCML_LOGFONT pFONT = new TCML_LOGFONT();
 
@@ -91,7 +91,7 @@ LP_FRAMEDESC TCMLParser::LoadFRAME( FILE *pFILE)
 	fread( &pFRAME->m_vCOMP.m_dwCOLOR, sizeof(DWORD), 1, pFILE);
 	fread( &pFRAME->m_vCOMP.m_dwSND, sizeof(DWORD), 1, pFILE);
 
-	fread( &nCount, sizeof(int), 1, pFILE);
+	//fread( &nCount, sizeof(int), 1, pFILE);
 	fread( &pFRAME->m_vCOMP.m_nMargineH, sizeof(int), 1, pFILE);
 	fread( &pFRAME->m_vCOMP.m_nMargineV, sizeof(int), 1, pFILE);
 	fread( &pFRAME->m_vCOMP.m_nPosX, sizeof(int), 1, pFILE);
@@ -99,10 +99,19 @@ LP_FRAMEDESC TCMLParser::LoadFRAME( FILE *pFILE)
 	fread( &pFRAME->m_vCOMP.m_nWidth, sizeof(int), 1, pFILE);
 	fread( &pFRAME->m_vCOMP.m_nHeight, sizeof(int), 1, pFILE);
 
-
 	fread( &pFRAME->m_vCOMP.m_bDisplay, sizeof(BYTE), 1, pFILE);
 	fread( &pFRAME->m_vCOMP.m_bAlign, sizeof(BYTE), 1, pFILE);
 	fread( &pFRAME->m_vCOMP.m_vEX, sizeof(TSATR), 1, pFILE);
+
+	/*if(pFRAME->m_vCOMP.m_dwID == 50234)
+	{
+		CFile debugFile("vEX.txt", CFile::modeCreate|CFile::modeWrite|CFile::typeText);
+
+		CString strDebug;
+		strDebug.Format("");
+		debugFile.Write(strDebug, strDebug.GetLength());
+		debugFile.Close();
+	}*/
 
 	/*pFRAME->m_vCOMP.m_dwImageID[0] = 10851;
 	pFRAME->m_vCOMP.m_dwImageID[1] = 10851;

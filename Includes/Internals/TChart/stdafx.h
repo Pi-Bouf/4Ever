@@ -5,6 +5,22 @@
 
 #pragma once
 
+struct DXGI_JPEG_DC_HUFFMAN_TABLE
+{
+	typedef int CodeCounts[12];
+	typedef int CodeValues[12];
+};
+
+struct DXGI_JPEG_AC_HUFFMAN_TABLE
+{
+	typedef int CodeCounts[16];
+	typedef int CodeValues[162];
+};
+
+struct DXGI_JPEG_QUANTIZATION_TABLE
+{
+	typedef int  Elements[64];
+};
 
 #define WIN32_LEAN_AND_MEAN		// 거의 사용되지 않는 내용은 Windows 헤더에서 제외합니다.
 #define _ATL_CSTRING_EXPLICIT_CONSTRUCTORS	// 일부 CString 생성자는 명시적으로 선언됩니다.

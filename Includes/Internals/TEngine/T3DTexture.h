@@ -18,6 +18,7 @@ public:
 	void ReleaseDATA();
 
 public:
+	void SaveImageFile(LPCSTR strFileName, D3DXIMAGE_FILEFORMAT destFormat, LPDIRECT3DTEXTURE9 pTEX); // That's OK :)
 	CT3DTexture();
 	virtual ~CT3DTexture();
 };

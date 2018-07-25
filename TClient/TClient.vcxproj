@@ -47,10 +47,11 @@
     <_ProjectFileVersion>15.0.27413.0</_ProjectFileVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>.\Exec\</OutDir>
+    <OutDir>..\..\4Client\</OutDir>
     <IntDir>.\Debug\</IntDir>
     <LinkIncremental>true</LinkIncremental>
     <GenerateManifest>false</GenerateManifest>
+    <TargetName>$(ProjectName)d</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>.\Exec\</OutDir>
@@ -63,7 +64,7 @@
       <AdditionalOptions>/Zm200 %(AdditionalOptions)</AdditionalOptions>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>..\Includes\External\NPGame;..\Includes\External\HShield\Include;..\Includes\External\XTrap;..\Includes\External\Apex;..\Includes\External\sdk-directx9\Include;..\Includes\Internals\TProtocol;..\Includes\Internals\TachyonControl;..\Includes\Internals\TEngine;..\Includes\Internals\TComp;..\Includes\Internals\TCML;..\Includes\Internals\TChart;..\Includes\Internals\History Files</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;TEST_MODE;KOREA;NEW_IF;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;KOREA;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>false</StringPooling>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -76,7 +77,7 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>D3d9.lib;D3dx9.lib;winmm.lib;Advapi32.lib;Imm32.lib;dsound.lib;dxguid.lib;strmiids.lib;Version.lib;XTrap4Client_mt.lib;dbghelp.lib;AHClientInterface.lib;Psapi.lib;HShield.lib;HSUpChk.lib;NPGameLib.lib;Wtsapi32.lib;EngineLibd.lib;TCompd.lib;TChartd.lib;TCMLd.lib;legacy_stdio_definitions.lib</AdditionalDependencies>
-      <OutputFile>$(OutDir)TClientd.exe</OutputFile>
+      <OutputFile>..\..\4Client\TClientd.exe</OutputFile>
       <AdditionalLibraryDirectories>..\Includes\External\NPGame;..\Includes\External\HShield\Lib;..\Includes\External\XTrap;..\Includes\External\Apex;..\Includes\External\sdk-directx9\Lib;..\Includes\Internals\Lib;..\Includes\External\LegacyMFCISAPI</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(IntDir)TClient.pdb</ProgramDatabaseFile>
@@ -365,12 +366,14 @@
     <ClCompile Include="TTournamentSelectTarget.cpp" />
     <ClCompile Include="TTournamentSelectWinner.cpp" />
     <ClCompile Include="TTradeDlg.cpp" />
+    <ClCompile Include="TUIBarDlg.cpp" />
     <ClCompile Include="TUpItemSellDlg.cpp" />
     <ClCompile Include="TWebCashShopDlg.cpp" />
     <ClCompile Include="TWelcome.cpp" />
     <ClCompile Include="TWorldmapDlg.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\Includes\Internals\History Files\TClientID.h" />
     <ClInclude Include="Curse.h" />
     <ClInclude Include="IPDialog.h" />
     <ClInclude Include="md5.h" />
@@ -572,6 +575,7 @@
     <ClInclude Include="TTournamentSelectTarget.h" />
     <ClInclude Include="TTournamentSelectWinner.h" />
     <ClInclude Include="TTradeDlg.h" />
+    <ClInclude Include="TUIBarDlg.h" />
     <ClInclude Include="TUpItemSellDlg.h" />
     <ClInclude Include="TWebCashShopDlg.h" />
     <ClInclude Include="TWelcome.h" />

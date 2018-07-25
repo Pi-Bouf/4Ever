@@ -3,6 +3,23 @@
 //      are changed infrequently
 //
 
+struct DXGI_JPEG_DC_HUFFMAN_TABLE
+{
+	typedef int CodeCounts[12];
+	typedef int CodeValues[12];
+};
+
+struct DXGI_JPEG_AC_HUFFMAN_TABLE
+{
+	typedef int CodeCounts[16];
+	typedef int CodeValues[162];
+};
+
+struct DXGI_JPEG_QUANTIZATION_TABLE
+{
+	typedef int  Elements[64];
+};
+
 #if !defined(AFX_STDAFX_H__944DD3E7_59CF_4318_BAE1_015912087125__INCLUDED_)
 #define AFX_STDAFX_H__944DD3E7_59CF_4318_BAE1_015912087125__INCLUDED_
 
