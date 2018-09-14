@@ -11,7 +11,7 @@ UsedDefine::UsedDefine(CString name, DWORD realValue)
 CString UsedDefine::formattedDefine()
 {
 	CString result;
-	result.Format("\t <DEFINE %s = %d>", this->name, this->realValue);
+	result.Format("\t<DEFINE %s = %d>", this->name, this->realValue);
 
 	return result;
 }

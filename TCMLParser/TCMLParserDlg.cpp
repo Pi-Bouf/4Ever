@@ -420,7 +420,7 @@ void CTCMLParserDlg::LoadFrames()
 
 		CString formattedFont;
 		formattedFont.Format("\t<FONT ID=\"%s\" FACENAME=\"%s\" WIDTH=%d HEIGHT=%d ESCAPEMENT=%d ORIENTATION=%d WEIGHT=%d ITALIC=%d UNDERLINE=%d STRIKEOUT=%d CHARSET=%d OUTPRECISION=%d CLIPPRECISION=%d QUALITY=%d PITCHANDFAMILY=%d FACECLR=%u>\n",
-			ID_Formatted, pFONT->tlfFaceName, pFONT->tlfWidth, pFONT->tlfHeight, pFONT->tlfEscapement, pFONT->tlfOrientation, pFONT->tlfWeight, pFONT->tlfItalic, pFONT->tlfUnderline,
+			ID_Formatted, pFONT->tlfFaceName, pFONT->tlfWidth, pFONT->tlfHeight - 3, pFONT->tlfEscapement, pFONT->tlfOrientation, pFONT->tlfWeight, pFONT->tlfItalic, pFONT->tlfUnderline,
 			pFONT->tlfStrikeOut, pFONT->tlfCharSet, pFONT->tlfOutPrecision, pFONT->tlfClipPrecision, pFONT->tlfQuality, pFONT->tlfPitchAndFamily, pFONT->tlfColor
 		);
 
