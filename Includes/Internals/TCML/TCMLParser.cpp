@@ -41,10 +41,8 @@ void TCMLParser::Release()
 void TCMLParser::Load( char* fname, TCMLParserProgress* pProgress)
 {
 	FILE *pFILE = fopen( fname, "rb");
-	//int nCount2 = 0;
 	int nCount = 0;
 
-	//fread( &nCount2, sizeof(int), 1, pFILE);
 	fread( &nCount, sizeof(int), 1, pFILE);
 
 	for( int i=0; i<nCount; i++)
@@ -58,7 +56,6 @@ void TCMLParser::Load( char* fname, TCMLParserProgress* pProgress)
 			pProgress->OnProgress( (FLOAT) i / (FLOAT) nCount );
 	}
 
-	//fread( &nCount2, sizeof(int), 1, pFILE);
 	fread( &nCount, sizeof(int), 1, pFILE);
 	for(int i=0; i<nCount; i++)
 	{
@@ -91,7 +88,6 @@ LP_FRAMEDESC TCMLParser::LoadFRAME( FILE *pFILE)
 	fread( &pFRAME->m_vCOMP.m_dwCOLOR, sizeof(DWORD), 1, pFILE);
 	fread( &pFRAME->m_vCOMP.m_dwSND, sizeof(DWORD), 1, pFILE);
 
-	//fread( &nCount, sizeof(int), 1, pFILE);
 	fread( &pFRAME->m_vCOMP.m_nMargineH, sizeof(int), 1, pFILE);
 	fread( &pFRAME->m_vCOMP.m_nMargineV, sizeof(int), 1, pFILE);
 	fread( &pFRAME->m_vCOMP.m_nPosX, sizeof(int), 1, pFILE);
@@ -103,20 +99,6 @@ LP_FRAMEDESC TCMLParser::LoadFRAME( FILE *pFILE)
 	fread( &pFRAME->m_vCOMP.m_bAlign, sizeof(BYTE), 1, pFILE);
 	fread( &pFRAME->m_vCOMP.m_vEX, sizeof(TSATR), 1, pFILE);
 
-	/*if(pFRAME->m_vCOMP.m_dwID == 50234)
-	{
-		CFile debugFile("vEX.txt", CFile::modeCreate|CFile::modeWrite|CFile::typeText);
-
-		CString strDebug;
-		strDebug.Format("");
-		debugFile.Write(strDebug, strDebug.GetLength());
-		debugFile.Close();
-	}*/
-
-	/*pFRAME->m_vCOMP.m_dwImageID[0] = 10851;
-	pFRAME->m_vCOMP.m_dwImageID[1] = 10851;
-	pFRAME->m_vCOMP.m_dwImageID[2] = 10851;*/
-
 	fread( &nCount, sizeof(int), 1, pFILE);
 	if( nCount > 0 )
 	{
@@ -144,106 +126,6 @@ LP_FRAMEDESC TCMLParser::LoadFRAME( FILE *pFILE)
 
 	return pFRAME;
 }
-
-/*void TCMLParser::Load( char* fname, TCMLParserProgress* pProgress)
-{
-	FILE *pFILE = fopen( fname, "rb");
-	int nCount = 0;
-
-	fread( &nCount, sizeof(int), 1, pFILE);
-
-    nCount = nCount - 17;
-
-	for( int i=0; i<nCount; i++)
-	{
-		LP_FRAMEDESC pFRAME = LoadFRAME(pFILE);
-
-		if(pFRAME)
-			m_Frames.insert( FRAME_MAP::value_type( pFRAME->m_vCOMP.m_dwID, pFRAME));
-
-		if( pProgress )
-			pProgress->OnProgress( (FLOAT) i / (FLOAT) nCount );
-	}
-
-	fread( &nCount, sizeof(int), 1, pFILE);
-	for( i=0; i<nCount; i++)
-	{
-		LP_TCML_LOGFONT pFONT = new TCML_LOGFONT();
-
-		fread( pFONT, sizeof(TCML_LOGFONT), 1, pFILE);
-		m_Fonts.insert( FONT_MAP::value_type( pFONT->tlfId, pFONT));
-	}
-	m_bDeleteFont = TRUE;
-
-	fclose(pFILE);
-}
-
-LP_FRAMEDESC TCMLParser::LoadFRAME( FILE *pFILE)
-{
-	LP_FRAMEDESC pFRAME = new FRAMEDESC();
-	LP_FRAMEDESC *pNEXT = NULL;
-	char pBUF[MAX_TCML_SYMBOL];
-	DWORD dwID = 0;
-	int nCount = 0;
-
-    //fread( &pFRAME->m_vCOMP.m_dwID, sizeof(DWORD), 1, pFILE);
-	fread( &pFRAME->m_vCOMP.m_bType, sizeof(BYTE), 1, pFILE);
-
-	fread( pFRAME->m_vCOMP.m_vMENU, sizeof(DWORD), TCML_MENU_COUNT, pFILE);
-    //fread( pFRAME->m_vCOMP.m_dwImageID, sizeof(DWORD), 2, pFILE);
-	fread( &pFRAME->m_vCOMP.m_dwTooltipID, sizeof(DWORD), 1, pFILE);
-    fread( &pFRAME->m_vCOMP.m_nWidth, sizeof(int), 1, pFILE);
-    //fread( &pFRAME->m_vCOMP.m_dwFontID, sizeof(DWORD), 1, pFILE);
-	fread( &pFRAME->m_vCOMP.m_dwStyle, sizeof(DWORD), 1, pFILE);
-	fread( &pFRAME->m_vCOMP.m_dwCOLOR, sizeof(DWORD), 1, pFILE);
-    fread( &pFRAME->m_vCOMP.m_bAlign, sizeof(BYTE), 1, pFILE);
-    fread( &pFRAME->m_vCOMP.m_dwSND, sizeof(DWORD), 1, pFILE);
-
-	fread( &pFRAME->m_vCOMP.m_nMargineH, sizeof(int), 1, pFILE);
-    //fread( &pFRAME->m_vCOMP.m_nMargineV, sizeof(int), 1, pFILE);
-	fread( &pFRAME->m_vCOMP.m_nPosX, sizeof(int), 1, pFILE);
-
-    fread( &pFRAME->m_vCOMP.m_dwID, sizeof(DWORD), 1, pFILE);
-
-    fread( &pFRAME->m_vCOMP.m_nPosY, sizeof(int), 1, pFILE);
-    //fread( &pFRAME->m_vCOMP.m_nWidth, sizeof(int), 1, pFILE);
-    fread( pFRAME->m_vCOMP.m_dwImageID, sizeof(DWORD), 2, pFILE);
-	fread( &pFRAME->m_vCOMP.m_nHeight, sizeof(int), 1, pFILE);
-
-    fread( &pFRAME->m_vCOMP.m_nMargineV, sizeof(int), 1, pFILE);
-
-	fread( &pFRAME->m_vCOMP.m_bDisplay, sizeof(BYTE), 1, pFILE);
-    //fread( &pFRAME->m_vCOMP.m_bAlign, sizeof(BYTE), 1, pFILE);
-    fread( &pFRAME->m_vCOMP.m_dwFontID, sizeof(DWORD), 1, pFILE);
-	fread( &pFRAME->m_vCOMP.m_vEX, sizeof(TSATR), 1, pFILE);
-
-	fread( &nCount, sizeof(int), 1, pFILE);
-	if( nCount > 0 )
-	{
-		fread( pBUF, sizeof(char), nCount, pFILE);
-		pBUF[nCount] = '\0';
-		pFRAME->m_vCOMP.m_strTooltip.Format( "%s", pBUF);
-	}
-
-	fread( &nCount, sizeof(int), 1, pFILE);
-	if( nCount > 0 )
-	{
-		fread( pBUF, sizeof(char), nCount, pFILE);
-		pBUF[nCount] = '\0';
-		pFRAME->m_vCOMP.m_strText.Format( "%s", pBUF);
-	}
-
-	fread( &nCount, sizeof(int), 1, pFILE);
-	pNEXT = &pFRAME->m_pCHILD;
-
-	for( int i=0; i<nCount; i++)
-	{
-		(*pNEXT) = LoadFRAME(pFILE);
-		pNEXT = &(*pNEXT)->m_pNEXT;
-	}
-
-	return pFRAME;
-}*/
 
 int TCMLParser::Parse( char* fname)
 {

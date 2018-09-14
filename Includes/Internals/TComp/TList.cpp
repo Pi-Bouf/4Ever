@@ -122,7 +122,9 @@ void TList::InitItemHolder( unsigned int item, int nColumnCount, LP_FRAMEDESC pD
 
 					TCOMP_ARRAY* pHolder2nd = nColumnCount == 0 ? new TCOMP_ARRAY : m_itemholders[i];
 					pHolder2nd->push_back( pListItem );
-					if( nColumnCount == 0 ) m_itemholders.push_back( pHolder2nd );
+					if (nColumnCount == 0) {
+						m_itemholders.push_back(pHolder2nd);
+					}
 				}
 			}
 		}

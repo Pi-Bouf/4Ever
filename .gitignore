@@ -99,5 +99,10 @@ TServer/TControlSvr/TControlSvr.aps
 TServer/TServerSystem/Debug/*
 TServer/TServerSystem/Release/*
 
+# TCMLParser
+TCMLParser/Debug/*
+TCMLParser/Release/*
+TCMLParser/TEST.txt
+
 # Tools
 TClient/Tools
