@@ -7,12 +7,28 @@
 
 #include <iostream>
 #include <regex>
+#include <stdarg.h>
 using namespace std;
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
 
+void CUSTOM_TRACE(const char *fmt, ...)
+{
+	char textString[1024 * 5] = { '\0' };
+
+	// -- Empty the buffer properly to ensure no leaks.
+	memset(textString, '\0', sizeof(textString));
+
+	va_list args;
+	va_start(args, fmt);
+	vsnprintf(textString, 1024 * 5, fmt, args);
+	va_end(args);
+	std::string retStr = textString;
+
+	OutputDebugStringA(retStr.c_str());
+}
 
 extern COMPDESC* TCMLFrame;
 
