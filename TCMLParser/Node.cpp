@@ -191,17 +191,39 @@ Node Node::FromFrameDesc(COMPINST vComp, DefineValues *defineValues, int frameLe
 #pragma endregion
 
 #pragma region MENU
-	attributes.push_back(NodeAttribute::FromNameAndValue("LCLICK", defineValues->FindWithCriteria(vComp.m_vMENU[TNM_LCLICK], "GM_", "UNKNOWN_GM")));
-	attributes.push_back(NodeAttribute::FromNameAndValue("RCLICK", defineValues->FindWithCriteria(vComp.m_vMENU[TNM_RCLICK], "GM_", "UNKNOWN_GM")));
-	attributes.push_back(NodeAttribute::FromNameAndValue("DBLCLICK", defineValues->FindWithCriteria(vComp.m_vMENU[TNM_DBLCLICK], "GM_", "UNKNOWN_GM")));
-	attributes.push_back(NodeAttribute::FromNameAndValue("LINEUP", defineValues->FindWithCriteria(vComp.m_vMENU[TNM_LINEUP], "GM_", "UNKNOWN_GM")));
-	attributes.push_back(NodeAttribute::FromNameAndValue("LINEDOWN", defineValues->FindWithCriteria(vComp.m_vMENU[TNM_LINEDOWN], "GM_", "UNKNOWN_GM")));
-	attributes.push_back(NodeAttribute::FromNameAndValue("VSCROLL", defineValues->FindWithCriteria(vComp.m_vMENU[TNM_VSCROLL], "GM_", "UNKNOWN_GM")));
-	attributes.push_back(NodeAttribute::FromNameAndValue("HSCROLL", defineValues->FindWithCriteria(vComp.m_vMENU[TNM_HSCROLL], "GM_", "UNKNOWN_GM")));
-	attributes.push_back(NodeAttribute::FromNameAndValue("SEL_CHANGE", defineValues->FindWithCriteria(vComp.m_vMENU[TNM_SEL_CHANGE], "GM_", "UNKNOWN_GM")));
-	attributes.push_back(NodeAttribute::FromNameAndValue("TAB_ACTIVE", defineValues->FindWithCriteria(vComp.m_vMENU[TNM_TAB_ACTIVE], "GM_", "UNKNOWN_GM")));
-	attributes.push_back(NodeAttribute::FromNameAndValue("ENTER", defineValues->FindWithCriteria(vComp.m_vMENU[TNM_ENTER], "GM_", "UNKNOWN_GM")));
-	attributes.push_back(NodeAttribute::FromNameAndValue("ESC", defineValues->FindWithCriteria(vComp.m_vMENU[TNM_ESC], "GM_", "UNKNOWN_GM")));
+	if (vComp.m_vMENU[TNM_LCLICK] != LIKE_NULL && vComp.m_vMENU[TNM_LCLICK] != 0) {
+		attributes.push_back(NodeAttribute::FromNameAndValue("LCLICK", defineValues->FindWithCriteria(vComp.m_vMENU[TNM_LCLICK], "GM_", "UNKNOWN_GM")));
+	}
+	if (vComp.m_vMENU[TNM_LCLICK] != LIKE_NULL && vComp.m_vMENU[TNM_RCLICK] != 0) {
+		attributes.push_back(NodeAttribute::FromNameAndValue("RCLICK", defineValues->FindWithCriteria(vComp.m_vMENU[TNM_RCLICK], "GM_", "UNKNOWN_GM")));
+	}
+	if (vComp.m_vMENU[TNM_LCLICK] != LIKE_NULL && vComp.m_vMENU[TNM_DBLCLICK] != 0) {
+		attributes.push_back(NodeAttribute::FromNameAndValue("DBLCLICK", defineValues->FindWithCriteria(vComp.m_vMENU[TNM_DBLCLICK], "GM_", "UNKNOWN_GM")));
+	}
+	if (vComp.m_vMENU[TNM_LCLICK] != LIKE_NULL && vComp.m_vMENU[TNM_LINEUP] != 0) {
+		attributes.push_back(NodeAttribute::FromNameAndValue("LINEUP", defineValues->FindWithCriteria(vComp.m_vMENU[TNM_LINEUP], "GM_", "UNKNOWN_GM")));
+	}
+	if (vComp.m_vMENU[TNM_LCLICK] != LIKE_NULL && vComp.m_vMENU[TNM_LINEDOWN] != 0) {
+		attributes.push_back(NodeAttribute::FromNameAndValue("LINEDOWN", defineValues->FindWithCriteria(vComp.m_vMENU[TNM_LINEDOWN], "GM_", "UNKNOWN_GM")));
+	}
+	if (vComp.m_vMENU[TNM_LCLICK] != LIKE_NULL && vComp.m_vMENU[TNM_VSCROLL] != 0) {
+		attributes.push_back(NodeAttribute::FromNameAndValue("VSCROLL", defineValues->FindWithCriteria(vComp.m_vMENU[TNM_VSCROLL], "GM_", "UNKNOWN_GM")));
+	}
+	if (vComp.m_vMENU[TNM_LCLICK] != LIKE_NULL && vComp.m_vMENU[TNM_HSCROLL] != 0) {
+		attributes.push_back(NodeAttribute::FromNameAndValue("HSCROLL", defineValues->FindWithCriteria(vComp.m_vMENU[TNM_HSCROLL], "GM_", "UNKNOWN_GM")));
+	}
+	if (vComp.m_vMENU[TNM_LCLICK] != LIKE_NULL && vComp.m_vMENU[TNM_SEL_CHANGE] != 0) {
+		attributes.push_back(NodeAttribute::FromNameAndValue("SEL_CHANGE", defineValues->FindWithCriteria(vComp.m_vMENU[TNM_SEL_CHANGE], "GM_", "UNKNOWN_GM")));
+	}
+	if (vComp.m_vMENU[TNM_LCLICK] != LIKE_NULL && vComp.m_vMENU[TNM_TAB_ACTIVE] != 0) {
+		attributes.push_back(NodeAttribute::FromNameAndValue("TAB_ACTIVE", defineValues->FindWithCriteria(vComp.m_vMENU[TNM_TAB_ACTIVE], "GM_", "UNKNOWN_GM")));
+	}
+	if (vComp.m_vMENU[TNM_LCLICK] != LIKE_NULL && vComp.m_vMENU[TNM_ENTER] != 0) {
+		attributes.push_back(NodeAttribute::FromNameAndValue("ENTER", defineValues->FindWithCriteria(vComp.m_vMENU[TNM_ENTER], "GM_", "UNKNOWN_GM")));
+	}
+	if (vComp.m_vMENU[TNM_LCLICK] != LIKE_NULL && vComp.m_vMENU[TNM_ESC] != 0) {
+		attributes.push_back(NodeAttribute::FromNameAndValue("ESC", defineValues->FindWithCriteria(vComp.m_vMENU[TNM_ESC], "GM_", "UNKNOWN_GM")));
+	}
 #pragma endregion
 
 #pragma region MARGINS&POSITIONS
