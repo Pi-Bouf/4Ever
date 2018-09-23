@@ -1366,6 +1366,14 @@ void CTachyonRes::LoadIMGBUF( CString strFILE,
 			dwSIZE,
 			bFormat);
 
+		/*
+		if (strFILE == "Img\\IconSrc.TIS") {
+			CString position;
+			position.Format("DecompiledIcons\\%u.png", dwPOS);
+
+			pTEX->SaveImageFile(position, D3DXIFF_PNG, pTEX->GetTEX());
+		}*/
+
 		m_mapIMGBUF.insert( MAPT3DTEXTURE::value_type( dwID, pTEX));
 		dwPOS = DWORD(file.GetPosition());
 		nIndex++;
