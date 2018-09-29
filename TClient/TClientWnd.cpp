@@ -4706,7 +4706,10 @@ void CTClientWnd::ClearMsgBoxStackForced()
 	while( !m_MsgBoxStack.empty() )
 	{
 		TMESSAGEBOX vBox = m_MsgBoxStack.top();
-		m_MsgBoxStack.pop();
+		
+		if (m_MsgBoxStack.size() > 0) {
+			m_MsgBoxStack.pop();
+		}
 
 		if( vBox.vIgnoreID.m_dwID != 0 )
 			OnCommand( vBox.vIgnoreID );
@@ -4768,7 +4771,9 @@ void CTClientWnd::CloseMessageBox( BOOL bCloseAll )
 	}
 	else
 	{
-		m_MsgBoxStack.pop();
+		if (m_MsgBoxStack.size() > 0) {
+			m_MsgBoxStack.pop();
+		}
 
 		if( m_MsgBoxStack.empty() == false )
 		{
