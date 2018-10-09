@@ -52,6 +52,7 @@
 #include "TRpcRewardDlg.h"
 #include "TAidCountry.h"
 #include "TChallengeWaiting.h"
+#include "TUIBarDlg.h"
 
 
 
@@ -222,6 +223,9 @@ int CTClientGame::OnCS_CHARINFO_ACK( CTachyonSession *pSession, CPacket *pPacket
 	ReleaseNumber();
 	ReleaseParty();
 	ReleaseArrow();
+
+	CTUIBarDlg* pDlg = static_cast<CTUIBarDlg*> (m_vTFRAME[TFRAME_UIBAR]);
+	pDlg->bShownFade = TRUE;
 
 	DoMainRunAway(FALSE);
 
@@ -717,7 +721,7 @@ int CTClientGame::OnCS_MONACTION_ACK( CTachyonSession *pSession, CPacket *pPacke
 		!pMON->m_pMON->m_bApplyAI )
 		return TERR_NONE;
 
-#if defined(TEST_MODE) || defined(DEBUG)
+#if defined(TEST_MODE)
 	if( !m_bMonRoaming && (
 		bAction == TA_WALK ||
 		bAction == TA_RUN) )

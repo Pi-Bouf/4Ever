@@ -1296,6 +1296,9 @@ void CTachyonRes::LoadTEX( CString strFILE,
 		DWORD dwSize = 0;
 		ucpr.Read( &dwSize, sizeof(DWORD));
 
+		CString position;
+		position.Format("DecompiledTextures\\%u.png", dwPOS);
+
 		if( dwSize > 0 )
 		{
 			CT3DTexture *pTEXSRC = new CT3DTexture();
@@ -1314,6 +1317,7 @@ void CTachyonRes::LoadTEX( CString strFILE,
 
 				pTEXSRC->LoadT3DTEX( pDATA, dwSize, dwOrgSize, bFormat);
 				ucpr.Seek( dwSize, CFile::current);
+				//pTEXSRC->SaveImageFile(position, D3DXIFF_PNG, pTEXSRC->GetTEX());
 			}
 
 			pTRESDATA->insert( MAPRES::value_type( dwPOS, pTEXSRC));
@@ -1361,6 +1365,14 @@ void CTachyonRes::LoadIMGBUF( CString strFILE,
 			dwDATA,
 			dwSIZE,
 			bFormat);
+
+		/*
+		if (strFILE == "Img\\IconSrc.TIS") {
+			CString position;
+			position.Format("DecompiledIcons\\%u.png", dwPOS);
+
+			pTEX->SaveImageFile(position, D3DXIFF_PNG, pTEX->GetTEX());
+		}*/
 
 		m_mapIMGBUF.insert( MAPT3DTEXTURE::value_type( dwID, pTEX));
 		dwPOS = DWORD(file.GetPosition());
@@ -2064,7 +2076,10 @@ void CTachyonRes::ComplateTEX()
 			for( int i=0; i<nCount; i++)
 			{
 				MAPRES::iterator finder = m_mapTEXSRC.find((DWORD) pTEX->GetTexturePtr(i));
-				pTEX->SetTexturePtr( i, (CT3DTexture *) (*finder).second);
+				if (finder != m_mapTEXSRC.end())
+				{
+					pTEX->SetTexturePtr(i, (CT3DTexture *)(*finder).second);
+				}
 			}
 		}
 	}

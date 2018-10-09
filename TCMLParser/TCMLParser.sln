@@ -1,0 +1,51 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2042
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TCMLParser", "TCMLParser.vcxproj", "{D566EBA1-7E47-4666-A14E-54D4202EFA9C}"
+	ProjectSection(ProjectDependencies) = postProject
+		{0438D87F-42E9-4FD3-8F6D-9D14753231B6} = {0438D87F-42E9-4FD3-8F6D-9D14753231B6}
+		{C4A71BAD-3C8E-4F06-B0DB-57DE85FDB0DB} = {C4A71BAD-3C8E-4F06-B0DB-57DE85FDB0DB}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TEngine", "..\Includes\Internals\TEngine\TEngine.vcxproj", "{C4A71BAD-3C8E-4F06-B0DB-57DE85FDB0DB}"
+	ProjectSection(ProjectDependencies) = postProject
+		{0438D87F-42E9-4FD3-8F6D-9D14753231B6} = {0438D87F-42E9-4FD3-8F6D-9D14753231B6}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TCML", "..\Includes\Internals\TCML\TCML.vcxproj", "{0438D87F-42E9-4FD3-8F6D-9D14753231B6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release_Debug|x86 = Release_Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D566EBA1-7E47-4666-A14E-54D4202EFA9C}.Debug|x86.ActiveCfg = Debug|Win32
+		{D566EBA1-7E47-4666-A14E-54D4202EFA9C}.Debug|x86.Build.0 = Debug|Win32
+		{D566EBA1-7E47-4666-A14E-54D4202EFA9C}.Release_Debug|x86.ActiveCfg = Release|Win32
+		{D566EBA1-7E47-4666-A14E-54D4202EFA9C}.Release_Debug|x86.Build.0 = Release|Win32
+		{D566EBA1-7E47-4666-A14E-54D4202EFA9C}.Release|x86.ActiveCfg = Release|Win32
+		{D566EBA1-7E47-4666-A14E-54D4202EFA9C}.Release|x86.Build.0 = Release|Win32
+		{C4A71BAD-3C8E-4F06-B0DB-57DE85FDB0DB}.Debug|x86.ActiveCfg = Debug|Win32
+		{C4A71BAD-3C8E-4F06-B0DB-57DE85FDB0DB}.Debug|x86.Build.0 = Debug|Win32
+		{C4A71BAD-3C8E-4F06-B0DB-57DE85FDB0DB}.Release_Debug|x86.ActiveCfg = Release_Debug|Win32
+		{C4A71BAD-3C8E-4F06-B0DB-57DE85FDB0DB}.Release_Debug|x86.Build.0 = Release_Debug|Win32
+		{C4A71BAD-3C8E-4F06-B0DB-57DE85FDB0DB}.Release|x86.ActiveCfg = Release|Win32
+		{C4A71BAD-3C8E-4F06-B0DB-57DE85FDB0DB}.Release|x86.Build.0 = Release|Win32
+		{0438D87F-42E9-4FD3-8F6D-9D14753231B6}.Debug|x86.ActiveCfg = Debug|Win32
+		{0438D87F-42E9-4FD3-8F6D-9D14753231B6}.Debug|x86.Build.0 = Debug|Win32
+		{0438D87F-42E9-4FD3-8F6D-9D14753231B6}.Release_Debug|x86.ActiveCfg = Release_Debug|Win32
+		{0438D87F-42E9-4FD3-8F6D-9D14753231B6}.Release_Debug|x86.Build.0 = Release_Debug|Win32
+		{0438D87F-42E9-4FD3-8F6D-9D14753231B6}.Release|x86.ActiveCfg = Release|Win32
+		{0438D87F-42E9-4FD3-8F6D-9D14753231B6}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {475DAD12-AB87-4C96-A866-AFF4A7583855}
+	EndGlobalSection
+EndGlobal

@@ -303,7 +303,7 @@ TComponent::TComponent(TComponent *pParent, LP_FRAMEDESC pDesc)
 
 TComponent::~TComponent()
 {
-	Clear();	
+	Clear();
 }
 
 void TComponent::CreateFrom(LP_FRAMEDESC pDesc)

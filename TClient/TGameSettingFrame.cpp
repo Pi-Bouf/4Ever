@@ -16,7 +16,8 @@ LPBYTE CTGameSettingFrame::TOPTIONPTR[OPTION_COUNT] =
 	&CTClientGame::m_vTOPTION.m_bHUD,
 	&CTClientGame::m_vTOPTION.m_bContinualChat,
 	&CTClientGame::m_vTOPTION.m_bMouseClickMove,
-	&CTClientGame::m_vTOPTION.m_bAutoTargeting
+	&CTClientGame::m_vTOPTION.m_bAutoTargeting,
+	&CTClientGame::m_vTOPTION.m_bUIBar
 };
 
 DWORD CTGameSettingFrame::TNAME[OPTION_COUNT] = 
@@ -31,7 +32,8 @@ DWORD CTGameSettingFrame::TNAME[OPTION_COUNT] =
 	TSTR_GAMEOPTION_SHOW_HUD, //HUD 보이기
 	TSTR_GAMEOPTION_CONTINUOUS_CHAT, //연속 채팅
 	TSTR_GAMEOPTION_MOUSE_CLICK_MOVE, //마우스 클릭 이동
-	TSTR_GAMEOPTION_AUTO_TARGETING //자동 타겟팅 사용
+	TSTR_GAMEOPTION_AUTO_TARGETING, //자동 타겟팅 사용
+	TSTR_GAMEOPTION_UIBAR
 };
 
 // ===============================================================================

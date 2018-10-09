@@ -118,7 +118,7 @@ void ZeroCompDesc( LP_COMPDESC ptr)
 	for( int i=0; i<TCML_MENU_COUNT; i++)
 		ptr->menu[i] = TCML_ID_NULL;
 
-	for( int i=0; i<2; i++)
+	for(int i=0; i<2; i++)
 		ptr->images[i] = TCML_ID_NULL;
 
 	memset( &ptr->ex, TCML_ID_NULL, sizeof(TSATR));
